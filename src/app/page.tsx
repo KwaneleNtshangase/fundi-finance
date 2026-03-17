@@ -2,8 +2,36 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CONTENT_DATA } from "@/data/content";
+import { useProgress } from "@/hooks/useProgress";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import {
+  ArrowLeft,
+  BookOpen,
+  Brain,
+  Building2,
+  Briefcase,
+  CheckCircle2,
+  CreditCard,
+  FileText,
+  Flame,
+  Flag,
+  Home as HomeIcon,
+  Lock,
+  Settings as SettingsIcon,
+  Shield,
+  Siren,
+  Target,
+  TrendingUp,
+  Trophy,
+  LogOut,
+  Umbrella,
+  User as UserIcon,
+  Wallet,
+  Zap,
+} from "lucide-react";
 
 import type { Course, Lesson, LessonStep } from "@/data/content";
 
@@ -11,10 +39,9 @@ type UserData = {
   xp: number;
   level: number;
   streak: number;
-  lastActiveDate: string | null;
+  totalCompleted: number;
   dailyXP: number;
   dailyGoal: number;
-  completedLessons: Record<string, Record<string, boolean>>;
   badges: string[];
 };
 
@@ -26,19 +53,11 @@ type Route =
   | { name: "leaderboard" }
   | { name: "settings" };
 
-const DEFAULT_USER_DATA: UserData = {
-  xp: 0,
-  level: 1,
-  streak: 0,
-  lastActiveDate: null,
-  dailyXP: 0,
-  dailyGoal: 50,
-  completedLessons: {},
-  badges: [],
-};
-
 function useFundiState() {
-  const [userData, setUserData] = useState<UserData>(DEFAULT_USER_DATA);
+  const progress = useProgress();
+  const [dailyXP, setDailyXP] = useState(0);
+  const [dailyGoal, setDailyGoal] = useState(50);
+  const [userBadges, setUserBadges] = useState<string[]>([]);
   const [route, setRoute] = useState<Route>({ name: "learn" });
   const [currentLessonState, setCurrentLessonState] = useState<{
     courseId: string | null;
@@ -57,92 +76,23 @@ function useFundiState() {
   });
 
   useEffect(() => {
-    const saved = typeof window !== "undefined"
-      ? window.localStorage.getItem("fundiUserData")
-      : null;
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as UserData;
-        setUserData(parsed);
-      } catch {
-        setUserData(DEFAULT_USER_DATA);
-      }
-    } else {
-      setUserData(DEFAULT_USER_DATA);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem("fundiUserData", JSON.stringify(userData));
-  }, [userData]);
-
-  const updateStreak = () => {
-    const today = new Date().toDateString();
-    const lastActive = userData.lastActiveDate;
-    let streak = userData.streak;
-    let dailyXP = userData.dailyXP;
-
-    if (!lastActive) {
-      streak = 0;
-    } else if (lastActive !== today) {
-      const lastDate = new Date(lastActive);
-      const currentDate = new Date(today);
-      const diffDays = Math.floor(
-        (currentDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      if (diffDays === 1) {
-        streak += 1;
-      } else if (diffDays > 1) {
-        streak = 0;
-      }
-      dailyXP = 0;
-    }
-
-    setUserData((prev) => ({
-      ...prev,
-      streak,
-      dailyXP,
-      lastActiveDate: today,
-    }));
-  };
-
-  useEffect(() => {
-    updateStreak();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    progress.updateStreak();
+    // daily XP resets on new day (simple in-memory tracker)
+    setDailyXP(0);
   }, []);
 
   const addXP = (amount: number) => {
-    setUserData((prev) => {
-      const xp = prev.xp + amount;
-      const dailyXP = prev.dailyXP + amount;
-      const newLevel = Math.floor(xp / 500) + 1;
-      return {
-        ...prev,
-        xp,
-        dailyXP,
-        level: newLevel > prev.level ? newLevel : prev.level,
-      };
-    });
+    progress.addXP(amount);
+    setDailyXP((v) => v + amount);
   };
 
   const completeLesson = (courseId: string, lessonId: string, xpEarned: number) => {
-    setUserData((prev) => {
-      const completedLessons = { ...prev.completedLessons };
-      if (!completedLessons[courseId]) {
-        completedLessons[courseId] = {};
-      }
-      completedLessons[courseId][lessonId] = true;
-      return {
-        ...prev,
-        completedLessons,
-      };
-    });
+    progress.completeLesson(`${courseId}:${lessonId}`);
     addXP(xpEarned);
   };
 
   const isLessonCompleted = (courseId: string, lessonId: string) =>
-    !!userData.completedLessons[courseId]?.[lessonId];
+    progress.completedLessons.has(`${courseId}:${lessonId}`);
 
   const startLesson = (courseId: string, lessonId: string) => {
     const course = CONTENT_DATA.courses.find((c) => c.id === courseId);
@@ -168,7 +118,19 @@ function useFundiState() {
   };
 
   const value = {
-    userData,
+    userData: {
+      xp: progress.xp,
+      level: Math.floor(progress.xp / 500) + 1,
+      streak: progress.streak,
+      totalCompleted: progress.completedLessons.size,
+      dailyXP,
+      dailyGoal,
+      badges: userBadges,
+    } satisfies UserData,
+    dailyXP,
+    dailyGoal,
+    setDailyGoal,
+    resetProgress: progress.resetProgress,
     route,
     setRoute,
     isLessonCompleted,
@@ -178,6 +140,38 @@ function useFundiState() {
   };
 
   return value;
+}
+
+function CourseIcon({ name, size = 48 }: { name: string; size?: number }) {
+  const props = { size, className: "text-current" };
+  switch (name) {
+    case "wallet":
+      return <Wallet {...props} />;
+    case "briefcase":
+      return <Briefcase {...props} />;
+    case "building-2":
+      return <Building2 {...props} />;
+    case "credit-card":
+      return <CreditCard {...props} />;
+    case "shield":
+      return <Shield {...props} />;
+    case "umbrella":
+      return <Umbrella {...props} />;
+    case "trending-up":
+      return <TrendingUp {...props} />;
+    case "flag":
+      return <Flag {...props} />;
+    case "home":
+      return <HomeIcon {...props} />;
+    case "file-text":
+      return <FileText {...props} />;
+    case "siren":
+      return <Siren {...props} />;
+    case "brain":
+      return <Brain {...props} />;
+    default:
+      return <Wallet {...props} />;
+  }
 }
 
 function LearnView({
@@ -221,7 +215,7 @@ function LearnView({
               <div className="course-header">
                 <div>
                   <div style={{ fontSize: 48, marginBottom: 12 }}>
-                    {course.icon}
+                    <CourseIcon name={course.icon} size={48} />
                   </div>
                   <div className="course-title">{course.title}</div>
                   <div className="course-description">
@@ -264,10 +258,15 @@ function CourseView({
     <main className="main-content main-with-stats">
       <div className="course-map">
         <button className="back-button" onClick={goBack}>
-          ← Back to Courses
+          <span className="inline-flex items-center gap-2">
+            <ArrowLeft size={20} className="text-current" />
+            Back to Courses
+          </span>
         </button>
         <div className="course-map-header">
-          <div style={{ fontSize: 64, marginBottom: 16 }}>{course.icon}</div>
+          <div style={{ marginBottom: 16 }}>
+            <CourseIcon name={course.icon} size={64} />
+          </div>
           <h2 className="course-map-title">{course.title}</h2>
           <p className="course-map-description">{course.description}</p>
         </div>
@@ -282,13 +281,15 @@ function CourseView({
                 const completed = isLessonCompleted(course.id, lesson.id);
                 const comingSoon = lesson.comingSoon;
                 let nodeClass = "lesson-node";
-                let icon = "📖";
+                let icon: ReactNode = (
+                  <BookOpen size={28} className="text-current" />
+                );
                 if (comingSoon) {
                   nodeClass += " coming-soon";
-                  icon = "🔒";
+                  icon = <Lock size={28} className="text-current" />;
                 } else if (completed) {
                   nodeClass += " completed";
-                  icon = "✓";
+                  icon = <CheckCircle2 size={28} className="text-current" />;
                 }
                 return (
                   <div key={lesson.id}>
@@ -478,31 +479,35 @@ function LessonView({
   );
 }
 
-function ProfileView({ userData }: { userData: UserData }) {
+function ProfileView({
+  userData,
+  onSignOut,
+}: {
+  userData: UserData;
+  onSignOut: () => void;
+}) {
   const totalCompleted = useMemo(
-    () =>
-      Object.values(userData.completedLessons).reduce(
-        (sum, course) => sum + Object.keys(course).length,
-        0
-      ),
-    [userData.completedLessons]
+    () => userData.totalCompleted,
+    [userData.totalCompleted]
   );
 
   const allBadges = [
-    { id: "first-lesson", name: "First Steps", icon: "🌱" },
-    { id: "five-lessons", name: "Getting Started", icon: "🚀" },
-    { id: "ten-lessons", name: "On a Roll", icon: "🔥" },
-    { id: "twenty-lessons", name: "Committed", icon: "💪" },
-    { id: "streak-7", name: "7 Day Streak", icon: "⚡" },
-    { id: "streak-30", name: "30 Day Streak", icon: "🏆" },
-    { id: "course-complete", name: "Course Master", icon: "🎓" },
-    { id: "all-courses", name: "Finance Pro", icon: "👑" },
+    { id: "first-lesson", name: "First Steps", icon: <CheckCircle2 size={20} className="text-current" /> },
+    { id: "five-lessons", name: "Getting Started", icon: <TrendingUp size={20} className="text-current" /> },
+    { id: "ten-lessons", name: "On a Roll", icon: <Flame size={20} className="text-current" /> },
+    { id: "twenty-lessons", name: "Committed", icon: <Target size={20} className="text-current" /> },
+    { id: "streak-7", name: "7 Day Streak", icon: <Zap size={20} className="text-current" /> },
+    { id: "streak-30", name: "30 Day Streak", icon: <Trophy size={20} className="text-current" /> },
+    { id: "course-complete", name: "Course Master", icon: <BookOpen size={20} className="text-current" /> },
+    { id: "all-courses", name: "Finance Pro", icon: <Wallet size={20} className="text-current" /> },
   ];
 
   return (
     <main className="main-content main-with-stats">
       <div className="profile-header">
-        <div className="profile-avatar">👤</div>
+        <div className="profile-avatar">
+          <UserIcon size={56} className="text-white" />
+        </div>
         <h2
           style={{
             fontSize: 32,
@@ -557,12 +562,26 @@ function ProfileView({ userData }: { userData: UserData }) {
                 key={badge.id}
                 className={`badge ${earned ? "earned" : "locked"}`}
               >
-                <div className="badge-icon">{badge.icon}</div>
+                <div className="badge-icon inline-flex items-center justify-center">
+                  {badge.icon}
+                </div>
                 <div className="badge-name">{badge.name}</div>
               </div>
             );
           })}
         </div>
+      </div>
+
+      <div style={{ marginTop: 24 }}>
+        <button
+          type="button"
+          onClick={onSignOut}
+          className="inline-flex items-center gap-2 text-sm font-semibold"
+          style={{ color: "var(--color-danger)" }}
+        >
+          <LogOut size={18} className="text-current" />
+          Sign Out
+        </button>
       </div>
     </main>
   );
@@ -618,7 +637,11 @@ function LeaderboardView({ xp }: { xp: number }) {
               <div className="leaderboard-info">
                 <div className="leaderboard-name">
                   {leader.name}
-                  {isYou ? " 🎯" : ""}
+                  {isYou ? (
+                    <span className="ml-2 inline-flex align-middle">
+                      <Target size={16} className="text-current" />
+                    </span>
+                  ) : null}
                 </div>
               </div>
               <div className="leaderboard-xp">
@@ -706,7 +729,9 @@ function StatsPanel({ userData }: { userData: UserData }) {
       <div className="stats-section">
         <h3>My Stats</h3>
         <div className="stat-item">
-          <div className="stat-icon">🔥</div>
+          <div className="stat-icon">
+            <Flame size={28} className="text-current" />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Day Streak</div>
             <div className="stat-value" id="streakValue">
@@ -715,7 +740,9 @@ function StatsPanel({ userData }: { userData: UserData }) {
           </div>
         </div>
         <div className="stat-item">
-          <div className="stat-icon">⚡</div>
+          <div className="stat-icon">
+            <Zap size={28} className="text-current" />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Total XP</div>
             <div className="stat-value" id="xpValue">
@@ -724,7 +751,9 @@ function StatsPanel({ userData }: { userData: UserData }) {
           </div>
         </div>
         <div className="stat-item">
-          <div className="stat-icon">🎯</div>
+          <div className="stat-icon">
+            <Target size={28} className="text-current" />
+          </div>
           <div className="stat-content">
             <div className="stat-label">Level</div>
             <div className="stat-value" id="levelValue">
@@ -800,10 +829,6 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (e) setError(e.message);
   };
 
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -825,16 +850,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
             width: "100%",
           }}
         >
-          <h1
-            style={{
-              fontSize: 24,
-              fontWeight: 800,
-              marginBottom: 16,
-              textAlign: "center",
-            }}
-          >
-            💰 Fundi Finance
-          </h1>
+          <div className="flex items-center justify-center gap-2" style={{ marginBottom: 16 }}>
+            <Wallet size={22} className="text-[var(--primary-green)]" />
+            <h1 style={{ fontSize: 24, fontWeight: 800, textAlign: "center" }}>
+              Fundi Finance
+            </h1>
+          </div>
           <p
             style={{
               textAlign: "center",
@@ -894,28 +915,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     );
   }
 
-  return (
-    <>
-      <button
-        className="btn btn-secondary"
-        style={{
-          position: "fixed",
-          top: 16,
-          right: 344,
-          zIndex: 200,
-        }}
-        onClick={handleSignOut}
-      >
-        Sign Out
-      </button>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }
 
 export default function Home() {
   const {
     userData,
+    dailyXP,
+    dailyGoal,
+    setDailyGoal,
+    resetProgress: resetProgressState,
     route,
     setRoute,
     isLessonCompleted,
@@ -982,25 +991,30 @@ export default function Home() {
     }));
   };
 
-  const setDailyGoal = (goal: number) => {
-    setRoute((prev) => ({ ...prev }));
-    // quick state update
-    (window as any).requestAnimationFrame?.(() => undefined);
+  const handleResetProgress = () => {
+    if (typeof window !== "undefined" && window.confirm("Reset all progress?")) {
+      void resetProgressState();
+      window.location.reload();
+    }
   };
 
-  const resetProgress = () => {
-    if (typeof window !== "undefined" && window.confirm("Reset all progress?")) {
-      window.localStorage.removeItem("fundiUserData");
-      window.location.reload();
+  const handleProfileSignOut = async () => {
+    await supabase.auth.signOut();
+    setRoute({ name: "learn" });
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
     }
   };
 
   return (
     <AuthGate>
       <div className="app-container">
-        <nav className="sidebar">
+        <nav className="sidebar hidden md:block">
           <div className="logo">
-            <h1>💰 Fundi Finance</h1>
+            <h1 className="inline-flex items-center gap-2">
+              <Wallet size={22} className="text-[var(--primary-green)]" />
+              Fundi Finance
+            </h1>
             <p>Master Your Money</p>
           </div>
           <ul className="nav-menu">
@@ -1011,7 +1025,9 @@ export default function Home() {
                 }`}
                 onClick={() => handleNav("learn")}
               >
-                <span className="nav-icon">📚</span>
+                <span className="nav-icon">
+                  <BookOpen size={20} className="text-current" />
+                </span>
                 Learn
               </button>
             </li>
@@ -1022,7 +1038,9 @@ export default function Home() {
                 }`}
                 onClick={() => handleNav("profile")}
               >
-                <span className="nav-icon">👤</span>
+                <span className="nav-icon">
+                  <UserIcon size={20} className="text-current" />
+                </span>
                 Profile
               </button>
             </li>
@@ -1033,7 +1051,9 @@ export default function Home() {
                 }`}
                 onClick={() => handleNav("leaderboard")}
               >
-                <span className="nav-icon">🏆</span>
+                <span className="nav-icon">
+                  <Trophy size={20} className="text-current" />
+                </span>
                 Leaderboard
               </button>
             </li>
@@ -1044,13 +1064,17 @@ export default function Home() {
                 }`}
                 onClick={() => handleNav("settings")}
               >
-                <span className="nav-icon">⚙️</span>
+                <span className="nav-icon">
+                  <SettingsIcon size={20} className="text-current" />
+                </span>
                 Settings
               </button>
             </li>
           </ul>
         </nav>
 
+        {/* keep content above bottom nav on mobile */}
+        <div className="pb-24 md:pb-0">
         {route.name === "learn" && (
           <LearnView
             courses={CONTENT_DATA.courses}
@@ -1106,7 +1130,9 @@ export default function Home() {
           />
         )}
 
-        {route.name === "profile" && <ProfileView userData={userData} />}
+        {route.name === "profile" && (
+          <ProfileView userData={userData} onSignOut={handleProfileSignOut} />
+        )}
 
         {route.name === "leaderboard" && (
           <LeaderboardView xp={userData.xp} />
@@ -1115,16 +1141,51 @@ export default function Home() {
         {route.name === "settings" && (
           <SettingsView
             userData={userData}
-            setDailyGoal={(goal) => {
-              // simple update
-              (window as any).fundiSetDailyGoal?.(goal);
-            }}
-            resetProgress={resetProgress}
+            setDailyGoal={setDailyGoal}
+            resetProgress={handleResetProgress}
           />
         )}
 
         <StatsPanel userData={userData} />
+        </div>
       </div>
+
+      <MobileBottomNav
+        items={[
+          {
+            key: "home",
+            label: "Home",
+            icon: <HomeIcon size={20} className="text-current" />,
+            isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
+            onClick: () => setRoute({ name: "learn" }),
+            order: "order-1",
+          },
+          {
+            key: "learn",
+            label: "Learn",
+            icon: <BookOpen size={20} className="text-current" />,
+            isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
+            onClick: () => setRoute({ name: "learn" }),
+            order: "order-2",
+          },
+          {
+            key: "progress",
+            label: "Progress",
+            icon: <TrendingUp size={20} className="text-current" />,
+            isActive: route.name === "leaderboard",
+            onClick: () => handleNav("leaderboard"),
+            order: "order-3",
+          },
+          {
+            key: "profile",
+            label: "Profile",
+            icon: <UserIcon size={20} className="text-current" />,
+            isActive: route.name === "profile",
+            onClick: () => handleNav("profile"),
+            order: "order-4",
+          },
+        ]}
+      />
     </AuthGate>
   );
 }

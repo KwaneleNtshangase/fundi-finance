@@ -1,19 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --primary-green: #58cc02;
-  --primary-green-dark: #46a302;
-  --primary-green-light: #89e219;
-  --lesson-yellow: #ffc800;
-  --lesson-yellow-light: #ffd53e;
-  --bg-gray: #f7f7f7;
-  --sidebar-bg: #ffffff;
-  --text-dark: #3c3c3c;
-  --text-light: #777777;
-  --border-light: #e5e5e5;
-  --error-red: #ea2b2b;
-  --success-green: #58cc02;
-  --info-blue: #1cb0f6;
+  --color-primary: #4f46e5; /* Indigo — main brand colour */
+  --color-primary-hover: #4338ca;
+  --color-secondary: #10b981; /* Emerald green — XP/progress */
+  --color-accent: #f59e0b; /* Amber — streaks, rewards */
+  --color-danger: #ef4444; /* Red — errors, wrong answers */
+  --color-bg: #f9fafb; /* Light grey page background */
+  --color-surface: #ffffff; /* Card/panel background */
+  --color-text-primary: #111827; /* Main text */
+  --color-text-secondary: #6b7280; /* Subtext, labels */
+  --color-border: #e5e7eb; /* Borders, dividers */
+  --color-nav-bg: #ffffff; /* Bottom nav background */
+  --color-nav-active: #4f46e5; /* Active nav item */
+
+  /* Back-compat aliases used by existing CSS */
+  --primary-green: var(--color-primary);
+  --primary-green-dark: var(--color-primary-hover);
+  --primary-green-light: var(--color-primary-hover);
+  --lesson-yellow: var(--color-accent);
+  --lesson-yellow-light: var(--color-accent);
+  --bg-gray: var(--color-bg);
+  --sidebar-bg: var(--color-surface);
+  --text-dark: var(--color-text-primary);
+  --text-light: var(--color-text-secondary);
+  --border-light: var(--color-border);
+  --error-red: var(--color-danger);
+  --success-green: var(--color-secondary);
+  --info-blue: var(--color-primary);
 }
 
 body {
@@ -22,8 +36,8 @@ body {
   box-sizing: border-box;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
     "Ubuntu", "Cantarell", sans-serif;
-  background: var(--bg-gray);
-  color: var(--text-dark);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
   line-height: 1.6;
 }
 
@@ -34,8 +48,8 @@ body {
 
 .sidebar {
   width: 280px;
-  background: var(--sidebar-bg);
-  border-right: 2px solid var(--border-light);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   padding: 24px 0;
   position: fixed;
   height: 100vh;
@@ -45,18 +59,18 @@ body {
 
 .logo {
   padding: 0 24px 32px;
-  border-bottom: 2px solid var(--border-light);
+  border-bottom: 1px solid var(--color-border);
   margin-bottom: 16px;
 }
 
 .logo h1 {
-  color: var(--primary-green);
+  color: var(--color-primary);
   font-size: 28px;
   font-weight: 800;
 }
 
 .logo p {
-  color: var(--text-light);
+  color: var(--color-text-secondary);
   font-size: 13px;
   margin-top: 4px;
 }
@@ -74,7 +88,7 @@ body {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: var(--text-dark);
+  color: var(--color-text-primary);
   text-decoration: none;
   border-radius: 12px;
   font-weight: 600;
@@ -88,11 +102,11 @@ body {
 }
 
 .nav-link:hover {
-  background: var(--bg-gray);
+  background: var(--color-bg);
 }
 
 .nav-link.active {
-  background: var(--primary-green);
+  background: var(--color-nav-active);
   color: white;
 }
 
@@ -177,11 +191,7 @@ body {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--primary-green),
-    var(--primary-green-light)
-  );
+  background: var(--color-secondary);
   transition: width 0.3s;
 }
 
@@ -197,10 +207,10 @@ body {
 }
 
 .course-card {
-  background: white;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border-radius: 12px;
   padding: 24px;
-  border: 2px solid var(--border-light);
+  border: 1px solid var(--color-border);
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
 }
@@ -237,7 +247,7 @@ body {
 .course-percentage {
   font-size: 28px;
   font-weight: 700;
-  color: var(--primary-green);
+  color: var(--color-secondary);
 }
 
 .course-percentage-label {
@@ -309,22 +319,20 @@ body {
 }
 
 .unit-header {
-  background: linear-gradient(
-    135deg,
-    var(--primary-green),
-    var(--primary-green-dark)
-  );
-  color: white;
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  color: var(--color-text-primary);
   padding: 16px 24px;
-  border-radius: 16px;
+  border-radius: 12px;
   margin-bottom: 24px;
-  box-shadow: 0 4px 12px rgba(88, 204, 2, 0.3);
+  box-shadow: none;
 }
 
 .unit-title {
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 4px;
+  color: var(--color-primary);
 }
 
 .unit-description {
@@ -341,11 +349,12 @@ body {
 }
 
 .lesson-node {
-  width: 80px;
-  height: 80px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  border: 4px solid var(--lesson-yellow);
-  background: var(--lesson-yellow);
+  border: 1px solid var(--color-border);
+  background: rgba(245, 158, 11, 0.2); /* amber @ 20% */
+  color: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -361,20 +370,23 @@ body {
 }
 
 .lesson-node.completed {
-  background: var(--primary-green);
-  border-color: var(--primary-green);
+  background: var(--color-secondary);
+  border-color: var(--color-secondary);
+  color: white;
 }
 
 .lesson-node.locked {
-  background: var(--border-light);
-  border-color: var(--border-light);
+  background: #f3f4f6; /* gray-100 */
+  border-color: var(--color-border);
+  color: #9ca3af; /* gray-400 */
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .lesson-node.coming-soon {
-  background: #e5e5e5;
-  border-color: #e5e5e5;
+  background: #f3f4f6; /* gray-100 */
+  border-color: var(--color-border);
+  color: #9ca3af; /* gray-400 */
   font-size: 24px;
   cursor: default;
 }
@@ -402,19 +414,15 @@ body {
 
 .lesson-progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--primary-green),
-    var(--primary-green-light)
-  );
+  background: var(--color-secondary);
   transition: width 0.3s;
 }
 
 .lesson-step {
-  background: white;
-  border-radius: 16px;
+  background: var(--color-surface);
+  border-radius: 12px;
   padding: 48px;
-  border: 2px solid var(--border-light);
+  border: 1px solid var(--color-border);
   min-height: 400px;
 }
 
@@ -522,7 +530,7 @@ body {
 .btn {
   padding: 16px 32px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -532,12 +540,12 @@ body {
 }
 
 .btn-primary {
-  background: var(--primary-green);
+  background: var(--color-primary);
   color: white;
 }
 
 .btn-primary:hover {
-  background: var(--primary-green-dark);
+  background: var(--color-primary-hover);
   transform: translateY(-2px);
 }
 

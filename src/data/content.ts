@@ -38,7 +38,7 @@ export type Course = {
   id: string;
   title: string;
   description: string;
-  icon: string;
+  icon: string; // icon name (no emojis)
   units: Unit[];
 };
 
@@ -49,7 +49,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       title: "Money Basics",
       description:
         "Master the fundamentals of personal finance, from inflation to budgeting",
-      icon: "💵",
+      icon: "wallet",
       units: [
         {
           id: "unit-1",
@@ -280,7 +280,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "salary-payslip",
       title: "Salary & Payslip",
       description: "Understand your payslip, deductions, and take-home pay",
-      icon: "💼",
+      icon: "briefcase",
       units: [
         {
           id: "unit-1",
@@ -420,7 +420,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "banking-debit",
       title: "Banking & Debit Orders",
       description: "Master bank fees, debit orders, and disputes",
-      icon: "🏦",
+      icon: "building-2",
       units: [
         {
           id: "unit-1",
@@ -473,7 +473,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       title: "Credit & Debt",
       description:
         "Understand credit scores, interest, and how to escape debt",
-      icon: "💳",
+      icon: "credit-card",
       units: [
         {
           id: "unit-1",
@@ -525,7 +525,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "emergency-fund",
       title: "Emergency Fund & Risk",
       description: "Build your safety net and manage financial risk",
-      icon: "🛡️",
+      icon: "shield",
       units: [
         {
           id: "unit-1",
@@ -572,7 +572,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "insurance",
       title: "Insurance & Protection",
       description: "Understand life, disability, and other insurance basics",
-      icon: "☂️",
+      icon: "umbrella",
       units: [
         {
           id: "unit-1",
@@ -624,7 +624,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "investing-basics",
       title: "Investing Basics",
       description: "Risk, return, diversification, and time horizon",
-      icon: "📈",
+      icon: "trending-up",
       units: [
         {
           id: "unit-1",
@@ -676,7 +676,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "sa-investing",
       title: "SA Investment Vehicles",
       description: "TFSAs, RAs, unit trusts, and ETFs explained",
-      icon: "🇿🇦",
+      icon: "flag",
       units: [
         {
           id: "unit-1",
@@ -728,7 +728,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "property",
       title: "Property & Big Purchases",
       description: "Home loans, affordability, and hidden costs",
-      icon: "🏠",
+      icon: "home",
       units: [
         {
           id: "unit-1",
@@ -780,7 +780,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "taxes",
       title: "Taxes for Individuals",
       description: "Tax thresholds, filing, and deductions",
-      icon: "📝",
+      icon: "file-text",
       units: [
         {
           id: "unit-1",
@@ -832,7 +832,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "scams-fraud",
       title: "Scams & Fraud",
       description: "Protect yourself from financial fraud",
-      icon: "🚨",
+      icon: "siren",
       units: [
         {
           id: "unit-1",
@@ -884,7 +884,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
       id: "money-psychology",
       title: "Money Psychology",
       description: "Behavioral biases and lifestyle inflation",
-      icon: "🧠",
+      icon: "brain",
       units: [
         {
           id: "unit-1",
