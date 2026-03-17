@@ -1,4 +1,46 @@
-import type { Course, LessonStep } from "@/app/page";
+export type LessonStep =
+  | {
+      type: "info";
+      title: string;
+      content: string;
+    }
+  | {
+      type: "mcq" | "scenario";
+      title?: string;
+      question: string;
+      options: string[];
+      correct: number;
+      feedback: { correct: string; incorrect: string };
+      content?: string;
+    }
+  | {
+      type: "true-false";
+      statement: string;
+      correct: boolean;
+      feedback: { correct: string; incorrect: string };
+    };
+
+export type Lesson = {
+  id: string;
+  title: string;
+  comingSoon?: boolean;
+  steps?: LessonStep[];
+};
+
+export type Unit = {
+  id: string;
+  title: string;
+  description: string;
+  lessons: Lesson[];
+};
+
+export type Course = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  units: Unit[];
+};
 
 export const CONTENT_DATA: { courses: Course[] } = {
   courses: [

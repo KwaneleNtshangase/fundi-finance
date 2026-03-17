@@ -5,48 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { CONTENT_DATA } from "@/data/content";
 
-export type LessonStep =
-  | {
-      type: "info";
-      title: string;
-      content: string;
-    }
-  | {
-      type: "mcq" | "scenario";
-      question: string;
-      options: string[];
-      correct: number;
-      feedback: { correct: string; incorrect: string };
-      content?: string;
-    }
-  | {
-      type: "true-false";
-      statement: string;
-      correct: boolean;
-      feedback: { correct: string; incorrect: string };
-    };
-
-export type Lesson = {
-  id: string;
-  title: string;
-  comingSoon?: boolean;
-  steps?: LessonStep[];
-};
-
-export type Unit = {
-  id: string;
-  title: string;
-  description: string;
-  lessons: Lesson[];
-};
-
-export type Course = {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  units: Unit[];
-};
+import type { Course, Lesson, LessonStep } from "@/data/content";
 
 type UserData = {
   xp: number;
