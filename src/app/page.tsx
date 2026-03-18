@@ -690,7 +690,7 @@ function CalculatorView() {
               }}
             />
             <Tooltip
-              formatter={(value: number) => formatZAR(value)}
+              formatter={(value) => formatZAR(Number(value))}
               labelFormatter={(label) => `Year ${label}`}
             />
             <Legend />
