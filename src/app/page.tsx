@@ -8,11 +8,22 @@ import { CONTENT_DATA } from "@/data/content";
 import { useProgress } from "@/hooks/useProgress";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
   ArrowLeft,
   BookOpen,
   Brain,
   Building2,
   Briefcase,
+  Calculator,
   CheckCircle2,
   CreditCard,
   FileText,
@@ -35,6 +46,52 @@ import {
 
 import type { Course, Lesson, LessonStep } from "@/data/content";
 
+function playSound(type: "correct" | "incorrect" | "complete") {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctx =
+      (window as any).AudioContext || (window as any).webkitAudioContext;
+    const ctx = new Ctx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    if (type === "correct") {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.3
+      );
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } else if (type === "incorrect") {
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.3
+      );
+      osc.start();
+      osc.stop(ctx.currentTime + 0.3);
+    } else if (type === "complete") {
+      osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(
+        0.001,
+        ctx.currentTime + 0.5
+      );
+      osc.start();
+      osc.stop(ctx.currentTime + 0.5);
+    }
+  } catch {
+    // ignore audio errors
+  }
+}
+
 type UserData = {
   xp: number;
   level: number;
@@ -51,7 +108,682 @@ type Route =
   | { name: "lesson"; courseId: string; lessonId: string }
   | { name: "profile" }
   | { name: "leaderboard" }
-  | { name: "settings" };
+  | { name: "settings" }
+  | { name: "calculator" };
+
+type CalcInputs = {
+  principal: number;
+  monthly: number;
+  rate: number;
+  years: number;
+  escalation: number;
+  frequency: "monthly" | "annually" | "once-off";
+};
+
+function calcGrowth(inputs: CalcInputs) {
+  const { principal, monthly, rate, years, escalation, frequency } = inputs;
+  const data: {
+    year: number;
+    value: number;
+    contributions: number;
+    interest: number;
+  }[] = [];
+  let balance = principal;
+  let currentMonthly = monthly;
+  let totalContributions = principal;
+
+  for (let year = 0; year <= years; year++) {
+    data.push({
+      year,
+      value: Math.round(balance),
+      contributions: Math.round(totalContributions),
+      interest: Math.round(balance - totalContributions),
+    });
+    if (year < years) {
+      if (frequency === "monthly") {
+        for (let m = 0; m < 12; m++) {
+          balance = balance * (1 + rate / 100 / 12) + currentMonthly;
+          totalContributions += currentMonthly;
+        }
+        currentMonthly = currentMonthly * (1 + escalation / 100);
+      } else if (frequency === "annually") {
+        balance = balance * Math.pow(1 + rate / 100, 1) + currentMonthly * 12;
+        totalContributions += currentMonthly * 12;
+        currentMonthly = currentMonthly * (1 + escalation / 100);
+      } else {
+        balance = balance * Math.pow(1 + rate / 100, 1);
+      }
+    }
+  }
+  return data;
+}
+
+function formatZAR(value: number) {
+  return `R${Math.round(value).toLocaleString("en-ZA")}`;
+}
+
+function SliderInput({
+  label,
+  value,
+  min,
+  max,
+  step,
+  format,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  format: (v: number) => string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: 6,
+        }}
+      >
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            fontSize: 15,
+            fontWeight: 800,
+            color: "var(--color-primary)",
+          }}
+        >
+          {format(value)}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        style={{
+          width: "100%",
+          accentColor: "var(--color-primary)",
+          height: 6,
+          cursor: "pointer",
+        }}
+      />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: 11,
+          color: "var(--color-text-secondary)",
+          marginTop: 2,
+        }}
+      >
+        <span>{format(min)}</span>
+        <span>{format(max)}</span>
+      </div>
+    </div>
+  );
+}
+
+function CalculatorView() {
+  const defaultInputs: CalcInputs = {
+    principal: 50000,
+    monthly: 1000,
+    rate: 10,
+    years: 10,
+    escalation: 5,
+    frequency: "monthly",
+  };
+  const [mode, setMode] = useState<"single" | "compare">("single");
+  const [inputsA, setInputsA] = useState<CalcInputs>(defaultInputs);
+  const [inputsB, setInputsB] = useState<CalcInputs>({
+    ...defaultInputs,
+    rate: 7,
+    monthly: 500,
+  });
+
+  const dataA = calcGrowth(inputsA);
+  const dataB = calcGrowth(inputsB);
+  const finalA = dataA[dataA.length - 1];
+  const finalB = dataB[dataB.length - 1];
+
+  const chartData =
+    mode === "single"
+      ? dataA.map((d) => ({
+          year: d.year,
+          "Portfolio Value": d.value,
+          "Total Contributions": d.contributions,
+        }))
+      : dataA.map((d, i) => ({
+          year: d.year,
+          "Investment A": d.value,
+          "Investment B": dataB[i]?.value ?? 0,
+        }));
+
+  const InputPanel = ({
+    label,
+    inputs,
+    setInputs,
+  }: {
+    label?: string;
+    inputs: CalcInputs;
+    setInputs: (i: CalcInputs) => void;
+  }) => (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: 16,
+        padding: 20,
+        flex: 1,
+      }}
+    >
+      {label && (
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            color: "var(--color-primary)",
+            marginBottom: 16,
+            textTransform: "uppercase",
+            letterSpacing: 1,
+          }}
+        >
+          {label}
+        </div>
+      )}
+      <SliderInput
+        label="Initial Lump Sum"
+        value={inputs.principal}
+        min={0}
+        max={2000000}
+        step={5000}
+        format={formatZAR}
+        onChange={(v) => setInputs({ ...inputs, principal: v })}
+      />
+      <SliderInput
+        label="Monthly Contribution"
+        value={inputs.monthly}
+        min={0}
+        max={50000}
+        step={500}
+        format={formatZAR}
+        onChange={(v) => setInputs({ ...inputs, monthly: v })}
+      />
+      <SliderInput
+        label="Annual Return (%)"
+        value={inputs.rate}
+        min={1}
+        max={30}
+        step={0.5}
+        format={(v) => `${v}%`}
+        onChange={(v) => setInputs({ ...inputs, rate: v })}
+      />
+      <SliderInput
+        label="Investment Term"
+        value={inputs.years}
+        min={1}
+        max={40}
+        step={1}
+        format={(v) => `${v} yrs`}
+        onChange={(v) => setInputs({ ...inputs, years: v })}
+      />
+      <SliderInput
+        label="Annual Contribution Increase (%)"
+        value={inputs.escalation}
+        min={0}
+        max={20}
+        step={1}
+        format={(v) => `${v}%`}
+        onChange={(v) => setInputs({ ...inputs, escalation: v })}
+      />
+      <div style={{ marginBottom: 20 }}>
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: "var(--color-text-secondary)",
+            marginBottom: 8,
+          }}
+        >
+          Investment Frequency
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {(["monthly", "annually", "once-off"] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setInputs({ ...inputs, frequency: f })}
+              style={{
+                flex: 1,
+                padding: "8px 4px",
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                cursor: "pointer",
+                border: "2px solid",
+                borderColor:
+                  inputs.frequency === f
+                    ? "var(--color-primary)"
+                    : "var(--color-border)",
+                background:
+                  inputs.frequency === f
+                    ? "var(--color-primary-light)"
+                    : "white",
+                color:
+                  inputs.frequency === f
+                    ? "var(--color-primary)"
+                    : "var(--color-text-secondary)",
+              }}
+            >
+              {f === "once-off"
+                ? "Once-off"
+                : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const ResultCard = ({
+    label,
+    value,
+    highlight,
+  }: {
+    label: string;
+    value: string;
+    highlight?: boolean;
+  }) => (
+    <div
+      style={{
+        background: highlight
+          ? "var(--color-primary)"
+          : "var(--color-surface)",
+        border: `1px solid ${
+          highlight ? "var(--color-primary)" : "var(--color-border)"
+        }`,
+        borderRadius: 12,
+        padding: "16px 20px",
+        textAlign: "center",
+        flex: 1,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: highlight
+            ? "rgba(255,255,255,0.8)"
+            : "var(--color-text-secondary)",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+          marginBottom: 4,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 20,
+          fontWeight: 800,
+          color: highlight ? "white" : "var(--color-primary)",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+
+  return (
+    <main className="main-content main-with-stats">
+      <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>
+        Investment Calculator
+      </h2>
+      <p
+        style={{
+          color: "var(--color-text-secondary)",
+          marginBottom: 24,
+        }}
+      >
+        See how your money can grow over time
+      </p>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          marginBottom: 24,
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: 12,
+          padding: 4,
+          width: "fit-content",
+        }}
+      >
+        {(["single", "compare"] as const).map((m) => (
+          <button
+            key={m}
+            onClick={() => setMode(m)}
+            style={{
+              padding: "8px 20px",
+              borderRadius: 8,
+              fontWeight: 700,
+              fontSize: 14,
+              cursor: "pointer",
+              border: "none",
+              background:
+                mode === m ? "var(--color-primary)" : "transparent",
+              color:
+                mode === m ? "white" : "var(--color-text-secondary)",
+              transition: "all 0.2s ease",
+            }}
+          >
+            {m === "single" ? "Single" : "Compare Two"}
+          </button>
+        ))}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 16,
+          flexWrap: "wrap",
+          marginBottom: 24,
+        }}
+      >
+        <InputPanel
+          label={mode === "compare" ? "Investment A" : undefined}
+          inputs={inputsA}
+          setInputs={setInputsA}
+        />
+        {mode === "compare" && (
+          <InputPanel
+            label="Investment B"
+            inputs={inputsB}
+            setInputs={setInputsB}
+          />
+        )}
+      </div>
+
+      {mode === "single" ? (
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            flexWrap: "wrap",
+            marginBottom: 24,
+          }}
+        >
+          <ResultCard
+            label="Final Value"
+            value={formatZAR(finalA.value)}
+            highlight
+          />
+          <ResultCard
+            label="Total Contributions"
+            value={formatZAR(finalA.contributions)}
+          />
+          <ResultCard
+            label="Total Interest Earned"
+            value={formatZAR(finalA.interest)}
+          />
+        </div>
+      ) : (
+        <div
+          style={{
+            marginBottom: 24,
+            background: "var(--color-surface)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 16,
+            overflow: "hidden",
+          }}
+        >
+          <table
+            style={{
+              width: "100%",
+              borderCollapse: "collapse",
+              fontSize: 14,
+            }}
+          >
+            <thead>
+              <tr style={{ background: "var(--color-bg)" }}>
+                <th
+                  style={{
+                    padding: "12px 16px",
+                    textAlign: "left",
+                    fontWeight: 700,
+                    color: "var(--color-text-secondary)",
+                  }}
+                >
+                  Metric
+                </th>
+                <th
+                  style={{
+                    padding: "12px 16px",
+                    textAlign: "right",
+                    fontWeight: 700,
+                    color: "var(--color-primary)",
+                  }}
+                >
+                  Investment A
+                </th>
+                <th
+                  style={{
+                    padding: "12px 16px",
+                    textAlign: "right",
+                    fontWeight: 700,
+                    color: "var(--color-secondary)",
+                  }}
+                >
+                  Investment B
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {[
+                [
+                  "Final Value",
+                  formatZAR(finalA.value),
+                  formatZAR(finalB.value),
+                ],
+                [
+                  "Total Contributions",
+                  formatZAR(finalA.contributions),
+                  formatZAR(finalB.contributions),
+                ],
+                [
+                  "Total Interest",
+                  formatZAR(finalA.interest),
+                  formatZAR(finalB.interest),
+                ],
+                ["Annual Return", `${inputsA.rate}%`, `${inputsB.rate}%`],
+                ["Term", `${inputsA.years} yrs`, `${inputsB.years} yrs`],
+              ].map(([metric, a, b]) => (
+                <tr
+                  key={metric}
+                  style={{
+                    borderTop: "1px solid var(--color-border)",
+                  }}
+                >
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      color: "var(--color-text-secondary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {metric}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      textAlign: "right",
+                      fontWeight: 700,
+                      color: "var(--color-primary)",
+                    }}
+                  >
+                    {a}
+                  </td>
+                  <td
+                    style={{
+                      padding: "12px 16px",
+                      textAlign: "right",
+                      fontWeight: 700,
+                      color: "var(--color-secondary)",
+                    }}
+                  >
+                    {b}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div
+        style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: 16,
+          padding: 20,
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 16 }}>
+          Growth Over Time
+        </div>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="var(--color-border)"
+            />
+            <XAxis
+              dataKey="year"
+              tickFormatter={(v) => `Yr ${v}`}
+              tick={{
+                fontSize: 11,
+                fill: "var(--color-text-secondary)",
+              }}
+            />
+            <YAxis
+              tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`}
+              tick={{
+                fontSize: 11,
+                fill: "var(--color-text-secondary)",
+              }}
+            />
+            <Tooltip
+              formatter={(value: number) => formatZAR(value)}
+              labelFormatter={(label) => `Year ${label}`}
+            />
+            <Legend />
+            {mode === "single" ? (
+              <>
+                <Line
+                  type="monotone"
+                  dataKey="Portfolio Value"
+                  stroke="var(--color-primary)"
+                  strokeWidth={3}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Total Contributions"
+                  stroke="var(--color-accent)"
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={false}
+                />
+              </>
+            ) : (
+              <>
+                <Line
+                  type="monotone"
+                  dataKey="Investment A"
+                  stroke="var(--color-primary)"
+                  strokeWidth={3}
+                  dot={false}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="Investment B"
+                  stroke="var(--color-secondary)"
+                  strokeWidth={3}
+                  dot={false}
+                />
+              </>
+            )}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div
+        style={{
+          background: "var(--color-primary-light)",
+          border: "1px solid var(--color-primary)",
+          borderRadius: 16,
+          padding: 24,
+          textAlign: "center",
+          marginBottom: 32,
+        }}
+      >
+        <div
+          style={{
+            fontWeight: 800,
+            fontSize: 18,
+            marginBottom: 4,
+          }}
+        >
+          Want a personalised investment plan?
+        </div>
+        <p
+          style={{
+            color: "var(--color-text-secondary)",
+            fontSize: 14,
+            marginBottom: 16,
+          }}
+        >
+          Kwanele has helped 100+ South Africans build real portfolios. Your
+          numbers deserve a real plan.
+        </p>
+        <a
+          href="https://wealthwithkwanele.co.za"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-block",
+            padding: "12px 28px",
+            background: "var(--color-primary)",
+            color: "white",
+            borderRadius: 12,
+            fontWeight: 700,
+            fontSize: 15,
+            textDecoration: "none",
+          }}
+        >
+          Book a Free Call
+        </a>
+      </div>
+    </main>
+  );
+}
 
 function useFundiState() {
   const progress = useProgress();
@@ -319,6 +1051,7 @@ function LessonView({
   nextStep,
   answerQuestion,
   answerTrueFalse,
+  correctCount,
 }: {
   lessonState: {
     steps: LessonStep[];
@@ -329,6 +1062,7 @@ function LessonView({
   nextStep: () => void;
   answerQuestion: (index: number) => void;
   answerTrueFalse: (value: boolean) => void;
+  correctCount: number;
 }) {
   const step = lessonState.steps[lessonState.stepIndex];
   const progress =
@@ -400,9 +1134,52 @@ function LessonView({
                 {isCorrect ? step.feedback.correct : step.feedback.incorrect}
               </div>
               <div className="lesson-actions">
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Continue
-                </button>
+                {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      animation: "fade-in 0.4s ease-out",
+                      width: "100%",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 48,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Trophy
+                        size={48}
+                        className="text-[var(--color-accent)]"
+                        style={{ margin: "0 auto" }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 24,
+                        fontWeight: 800,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Lesson Complete!
+                    </div>
+                    <div
+                      style={{
+                        color: "var(--color-text-secondary)",
+                        marginBottom: 16,
+                      }}
+                    >
+                      +{50 + correctCount * 10} XP earned
+                    </div>
+                    <button className="btn btn-primary" onClick={nextStep}>
+                      Continue
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn btn-primary" onClick={nextStep}>
+                    Continue
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -452,9 +1229,52 @@ function LessonView({
                 {isCorrect ? step.feedback.correct : step.feedback.incorrect}
               </div>
               <div className="lesson-actions">
-                <button className="btn btn-primary" onClick={nextStep}>
-                  Continue
-                </button>
+                {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      animation: "fade-in 0.4s ease-out",
+                      width: "100%",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 48,
+                        marginBottom: 8,
+                      }}
+                    >
+                      <Trophy
+                        size={48}
+                        className="text-[var(--color-accent)]"
+                        style={{ margin: "0 auto" }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 24,
+                        fontWeight: 800,
+                        marginBottom: 4,
+                      }}
+                    >
+                      Lesson Complete!
+                    </div>
+                    <div
+                      style={{
+                        color: "var(--color-text-secondary)",
+                        marginBottom: 16,
+                      }}
+                    >
+                      +{50 + correctCount * 10} XP earned
+                    </div>
+                    <button className="btn btn-primary" onClick={nextStep}>
+                      Continue
+                    </button>
+                  </div>
+                ) : (
+                  <button className="btn btn-primary" onClick={nextStep}>
+                    Continue
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -940,6 +1760,7 @@ export default function Home() {
 
   const handleNav = (name: Route["name"]) => {
     if (name === "learn") setRoute({ name: "learn" });
+    if (name === "calculator") setRoute({ name: "calculator" });
     if (name === "profile") setRoute({ name: "profile" });
     if (name === "leaderboard") setRoute({ name: "leaderboard" });
     if (name === "settings") setRoute({ name: "settings" });
@@ -965,6 +1786,7 @@ export default function Home() {
           totalXP
         );
       }
+      playSound("complete");
       setRoute({ name: "course", courseId: currentLessonState.courseId! });
     }
   };
@@ -972,23 +1794,25 @@ export default function Home() {
   const answerQuestion = (index: number) => {
     const step = currentLessonState.steps[currentLessonState.stepIndex];
     if (step.type !== "mcq" && step.type !== "scenario") return;
+    const isCorrect = index === step.correct;
     setCurrentLessonState((prev) => ({
       ...prev,
       answers: { ...prev.answers, [prev.stepIndex]: index },
-      correctCount:
-        index === step.correct ? prev.correctCount + 1 : prev.correctCount,
+      correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
+    playSound(isCorrect ? "correct" : "incorrect");
   };
 
   const answerTrueFalse = (value: boolean) => {
     const step = currentLessonState.steps[currentLessonState.stepIndex];
     if (step.type !== "true-false") return;
+    const isCorrect = value === step.correct;
     setCurrentLessonState((prev) => ({
       ...prev,
       answers: { ...prev.answers, [prev.stepIndex]: value },
-      correctCount:
-        value === step.correct ? prev.correctCount + 1 : prev.correctCount,
+      correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
+    playSound(isCorrect ? "correct" : "incorrect");
   };
 
   const handleResetProgress = () => {
@@ -1127,6 +1951,7 @@ export default function Home() {
             nextStep={nextStep}
             answerQuestion={answerQuestion}
             answerTrueFalse={answerTrueFalse}
+            correctCount={currentLessonState.correctCount}
           />
         )}
 
@@ -1146,6 +1971,8 @@ export default function Home() {
           />
         )}
 
+        {route.name === "calculator" && <CalculatorView />}
+
         <StatsPanel userData={userData} />
         </div>
       </div>
@@ -1153,19 +1980,19 @@ export default function Home() {
       <MobileBottomNav
         items={[
           {
-            key: "home",
-            label: "Home",
-            icon: <HomeIcon size={20} className="text-current" />,
-            isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
-            onClick: () => setRoute({ name: "learn" }),
-            order: "order-1",
-          },
-          {
             key: "learn",
             label: "Learn",
             icon: <BookOpen size={20} className="text-current" />,
             isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
             onClick: () => setRoute({ name: "learn" }),
+            order: "order-1",
+          },
+          {
+            key: "calculator",
+            label: "Calculate",
+            icon: <Calculator size={20} className="text-current" />,
+            isActive: route.name === "calculator",
+            onClick: () => handleNav("calculator"),
             order: "order-2",
           },
           {

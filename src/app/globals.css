@@ -1,18 +1,22 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #4f46e5; /* Indigo — main brand colour */
+  --color-primary: #4f46e5;
   --color-primary-hover: #4338ca;
-  --color-secondary: #10b981; /* Emerald green — XP/progress */
-  --color-accent: #f59e0b; /* Amber — streaks, rewards */
-  --color-danger: #ef4444; /* Red — errors, wrong answers */
-  --color-bg: #f9fafb; /* Light grey page background */
-  --color-surface: #ffffff; /* Card/panel background */
-  --color-text-primary: #111827; /* Main text */
-  --color-text-secondary: #6b7280; /* Subtext, labels */
-  --color-border: #e5e7eb; /* Borders, dividers */
-  --color-nav-bg: #ffffff; /* Bottom nav background */
-  --color-nav-active: #4f46e5; /* Active nav item */
+  --color-primary-light: #eef2ff;
+  --color-secondary: #10b981;
+  --color-secondary-light: #d1fae5;
+  --color-accent: #f59e0b;
+  --color-accent-light: #fef3c7;
+  --color-danger: #ef4444;
+  --color-danger-light: #fee2e2;
+  --color-bg: #f3f4f6;
+  --color-surface: #ffffff;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-border: #e5e7eb;
+  --color-nav-bg: #ffffff;
+  --color-nav-active: #4f46e5;
 
   /* Back-compat aliases used by existing CSS */
   --primary-green: var(--color-primary);
@@ -106,8 +110,9 @@ body {
 }
 
 .nav-link.active {
-  background: var(--color-nav-active);
-  color: white;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: 10px;
 }
 
 .nav-icon {
@@ -160,6 +165,7 @@ body {
 .stat-icon {
   font-size: 28px;
   margin-right: 12px;
+  color: var(--color-accent);
 }
 
 .stat-content {
@@ -191,8 +197,8 @@ body {
 
 .progress-fill {
   height: 100%;
-  background: var(--color-secondary);
-  transition: width 0.3s;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  transition: width 0.6s ease-out;
 }
 
 .progress-text {
@@ -208,16 +214,17 @@ body {
 
 .course-card {
   background: var(--color-surface);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
   border: 1px solid var(--color-border);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: 0.2s ease;
   cursor: pointer;
 }
 
 .course-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
 }
 
 .course-header {
@@ -246,8 +253,8 @@ body {
 
 .course-percentage {
   font-size: 28px;
-  font-weight: 700;
-  color: var(--color-secondary);
+  font-weight: 800;
+  color: var(--color-primary);
 }
 
 .course-percentage-label {
@@ -352,9 +359,9 @@ body {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  border: 1px solid var(--color-border);
-  background: rgba(245, 158, 11, 0.2); /* amber @ 20% */
-  color: var(--color-accent);
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,23 +377,23 @@ body {
 }
 
 .lesson-node.completed {
-  background: var(--color-secondary);
+  background: var(--color-secondary-light);
   border-color: var(--color-secondary);
-  color: white;
+  color: var(--color-secondary);
 }
 
 .lesson-node.locked {
-  background: #f3f4f6; /* gray-100 */
+  background: #f9fafb;
   border-color: var(--color-border);
-  color: #9ca3af; /* gray-400 */
+  color: var(--color-text-secondary);
   cursor: not-allowed;
   opacity: 0.6;
 }
 
 .lesson-node.coming-soon {
-  background: #f3f4f6; /* gray-100 */
+  background: #f9fafb;
   border-color: var(--color-border);
-  color: #9ca3af; /* gray-400 */
+  color: var(--color-text-secondary);
   font-size: 24px;
   cursor: default;
 }
@@ -405,17 +412,72 @@ body {
 }
 
 .lesson-progress-bar {
-  height: 12px;
-  background: var(--border-light);
-  border-radius: 6px;
+  height: 10px;
+  background: var(--color-border);
+  border-radius: 99px;
   margin-bottom: 32px;
   overflow: hidden;
 }
 
 .lesson-progress-fill {
   height: 100%;
-  background: var(--color-secondary);
-  transition: width 0.3s;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 99px;
+  transition: width 0.4s ease-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-6px);
+  }
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.option-button.correct {
+  animation: bounce-in 0.3s ease-out;
+}
+
+.option-button.incorrect {
+  animation: shake 0.4s ease-out;
+}
+
+.feedback {
+  animation: fade-in 0.25s ease-out;
 }
 
 .lesson-step {
@@ -466,21 +528,21 @@ body {
 }
 
 .option-button {
-  padding: 20px 24px;
-  background: white;
-  border: 3px solid var(--border-light);
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: 12px;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
   text-align: left;
   width: 100%;
 }
 
 .option-button:hover {
-  border-color: var(--primary-green);
-  background: rgba(88, 204, 2, 0.05);
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
 }
 
 .option-button.selected {
@@ -489,13 +551,15 @@ body {
 }
 
 .option-button.correct {
-  border-color: var(--success-green);
-  background: rgba(88, 204, 2, 0.2);
+  border-color: var(--color-secondary);
+  background: var(--color-secondary-light);
+  color: #065f46;
 }
 
 .option-button.incorrect {
-  border-color: var(--error-red);
-  background: rgba(234, 43, 43, 0.1);
+  border-color: var(--color-danger);
+  background: var(--color-danger-light);
+  color: #991b1b;
 }
 
 .option-button:disabled {
@@ -511,13 +575,19 @@ body {
 }
 
 .feedback.correct {
-  background: rgba(88, 204, 2, 0.15);
-  color: var(--primary-green-dark);
+  background: var(--color-secondary-light);
+  color: #065f46;
+  border-left: 4px solid var(--color-secondary);
+  border-radius: 8px;
+  padding: 12px 16px;
 }
 
 .feedback.incorrect {
-  background: rgba(234, 43, 43, 0.15);
-  color: var(--error-red);
+  background: var(--color-danger-light);
+  color: #991b1b;
+  border-left: 4px solid var(--color-danger);
+  border-radius: 8px;
+  padding: 12px 16px;
 }
 
 .lesson-actions {
@@ -528,9 +598,9 @@ body {
 }
 
 .btn {
-  padding: 16px 32px;
+  padding: 14px 24px;
   border: none;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
@@ -604,11 +674,7 @@ body {
 .profile-avatar {
   width: 120px;
   height: 120px;
-  background: linear-gradient(
-    135deg,
-    var(--primary-green),
-    var(--primary-green-dark)
-  );
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -668,11 +734,13 @@ body {
 }
 
 .badge.earned {
-  background: rgba(88, 204, 2, 0.1);
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
 }
 
 .badge.locked {
-  opacity: 0.4;
+  background: #f9fafb;
+  opacity: 0.5;
 }
 
 .badge-icon {
