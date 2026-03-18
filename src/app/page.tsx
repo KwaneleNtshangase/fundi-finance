@@ -259,7 +259,7 @@ function CalculatorView() {
   const finalA = dataA[dataA.length - 1];
   const finalB = dataB[dataB.length - 1];
 
-  const chartData =
+  const chartData: Record<string, number>[] =
     mode === "single"
       ? dataA.map((d) => ({
           year: d.year,
