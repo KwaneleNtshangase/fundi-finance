@@ -1,22 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-primary-light: #eef2ff;
-  --color-secondary: #10b981;
-  --color-secondary-light: #d1fae5;
-  --color-accent: #f59e0b;
-  --color-accent-light: #fef3c7;
-  --color-danger: #ef4444;
-  --color-danger-light: #fee2e2;
-  --color-bg: #f3f4f6;
+  --color-primary: #007A4D;
+  --color-primary-hover: #006040;
+  --color-primary-light: #E6F4EF;
+  --color-secondary: #FFB612;
+  --color-secondary-light: #FFF6DC;
+  --color-accent: #E03C31;
+  --color-accent-light: #FDECEA;
+  --color-danger: #E03C31;
+  --color-danger-light: #FDECEA;
+  --color-bg: #F0F7F4;
   --color-surface: #ffffff;
   --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-border: #e5e7eb;
+  --color-text-secondary: #6B7280;
+  --color-border: #D1E8DF;
   --color-nav-bg: #ffffff;
-  --color-nav-active: #4f46e5;
+  --color-nav-active: #007A4D;
+  --color-hearts: #E03C31;
+  --color-streak: #FFB612;
 
   /* Back-compat aliases used by existing CSS */
   --primary-green: var(--color-primary);
