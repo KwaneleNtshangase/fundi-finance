@@ -471,11 +471,15 @@ body {
 }
 
 .option-button.correct {
-  animation: bounce-in 0.3s ease-out;
+  background: #007A4D !important;
+  border-color: #007A4D !important;
+  color: white !important;
 }
 
 .option-button.incorrect {
-  animation: shake 0.4s ease-out;
+  background: #E03C31 !important;
+  border-color: #E03C31 !important;
+  color: white !important;
 }
 
 .feedback {
@@ -553,15 +557,15 @@ body {
 }
 
 .option-button.correct {
-  border-color: var(--color-secondary);
-  background: var(--color-secondary-light);
-  color: #065f46;
+  background: #007A4D !important;
+  border-color: #007A4D !important;
+  color: white !important;
 }
 
 .option-button.incorrect {
-  border-color: var(--color-danger);
-  background: var(--color-danger-light);
-  color: #991b1b;
+  background: #E03C31 !important;
+  border-color: #E03C31 !important;
+  color: white !important;
 }
 
 .option-button:disabled {
@@ -921,3 +925,33 @@ body {
   margin-bottom: 32px;
 }
 
+
+/* ── Fundi mascot animations ─────────────────────────────────── */
+@keyframes fundi-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes fundi-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-5px) rotate(-3deg); }
+  70% { transform: translateY(-2px) rotate(3deg); }
+}
+@keyframes fundi-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+
+/* ── Playable lesson node — pulse ring to show it's clickable ── */
+.lesson-node.playable {
+  position: relative;
+  border: 2.5px solid var(--color-primary, #007A4D);
+  animation: node-pulse 2s ease-in-out infinite;
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 77, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 122, 77, 0); }
+}
