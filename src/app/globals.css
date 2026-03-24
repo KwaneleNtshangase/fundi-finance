@@ -955,3 +955,65 @@ body {
   0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 77, 0.35); }
   50% { box-shadow: 0 0 0 8px rgba(0, 122, 77, 0); }
 }
+
+/* ── Loading skeleton animation ─────────────────────────────── */
+@keyframes slide-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── XP gain toast animation ─────────────────────────────────── */
+@keyframes xp-toast {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.95); }
+}
+
+/* ── Remove spinner arrows from number inputs ────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ── Dark mode via .dark class on <html> ─────────────────────────────────── */
+html.dark {
+  --color-bg: #0D1117;
+  --color-surface: #161B22;
+  --color-border: #30363D;
+  --color-text-primary: #E6EDF3;
+  --color-text-secondary: #8B949E;
+  --color-primary: #3FB68B;
+  --color-secondary: #FFB612;
+  --bg-gray: #0D1117;
+  --border-light: #30363D;
+  --text-light: #8B949E;
+}
+
+html.dark body {
+  background: #0D1117;
+  color: #E6EDF3;
+}
+
+html.dark .course-card {
+  background: #161B22 !important;
+}
+
+html.dark input,
+html.dark textarea {
+  background: #161B22;
+  color: #E6EDF3;
+  border-color: #30363D;
+}
+
+html.dark .option-button {
+  background: #161B22;
+  color: #E6EDF3;
+  border-color: #30363D;
+}
+
+html.dark .option-button:hover:not(:disabled) {
+  background: #1F2937;
+}
