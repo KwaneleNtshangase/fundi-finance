@@ -15,6 +15,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Fundi Finance - Master Your Money",
   description: "Interactive personal finance learning app.",
+  icons: { icon: "/fundi-logo.png" },
+  openGraph: {
+    images: ["/fundi-logo.png"],
+    title: "Fundi Finance",
+    description: "Learn to manage money the South African way",
+  },
 };
 
 export default function RootLayout({

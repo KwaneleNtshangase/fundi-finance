@@ -1017,3 +1017,163 @@ html.dark .option-button {
 html.dark .option-button:hover:not(:disabled) {
   background: #1F2937;
 }
+
+/* patch-14: logo pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.96); }
+}
+
+/* patch-12: desktop nav */
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    position: relative;
+  }
+  .bottom-nav {
+    display: flex !important;
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    max-width: 100vw;
+  }
+}
+
+/* patch-14: leaderboard + white card dark mode fix */
+@media (prefers-color-scheme: dark) {
+  .leaderboard-card, [class*="leaderboard"] {
+    background: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+  }
+  /* Any inline white backgrounds in dark mode */
+  [style*="background: white"], [style*="background:white"],
+  [style*="background: #fff"], [style*="background:#fff"] {
+    background: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+  }
+  /* Leaderboard rank numbers, names, XP */
+  [style*="color: #888"], [style*="color:#888"],
+  [style*="color: gray"], [style*="color: grey"] {
+    color: var(--color-text-secondary) !important;
+  }
+}
+
+/* patch-13: system dark mode — comprehensive text fix */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #0f0f0f;
+    --color-surface: #1c1c1c;
+    --color-border: #2e2e2e;
+    --color-text: #f2f2f2;
+    --color-text-primary: #f2f2f2;
+    --color-text-secondary: #aaaaaa;
+    --color-text-muted: #777;
+    --color-primary: #4ade80;
+    --color-primary-dark: #22c55e;
+    --color-secondary: #60a5fa;
+    --border-light: #2e2e2e;
+    --bg-gray: #111;
+  }
+  body, main, div, span, p, h1, h2, h3, h4, h5, h6 {
+    color: inherit;
+  }
+  body {
+    background: var(--color-bg) !important;
+    color: var(--color-text) !important;
+  }
+  /* Force all surfaces dark */
+  .card, .lesson-card, .course-card, .bottom-nav, .top-bar,
+  [style*="background: white"], [style*="background:white"],
+  [style*="background: var(--color-surface)"] {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Fact of day and info cards */
+  .fact-card, [class*="fact"], [style*="var(--color-bg)"] {
+    background: var(--color-surface) !important;
+  }
+  /* Inputs */
+  input, select, textarea {
+    background: #252525 !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-secondary) !important;
+    opacity: 1;
+  }
+  /* Buttons */
+  .btn-secondary {
+    background: #252525 !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Tables */
+  table, th, td {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Auth gate white box */
+  [style*="background: white"], [style*="background:white"] {
+    background: #1c1c1c !important;
+    color: var(--color-text) !important;
+  }
+}
+
+/* patch-12: streak freeze badge */
+.streak-freeze-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+}
+.streak-freeze-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.freeze-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #3b82f620;
+  color: #3b82f6;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* patch-12: multi-select goal chips */
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--color-border, #e5e7eb);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+  color: inherit;
+}
+.goal-chip.selected {
+  border-color: var(--color-primary, #4ade80);
+  background: #4ade8020;
+  color: var(--color-primary, #4ade80);
+}

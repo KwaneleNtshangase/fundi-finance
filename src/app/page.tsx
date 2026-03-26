@@ -61,19 +61,13 @@ function playSound(type: "correct" | "incorrect" | "complete") {
       osc.frequency.setValueAtTime(523, ctx.currentTime);
       osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        ctx.currentTime + 0.3
-      );
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
       osc.start();
       osc.stop(ctx.currentTime + 0.3);
     } else if (type === "incorrect") {
       osc.frequency.setValueAtTime(220, ctx.currentTime);
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        ctx.currentTime + 0.3
-      );
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
       osc.start();
       osc.stop(ctx.currentTime + 0.3);
     } else if (type === "complete") {
@@ -81,10 +75,7 @@ function playSound(type: "correct" | "incorrect" | "complete") {
       osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
       osc.frequency.setValueAtTime(784, ctx.currentTime + 0.2);
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        ctx.currentTime + 0.5
-      );
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
       osc.start();
       osc.stop(ctx.currentTime + 0.5);
     }
@@ -118,7 +109,9 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
       title: "What's your money goal?",
       body: "We'll personalise your learning path based on what matters most to you right now.",
       cta: "Next",
-      action: () => { if (selectedGoal) setScreen(2); },
+      action: () => {
+        if (selectedGoal) setScreen(2);
+      },
     },
     {
       title: "How it works",
@@ -131,34 +124,53 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
   const current = screens[screen];
 
   return (
-    <div style={{
-      minHeight: "100dvh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      background: "var(--color-bg)", padding: "32px 24px",
-    }}>
-      {/* Progress dots */}
+    <div
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--color-bg)",
+        padding: "32px 24px",
+      }}
+    >
       <div style={{ display: "flex", gap: 6, marginBottom: 40 }}>
         {screens.map((_, i) => (
-          <div key={i} style={{
-            width: i === screen ? 20 : 8, height: 8, borderRadius: 4,
-            background: i === screen ? "var(--color-primary)" : "var(--color-border)",
-            transition: "all 0.3s",
-          }} />
+          <div
+            key={i}
+            style={{
+              width: i === screen ? 20 : 8,
+              height: 8,
+              borderRadius: 4,
+              background: i === screen ? "var(--color-primary)" : "var(--color-border)",
+              transition: "all 0.3s",
+            }}
+          />
         ))}
       </div>
 
       <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
-        {screen === 0 && (
-          <div style={{ fontSize: 64, marginBottom: 16 }}>🇿🇦</div>
-        )}
+        {screen === 0 && <div style={{ fontSize: 64, marginBottom: 16 }}>🇿🇦</div>}
         {screen === 2 && (
           <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
             {["🎯", "⚡", "🏅"].map((e, i) => (
-              <div key={i} style={{
-                width: 52, height: 52, borderRadius: "50%",
-                background: "var(--color-surface)", border: "1px solid var(--color-border)",
-                display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24,
-              }}>{e}</div>
+              <div
+                key={i}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 24,
+                }}
+              >
+                {e}
+              </div>
             ))}
           </div>
         )}
@@ -172,14 +184,25 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
 
         {screen === 1 && (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24, textAlign: "left" }}>
-            {goals.map(g => (
-              <button key={g.id} onClick={() => setSelectedGoal(g.id)} style={{
-                padding: "12px 14px", borderRadius: 12, cursor: "pointer",
-                border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
-                display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13,
-                color: "var(--color-text-primary)", transition: "all 0.15s",
-              }}>
+            {goals.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => setSelectedGoal(g.id)}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
+                  background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: "var(--color-text-primary)",
+                  transition: "all 0.15s",
+                }}
+              >
                 <span style={{ fontSize: 18 }}>{g.icon}</span>
                 {g.label}
               </button>
@@ -197,8 +220,17 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
         </button>
 
         {screen > 0 && (
-          <button onClick={() => setScreen(s => s - 1)}
-            style={{ marginTop: 12, background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 14 }}>
+          <button
+            onClick={() => setScreen((s) => s - 1)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+            }}
+          >
             Back
           </button>
         )}
@@ -206,17 +238,14 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
     </div>
   );
 }
-// ── End Onboarding ────────────────────────────────────────────────────────────
 
-// ── Analytics helper ─────────────────────────────────────────────────────────
-// Loads PostHog once, provides a safe track() wrapper.
-// Replace YOUR_POSTHOG_KEY below with your actual PostHog project API key.
-// Get one free at posthog.com — it takes 2 minutes to set up.
-const POSTHOG_KEY = "YOUR_POSTHOG_KEY"; // ← replace this
-const POSTHOG_HOST = "https://app.posthog.com";
+// ── Analytics (PostHog) ────────────────────────────────────────────────────────
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "YOUR_POSTHOG_KEY";
+const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com";
 
 function loadPostHog() {
-  if (typeof window === "undefined" || (window as any).__phLoaded) return;
+  if (typeof window === "undefined") return;
+  if ((window as any).__phLoaded) return;
   (window as any).__phLoaded = true;
   const s = document.createElement("script");
   s.src = POSTHOG_HOST + "/static/array.js";
@@ -231,9 +260,10 @@ function track(event: string, props?: Record<string, unknown>) {
   try {
     if (POSTHOG_KEY === "YOUR_POSTHOG_KEY") return; // not configured yet
     (window as any).posthog?.capture(event, props);
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
-// ── End analytics ─────────────────────────────────────────────────────────────
 
 type UserData = {
   xp: number;
@@ -324,13 +354,13 @@ function SliderInput({
   onChange: (v: number) => void;
 }) {
   const [inputStr, setInputStr] = useState(String(value));
-  // Keep text input in sync when slider moves
-  useEffect(() => { setInputStr(String(value)); }, [value]);
+  useEffect(() => {
+    setInputStr(String(value));
+  }, [value]);
 
   const handleBlur = () => {
     let v = parseFloat(inputStr);
     if (isNaN(v)) v = min;
-    // Only enforce min; allow user to type beyond slider max
     v = Math.max(min, Math.round(v / step) * step);
     onChange(v);
     setInputStr(String(v));
@@ -339,12 +369,8 @@ function SliderInput({
   return (
     <div style={{ marginBottom: 20 }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)" }}>
-          {label}
-        </span>
-        <span style={{ fontSize: 15, fontWeight: 800, color: "var(--color-primary)" }}>
-          {format(value)}
-        </span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)" }}>{label}</span>
+        <span style={{ fontSize: 15, fontWeight: 800, color: "var(--color-primary)" }}>{format(value)}</span>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <input
@@ -354,7 +380,6 @@ function SliderInput({
           step="any"
           value={value}
           onChange={(e) => {
-            // Move freely while dragging; snap to step on every change
             const raw = parseFloat(e.target.value);
             const snapped = Math.round(raw / step) * step;
             const clamped = Math.max(min, Math.min(max, snapped));
@@ -371,9 +396,15 @@ function SliderInput({
           onBlur={handleBlur}
           onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
           style={{
-            width: 72, padding: "4px 6px", borderRadius: 8, textAlign: "right",
-            border: "1.5px solid var(--color-border)", fontSize: 13, fontWeight: 700,
-            background: "var(--color-surface)", color: "var(--color-primary)",
+            width: 72,
+            padding: "4px 6px",
+            borderRadius: 8,
+            textAlign: "right",
+            border: "1.5px solid var(--color-border)",
+            fontSize: 13,
+            fontWeight: 700,
+            background: "var(--color-surface)",
+            color: "var(--color-primary)",
             MozAppearance: "textfield",
           }}
           aria-label={`${label} exact value`}
@@ -389,9 +420,16 @@ function SliderInput({
 
 // ── FundiTopBar — sticky mobile top bar ──────────────────────────────────────
 function FundiTopBar({
-  streak, xp, hearts, maxHearts, heartsRegenInfo,
+  streak,
+  xp,
+  hearts,
+  maxHearts,
+  heartsRegenInfo,
 }: {
-  streak: number; xp: number; hearts: number; maxHearts: number;
+  streak: number;
+  xp: number;
+  hearts: number;
+  maxHearts: number;
   heartsRegenInfo?: () => { nextHeartIn: string; minutesLeft: number } | null;
 }) {
   const [showHeartsModal, setShowHeartsModal] = useState(false);
@@ -399,63 +437,93 @@ function FundiTopBar({
 
   return (
     <>
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "8px 16px",
-        background: "var(--color-surface)",
-        borderBottom: "1.5px solid var(--color-border)",
-        backdropFilter: "blur(8px)",
-      }}>
-        {/* Streak */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "8px 16px",
+          background: "var(--color-surface)",
+          borderBottom: "1.5px solid var(--color-border)",
+          backdropFilter: "blur(8px)",
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <Flame size={20} style={{ color: "#FFB612" }} />
           <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
         </div>
-        {/* XP */}
+
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <Zap size={18} style={{ color: "var(--color-primary)" }} />
           <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>{xp.toLocaleString()} XP</span>
         </div>
-        {/* Hearts — tappable */}
+
         <button
           onClick={() => hearts < maxHearts && setShowHeartsModal(true)}
-          style={{ display: "flex", gap: 3, alignItems: "center", background: "none", border: "none", cursor: hearts < maxHearts ? "pointer" : "default", padding: 0 }}
+          style={{
+            display: "flex",
+            gap: 3,
+            alignItems: "center",
+            background: "none",
+            border: "none",
+            cursor: hearts < maxHearts ? "pointer" : "default",
+            padding: 0,
+          }}
           aria-label="Hearts status"
         >
           {Array.from({ length: maxHearts }).map((_, i) => (
-            <svg key={i} viewBox="0 0 24 24"
+            <svg
+              key={i}
+              viewBox="0 0 24 24"
               fill={i < hearts ? "#E03C31" : "none"}
               stroke={i < hearts ? "#E03C31" : "#ccc"}
-              strokeWidth="2" width="18" height="18"
-              style={{ transition: "fill 0.2s" }}>
+              strokeWidth="2"
+              width="18"
+              height="18"
+              style={{ transition: "fill 0.2s" }}
+            >
               <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
             </svg>
           ))}
         </button>
       </div>
 
-      {/* Hearts regen modal */}
       {showHeartsModal && (
         <div
           onClick={() => setShowHeartsModal(false)}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
-            zIndex: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.45)",
+            zIndex: 300,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 24,
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "var(--color-surface)", borderRadius: 20,
-              padding: "28px 24px", width: "100%", maxWidth: 320, textAlign: "center",
+              background: "var(--color-surface)",
+              borderRadius: 20,
+              padding: "28px 24px",
+              width: "100%",
+              maxWidth: 320,
+              textAlign: "center",
             }}
           >
             <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 16 }}>
               {Array.from({ length: maxHearts }).map((_, i) => (
-                <svg key={i} viewBox="0 0 24 24"
+                <svg
+                  key={i}
+                  viewBox="0 0 24 24"
                   fill={i < hearts ? "#E03C31" : "none"}
                   stroke={i < hearts ? "#E03C31" : "#ccc"}
-                  strokeWidth="2" width="28" height="28">
+                  strokeWidth="2"
+                  width="28"
+                  height="28"
+                >
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               ))}
@@ -465,15 +533,16 @@ function FundiTopBar({
             </div>
             {regen ? (
               <p style={{ color: "var(--color-text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-                Next heart in <strong>{regen.nextHeartIn}</strong>.<br />
+                Next heart in <strong>{regen.nextHeartIn}</strong>.
+                <br />
                 Hearts refill 1 per hour automatically.
               </p>
             ) : (
-              <p style={{ color: "var(--color-text-secondary)", marginBottom: 20 }}>
-                You have full hearts. Keep learning!
-              </p>
+              <p style={{ color: "var(--color-text-secondary)", marginBottom: 20 }}>You have full hearts. Keep learning!</p>
             )}
-            <button className="btn btn-primary" onClick={() => setShowHeartsModal(false)}>Got it</button>
+            <button className="btn btn-primary" onClick={() => setShowHeartsModal(false)}>
+              Got it
+            </button>
           </div>
         </div>
       )}
@@ -484,13 +553,20 @@ function FundiTopBar({
 // ── FundiCharacter — mascot image with expression ─────────────────────────────
 type FundiExpression = "default" | "thinking" | "sad" | "celebrating";
 function FundiCharacter({
-  expression = "default", size = 100, style: extraStyle = {},
-}: { expression?: FundiExpression; size?: number; style?: React.CSSProperties }) {
+  expression = "default",
+  size = 100,
+  style: extraStyle = {},
+}: {
+  expression?: FundiExpression;
+  size?: number;
+  style?: React.CSSProperties;
+}) {
   return (
     <img
       src={`/characters/fundi-${expression}.png`}
       alt={`Fundi ${expression}`}
-      width={size} height={size}
+      width={size}
+      height={size}
       style={{ objectFit: "contain", display: "block", ...extraStyle }}
     />
   );
@@ -505,9 +581,8 @@ function CalculatorView() {
     escalation: 5,
     frequency: "monthly",
   };
-  const [mode, setMode] = useState<"single" | "compare">("single");
 
-  // Display inputs — update instantly for responsive UI
+  const [mode, setMode] = useState<"single" | "compare">("single");
   const [inputsA, setInputsA] = useState<CalcInputs>(defaultInputs);
   const [inputsB, setInputsB] = useState<CalcInputs>({
     ...defaultInputs,
@@ -515,40 +590,87 @@ function CalculatorView() {
     monthly: 500,
   });
 
-  // Debounced calc inputs — heavy computation only after 150ms idle
+  const [hasCalculated, setHasCalculated] = useState(false);
   const [calcA, setCalcA] = useState<CalcInputs>(defaultInputs);
   const [calcB, setCalcB] = useState<CalcInputs>({ ...defaultInputs, rate: 7, monthly: 500 });
 
-  useEffect(() => {
-    const t = setTimeout(() => setCalcA(inputsA), 150);
-    return () => clearTimeout(t);
-  }, [inputsA]);
+  const handleCalculate = () => {
+    setCalcA(inputsA);
+    setCalcB(inputsB);
+    setHasCalculated(true);
+  };
 
-  useEffect(() => {
-    const t = setTimeout(() => setCalcB(inputsB), 150);
-    return () => clearTimeout(t);
-  }, [inputsB]);
+  const dataA = useMemo(() => (hasCalculated ? calcGrowth(calcA) : []), [hasCalculated, calcA]);
+  const dataB = useMemo(() => (hasCalculated ? calcGrowth(calcB) : []), [hasCalculated, calcB]);
+  const finalA = hasCalculated && dataA.length > 0 ? dataA[dataA.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
+  const finalB = hasCalculated && dataB.length > 0 ? dataB[dataB.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
 
-  // Calculations only run on debounced inputs — not on every slider pixel
-  const dataA = useMemo(() => calcGrowth(calcA), [calcA]);
-  const dataB = useMemo(() => calcGrowth(calcB), [calcB]);
-  const finalA = dataA[dataA.length - 1];
-  const finalB = dataB[dataB.length - 1];
-
-  const chartData: Record<string, number>[] = useMemo(() =>
-    mode === "single"
-      ? dataA.map((d) => ({
-          year: d.year,
-          "Portfolio Value": d.value,
-          "Total Contributions": d.contributions,
-        }))
-      : dataA.map((d, i) => ({
-          year: d.year,
-          "Investment A": d.value,
-          "Investment B": dataB[i]?.value ?? 0,
-        })),
-    [mode, dataA, dataB]
+  const chartData: Record<string, number>[] = useMemo(
+    () =>
+      !hasCalculated
+        ? []
+        : mode === "single"
+          ? dataA.map((d) => ({
+              year: d.year,
+              "Portfolio Value": d.value,
+              "Total Contributions": d.contributions,
+            }))
+          : dataA.map((d, i) => ({
+              year: d.year,
+              "Investment A": d.value,
+              "Investment B": dataB[i]?.value ?? 0,
+            })),
+    [hasCalculated, mode, dataA, dataB]
   );
+
+  const ResultCard = ({
+    label,
+    value,
+    highlight,
+  }: {
+    label: string;
+    value: string;
+    highlight?: boolean;
+  }) => (
+    <div
+      style={{
+        background: highlight ? "var(--color-primary)" : "var(--color-surface)",
+        border: `1px solid ${highlight ? "var(--color-primary)" : "var(--color-border)"}`,
+        borderRadius: 12,
+        padding: "16px 20px",
+        textAlign: "center",
+        flex: 1,
+        minWidth: 200,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: highlight ? "rgba(255,255,255,0.8)" : "var(--color-text-secondary)",
+          textTransform: "uppercase",
+          letterSpacing: 0.5,
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: 20,
+          fontWeight: 900,
+          color: highlight ? "white" : "var(--color-text-primary)",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+
+  const calcReturnPct = (value: number, contributions: number) => {
+    if (contributions <= 0) return 0;
+    return ((value - contributions) / contributions) * 100;
+  };
 
   const InputPanel = ({
     label,
@@ -582,6 +704,7 @@ function CalculatorView() {
           {label}
         </div>
       )}
+
       <SliderInput
         label="Initial Lump Sum"
         value={inputs.principal}
@@ -627,15 +750,9 @@ function CalculatorView() {
         format={(v) => `${v}%`}
         onChange={(v) => setInputs({ ...inputs, escalation: v })}
       />
+
       <div style={{ marginBottom: 20 }}>
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 600,
-            color: "var(--color-text-secondary)",
-            marginBottom: 8,
-          }}
-        >
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>
           Investment Frequency
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -651,23 +768,12 @@ function CalculatorView() {
                 fontWeight: 600,
                 cursor: "pointer",
                 border: "2px solid",
-                borderColor:
-                  inputs.frequency === f
-                    ? "var(--color-primary)"
-                    : "var(--color-border)",
-                background:
-                  inputs.frequency === f
-                    ? "var(--color-primary-light)"
-                    : "white",
-                color:
-                  inputs.frequency === f
-                    ? "var(--color-primary)"
-                    : "var(--color-text-secondary)",
+                borderColor: inputs.frequency === f ? "var(--color-primary)" : "var(--color-border)",
+                background: inputs.frequency === f ? "var(--color-primary-light)" : "white",
+                color: inputs.frequency === f ? "var(--color-primary)" : "var(--color-text-secondary)",
               }}
             >
-              {f === "once-off"
-                ? "Once-off"
-                : f.charAt(0).toUpperCase() + f.slice(1)}
+              {f === "once-off" ? "Once-off" : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
         </div>
@@ -675,150 +781,53 @@ function CalculatorView() {
     </div>
   );
 
-  const ResultCard = ({
-    label,
-    value,
-    highlight,
-  }: {
-    label: string;
-    value: string;
-    highlight?: boolean;
-  }) => (
-    <div
-      style={{
-        background: highlight
-          ? "var(--color-primary)"
-          : "var(--color-surface)",
-        border: `1px solid ${
-          highlight ? "var(--color-primary)" : "var(--color-border)"
-        }`,
-        borderRadius: 12,
-        padding: "16px 20px",
-        textAlign: "center",
-        flex: 1,
-      }}
-    >
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          color: highlight
-            ? "rgba(255,255,255,0.8)"
-            : "var(--color-text-secondary)",
-          textTransform: "uppercase",
-          letterSpacing: 0.5,
-          marginBottom: 4,
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: 20,
-          fontWeight: 800,
-          color: highlight ? "white" : "var(--color-primary)",
-        }}
-      >
-        {value}
-      </div>
-    </div>
-  );
-
   return (
-    <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>
-        Investment Calculator
-      </h2>
-      <p
-        style={{
-          color: "var(--color-text-secondary)",
-          marginBottom: 24,
-        }}
-      >
-        See how your money can grow over time
-      </p>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 24,
-          background: "var(--color-surface)",
-          border: "1px solid var(--color-border)",
-          borderRadius: 12,
-          padding: 4,
-          width: "fit-content",
-        }}
-      >
-        {(["single", "compare"] as const).map((m) => (
+    <main className="main-content main-with-stats" id="mainContent">
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 10 }}>
+        <h2 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Investment Calculator</h2>
+        <div style={{ display: "flex", gap: 8 }}>
           <button
-            key={m}
-            onClick={() => setMode(m)}
-            style={{
-              padding: "8px 20px",
-              borderRadius: 8,
-              fontWeight: 700,
-              fontSize: 14,
-              cursor: "pointer",
-              border: "none",
-              background:
-                mode === m ? "var(--color-primary)" : "transparent",
-              color:
-                mode === m ? "white" : "var(--color-text-secondary)",
-              transition: "all 0.2s ease",
-            }}
+            className={mode === "single" ? "btn btn-primary" : "btn btn-secondary"}
+            style={{ padding: "8px 12px", fontSize: 13 }}
+            onClick={() => setMode("single")}
           >
-            {m === "single" ? "Single" : "Compare Two"}
+            Single
           </button>
-        ))}
-      </div>
-
-      <div
-        style={{
-          display: "flex",
-          gap: 16,
-          flexWrap: "wrap",
-          marginBottom: 24,
-        }}
-      >
-        <InputPanel
-          label={mode === "compare" ? "Investment A" : undefined}
-          inputs={inputsA}
-          setInputs={setInputsA}
-        />
-        {mode === "compare" && (
-          <InputPanel
-            label="Investment B"
-            inputs={inputsB}
-            setInputs={setInputsB}
-          />
-        )}
-      </div>
-
-      {mode === "single" ? (
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-            marginBottom: 24,
-          }}
-        >
-          <ResultCard
-            label="Final Value"
-            value={formatZAR(finalA.value)}
-            highlight
-          />
-          <ResultCard
-            label="Total Contributions"
-            value={formatZAR(finalA.contributions)}
-          />
-          <ResultCard
-            label="Total Interest Earned"
-            value={formatZAR(finalA.interest)}
-          />
+          <button
+            className={mode === "compare" ? "btn btn-primary" : "btn btn-secondary"}
+            style={{ padding: "8px 12px", fontSize: 13 }}
+            onClick={() => setMode("compare")}
+          >
+            Compare
+          </button>
         </div>
-      ) : (
+      </div>
+
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
+        <InputPanel inputs={inputsA} setInputs={setInputsA} label={mode === "compare" ? "Investment A" : undefined} />
+        {mode === "compare" && <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />}
+      </div>
+
+      {/* Results + chart section (clean) */}
+      <button className="btn btn-primary" style={{ width: "100%", marginBottom: 16 }} onClick={handleCalculate}>
+        Calculate
+      </button>
+
+      {!hasCalculated && (
+        <div style={{ textAlign: "center", padding: "18px 0", color: "var(--color-text-secondary)" }}>
+          Set your values above, then tap Calculate
+        </div>
+      )}
+
+      {hasCalculated && mode === "single" && (
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
+          <ResultCard label="Final Value" value={formatZAR(finalA.value)} highlight />
+          <ResultCard label="Total Contributions" value={formatZAR(finalA.contributions)} />
+          <ResultCard label="Total Interest" value={formatZAR(finalA.interest)} />
+        </div>
+      )}
+
+      {hasCalculated && mode === "compare" && (
         <div
           style={{
             marginBottom: 24,
@@ -828,102 +837,32 @@ function CalculatorView() {
             overflow: "hidden",
           }}
         >
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: 14,
-            }}
-          >
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
             <thead>
               <tr style={{ background: "var(--color-bg)" }}>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "left",
-                    fontWeight: 700,
-                    color: "var(--color-text-secondary)",
-                  }}
-                >
+                <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "var(--color-text-secondary)" }}>
                   Metric
                 </th>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "right",
-                    fontWeight: 700,
-                    color: "var(--color-primary)",
-                  }}
-                >
+                <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>
                   Investment A
                 </th>
-                <th
-                  style={{
-                    padding: "12px 16px",
-                    textAlign: "right",
-                    fontWeight: 700,
-                    color: "var(--color-secondary)",
-                  }}
-                >
+                <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>
                   Investment B
                 </th>
               </tr>
             </thead>
             <tbody>
               {[
-                [
-                  "Final Value",
-                  formatZAR(finalA.value),
-                  formatZAR(finalB.value),
-                ],
-                [
-                  "Total Contributions",
-                  formatZAR(finalA.contributions),
-                  formatZAR(finalB.contributions),
-                ],
-                [
-                  "Total Interest",
-                  formatZAR(finalA.interest),
-                  formatZAR(finalB.interest),
-                ],
-                ["Annual Return", `${inputsA.rate}%`, `${inputsB.rate}%`],
+                ["Final Value", formatZAR(finalA.value), formatZAR(finalB.value)],
+                ["Contributions", formatZAR(finalA.contributions), formatZAR(finalB.contributions)],
+                ["Interest", formatZAR(finalA.interest), formatZAR(finalB.interest)],
+                ["Return %", `${calcReturnPct(finalA.value, finalA.contributions).toFixed(1)}%`, `${calcReturnPct(finalB.value, finalB.contributions).toFixed(1)}%`],
                 ["Term", `${inputsA.years} yrs`, `${inputsB.years} yrs`],
               ].map(([metric, a, b]) => (
-                <tr
-                  key={metric}
-                  style={{
-                    borderTop: "1px solid var(--color-border)",
-                  }}
-                >
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      color: "var(--color-text-secondary)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    {metric}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "right",
-                      fontWeight: 700,
-                      color: "var(--color-primary)",
-                    }}
-                  >
-                    {a}
-                  </td>
-                  <td
-                    style={{
-                      padding: "12px 16px",
-                      textAlign: "right",
-                      fontWeight: 700,
-                      color: "var(--color-secondary)",
-                    }}
-                  >
-                    {b}
-                  </td>
+                <tr key={metric} style={{ borderTop: "1px solid var(--color-border)" }}>
+                  <td style={{ padding: "12px 16px", color: "var(--color-text-secondary)", fontWeight: 600 }}>{metric}</td>
+                  <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>{a}</td>
+                  <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>{b}</td>
                 </tr>
               ))}
             </tbody>
@@ -931,87 +870,37 @@ function CalculatorView() {
         </div>
       )}
 
-      <div
-        style={{
-          background: "var(--color-surface)",
-          border: "1px solid var(--color-border)",
-          borderRadius: 16,
-          padding: 20,
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 16 }}>
-          Growth Over Time
+      {hasCalculated && (
+        <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 16, padding: 20, marginBottom: 24 }}>
+          <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 16 }}>Growth Over Time</div>
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+              <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} />
+              <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={50} />
+              <Tooltip
+                formatter={(v) => formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
+                labelFormatter={(l) => `Year ${l}`}
+                contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 13 }}
+              />
+              <Legend wrapperStyle={{ fontSize: 13 }} />
+              {mode === "single" ? (
+                <>
+                  <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                </>
+              ) : (
+                <>
+                  <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} />
+                </>
+              )}
+            </LineChart>
+          </ResponsiveContainer>
         </div>
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart
-            data={chartData}
-            margin={{ top: 5, right: 10, left: 10, bottom: 5 }}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--color-border)"
-            />
-            <XAxis
-              dataKey="year"
-              tickFormatter={(v) => `Yr ${v}`}
-              tick={{
-                fontSize: 11,
-                fill: "var(--color-text-secondary)",
-              }}
-            />
-            <YAxis
-              tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`}
-              tick={{
-                fontSize: 11,
-                fill: "var(--color-text-secondary)",
-              }}
-            />
-            <Tooltip
-              formatter={(value) => formatZAR(Number(value))}
-              labelFormatter={(label) => `Year ${label}`}
-            />
-            <Legend />
-            {mode === "single" ? (
-              <>
-                <Line
-                  type="monotone"
-                  dataKey="Portfolio Value"
-                  stroke="var(--color-primary)"
-                  strokeWidth={3}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Total Contributions"
-                  stroke="var(--color-accent)"
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                />
-              </>
-            ) : (
-              <>
-                <Line
-                  type="monotone"
-                  dataKey="Investment A"
-                  stroke="var(--color-primary)"
-                  strokeWidth={3}
-                  dot={false}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Investment B"
-                  stroke="var(--color-secondary)"
-                  strokeWidth={3}
-                  dot={false}
-                />
-              </>
-            )}
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+      )}
 
+      {/* CTA */}
       <div
         style={{
           background: "var(--color-primary-light)",
@@ -1022,24 +911,9 @@ function CalculatorView() {
           marginBottom: 32,
         }}
       >
-        <div
-          style={{
-            fontWeight: 800,
-            fontSize: 18,
-            marginBottom: 4,
-          }}
-        >
-          Want a personalised investment plan?
-        </div>
-        <p
-          style={{
-            color: "var(--color-text-secondary)",
-            fontSize: 14,
-            marginBottom: 16,
-          }}
-        >
-          These numbers are a starting point. A qualified financial professional
-          can help you turn them into a real plan built for your life.
+        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>Want a personalised investment plan?</div>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 16 }}>
+          These numbers are a starting point. A qualified financial professional can help you turn them into a real plan built for your life.
         </p>
         <a
           href="https://wealthwithkwanele.co.za"
@@ -1166,6 +1040,10 @@ function useFundiState() {
   });
   // ── End weekly challenge ──────────────────────────────────────────────────
 
+
+
+  // consumeStreakFreeze removed — handled via localStorage directly
+
   const [reviewAnswers, setReviewAnswers] = useState<{
     question: string; yourAnswer: string; correct: string; wasCorrect: boolean;
   }[] | null>(null);
@@ -1193,6 +1071,8 @@ function useFundiState() {
     setDailyXP(0);
   }, []);
 
+  // spendXP removed from hook — handled in Home via direct localStorage
+
   const addXP = (amount: number) => {
     progress.addXP(amount);
     setDailyXP((v) => v + amount);
@@ -1201,8 +1081,36 @@ function useFundiState() {
     setTimeout(() => setXpToast(null), 2000);
   };
 
+  const updateStreakOnComplete = async () => {
+    if (typeof window === "undefined") return;
+    const today = new Date().toDateString();
+    const lastActivity = localStorage.getItem("fundi-last-activity");
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (lastActivity === today) return; // already updated today
+    const currentStreak = parseInt(localStorage.getItem("fundi-streak") ?? "0", 10);
+    const newStreak = lastActivity === yesterday ? currentStreak + 1 : 1;
+    localStorage.setItem("fundi-streak", String(newStreak));
+    localStorage.setItem("fundi-last-activity", today);
+    // Push to Supabase
+    const { data } = await supabase.auth.getUser();
+    if (data.user) {
+      const { error } = await supabase.from("user_progress").upsert(
+        {
+          user_id: data.user.id,
+          streak: newStreak,
+          last_activity_date: today,
+        },
+        { onConflict: "user_id" }
+      );
+      if (error) {
+        // silent fail — offline is fine
+      }
+    }
+  };
+
   const completeLesson = (courseId: string, lessonId: string, xpEarned: number) => {
     progress.completeLesson(`${courseId}:${lessonId}`);
+    updateStreakOnComplete().catch(() => {});
     addXP(xpEarned);
     // Update weekly challenge progress for lesson-count challenges
     if (weeklyChallenge.unit === "lessons") {
@@ -1360,10 +1268,37 @@ function LearnView({
   claimChallengeReward?: () => void;
 }) {
   const [search, setSearch] = useState("");
+
+
+  // Simple fuzzy match: returns true if query is a substring OR within 1 char edit distance
+  const fuzzyMatch = (text: string, query: string): boolean => {
+    const t = text.toLowerCase();
+    const q = query.toLowerCase().trim();
+    if (!q) return true;
+    if (t.includes(q)) return true;
+    // Check if any word in t starts with q (prefix match)
+    if (t.split(/s+/).some(w => w.startsWith(q))) return true;
+    // Levenshtein distance <= 1 for short queries (<=5 chars)
+    if (q.length <= 5) {
+      const levenshtein = (a: string, b: string): number => {
+        const dp = Array.from({ length: a.length + 1 }, (_, i) =>
+          Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
+        );
+        for (let i = 1; i <= a.length; i++)
+          for (let j = 1; j <= b.length; j++)
+            dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
+        return dp[a.length][b.length];
+      };
+      // Check each word in the text
+      const words = t.split(/s+/);
+      if (words.some(w => levenshtein(w.slice(0, q.length + 1), q) <= 1)) return true;
+    }
+    return false;
+  };
   const filteredCourses = search.trim()
     ? courses.filter(c =>
-        c.title.toLowerCase().includes(search.toLowerCase()) ||
-        c.description.toLowerCase().includes(search.toLowerCase())
+        fuzzyMatch(c.title, search) ||
+        fuzzyMatch(c.description ?? "", search)
       )
     : courses;
 
@@ -1395,6 +1330,35 @@ function LearnView({
           💡 Fact of the Day
         </div>
         <div style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{todayFact}</div>
+      </div>
+
+      {/* Book Recommendations */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", marginBottom: 10 }}>
+          📚 Recommended Reading
+        </div>
+        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
+          {[
+            { emoji: "💰", title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", lesson: "Assets vs liabilities. Buy assets that put money in your pocket, not liabilities.", color: "#FFB612" },
+            { emoji: "🏺", title: "The Richest Man in Babylon", author: "George S. Clason", lesson: "Pay yourself first. Save at least 10% of everything you earn — always.", color: "#007A4D" },
+            { emoji: "🤔", title: "The Psychology of Money", author: "Morgan Housel", lesson: "Wealth is what you don't spend. Humility, patience and saving beats genius.", color: "#3B7DD8" },
+            { emoji: "🔢", title: "The Millionaire Next Door", author: "Thomas J. Stanley", lesson: "Most millionaires live frugally in modest homes and drive ordinary cars.", color: "#7C4DFF" },
+            { emoji: "📈", title: "Think and Grow Rich", author: "Napoleon Hill", lesson: "A burning desire + a definite plan + persistent action builds lasting wealth.", color: "#E03C31" },
+          ].map((book) => (
+            <div key={book.title} style={{
+              minWidth: 180, background: "var(--color-surface)",
+              border: `1.5px solid ${book.color}40`,
+              borderRadius: 14, padding: "14px 14px 12px",
+              flexShrink: 0,
+              borderTop: `4px solid ${book.color}`,
+            }}>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>{book.emoji}</div>
+              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2, color: "var(--color-text-primary)" }}>{book.title}</div>
+              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>{book.author}</div>
+              <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>{book.lesson}</div>
+            </div>
+          ))}
+        </div>
       </div>
 
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>
@@ -1864,6 +1828,62 @@ function LessonView({
     ((lessonState.stepIndex + 1) / lessonState.steps.length) * 100;
 
   const answered = lessonState.answers[lessonState.stepIndex] !== undefined;
+  const [showExitConfirm, setShowExitConfirm] = React.useState(false);
+
+  const isOnLastStep = lessonState.stepIndex === lessonState.steps.length - 1;
+  const isCompleted = lessonState.stepIndex >= lessonState.steps.length;
+
+  // ── Exit confirm modal ────────────────────────────────────────────────────
+  function ExitConfirmModal() {
+    if (!showExitConfirm) return null;
+    return (
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(0,0,0,0.6)",
+          zIndex: 500,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 24,
+        }}
+      >
+        <div
+          style={{
+            background: "var(--color-surface)",
+            borderRadius: 20,
+            padding: "24px 22px",
+            width: "100%",
+            maxWidth: 340,
+            textAlign: "center",
+            border: "1px solid var(--color-border)",
+          }}
+        >
+          <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 10 }}>Leave?</div>
+          <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 18, lineHeight: 1.5 }}>
+            If you leave now, you may lose your progress for this lesson.
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setShowExitConfirm(false)}>
+              Keep Going
+            </button>
+            <button
+              className="btn btn-primary"
+              style={{ flex: 1, background: "#E03C31", border: "none" }}
+              onClick={() => {
+                setShowExitConfirm(false);
+                goBack?.();
+              }}
+            >
+              Leave
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // ── End exit modal ────────────────────────────────────────────────────────
 
   // ── Hearts gate ────────────────────────────────────────────────────────────
   if (hearts === 0) {
@@ -1894,7 +1914,7 @@ function LessonView({
                 : "Hearts refill 1 per hour. Come back soon!"}
             </p>
             {goBack && (
-              <button className="btn btn-primary" onClick={goBack}>Back to lessons</button>
+              <button className="btn btn-primary" onClick={() => setShowExitConfirm(true)}>Exit Lesson</button>
             )}
           </div>
         </div>
@@ -2139,32 +2159,57 @@ function LessonView({
   };
 
   return (
-    <main className="main-content main-with-stats">
-      <div className="lesson-player">
-        {/* Back button + progress bar + hearts row */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          {goBack && (
+    <>
+      <ExitConfirmModal />
+      <main className="main-content main-with-stats">
+        <div className="lesson-player">
+          {/* Back button + progress bar + exit + hearts row */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+            {goBack && (
+              <button
+                onClick={() => setShowExitConfirm(true)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px 2px",
+                  color: "var(--color-text-secondary)",
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+                aria-label="Back to course"
+              >
+                <ArrowLeft size={20} />
+              </button>
+            )}
+            <div className="lesson-progress-bar" style={{ flex: 1, margin: 0 }}>
+              <div
+                className="lesson-progress-fill"
+                style={{
+                  width: `${progress}%`,
+                  background: courseAccent ? `linear-gradient(90deg, ${courseAccent}99 0%, ${courseAccent} 100%)` : undefined,
+                }}
+              />
+            </div>
             <button
-              onClick={goBack}
+              onClick={() => setShowExitConfirm(true)}
               style={{
-                background: "none", border: "none", cursor: "pointer",
-                padding: "4px 2px", color: "var(--color-text-secondary)",
-                flexShrink: 0, display: "flex", alignItems: "center",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px 2px",
+                color: "var(--color-text-secondary)",
+                fontSize: 18,
+                lineHeight: 1,
+                flexShrink: 0,
               }}
-              aria-label="Back to course"
+              aria-label="Exit lesson"
+              title="Exit lesson"
             >
-              <ArrowLeft size={20} />
+              ✕
             </button>
-          )}
-          <div className="lesson-progress-bar" style={{ flex: 1, margin: 0 }}>
-            <div className="lesson-progress-fill" style={{
-              width: `${progress}%`,
-              background: courseAccent
-                ? `linear-gradient(90deg, ${courseAccent}99 0%, ${courseAccent} 100%)`
-                : undefined,
-            }} />
-          </div>
-          <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
+            <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
             {Array.from({ length: maxHearts }).map((_, i) => (
               <svg key={i} viewBox="0 0 24 24"
                 fill={i < hearts ? "#E03C31" : "none"}
@@ -2175,10 +2220,11 @@ function LessonView({
               </svg>
             ))}
           </div>
+          </div>
+          <div className="lesson-step">{renderStep()}</div>
         </div>
-        <div className="lesson-step">{renderStep()}</div>
-      </div>
-    </main>
+      </main>
+    </>
   );
 }
 
@@ -2558,7 +2604,16 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
           No players yet. Be the first to earn XP!
         </div>
       ) : (
-        <div className="leaderboard-table">
+        <div
+          className="leaderboard-table"
+          style={{
+            background: "var(--color-surface)",
+            color: "var(--color-text-primary)",
+            border: "1px solid var(--color-border)",
+            borderRadius: 16,
+            overflow: "hidden",
+          }}
+        >
           {leaders.map((leader, index) => (
             <div
               key={leader.id}
@@ -2587,6 +2642,75 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
         </div>
       )}
     </main>
+  );
+}
+
+function SettingsAccountSection() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+  const [showPw, setShowPw] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setEmail(data.user.email ?? "");
+        setName(data.user.user_metadata?.full_name ?? "");
+      }
+    });
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true); setMsg(null);
+    const updates: Record<string, unknown> = {};
+    if (name.trim()) updates.data = { full_name: name.trim() };
+    if (newPassword.trim().length >= 6) updates.password = newPassword.trim();
+    if (Object.keys(updates).length === 0) { setSaving(false); setMsg("Nothing to update."); return; }
+    const { error } = await supabase.auth.updateUser(updates as any);
+    if (error) { setMsg(error.message); } else {
+      setMsg("Saved!");
+      if (name.trim()) {
+        const { data } = await supabase.auth.getUser();
+        if (data.user) {
+          await supabase.from("profiles").upsert({ user_id: data.user.id, full_name: name.trim() }, { onConflict: "user_id" });
+        }
+      }
+      setNewPassword("");
+    }
+    setSaving(false);
+  };
+
+  const inputStyle: React.CSSProperties = {
+    padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)",
+    fontSize: 14, width: "100%", boxSizing: "border-box",
+    background: "var(--color-bg)", color: "var(--color-text-primary)",
+  };
+
+  return (
+    <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "14px 16px", marginBottom: 8 }}>
+      <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 12, color: "var(--color-text-primary)" }}>Edit Details</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <input type="text" placeholder="Full name" value={name}
+          onChange={(e) => setName(e.target.value)} style={inputStyle} />
+        <input type="email" placeholder="Email (cannot be changed here)" value={email}
+          disabled style={{ ...inputStyle, opacity: 0.5, cursor: "not-allowed" }} />
+        <div style={{ position: "relative" }}>
+          <input type={showPw ? "text" : "password"} placeholder="New password (min 6 chars)"
+            value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+            style={{ ...inputStyle, paddingRight: 52 }} />
+          <button type="button" onClick={() => setShowPw(v => !v)}
+            style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#888", fontSize: 12 }}>
+            {showPw ? "Hide" : "Show"}
+          </button>
+        </div>
+        {msg && <p style={{ fontSize: 13, color: msg === "Saved!" ? "var(--color-primary)" : "var(--error-red)", margin: 0 }}>{msg}</p>}
+        <button className="btn btn-primary" style={{ width: "100%" }} onClick={handleSave} disabled={saving}>
+          {saving ? "Saving…" : "Save Changes"}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -2664,7 +2788,7 @@ function SettingsView({
       </Row>
 
       {/* Dark mode toggle */}
-      <DarkModeToggle />
+      {/* dark mode now follows system preference automatically */}
 
       {/* Daily goal */}
       <div style={{
@@ -2695,6 +2819,10 @@ function SettingsView({
           ))}
         </div>
       </div>
+
+      {/* ── Account ── */}
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Account</div>
+      <SettingsAccountSection />
 
       {/* ── Support ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Support</div>
@@ -2874,6 +3002,20 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<unknown | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSent, setForgotSent] = useState(false);
+
+  const handleForgotPassword = async () => {
+    if (!forgotEmail.trim()) { setError("Please enter your email."); return; }
+    setError(null);
+    const { error: e } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+      redirectTo: typeof window !== "undefined" ? window.location.origin : undefined,
+    });
+    if (e) { setError(e.message); return; }
+    setForgotSent(true);
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -2935,8 +3077,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p>Loading...</p>
+      <div style={{
+        minHeight: "100dvh", display: "flex", flexDirection: "column",
+        alignItems: "center", justifyContent: "center",
+        background: "#0d1f17",
+      }}>
+        <img
+          src="/fundi-logo.png"
+          alt="Fundi Finance"
+          style={{ width: 140, height: 140, objectFit: "contain", marginBottom: 20, animation: "pulse 1.5s ease-in-out infinite" }}
+        />
+        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, letterSpacing: 1 }}>Loading…</div>
       </div>
     );
   }
@@ -2948,6 +3099,48 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   if (!session) {
+    // Forgot password screen
+    if (forgotMode) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
+          <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
+            <div style={{ textAlign: "center", marginBottom: 20 }}>
+              <div style={{ fontSize: 36, marginBottom: 8 }}>🔑</div>
+              <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>Reset your password</h2>
+              <p style={{ color: "#888", fontSize: 14 }}>We&apos;ll send you a reset link</p>
+            </div>
+            {forgotSent ? (
+              <div style={{ textAlign: "center" }}>
+                <div style={{ fontSize: 36, marginBottom: 8 }}>📧</div>
+                <p style={{ fontWeight: 700, marginBottom: 4 }}>Email sent!</p>
+                <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>
+                  Check your inbox for a password reset link.
+                </p>
+                <button className="btn btn-primary" style={{ width: "100%" }}
+                  onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail(""); }}>
+                  Back to Sign In
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                <input type="email" placeholder="Your email address" value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  style={{ padding: 12, borderRadius: 8, border: "1px solid var(--border-light)", fontSize: 14, width: "100%", boxSizing: "border-box" as const }} />
+                {error && <p style={{ color: "var(--error-red)", fontSize: 13, margin: 0 }}>{error}</p>}
+                <button className="btn btn-primary" style={{ width: "100%" }} onClick={handleForgotPassword}>
+                  Send Reset Link
+                </button>
+                <button onClick={() => { setForgotMode(false); setError(null); }}
+                  style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 13, textAlign: "center" }}>
+                  Back to Sign In
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
         <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
@@ -2990,21 +3183,46 @@ function AuthGate({ children }: { children: React.ReactNode }) {
             )}
             <input type="email" placeholder="Email" value={email}
               onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
-            <input type="password" placeholder="Password" value={password}
-              onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+            <div style={{ position: "relative" }}>
+              <input
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ ...inputStyle, paddingRight: 44 }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(v => !v)}
+                style={{
+                  position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)",
+                  background: "none", border: "none", cursor: "pointer",
+                  color: "#888", fontSize: 13, fontWeight: 600, padding: "2px 4px",
+                }}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             {error && <p style={{ color: "var(--error-red)", fontSize: 13, margin: 0 }}>{error}</p>}
             <button className="btn btn-primary" style={{ width: "100%", marginTop: 4 }}
               onClick={mode === "signin" ? handleSignIn : handleSignUp}>
               {mode === "signin" ? "Sign In" : "Create Account"}
             </button>
             {mode === "signin" && (
-              <p style={{ textAlign: "center", fontSize: 13, color: "#888", margin: 0 }}>
-                New here?{" "}
-                <button onClick={() => setMode("signup")}
-                  style={{ background: "none", border: "none", color: "var(--color-primary)", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
-                  Create a free account
+              <div style={{ textAlign: "center" }}>
+                <button onClick={() => { setForgotMode(true); setError(null); }}
+                  style={{ background: "none", border: "none", color: "#888", cursor: "pointer", fontSize: 13 }}>
+                  Forgot password?
                 </button>
-              </p>
+                <p style={{ fontSize: 13, color: "#888", margin: "8px 0 0" }}>
+                  New here?{" "}
+                  <button onClick={() => setMode("signup")}
+                    style={{ background: "none", border: "none", color: "var(--color-primary)", fontWeight: 700, cursor: "pointer", fontSize: 13 }}>
+                    Create a free account
+                  </button>
+                </p>
+              </div>
             )}
           </div>
         </div>
@@ -3016,6 +3234,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
+  // Streak freeze — stored in localStorage, managed locally
+  const streakFreezeActive: boolean =
+    typeof window !== "undefined" && localStorage.getItem("fundi-streak-freeze") === "true";
+  const buyStreakFreeze = () => {
+    if (typeof window === "undefined" || streakFreezeActive) return;
+    const currentXP = parseInt(localStorage.getItem("fundi-xp") ?? "0", 10);
+    if (currentXP < 50) return;
+    localStorage.setItem("fundi-xp", String(currentXP - 50));
+    localStorage.setItem("fundi-streak-freeze", "true");
+    window.location.reload();
+  };
   const {
     userData,
     dailyXP,
@@ -3048,6 +3277,65 @@ export default function Home() {
 
   // Load PostHog analytics on mount
   useEffect(() => { loadPostHog(); }, []);
+
+  // Weekly leaderboard XP reset — resets every Sunday at midnight
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const now = new Date();
+    const weekKey = `fundi-week-${now.getFullYear()}-W${Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000))}`;
+    const lastWeekKey = localStorage.getItem("fundi-last-week-key");
+    if (lastWeekKey && lastWeekKey !== weekKey) {
+      // New week — reset weekly XP tracking (but keep total XP and progress)
+      localStorage.setItem("fundi-weekly-xp", "0");
+      // Sync reset to Supabase for leaderboard
+      supabase.auth.getUser().then(async ({ data }) => {
+        if (data.user) {
+          const { error } = await supabase.from("user_progress").upsert(
+            {
+              user_id: data.user.id,
+              weekly_xp: 0,
+              week_key: weekKey,
+            },
+            { onConflict: "user_id" }
+          );
+          if (error) {
+            // silent fail — offline is fine
+          }
+        }
+      });
+    }
+    localStorage.setItem("fundi-last-week-key", weekKey);
+  }, []);
+
+  // Cross-device sync — fetch latest progress from Supabase and hydrate localStorage
+  useEffect(() => {
+    const syncFromSupabase = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from("user_progress")
+        .select("xp, streak, completed_lessons, last_activity_date")
+        .eq("user_id", user.id)
+        .single();
+      if (!data) return;
+      // Only overwrite localStorage if Supabase has more progress
+      const localXP = parseInt(localStorage.getItem("fundi-xp") ?? "0", 10);
+      if (data.xp > localXP) {
+        localStorage.setItem("fundi-xp", String(data.xp));
+      }
+      const localStreak = parseInt(localStorage.getItem("fundi-streak") ?? "0", 10);
+      if (data.streak > localStreak) {
+        localStorage.setItem("fundi-streak", String(data.streak));
+      }
+      if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
+        const localRaw = localStorage.getItem("fundi-completed-lessons");
+        const localSet: string[] = localRaw ? JSON.parse(localRaw) : [];
+        const merged = Array.from(new Set([...localSet, ...data.completed_lessons]));
+        localStorage.setItem("fundi-completed-lessons", JSON.stringify(merged));
+      }
+    };
+    syncFromSupabase().catch(() => {}); // silent fail — offline is fine
+  }, []);
 
   const currentCourse =
     route.name === "course" || route.name === "lesson"
