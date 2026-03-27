@@ -14,7 +14,7 @@ type Item = {
 export function MobileBottomNav({ items }: { items: Item[] }) {
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-[150] border-t border-[var(--color-border)] bg-[var(--color-nav-bg)] pb-[env(safe-area-inset-bottom)]"
+      className="bottom-nav fixed bottom-0 left-0 right-0 z-[200] border-t border-[var(--color-border)] bg-[var(--color-nav-bg)] pb-[env(safe-area-inset-bottom)]"
       aria-label="Bottom navigation"
     >
       <div className="mx-auto flex max-w-2xl flex-row items-stretch justify-around px-2">

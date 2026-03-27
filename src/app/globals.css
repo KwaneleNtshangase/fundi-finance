@@ -135,7 +135,8 @@ body {
   top: 0;
   width: 320px;
   height: 100vh;
-  background: white;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
   border-left: 2px solid var(--border-light);
   padding: 32px 24px;
   overflow-y: auto;
@@ -1006,6 +1007,27 @@ html.dark textarea {
   background: #161B22;
   color: #E6EDF3;
   border-color: #30363D;
+}
+
+html.dark .sidebar {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-right-color: var(--color-border);
+}
+
+html.dark .stats-panel {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border-left-color: var(--color-border);
+}
+
+html.dark .stats-section h3,
+html.dark .stat-value {
+  color: var(--color-text-primary);
+}
+
+html.dark .stat-label {
+  color: var(--color-text-secondary);
 }
 
 html.dark .option-button {

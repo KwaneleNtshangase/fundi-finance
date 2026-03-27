@@ -18,29 +18,44 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import {
+  AlertTriangle,
   ArrowLeft,
+  Award,
+  BarChart2,
   BookOpen,
   Brain,
-  Building2,
   Briefcase,
+  Building2,
   Calculator,
   CheckCircle2,
   CreditCard,
+  ExternalLink,
   FileText,
-  Flame,
   Flag,
+  Flame,
+  Hash,
   Home as HomeIcon,
+  KeyRound,
+  Landmark,
+  Lightbulb,
+  Link2,
   Lock,
+  LogOut,
+  Mail,
+  Moon,
+  PiggyBank,
+  Search,
   Settings as SettingsIcon,
   Shield,
   Siren,
+  Sun,
   Target,
   TrendingUp,
   Trophy,
-  LogOut,
   Umbrella,
   User as UserIcon,
   Wallet,
+  X,
   Zap,
 } from "lucide-react";
 
@@ -90,18 +105,18 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
   const [selectedGoal, setSelectedGoal] = React.useState("");
 
   const goals = [
-    { id: "debt", label: "Get out of debt", icon: "💳" },
-    { id: "save", label: "Build savings", icon: "🏦" },
-    { id: "invest", label: "Start investing", icon: "📈" },
-    { id: "literacy", label: "General financial literacy", icon: "📚" },
-    { id: "retirement", label: "Plan for retirement", icon: "🌅" },
-    { id: "home", label: "Buy a home", icon: "🏠" },
+    { id: "debt", label: "Get out of debt", Icon: CreditCard },
+    { id: "save", label: "Build savings", Icon: PiggyBank },
+    { id: "invest", label: "Start investing", Icon: TrendingUp },
+    { id: "literacy", label: "General financial literacy", Icon: BookOpen },
+    { id: "retirement", label: "Plan for retirement", Icon: Sun },
+    { id: "home", label: "Buy a home", Icon: HomeIcon },
   ];
 
   const screens = [
     {
       title: "Welcome to Fundi Finance",
-      body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense — from budgeting to investing to what the Bible says about money.",
+      body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
       cta: "Let's go",
       action: () => setScreen(1),
     },
@@ -151,10 +166,14 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
       </div>
 
       <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
-        {screen === 0 && <div style={{ fontSize: 64, marginBottom: 16 }}>🇿🇦</div>}
+        {screen === 0 && (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
+          </div>
+        )}
         {screen === 2 && (
           <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
-            {["🎯", "⚡", "🏅"].map((e, i) => (
+            {[Target, Zap, Trophy].map((IconComp, i) => (
               <div
                 key={i}
                 style={{
@@ -166,10 +185,9 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 24,
                 }}
               >
-                {e}
+                <IconComp size={24} style={{ color: "var(--color-primary)" }} />
               </div>
             ))}
           </div>
@@ -203,7 +221,7 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
                   transition: "all 0.15s",
                 }}
               >
-                <span style={{ fontSize: 18 }}>{g.icon}</span>
+                <g.Icon size={18} />
                 {g.label}
               </button>
             ))}
@@ -332,8 +350,13 @@ function calcGrowth(inputs: CalcInputs) {
   return data;
 }
 
+/** Thousands use spaces (e.g. R1 000), not commas. */
+function formatWithSpaces(value: number) {
+  return Math.round(value).toLocaleString("en-ZA").replace(/,/g, " ");
+}
+
 function formatZAR(value: number) {
-  return `R${Math.round(value).toLocaleString("en-ZA")}`;
+  return `R${formatWithSpaces(value)}`;
 }
 
 function SliderInput({
@@ -418,7 +441,7 @@ function SliderInput({
   );
 }
 
-// ── FundiTopBar — sticky mobile top bar ──────────────────────────────────────
+// ── FundiTopBar, sticky mobile top bar ──────────────────────────────────────
 function FundiTopBar({
   streak,
   xp,
@@ -550,7 +573,7 @@ function FundiTopBar({
   );
 }
 
-// ── FundiCharacter — mascot image with expression ─────────────────────────────
+// ── FundiCharacter, mascot image with expression ─────────────────────────────
 type FundiExpression = "default" | "thinking" | "sad" | "celebrating";
 function FundiCharacter({
   expression = "default",
@@ -809,7 +832,8 @@ function CalculatorView() {
       </div>
 
       {/* Results + chart section (clean) */}
-      <button className="btn btn-primary" style={{ width: "100%", marginBottom: 16 }} onClick={handleCalculate}>
+      <button className="btn btn-primary" style={{ width: "100%", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={handleCalculate}>
+        <BarChart2 size={20} aria-hidden />
         Calculate
       </button>
 
@@ -1042,7 +1066,7 @@ function useFundiState() {
 
 
 
-  // consumeStreakFreeze removed — handled via localStorage directly
+  // consumeStreakFreeze removed, handled via localStorage directly
 
   const [reviewAnswers, setReviewAnswers] = useState<{
     question: string; yourAnswer: string; correct: string; wasCorrect: boolean;
@@ -1071,7 +1095,7 @@ function useFundiState() {
     setDailyXP(0);
   }, []);
 
-  // spendXP removed from hook — handled in Home via direct localStorage
+  // spendXP removed from hook, handled in Home via direct localStorage
 
   const addXP = (amount: number) => {
     progress.addXP(amount);
@@ -1103,7 +1127,7 @@ function useFundiState() {
         { onConflict: "user_id" }
       );
       if (error) {
-        // silent fail — offline is fine
+        // silent fail, offline is fine
       }
     }
   };
@@ -1236,7 +1260,7 @@ function CourseIcon({ name, size = 48 }: { name: string; size?: number }) {
   }
 }
 
-// Course accent colours — cycles through SA-themed palette
+// Course accent colours, cycles through SA-themed palette
 const COURSE_COLOURS = [
   { bg: "#E8F5EE", accent: "#007A4D", light: "#C8EAD9" }, // green
   { bg: "#FFF8E7", accent: "#FFB612", light: "#FFE9A0" }, // gold
@@ -1246,6 +1270,20 @@ const COURSE_COLOURS = [
   { bg: "#E8FAF0", accent: "#00BFA5", light: "#B2EFE3" }, // teal
   { bg: "#FFF3E0", accent: "#F57C00", light: "#FFD9A8" }, // orange
   { bg: "#FCE4EC", accent: "#C2185B", light: "#F5B8CE" }, // pink
+];
+
+const RECOMMENDED_READING_BOOKS: {
+  title: string;
+  author: string;
+  lesson: string;
+  color: string;
+  Icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
+}[] = [
+  { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", lesson: "Assets vs liabilities. Buy assets that put money in your pocket, not liabilities.", color: "#FFB612", Icon: Wallet },
+  { title: "The Richest Man in Babylon", author: "George S. Clason", lesson: "Pay yourself first. Save at least 10% of everything you earn, always.", color: "#007A4D", Icon: Landmark },
+  { title: "The Psychology of Money", author: "Morgan Housel", lesson: "Wealth is what you don't spend. Humility, patience and saving beats genius.", color: "#3B7DD8", Icon: Brain },
+  { title: "The Millionaire Next Door", author: "Thomas J. Stanley", lesson: "Most millionaires live frugally in modest homes and drive ordinary cars.", color: "#7C4DFF", Icon: Hash },
+  { title: "Think and Grow Rich", author: "Napoleon Hill", lesson: "A burning desire + a definite plan + persistent action builds lasting wealth.", color: "#E03C31", Icon: TrendingUp },
 ];
 
 function LearnView({
@@ -1309,7 +1347,7 @@ function LearnView({
     "73% of South Africans live paycheque to paycheque. A R1,000 emergency fund breaks the cycle.",
     "South Africans pay some of the highest bank fees in the world. Switching banks can save R1,700/year.",
     "Less than 7% of South Africans are on track for a comfortable retirement. Start your RA today.",
-    "Your TFSA lifetime limit is R500,000. Invest in it early — all growth is tax-free.",
+    "Your TFSA lifetime limit is R500,000. Invest in it early, all growth is tax-free.",
     "Paying R500/month extra on a 20-year bond at 11.75% saves over R300,000 in interest.",
     "A R50 daily coffee = R18,250/year. Invested at 10% over 20 years = over R1 million.",
     "The two-pot retirement system lets you access 1/3 of new contributions in emergencies.",
@@ -1326,39 +1364,11 @@ function LearnView({
         padding: "14px 16px", marginBottom: 20,
         borderLeft: "4px solid var(--color-primary)",
       }}>
-        <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 4 }}>
-          💡 Fact of the Day
+        <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 4 }}>
+          <Lightbulb size={14} aria-hidden />
+          Fact of the Day
         </div>
         <div style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5 }}>{todayFact}</div>
-      </div>
-
-      {/* Book Recommendations */}
-      <div style={{ marginBottom: 28 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", marginBottom: 10 }}>
-          📚 Recommended Reading
-        </div>
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
-          {[
-            { emoji: "💰", title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", lesson: "Assets vs liabilities. Buy assets that put money in your pocket, not liabilities.", color: "#FFB612" },
-            { emoji: "🏺", title: "The Richest Man in Babylon", author: "George S. Clason", lesson: "Pay yourself first. Save at least 10% of everything you earn — always.", color: "#007A4D" },
-            { emoji: "🤔", title: "The Psychology of Money", author: "Morgan Housel", lesson: "Wealth is what you don't spend. Humility, patience and saving beats genius.", color: "#3B7DD8" },
-            { emoji: "🔢", title: "The Millionaire Next Door", author: "Thomas J. Stanley", lesson: "Most millionaires live frugally in modest homes and drive ordinary cars.", color: "#7C4DFF" },
-            { emoji: "📈", title: "Think and Grow Rich", author: "Napoleon Hill", lesson: "A burning desire + a definite plan + persistent action builds lasting wealth.", color: "#E03C31" },
-          ].map((book) => (
-            <div key={book.title} style={{
-              minWidth: 180, background: "var(--color-surface)",
-              border: `1.5px solid ${book.color}40`,
-              borderRadius: 14, padding: "14px 14px 12px",
-              flexShrink: 0,
-              borderTop: `4px solid ${book.color}`,
-            }}>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>{book.emoji}</div>
-              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2, color: "var(--color-text-primary)" }}>{book.title}</div>
-              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>{book.author}</div>
-              <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>{book.lesson}</div>
-            </div>
-          ))}
-        </div>
       </div>
 
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>
@@ -1380,7 +1390,7 @@ function LearnView({
           }}
         />
         <span style={{ position: "absolute", right: 14, top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary)" }}>
-          🔍
+          <Search size={18} aria-hidden />
         </span>
       </div>
 
@@ -1398,7 +1408,9 @@ function LearnView({
           borderRadius: 14, padding: "14px 16px", marginBottom: 24,
           display: "flex", alignItems: "center", gap: 14,
         }}>
-          <div style={{ fontSize: 28, flexShrink: 0 }}>{challengeComplete ? "🏆" : "⚡"}</div>
+          <div style={{ flexShrink: 0, color: "var(--color-primary)", display: "flex" }}>
+            {challengeComplete ? <Trophy size={28} /> : <Zap size={28} />}
+          </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 2 }}>
               Weekly Challenge
@@ -1424,7 +1436,9 @@ function LearnView({
             </button>
           )}
           {challengeRewardClaimed && (
-            <div style={{ fontSize: 11, color: "var(--color-primary)", fontWeight: 700, flexShrink: 0 }}>✓ Claimed</div>
+            <div style={{ fontSize: 11, color: "var(--color-primary)", fontWeight: 700, flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
+              <CheckCircle2 size={14} /> Claimed
+            </div>
           )}
         </div>
       )}
@@ -1490,12 +1504,16 @@ function CourseView({
   goBack,
   goToLesson,
   courseIndex = 0,
+  nextCourse,
+  onGoToNextCourse,
 }: {
   course: Course;
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
   goBack: () => void;
   goToLesson: (lessonId: string) => void;
   courseIndex?: number;
+  nextCourse?: Course | null;
+  onGoToNextCourse?: () => void;
 }) {
   const colour = COURSE_COLOURS[courseIndex % COURSE_COLOURS.length];
   const [lockedModal, setLockedModal] = useState<{
@@ -1589,7 +1607,7 @@ function CourseView({
                         '" first to unlock this lesson.',
                     });
                   } else {
-                    // "completed" or "playable" — open the lesson
+                    // "completed" or "playable", open the lesson
                     goToLesson(lesson.id);
                   }
                 };
@@ -1635,6 +1653,21 @@ function CourseView({
             </div>
           </div>
         ))}
+
+        {nextCourse ? (
+          <button
+            type="button"
+            className="btn btn-primary"
+            style={{ width: "100%", marginTop: 24 }}
+            onClick={onGoToNextCourse}
+          >
+            Next Course: {nextCourse.title}
+          </button>
+        ) : (
+          <p style={{ textAlign: "center", marginTop: 24, color: "var(--color-text-secondary)", fontSize: 15, fontWeight: 600 }}>
+            You&apos;ve completed all courses!
+          </p>
+        )}
 
         {/* Lock / coming-soon modal */}
         {lockedModal && (
@@ -1767,7 +1800,7 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
           <div className={"feedback " + (isCorrect ? "correct" : "incorrect")}>
             {isCorrect
               ? (step.feedback?.correct || "Correct! Well done.")
-              : (step.feedback?.incorrect || `The correct answer is ${step.correct.toLocaleString()}. ${step.explanation || ""}`)}
+              : (step.feedback?.incorrect || `The correct answer is ${formatWithSpaces(step.correct)}. ${step.explanation || ""}`)}
           </div>
           <div className="lesson-actions">
             {isLast ? (
@@ -2163,7 +2196,7 @@ function LessonView({
       <ExitConfirmModal />
       <main className="main-content main-with-stats">
         <div className="lesson-player">
-          {/* Back button + progress bar + exit + hearts row */}
+          {/* Back button + progress bar + exit (hearts only in FundiTopBar) */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             {goBack && (
               <button
@@ -2200,26 +2233,15 @@ function LessonView({
                 cursor: "pointer",
                 padding: "4px 2px",
                 color: "var(--color-text-secondary)",
-                fontSize: 18,
-                lineHeight: 1,
                 flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
               }}
               aria-label="Exit lesson"
               title="Exit lesson"
             >
-              ✕
+              <X size={22} />
             </button>
-            <div style={{ display: "flex", gap: 3, flexShrink: 0 }}>
-            {Array.from({ length: maxHearts }).map((_, i) => (
-              <svg key={i} viewBox="0 0 24 24"
-                fill={i < hearts ? "#E03C31" : "none"}
-                stroke={i < hearts ? "#E03C31" : "#ccc"}
-                strokeWidth="2" width="16" height="16"
-                style={{ transition: "fill 0.2s" }}>
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-            ))}
-          </div>
           </div>
           <div className="lesson-step">{renderStep()}</div>
         </div>
@@ -2249,7 +2271,7 @@ function ProfileView({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Load name — show update form if no real full_name exists
+  // Load name, show update form if no real full_name exists
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const user = data.user;
@@ -2442,6 +2464,38 @@ function ProfileView({
         ))}
       </div>
 
+      {/* ── Talk to a finance professional (same style as calculator CTA) ── */}
+      <div
+        style={{
+          background: "var(--color-primary-light)",
+          border: "1px solid var(--color-primary)",
+          borderRadius: 16,
+          padding: 24,
+          textAlign: "center",
+          marginBottom: 24,
+        }}
+      >
+        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>Talk to a finance professional</div>
+        <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 16 }}>
+          Get personalised guidance for your goals. Email Kwanele to start the conversation.
+        </p>
+        <a
+          href="mailto:kwanele@wealthwithkwanele.co.za?subject=Fundi%20Finance%20-%20Financial%20guidance"
+          style={{
+            display: "inline-block",
+            padding: "12px 28px",
+            background: "var(--color-primary)",
+            color: "white",
+            borderRadius: 12,
+            fontWeight: 700,
+            fontSize: 15,
+            textDecoration: "none",
+          }}
+        >
+          Talk to a Finance Professional
+        </a>
+      </div>
+
       {/* ── Earned badges ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
@@ -2472,6 +2526,64 @@ function ProfileView({
             ))}
           </div>
         )}
+      </div>
+
+      {/* ── Recommended Reading ── */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <BookOpen size={18} style={{ color: "var(--color-primary)" }} aria-hidden />
+          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>
+            Recommended Reading
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
+          {RECOMMENDED_READING_BOOKS.map((book) => {
+            const BookIcon = book.Icon;
+            return (
+            <div
+              key={book.title}
+              style={{
+                minWidth: 180,
+                background: "var(--color-surface)",
+                border: `1.5px solid ${book.color}40`,
+                borderRadius: 14,
+                padding: "14px 14px 12px",
+                flexShrink: 0,
+                borderTop: `4px solid ${book.color}`,
+              }}
+            >
+              <div style={{ marginBottom: 6, color: book.color }}>
+                <BookIcon size={28} />
+              </div>
+              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2, color: "var(--color-text-primary)" }}>{book.title}</div>
+              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>{book.author}</div>
+              <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>{book.lesson}</div>
+            </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Free financial guides ── */}
+      <div style={{ marginBottom: 24 }}>
+        <a
+          href="https://www.wealthwithkwanele.co.za/resources"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-primary"
+          style={{
+            width: "100%",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            textDecoration: "none",
+            boxSizing: "border-box" as const,
+          }}
+        >
+          <ExternalLink size={18} aria-hidden />
+          Free Financial Guides
+        </a>
       </div>
 
       {/* ── Sign out ── */}
@@ -2577,8 +2689,6 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
     load();
   }, [xp, currentUserId]);
 
-  const MEDALS = ["🥇", "🥈", "🥉"];
-
   return (
     <main className="main-content main-with-stats">
       <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Leaderboard</h2>
@@ -2594,7 +2704,9 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
         </div>
       ) : loadError ? (
         <div style={{ textAlign: "center", padding: 40 }}>
-          <div style={{ fontSize: 36, marginBottom: 8 }}>⚠️</div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+            <AlertTriangle size={40} style={{ color: "var(--color-secondary)" }} aria-hidden />
+          </div>
           <div style={{ fontWeight: 700, marginBottom: 4 }}>Could not load leaderboard</div>
           <div style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>Check your connection and try again.</div>
           <button className="btn btn-primary" onClick={() => setRetryCount(n => n + 1)}>Retry</button>
@@ -2620,8 +2732,11 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
               className="leaderboard-row"
               style={leader.isYou ? { background: "rgba(0,122,77,0.08)", border: "1.5px solid var(--color-primary)" } : undefined}
             >
-              <div className={`leaderboard-rank ${index < 3 ? "top" : ""}`}>
-                {index < 3 ? MEDALS[index] : index + 1}
+              <div className={`leaderboard-rank ${index < 3 ? "top" : ""}`} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {index === 0 ? <Trophy size={22} style={{ color: "#FFB612" }} aria-hidden /> :
+                  index === 1 ? <Trophy size={22} style={{ color: "#9CA3AF" }} aria-hidden /> :
+                  index === 2 ? <Trophy size={22} style={{ color: "#CD7F32" }} aria-hidden /> :
+                  index + 1}
               </div>
               <div className="leaderboard-avatar" style={{ background: leader.isYou ? "var(--color-primary)" : "#eee", color: leader.isYou ? "white" : "#555" }}>
                 {leader.name[0].toUpperCase()}
@@ -2905,7 +3020,7 @@ function DarkModeToggle() {
       borderRadius: 12, padding: "14px 16px", marginBottom: 8,
       display: "flex", alignItems: "center", gap: 12,
     }}>
-      <span style={{ color: "var(--color-primary)" }}>🌙</span>
+      <Moon size={18} style={{ color: "var(--color-primary)" }} aria-hidden />
       <div style={{ flex: 1 }}>
         <div style={{ fontWeight: 600, fontSize: 14 }}>Dark Mode</div>
         <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>Easier on your eyes at night</div>
@@ -2957,7 +3072,7 @@ function StatsPanel({ userData }: { userData: UserData }) {
           <div className="stat-content">
             <div className="stat-label">Total XP</div>
             <div className="stat-value" id="xpValue">
-              {userData.xp.toLocaleString()}
+              {formatWithSpaces(userData.xp)}
             </div>
           </div>
         </div>
@@ -3000,7 +3115,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [session, setSession] = useState<unknown | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [sessionLoading, setSessionLoading] = useState(true);
+  const [splashMinElapsed, setSplashMinElapsed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
@@ -3018,15 +3134,22 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    const t = setTimeout(() => setSplashMinElapsed(true), 2500);
+    return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
     let mounted = true;
     supabase.auth
       .getSession()
       .then(({ data }) => {
         if (!mounted) return;
         setSession(data.session ?? null);
-        setLoading(false);
+        setSessionLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        if (mounted) setSessionLoading(false);
+      });
 
     const {
       data: { subscription },
@@ -3075,7 +3198,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
   };
 
-  if (loading) {
+  if (sessionLoading || !splashMinElapsed) {
     return (
       <div style={{
         minHeight: "100dvh", display: "flex", flexDirection: "column",
@@ -3085,7 +3208,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         <img
           src="/fundi-logo.png"
           alt="Fundi Finance"
-          style={{ width: 140, height: 140, objectFit: "contain", marginBottom: 20, animation: "pulse 1.5s ease-in-out infinite" }}
+          style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 20, animation: "pulse 1.5s ease-in-out infinite" }}
         />
         <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, letterSpacing: 1 }}>Loading…</div>
       </div>
@@ -3105,13 +3228,17 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
           <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
             <div style={{ textAlign: "center", marginBottom: 20 }}>
-              <div style={{ fontSize: 36, marginBottom: 8 }}>🔑</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                <KeyRound size={48} style={{ color: "var(--color-primary)" }} aria-hidden />
+              </div>
               <h2 style={{ fontSize: 20, fontWeight: 800, marginBottom: 4 }}>Reset your password</h2>
               <p style={{ color: "#888", fontSize: 14 }}>We&apos;ll send you a reset link</p>
             </div>
             {forgotSent ? (
               <div style={{ textAlign: "center" }}>
-                <div style={{ fontSize: 36, marginBottom: 8 }}>📧</div>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                  <Mail size={48} style={{ color: "var(--color-primary)" }} aria-hidden />
+                </div>
                 <p style={{ fontWeight: 700, marginBottom: 4 }}>Email sent!</p>
                 <p style={{ color: "#888", fontSize: 13, marginBottom: 20 }}>
                   Check your inbox for a password reset link.
@@ -3145,7 +3272,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
         <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
           <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20 }}>
-            <Wallet size={22} className="text-[var(--primary-green)]" />
+            <img src="/fundi-logo.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
             <h1 style={{ fontSize: 22, fontWeight: 800 }}>Fundi Finance</h1>
           </div>
 
@@ -3234,7 +3361,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function Home() {
-  // Streak freeze — stored in localStorage, managed locally
+  // Streak freeze, stored in localStorage, managed locally
   const streakFreezeActive: boolean =
     typeof window !== "undefined" && localStorage.getItem("fundi-streak-freeze") === "true";
   const buyStreakFreeze = () => {
@@ -3278,14 +3405,14 @@ export default function Home() {
   // Load PostHog analytics on mount
   useEffect(() => { loadPostHog(); }, []);
 
-  // Weekly leaderboard XP reset — resets every Sunday at midnight
+  // Weekly leaderboard XP reset, resets every Sunday at midnight
   useEffect(() => {
     if (typeof window === "undefined") return;
     const now = new Date();
     const weekKey = `fundi-week-${now.getFullYear()}-W${Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000))}`;
     const lastWeekKey = localStorage.getItem("fundi-last-week-key");
     if (lastWeekKey && lastWeekKey !== weekKey) {
-      // New week — reset weekly XP tracking (but keep total XP and progress)
+      // New week, reset weekly XP tracking (but keep total XP and progress)
       localStorage.setItem("fundi-weekly-xp", "0");
       // Sync reset to Supabase for leaderboard
       supabase.auth.getUser().then(async ({ data }) => {
@@ -3299,7 +3426,7 @@ export default function Home() {
             { onConflict: "user_id" }
           );
           if (error) {
-            // silent fail — offline is fine
+            // silent fail, offline is fine
           }
         }
       });
@@ -3307,7 +3434,7 @@ export default function Home() {
     localStorage.setItem("fundi-last-week-key", weekKey);
   }, []);
 
-  // Cross-device sync — fetch latest progress from Supabase and hydrate localStorage
+  // Cross-device sync, fetch latest progress from Supabase and hydrate localStorage
   useEffect(() => {
     const syncFromSupabase = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -3334,12 +3461,20 @@ export default function Home() {
         localStorage.setItem("fundi-completed-lessons", JSON.stringify(merged));
       }
     };
-    syncFromSupabase().catch(() => {}); // silent fail — offline is fine
+    syncFromSupabase().catch(() => {}); // silent fail, offline is fine
   }, []);
 
   const currentCourse =
     route.name === "course" || route.name === "lesson"
       ? CONTENT_DATA.courses.find((c) => c.id === route.courseId)
+      : null;
+
+  const currentCourseIndex = currentCourse
+    ? CONTENT_DATA.courses.findIndex((c) => c.id === currentCourse.id)
+    : -1;
+  const nextCourseInList =
+    currentCourseIndex >= 0 && currentCourseIndex < CONTENT_DATA.courses.length - 1
+      ? CONTENT_DATA.courses[currentCourseIndex + 1]
       : null;
 
   // Ref to hold next lesson across async badge modal
@@ -3449,7 +3584,7 @@ export default function Home() {
       });
       if (reviewList.length > 0) {
         setReviewAnswers(reviewList);
-        // Still compute badges and next lesson — they'll show after review
+        // Still compute badges and next lesson, they'll show after review
       }
 
       // Compute newly earned badges for celebration modal
@@ -3568,7 +3703,7 @@ export default function Home() {
 
   return (
     <AuthGate>
-      {/* ── Sticky mobile TopBar — outside scroll area ── */}
+      {/* ── Sticky mobile TopBar, outside scroll area ── */}
       <div className="md:hidden" style={{ position: "sticky", top: 0, zIndex: 200 }}>
         <FundiTopBar
           streak={userData.streak}
@@ -3644,8 +3779,8 @@ export default function Home() {
         </nav>
 
         {/* keep content above bottom nav on mobile */}
-        <div className="pb-24 md:pb-0">
-        {/* TopBar moved outside scroll area — see below */}
+        <div className="pb-24">
+        {/* TopBar moved outside scroll area, see below */}
         {route.name === "learn" && (
           <LearnView
             courses={CONTENT_DATA.courses}
@@ -3667,6 +3802,10 @@ export default function Home() {
             course={currentCourse}
             isLessonCompleted={isLessonCompleted}
             courseIndex={CONTENT_DATA.courses.findIndex(c => c.id === currentCourse.id)}
+            nextCourse={nextCourseInList}
+            onGoToNextCourse={() => {
+              if (nextCourseInList) setRoute({ name: "course", courseId: nextCourseInList.id });
+            }}
             goBack={() => setRoute({ name: "learn" })}
             goToLesson={(lessonId) => {
               const courseId = currentCourse.id;
@@ -3799,7 +3938,7 @@ export default function Home() {
               ))}
               <button className="btn btn-primary" style={{ width: "100%", marginTop: 8 }}
                 onClick={() => setReviewAnswers(null)}>
-                Got it — Continue
+                Got it, Continue
               </button>
             </div>
           </div>
@@ -3816,7 +3955,9 @@ export default function Home() {
               padding: "32px 24px", width: "100%", maxWidth: 360, textAlign: "center",
               boxShadow: "0 8px 40px rgba(0,0,0,0.2)",
             }}>
-              <div style={{ fontSize: 52, marginBottom: 8 }}>🏅</div>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                <Award size={52} style={{ color: "var(--color-primary)" }} aria-hidden />
+              </div>
               <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6, color: "var(--color-primary)" }}>
                 Badge Earned!
               </div>
@@ -3853,22 +3994,29 @@ export default function Home() {
                     setRoute({ name: "course", courseId: currentLessonState.courseId! });
                   }
                 }}>Continue</button>
-                <button className="btn btn-secondary" style={{ flex: 1 }} onClick={() => {
-                  const NAMES: Record<string, string> = {
-                    "lesson-1-badge": "First Step", "lesson-5-badge": "Getting Going",
-                    "lesson-10-badge": "On a Roll", "lesson-25-badge": "Dedicated",
-                    "streak-3-badge": "3 Day Streak", "streak-7-badge": "Week Warrior",
-                    "xp-100-badge": "First 100", "xp-500-badge": "XP Builder",
-                    "perfect-1-badge": "Flawless",
-                  };
-                  const badgeName = NAMES[newlyEarnedBadges[0]] ?? "a badge";
-                  const text = `I just earned the "${badgeName}" badge on Fundi Finance! 🇿🇦 Learning money skills one lesson at a time. fundi-finance.vercel.app`;
-                  if (navigator.share) {
-                    navigator.share({ title: "Fundi Finance", text });
-                  } else {
-                    navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
-                  }
-                }}>Share 🔗</button>
+                <button
+                  className="btn btn-secondary"
+                  style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+                  onClick={() => {
+                    const NAMES: Record<string, string> = {
+                      "lesson-1-badge": "First Step", "lesson-5-badge": "Getting Going",
+                      "lesson-10-badge": "On a Roll", "lesson-25-badge": "Dedicated",
+                      "streak-3-badge": "3 Day Streak", "streak-7-badge": "Week Warrior",
+                      "xp-100-badge": "First 100", "xp-500-badge": "XP Builder",
+                      "perfect-1-badge": "Flawless",
+                    };
+                    const badgeName = NAMES[newlyEarnedBadges[0]] ?? "a badge";
+                    const text = `I just earned the "${badgeName}" badge on Fundi Finance! Learning money skills one lesson at a time. fundi-finance.vercel.app`;
+                    if (navigator.share) {
+                      navigator.share({ title: "Fundi Finance", text });
+                    } else {
+                      navigator.clipboard.writeText(text).then(() => alert("Copied to clipboard!"));
+                    }
+                  }}
+                >
+                  <Link2 size={16} aria-hidden />
+                  Share
+                </button>
               </div>
             </div>
           </div>
