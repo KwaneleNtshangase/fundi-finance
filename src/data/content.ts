@@ -442,12 +442,72 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-3",
               title: "UIF and SDL Explained",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Two Deductions That Protect You",
+                  content: "<p>Every South African payslip shows two deductions most people ignore: <strong>UIF</strong> and <strong>SDL</strong>.</p><p><strong>UIF (Unemployment Insurance Fund):</strong> You pay 1% of your salary, your employer pays another 1%. If you lose your job, get retrenched, or go on maternity leave, you can claim up to 60% of your income for up to 365 days.</p><p><strong>SDL (Skills Development Levy):</strong> Your employer pays 1% of your total payroll to SETA (Sector Education and Training Authority). You do not pay this — your employer does. It funds workplace training and learnerships.</p><p>Scenario: Thabo earns R15 000/month. His UIF deduction is R150. His employer also puts in R150. If Thabo is retrenched, he can claim approximately R9 000/month while job hunting.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "How much does an employee earning R20 000/month contribute to UIF each month?",
+                  options: ["R400", "R200", "R100", "R500"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. UIF is 1% of gross salary, so R20 000 x 1% = R200. Your employer matches this.",
+                    incorrect: "UIF is exactly 1% of your gross salary. R20 000 x 1% = R200.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You can claim UIF if you resign voluntarily from your job.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. UIF claims are for retrenchment, dismissal, maternity, illness, or adoption — not voluntary resignation.",
+                    incorrect: "Voluntary resignation does not qualify for UIF. You must have been retrenched, dismissed, or qualify on other grounds.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Who pays the SDL (Skills Development Levy)?",
+                  options: ["The employee only", "The employer only", "Both employee and employer equally", "SARS deducts it automatically"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. SDL is purely an employer cost — 1% of total payroll. It does not appear as a deduction on your payslip.",
+                    incorrect: "SDL is paid entirely by the employer at 1% of total payroll. It does not come out of your take-home pay.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Retirement Contributions",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Build Wealth and Pay Less Tax",
+                  content: "<p>South Africa gives you a powerful incentive to save for retirement: <strong>tax deductions up to 27.5% of taxable income</strong> (capped at R350 000/year) on approved retirement fund contributions.</p><p><strong>Three main vehicles:</strong></p><ul><li><strong>Pension Fund:</strong> Provided by your employer. You contribute a set percentage, employer often matches.</li><li><strong>Provident Fund:</strong> Similar to pension but previously allowed a full lump sum at retirement. Now aligned to pension rules under the two-pot system.</li><li><strong>Retirement Annuity (RA):</strong> A private retirement fund you open yourself — ideal for self-employed people or those who want to save beyond their employer fund.</li></ul><p><strong>Two-Pot System (from 1 September 2024):</strong> Your retirement savings are now split into a Savings Pot (1/3, accessible once per year from age 55) and a Retirement Pot (2/3, locked until retirement). This prevents raiding your retirement savings while giving emergency access.</p><p>Example: If you earn R30 000/month (R360 000/year) and contribute R3 000/month to an RA, you save approximately R990/month in tax (assuming 33% marginal rate).</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the maximum percentage of taxable income you can deduct for retirement contributions?",
+                  options: ["15%", "20%", "27.5%", "33%"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. SARS allows a deduction of up to 27.5% of the greater of taxable income or remuneration, capped at R350 000 per year.",
+                    incorrect: "The limit is 27.5% of taxable income, capped at R350 000 annually. This is one of SA's best legal tax breaks.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Under the Two-Pot System, you can access your entire retirement savings once per year for emergencies.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Only 1/3 of new contributions go to the Savings Pot. The Retirement Pot (2/3) is locked until retirement.",
+                    incorrect: "Only the Savings Pot (1/3 of contributions) is accessible — once per tax year, minimum R2 000 withdrawal, subject to tax.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -522,7 +582,32 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-3",
               title: "Digital Banking",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Banking With Zero Monthly Fees",
+                  content: "<p>Millions of South Africans pay R100–R200/month in bank fees they don't need to. Digital-first banks have changed the game.</p><p><strong>Zero or near-zero fee options:</strong></p><ul><li><strong>Capitec Global One:</strong> R7/month admin fee, low transaction costs, 9.5% interest on positive balance (2024 rate).</li><li><strong>TymeBank:</strong> R0 monthly fee, free swipes at PicknPay and Boxer, R0 balance notifications.</li><li><strong>FNB Easy Account:</strong> R0 monthly fee option with app-only banking.</li><li><strong>Discovery Bank:</strong> Fee-free if you hit Vitality Money milestones.</li></ul><p><strong>What to look for:</strong> Monthly fee, cost per ATM withdrawal, cost per online transfer, interest on positive balance, app functionality, customer support quality.</p><p>Scenario: Lungile switched from a traditional bank (R160/month fees) to TymeBank (R0 fees). Over 5 years she saved R9 600 — nearly a full month's salary in fees alone.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which of these is a key advantage of digital-first banks like TymeBank?",
+                  options: ["More ATMs than traditional banks", "Zero or very low monthly fees with no branches", "Better forex rates for international travel", "Government-backed deposit guarantees traditional banks don't have"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. Digital banks eliminate branch overhead, passing the saving to you as zero or very low monthly fees.",
+                    incorrect: "The main advantage is zero or very low fees. They have fewer ATMs but operate through existing retail partners like PicknPay.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "All South African bank accounts are covered by the same government deposit protection scheme.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. South Africa does not have a universal deposit insurance scheme like the FDIC in the USA. Banks are regulated by the FSCA and Prudential Authority but your deposits are not government-guaranteed.",
+                    incorrect: "SA does not have universal deposit insurance. Your money is protected through bank regulation, not an explicit government guarantee per account.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -554,12 +639,62 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-5",
               title: "Stopping Debit Orders",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "You Have the Power to Stop Debit Orders",
+                  content: "<p>Many people don't know they can stop debit orders themselves — they think only the company collecting the money can cancel it. That is not true.</p><p><strong>How to stop a debit order in SA:</strong></p><ul><li>Log into your banking app and find the Debit Orders or Mandates section.</li><li>Select the debit order you want to cancel and follow the prompts — most banks allow this free of charge.</li><li>For <strong>DebiCheck mandates</strong> (the newer system), you cancel via the app and the bank sends a cancellation to the originator.</li><li>For old-style <strong>NAEDO/early debit orders</strong>, your bank can block future collections on your instruction.</li></ul><p><strong>Important:</strong> Cancelling a debit order at the bank does NOT cancel your underlying contract (e.g. gym membership or insurance policy). You still owe the money. If you cancel a payment without settling a valid debt, the company can list you with a credit bureau.</p><p>Scenario: Priya noticed a gym she hasn't visited in 6 months was still deducting R699/month. She stopped the debit order via her banking app, then formally cancelled her gym contract in writing. Both steps were needed.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the most important thing to do BEFORE stopping a legitimate debit order?",
+                  options: ["Get a lawyer to send a letter", "Cancel your bank account", "Cancel the underlying contract or debt with the company", "Wait 40 days for it to expire automatically"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists — cancel it separately.",
+                    incorrect: "Stopping a debit order without cancelling the contract means you'll still legally owe the money. Always settle or cancel the underlying agreement first.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "DebiCheck debit orders require your upfront digital approval before they can collect from your account.",
+                  correct: true,
+                  feedback: {
+                    correct: "Correct. DebiCheck is SA's mandated authentication system — you must approve the mandate on your banking app before any deductions can begin.",
+                    incorrect: "DebiCheck requires your explicit digital consent before any collection. This is a major consumer protection improvement over old debit order systems.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
               title: "Disputing Unauthorized Debits",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Unauthorized Debits Can Be Reversed",
+                  content: "<p>If you see a debit order on your statement that you did not authorize, South African banking rules entitle you to a <strong>reversal</strong>.</p><p><strong>The reversal process:</strong></p><ul><li>You have <strong>40 days</strong> from the date of the debit to dispute it with your bank as unauthorized.</li><li>Contact your bank (in branch, via app, or call centre) and formally dispute the debit as unauthorized.</li><li>The bank must reverse the unauthorized debit — no questions asked for DebiCheck mandates you never approved.</li><li>For disputed legitimate debit orders, the bank investigates and may take up to 10 business days.</li></ul><p><strong>Keep records:</strong> Take screenshots of unauthorized debits immediately. Keep reference numbers for all disputes. If a company continues to debit you after a reversal, escalate to the <strong>Banking Ombudsman</strong> (0860 800 900) at no cost.</p><p><strong>Warning signs:</strong> Small recurring amounts (R19, R49, R99) you don't recognize — these are common with subscription scams. Check every line of your bank statement monthly.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "How many days do you have to dispute an unauthorized debit order with your bank?",
+                  options: ["7 days", "14 days", "40 days", "90 days"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. You have 40 days from the debit date to report it as unauthorized and claim a reversal from your bank.",
+                    incorrect: "The dispute window is 40 days from the transaction date. After that, reversals are at the bank's discretion.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "The Banking Ombudsman charges a fee to investigate your complaint against a bank.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. The Banking Ombudsman (also called the Ombudsman for Banking Services) is a free service for consumers.",
+                    incorrect: "The Banking Ombudsman is completely free for consumers. Call 0860 800 900 or visit ombud.co.za at no cost.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -775,7 +910,32 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-6",
               title: "Debt Consolidation",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Combining Debts Can Save or Sink You",
+                  content: "<p>Debt consolidation means taking out a single new loan to pay off multiple smaller debts — credit cards, store accounts, personal loans — so you make one monthly payment instead of many.</p><p><strong>When it helps:</strong> Lower interest rate on the new loan, lower total monthly payment, simplified management of one account.</p><p><strong>When it hurts:</strong> Extending repayment period means paying more interest overall even at a lower rate. Many people clear credit cards via consolidation then run them up again, doubling their debt.</p><p><strong>Debt Counselling (NCR-registered):</strong> If you are over-indebted, applying through an NCR-registered debt counsellor is the legal route. The counsellor negotiates with all creditors on your behalf, courts grant a repayment order, and a flag is placed on your credit record. Creditors cannot take legal action while under debt review. Cost: regulated by the National Credit Regulator.</p><p><strong>Warning:</strong> Avoid any company offering debt consolidation without NCR registration, or charging large upfront fees. Check NCR registration at ncr.org.za.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the biggest risk of debt consolidation for most people?",
+                  options: ["The new loan always has a higher interest rate", "Paying off credit cards with the loan then running them up again", "Debt consolidation is illegal in South Africa", "Banks always refuse consolidation applications"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. The most common trap is clearing revolving credit (credit cards, store accounts) via consolidation and then accumulating new balances — ending up with double the debt.",
+                    incorrect: "The biggest risk is clearing revolving credit then re-spending. Many people end up in more debt than before because their cards are now empty again.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "A debt counsellor registered with the NCR can protect you from legal action by creditors while your debts are being restructured.",
+                  correct: true,
+                  feedback: {
+                    correct: "Correct. Formal debt review under the NCA creates a legal shield — creditors cannot sue or repossess assets while you are under debt review and making payments.",
+                    incorrect: "NCR-registered debt counselling does provide this protection under the National Credit Act. This is one of its key benefits.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1104,12 +1264,62 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-3",
               title: "Dread Disease Cover",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "A Lump Sum When You Need It Most",
+                  content: "<p>Dread Disease cover (also called Critical Illness cover) pays you a tax-free lump sum if you are diagnosed with a serious illness — even if you survive and recover.</p><p><strong>Conditions typically covered:</strong> Cancer, heart attack, stroke, coronary artery bypass, kidney failure, major organ transplant. Some policies cover 30+ conditions.</p><p><strong>Why it matters in South Africa:</strong> Cancer treatment at a private hospital can cost R500 000 to over R2 million. Even with medical aid, the shortfall and lost income can wipe out savings built over decades.</p><p><strong>Lump sum vs monthly benefit:</strong> Dread disease pays a once-off lump sum — you decide how to use it (pay medical bills, settle debt, replace income, modify your home). This is different from income protection which replaces monthly salary.</p><p>Scenario: Nomsa is diagnosed with breast cancer at 38. Her dread disease policy pays out R1 500 000 tax-free. She uses it to pay her oncologist gap cover, take unpaid leave for 6 months, and clear her home loan. Without it, she would have had to sell her car and empty her retirement savings.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "When does a dread disease policy pay out?",
+                  options: ["Only when you die from the illness", "When you are diagnosed with a covered condition, whether you survive or not", "Only if you are permanently disabled", "At retirement age regardless of illness"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. Dread disease pays upon diagnosis — not death. You can use the money while you are alive and fighting the illness.",
+                    incorrect: "Dread disease cover pays upon diagnosis of a covered condition. You do not need to die — the payout is designed to help you live through the illness.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "The lump sum payout from a dread disease policy is subject to income tax in South Africa.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Proceeds from a life or dread disease policy are generally not subject to income tax — they are capital in nature.",
+                    incorrect: "Dread disease payouts are tax-free in SA. This is one reason they are so valuable compared to accessing savings or investments that may have tax implications.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "How Much Cover Do You Need?",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Calculating Your Cover Gap",
+                  content: "<p>Most South Africans are underinsured. The question is not whether to have life cover, but <strong>how much</strong>.</p><p><strong>The 10x Rule:</strong> A common starting point is 10 times your annual salary. If you earn R30 000/month (R360 000/year), you need approximately R3 600 000 in life cover. This replaces your income for 10 years while your family adjusts.</p><p><strong>More precise approach — add up your needs:</strong></p><ul><li>Outstanding debt (home loan, car, credit cards)</li><li>Education costs for children until age 22</li><li>Monthly income to replace x number of years</li><li>Funeral and estate admin costs</li></ul><p><strong>Income replacement ratio:</strong> Aim to replace at least 75% of your net income. If your take-home is R25 000, your family needs R18 750/month from investments or insurance.</p><p><strong>Review annually:</strong> As your salary grows, debt changes, or family expands, your cover needs change. A policy taken out at 25 is usually insufficient at 35.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Using the 10x rule, how much life cover should someone earning R25 000 per month aim for?",
+                  options: ["R250 000", "R1 500 000", "R3 000 000", "R5 000 000"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. R25 000 x 12 months = R300 000/year. R300 000 x 10 = R3 000 000. This is a starting benchmark, not a ceiling.",
+                    incorrect: "Annual salary = R25 000 x 12 = R300 000. Multiply by 10 = R3 000 000. The 10x rule is a common starting benchmark.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Once you set up a life insurance policy you should leave the cover amount unchanged for the duration of the policy.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Your cover needs change as your salary, debt, and family change. Review your cover at least every 2–3 years or after major life events.",
+                    incorrect: "Cover needs change constantly. Salary increases, new debts, more children, and paying off loans all affect how much cover you need. Review regularly.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1142,7 +1352,32 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-6",
               title: "Home Insurance Basics",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Protecting Your Biggest Asset",
+                  content: "<p>Your home is likely the most expensive thing you will ever own. Two types of insurance protect it:</p><p><strong>1. Buildings Insurance:</strong> Covers the physical structure — walls, roof, floors, fitted kitchen, plumbing, windows. Pays to rebuild or repair after fire, flood, storm, burst geyser, or subsidence. If you have a bond, your bank usually requires this.</p><p><strong>2. Contents Insurance:</strong> Covers your furniture, appliances, electronics, clothing, and valuables inside the home. Covers theft, fire, and accidental damage depending on the policy.</p><p><strong>Sectional Title vs Freehold:</strong> If you own a sectional title property (flat or townhouse), the body corporate's insurance usually covers the building structure. You still need contents insurance and must check exactly what the body corporate policy covers vs what you need to top up.</p><p><strong>Geyser cover:</strong> A major claim driver in SA. Most building policies cover geyser bursting or leaking but not rust damage caused by aging. A 10-year-old geyser may be excluded — check your policy wording.</p><p><strong>Common exclusions:</strong> Gradual wear and tear, maintenance failures, subsidence from mining (important in parts of Gauteng), and damage from floods if not specified.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "If you own a sectional title apartment, which insurance does the body corporate typically provide?",
+                  options: ["Contents insurance for all residents", "Buildings insurance for the structure only", "Both buildings and contents for all owners", "No insurance — each owner is fully responsible"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. The body corporate insures the building structure. You are responsible for insuring your own contents and any personal liability.",
+                    incorrect: "Body corporate buildings insurance covers the structure. Your furniture, appliances, and valuables require a separate contents policy in your name.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "A home insurance policy typically covers damage from gradual wear and tear over time.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Insurance covers sudden, unexpected events — not gradual deterioration. Leaking pipes that develop slowly over months are typically excluded.",
+                    incorrect: "Wear and tear is almost universally excluded from home insurance. Insurance is for sudden, unexpected events — not aging or maintenance failures.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1767,17 +2002,92 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-2",
               title: "Understanding Home Loans",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "How a Bond Really Works",
+                  content: "<p>A home loan (called a <strong>bond</strong> in SA) is a secured loan where the property is the collateral. If you stop paying, the bank can repossess and sell the property to recover the debt.</p><p><strong>Key terms:</strong></p><ul><li><strong>LTV (Loan-to-Value):</strong> The ratio of the loan to the property value. A R900 000 loan on a R1 000 000 property = 90% LTV. Lower LTV means less risk for the bank, often a better rate.</li><li><strong>Prime Rate:</strong> Set by the SARB Monetary Policy Committee. Banks lend at prime minus or plus a spread. In 2024, prime was 11.25%.</li><li><strong>Spread:</strong> Your personal premium above or below prime based on your credit risk. A good profile earns prime minus 0.5%, a poor profile might be prime plus 1%.</li><li><strong>FLISP:</strong> Finance Linked Individual Subsidy Programme — a government grant for first-time buyers earning R3 501 to R22 000/month. The subsidy (R30 000–R130 000 depending on income) reduces your bond amount.</li></ul><p>Example: On a R1 000 000 bond at 11.5% over 20 years, you pay approximately R10 800/month. Over 20 years you pay back R2 600 000 — R1 600 000 in interest alone.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What does LTV (Loan-to-Value) measure in a home loan?",
+                  options: ["How long you have until the loan is paid off", "The ratio of your loan amount to the property value", "Your monthly repayment amount", "The interest rate charged by the bank"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. LTV is the loan amount divided by the property value. A lower LTV (bigger deposit) typically earns a better interest rate.",
+                    incorrect: "LTV = loan amount divided by property value. A R800 000 loan on a R1 000 000 property = 80% LTV.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "The FLISP subsidy is available to all South African home buyers regardless of income.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. FLISP is specifically for first-time buyers earning between R3 501 and R22 000/month. It is income-tested and cannot be used if you have previously owned property.",
+                    incorrect: "FLISP is means-tested — only for first-time buyers earning between R3 501 and R22 000/month who meet other qualifying criteria.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-3",
               title: "Deposit Requirements",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Why Your Deposit Changes Everything",
+                  content: "<p>Most banks in SA require a deposit of <strong>10–20% of the purchase price</strong>, although 100% bonds exist for strong credit profiles.</p><p><strong>Why a bigger deposit helps:</strong></p><ul><li>Lower monthly repayment (smaller loan)</li><li>Better interest rate (lower LTV = less bank risk)</li><li>Avoids Lenders Mortgage Insurance in some structures</li><li>Immediate equity in the property</li></ul><p><strong>Saving for a deposit:</strong> Open a separate savings account (32-day notice or money market) immediately. Automate a debit order on payday. At 10%, a R1 500 000 property needs R150 000 in cash plus transfer costs.</p><p><strong>AIP (Approval in Principle):</strong> Before making an offer, get an AIP from a bank or bond originator (ooba, BetterBond, MortgageSA). This tells you exactly what you can afford and makes your offer more credible to sellers.</p><p><strong>Guarantor option:</strong> A parent or family member can stand surety on your bond. This helps if your credit profile is limited but increases risk for the guarantor — they are liable if you default.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "A property is listed at R1 200 000. How much deposit would you need at the standard 10% requirement?",
+                  options: ["R12 000", "R120 000", "R200 000", "R300 000"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. 10% of R1 200 000 = R120 000. Note this is just the deposit — you also need transfer duty and bond registration costs on top of this.",
+                    incorrect: "10% of R1 200 000 = R120 000. Remember you also need separate cash for transfer duty and bond registration fees.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "An Approval in Principle (AIP) from a bank is a guarantee that your home loan application will be approved.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. An AIP is a preliminary assessment based on your declared income and credit profile. Full approval depends on the specific property valuation and verified documentation.",
+                    incorrect: "An AIP is an indication only — not a guarantee. The bank still does a full assessment once you make an offer on a specific property.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Hidden Costs of Homeownership",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "The Costs Nobody Tells You About",
+                  content: "<p>The purchase price is just the beginning. Budget for these once-off and ongoing costs:</p><p><strong>Once-off costs (when buying):</strong></p><ul><li><strong>Transfer Duty:</strong> Government tax on properties above R1 100 000 (2024). On R1 500 000 you pay R40 500.</li><li><strong>Bond Registration Costs:</strong> Attorney fees to register the bond — roughly R30 000–R50 000 depending on bond size.</li><li><strong>Transfer Costs:</strong> Attorney fees to transfer ownership — similar range.</li><li><strong>Moving costs, connection fees:</strong> Budget R5 000–R15 000.</li></ul><p><strong>Ongoing costs:</strong></p><ul><li><strong>Municipal rates and taxes:</strong> Based on property value, typically R500–R2 500/month.</li><li><strong>Levies (sectional title):</strong> R500–R3 000+/month for maintenance, security, garden.</li><li><strong>Home insurance:</strong> R500–R1 500/month for buildings and contents.</li><li><strong>Maintenance reserve:</strong> Budget 1% of property value per year (R15 000/year on a R1 500 000 home) for repairs and upgrades.</li></ul><p>Total hidden costs can add R80 000–R150 000 to the purchase price upfront, and R2 000–R6 000/month ongoing.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which of the following is a once-off cost when buying a property in South Africa?",
+                  options: ["Municipal rates", "Monthly levies", "Transfer duty", "Bond insurance premium"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Transfer duty is a once-off government tax paid at purchase. Municipal rates and levies are ongoing monthly costs.",
+                    incorrect: "Transfer duty is paid once when you take ownership. Municipal rates and levies are recurring monthly costs.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Transfer duty in South Africa is payable on all property purchases regardless of price.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Properties up to R1 100 000 (as of 2024) are exempt from transfer duty. Only the amount above this threshold attracts the tax.",
+                    incorrect: "Transfer duty has a threshold — in 2024 properties up to R1 100 000 are exempt. The tax applies on a sliding scale above that.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1789,12 +2099,62 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-5",
               title: "When Renting Makes Sense",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Renting Is Not Wasted Money",
+                  content: "<p>The idea that renting is \"throwing money away\" is one of the most damaging myths in personal finance. Renting is often the smarter financial choice depending on your circumstances.</p><p><strong>Renting makes sense when:</strong></p><ul><li>You plan to move within 3–5 years (transaction costs of buying take years to break even)</li><li>Your deposit money is better invested elsewhere (equity at 12% vs property at 6–8% per year)</li><li>You are in a city with a high price-to-rent ratio (buying is expensive relative to renting)</li><li>You value flexibility — for career opportunities, relationship changes, or lifestyle</li><li>You cannot yet afford a property without stretching yourself dangerously thin</li></ul><p><strong>Opportunity cost of your deposit:</strong> R200 000 in a deposit reduces your loan and interest. But R200 000 invested in a diversified equity fund at 12%/year grows to R620 000 in 10 years. The question is always: which use of that capital creates more wealth?</p><p><strong>Rental yield perspective:</strong> If annual rent is R84 000 (R7 000/month) on a property worth R1 500 000, the yield is 5.6%. Investors who buy to let often earn less than 6% yield — sometimes less than you would in a money market account.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the main financial risk of buying a property you plan to sell within 2 years?",
+                  options: ["Property values always fall over 2 years", "Transaction costs (transfer duty, agent fees) may exceed any price growth", "Bond interest rates are fixed so you overpay", "You cannot rent out the property during that time"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. Buying and selling costs (transfer duty, bond registration, agent commission of 5–6%) can easily total R100 000–R200 000. Property must appreciate significantly just to break even.",
+                    incorrect: "The break-even problem is transaction costs. Transfer duty, registration, and agent fees can consume all of a 2-year property gain and more.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Paying rent every month means you have nothing to show for it financially.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Rent buys you housing, flexibility, and the ability to invest your deposit capital elsewhere — potentially earning more than property appreciation.",
+                    incorrect: "Renting provides real value: housing, location flexibility, no maintenance costs, and the freedom to invest capital in higher-returning assets.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
               title: "True Cost Comparison",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "The 20-Year Numbers Tell the Real Story",
+                  content: "<p>Let's compare renting vs buying the same R1 500 000 property in South Africa over 20 years.</p><p><strong>Buying scenario:</strong></p><ul><li>Deposit: R150 000 (10%)</li><li>Bond: R1 350 000 at 11.5% over 20 years = R14 560/month</li><li>Rates + insurance + maintenance: R3 500/month</li><li>Total monthly cost: R18 060</li><li>Upfront transaction costs: R120 000 (transfer + bond registration)</li><li>Total paid over 20 years: R4 454 400 + R270 000 upfront = R4 724 400</li><li>Property value at 6% growth: R4 813 000</li><li>Net asset gain: approximately R358 000 after repaying the bond</li></ul><p><strong>Renting and investing scenario:</strong></p><ul><li>Rent for similar property: R9 500/month (current rental yield)</li><li>Monthly saving vs buying: R8 560 — invest this at 10%/year</li><li>Also invest the R270 000 transaction costs at 10%/year</li><li>Total investment portfolio after 20 years: approximately R2 200 000</li></ul><p><strong>The result:</strong> In many SA markets, the renter who invests the difference ends up with comparable or greater wealth. The buyer has an asset but has paid far more out of pocket. Neither answer is universally right — it depends on your city, rate of return, and discipline to actually invest the savings.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the key assumption that makes the 'buy is always better' argument work?",
+                  options: ["Interest rates always fall", "The renter spends rather than invests the monthly savings", "Property always grows at 10%+ per year", "Rental prices never increase"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. The buying argument wins only if the renter spends the monthly saving rather than investing it. A disciplined investor who rents can build equal or greater wealth.",
+                    incorrect: "The rent-and-invest strategy only underperforms if you don't actually invest the savings. Discipline is the key variable.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "In South Africa, property has historically outperformed equity (JSE) as a long-term investment.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. The JSE All Share Index has historically returned 12–14% per year over 20-year periods, significantly outperforming residential property's 6–8% average appreciation.",
+                    incorrect: "The JSE has historically outperformed residential property. Property's appeal is leverage, lifestyle, and tangibility — not raw investment return.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1848,17 +2208,92 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-2",
               title: "When You Must File",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "SARS eFiling: Who Has to Submit",
+                  content: "<p>Most salaried employees in SA don't need to file a tax return — PAYE handles it. But you <strong>must</strong> file if any of these apply:</p><ul><li>Your annual income exceeds R500 000 and you have more than one income source</li><li>You have a car allowance, travel allowance, or other taxable benefits not fully taxed via PAYE</li><li>You have investment income (interest, rental, dividends) not already taxed at source</li><li>You are self-employed or have freelance income</li><li>You want to claim deductions (retirement annuity, medical aid, home office)</li><li>SARS sends you an SMS or letter requesting a return</li></ul><p><strong>Provisional Tax:</strong> If you earn more than R30 000 per year from sources other than employment (side income, rental, freelance), you must register as a provisional taxpayer and submit estimates twice a year (August and February).</p><p><strong>Penalties:</strong> Late submission carries an administrative penalty of R250–R16 000/month depending on income. Filing correctly on time is always better than ignoring it.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "A salaried employee who earns R450 000/year from one employer and has no other income — must they file a tax return?",
+                  options: ["Yes, all South Africans must file annually", "No, if SARS does not request it they are auto-assessed or exempt", "Only if they earn over R1 million", "Yes, but only every second year"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. Employees with a single income source below the threshold may be auto-assessed or exempt from filing. SARS will notify you if a return is needed.",
+                    incorrect: "Salaried employees with a single income source may be auto-assessed by SARS or exempt from filing. You only must file if SARS requests it or your situation triggers filing requirements.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "If you earn freelance or side income of more than R30 000 per year, you need to register as a provisional taxpayer.",
+                  correct: true,
+                  feedback: {
+                    correct: "Correct. Provisional tax applies to any taxpayer earning more than R30 000 from sources other than a salary (freelance, rental, side business).",
+                    incorrect: "R30 000 is the threshold. Above that, you must register for provisional tax and submit estimates in August and February.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-3",
               title: "Common Tax Deductions",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Legal Ways to Pay Less Tax",
+                  content: "<p>South Africans who know the rules can significantly reduce their tax bill legally. Key deductions:</p><p><strong>1. Retirement Annuity contributions:</strong> Up to 27.5% of taxable income (max R350 000/year). This is the single biggest legal tax reduction available to most people.</p><p><strong>2. Medical Aid credits:</strong> Not a deduction — a rand-for-rand credit off your tax. Main member: R364/month (2024). First dependant: R364/month. Each additional: R246/month. Out-of-pocket medical expenses above 7.5% of taxable income (after subtracting credits) can be added.</p><p><strong>3. Home office deduction:</strong> If you work from home and have a dedicated room used exclusively for work, you may deduct a proportion of your home costs (bond interest or rent, electricity, rates). The room must be specifically equipped for work and used regularly.</p><p><strong>4. Donations to PBOs:</strong> Donations to SARS-approved Public Benefit Organisations (Section 18A) are deductible up to 10% of your taxable income. Get a Section 18A certificate from the charity.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "If you contribute R3 000/month to a Retirement Annuity and your marginal tax rate is 31%, approximately how much tax do you save per month?",
+                  options: ["R930", "R310", "R3 000", "R150"],
+                  correct: 0,
+                  feedback: {
+                    correct: "Correct. R3 000 x 31% = R930/month in tax saved. Over a year that is R11 160 — money that compounds in your RA instead of going to SARS.",
+                    incorrect: "Tax saving = contribution x marginal rate. R3 000 x 31% = R930/month. This is essentially the government co-contributing to your retirement.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Medical aid credits in South Africa reduce your taxable income by the credit amount.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Medical aid credits are deducted directly from your tax liability — not from your taxable income. This makes them more valuable than a deduction.",
+                    incorrect: "Medical credits reduce your tax bill directly (rand for rand), not your taxable income. This is actually more beneficial than a deduction.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Tax Certificates & IRP5",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "The Documents That Prove Your Tax Story",
+                  content: "<p>SARS requires you to import all your tax certificates into your eFiling return. Here are the key ones:</p><p><strong>IRP5 / IT3(a):</strong> Your employer issues this at tax year end (28 February). It shows your salary, all deductions, and exactly how much PAYE was deducted. Every employer must provide one — follow up with HR if you don't receive it by April.</p><p><strong>IT3(b):</strong> Issued by your bank or investment account for interest earned. If you earned more than R23 800 in interest (under age 65), the amount above that is taxable. Your bank or stockbroker sends this to both you and SARS.</p><p><strong>IT3(c):</strong> Shows capital gains from investments — unit trusts, shares, ETFs. Issued by your investment platform (Easy Equities, Allan Gray, Ninety One, etc.).</p><p><strong>How to import:</strong> On SARS eFiling, click 'Import Certificate' and the system automatically populates your return from certificates submitted by employers and institutions. Check that what imported matches what you physically received.</p><p><strong>Missing certificate?</strong> Contact your employer or institution directly. SARS can also show you what was submitted on your behalf.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which tax certificate shows interest earned from your savings account?",
+                  options: ["IRP5", "IT3(a)", "IT3(b)", "IT3(c)"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. The IT3(b) is issued by banks and investment accounts to report interest income. IT3(c) covers capital gains.",
+                    incorrect: "IT3(b) = interest income from banks and investments. IRP5/IT3(a) = employment income. IT3(c) = capital gains from investments.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Your employer is legally required to provide you with an IRP5 certificate at the end of each tax year.",
+                  correct: true,
+                  feedback: {
+                    correct: "Correct. Employers are legally obligated to issue IRP5 certificates to employees. If yours doesn't, you can report them to SARS.",
+                    incorrect: "Yes, IRP5 issuance is a legal requirement. If your employer fails to provide one, escalate to HR, then to SARS if necessary.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1870,12 +2305,62 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-5",
               title: "Understanding VAT",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "The Tax Embedded in Almost Everything",
+                  content: "<p>Value Added Tax (VAT) is a consumption tax added to most goods and services in South Africa. The standard rate is <strong>15%</strong>.</p><p><strong>Zero-rated items (0% VAT):</strong> Certain basic foods are zero-rated to protect lower-income households: brown bread, white bread, dried beans, lentils, pilchards in tins, rice, edible oils, maize meal, milk, eggs, fruit and vegetables. These are intentionally affordable.</p><p><strong>VAT-exempt items:</strong> Some services are exempt entirely: residential rental, certain financial services, public transport.</p><p><strong>For consumers:</strong> When you buy a R100 item, R13.04 of that is VAT (R100 / 1.15 x 0.15). You see this on your till slip at most retailers.</p><p><strong>For small businesses:</strong> If your turnover exceeds R1 000 000/year, you must register for VAT and charge customers 15%, remitting the difference between what you collected and what you paid to SARS.</p><p>Scenario: Sipho runs a small bakery turning over R1 200 000/year. He must register for VAT, charge 15% on his products, and submit monthly or bi-monthly VAT returns on eFiling.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which of the following items is zero-rated for VAT in South Africa?",
+                  options: ["Chocolate bars", "Restaurant meals", "Brown bread", "Soft drinks"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Brown bread is zero-rated because it is a basic food staple. Chocolate, restaurant meals, and cold drinks are all subject to 15% VAT.",
+                    incorrect: "Brown bread is on the zero-rated list. Chocolate, restaurant meals, and fizzy drinks are all standard-rated at 15% VAT.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "A small business with annual turnover of R800 000 is required to register for VAT.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. VAT registration is only compulsory once your annual taxable turnover exceeds R1 000 000. Below that, registration is voluntary.",
+                    incorrect: "The compulsory VAT registration threshold is R1 000 000 in annual taxable turnover. R800 000 is below that threshold.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
               title: "Capital Gains Tax Basics",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Profit on Investments Is Not Tax-Free",
+                  content: "<p>When you sell an investment (shares, property, unit trusts, crypto) for more than you paid, the profit is called a <strong>capital gain</strong>. SARS taxes this via Capital Gains Tax (CGT).</p><p><strong>How CGT works for individuals:</strong></p><ul><li><strong>Annual exclusion:</strong> R40 000 of capital gains per year is excluded — you only pay tax above this.</li><li><strong>Inclusion rate:</strong> 40% of the net capital gain (above the exclusion) is included in your taxable income.</li><li><strong>Effective maximum rate:</strong> At the highest marginal rate (45%), CGT is 45% x 40% = 18% effective tax rate on the gain.</li></ul><p><strong>Primary residence exclusion:</strong> When selling your main home, the first R2 000 000 of capital gain is excluded from CGT. This is why most homeowners pay no CGT when they sell their house.</p><p><strong>Example:</strong> You bought shares for R50 000 and sold them for R120 000 — a R70 000 gain. Less the R40 000 annual exclusion = R30 000 net. 40% inclusion = R12 000 added to your income. At 31% marginal rate, you pay R3 720 in additional tax.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What portion of a capital gain is included in your taxable income for a South African individual?",
+                  options: ["100%", "66.6%", "40%", "18%"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Individuals include 40% of their net capital gain (after the R40 000 annual exclusion) in taxable income. This is then taxed at your marginal rate.",
+                    incorrect: "For individuals, only 40% of the net capital gain is included in taxable income. The effective maximum CGT rate is 18% (40% x 45% top marginal rate).",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You must pay Capital Gains Tax when you sell your primary residence if the gain exceeds R2 million.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. The first R2 000 000 of gain on your primary residence is excluded. Only gains above R2 000 000 are subject to CGT — and even then, only 40% of that excess is included.",
+                    incorrect: "The primary residence exclusion is R2 000 000. Only gains above R2 million on your main home attract CGT.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -2070,7 +2555,32 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-5",
               title: "Guaranteed Returns Red Flag",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "No Investment Can Guarantee a Fixed Return",
+                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is one of the most reliable indicators of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk — which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "An investment opportunity promises 15% guaranteed monthly returns with no risk. What should you do?",
+                  options: ["Invest quickly before spots run out", "Invest a small amount to test it first", "Report it to the FSCA and do not invest", "Ask friends for their opinion before investing"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. 15% monthly = 180% annually — physically impossible legitimately. Report it to the FSCA (0800 110 443) and walk away.",
+                    incorrect: "This is a classic Ponzi scheme description. No legitimate investment offers these returns. Report to the FSCA — investing even a small amount funds the scam and you will lose it.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You can verify whether an investment company is legally licensed to operate in South Africa by checking the FSCA register.",
+                  correct: true,
+                  feedback: {
+                    correct: "Correct. The FSCA (Financial Sector Conduct Authority) maintains a public register of all licensed financial services providers at fsca.co.za. Always check before investing.",
+                    incorrect: "Yes, the FSCA register at fsca.co.za lists every legitimately licensed FSP. If a company is not on the register, you should not invest with them.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
@@ -2365,12 +2875,62 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-3",
               title: "Herd Mentality & FOMO",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Why Everyone Else Buying Makes You Want to Buy",
+                  content: "<p><strong>Herd mentality</strong> is the tendency to follow what everyone else is doing, particularly in financial markets. When a large group moves in one direction, our brains interpret this as social proof that the direction is correct.</p><p><strong>FOMO (Fear of Missing Out)</strong> is its emotional engine. When Bitcoin was climbing to R1 000 000 in 2021, millions of South Africans bought at or near the top — not because they understood the asset, but because others seemed to be getting rich.</p><p><strong>SA examples of herd-driven losses:</strong></p><ul><li>Crypto speculation 2021: Many South Africans bought when prices peaked, then held through an 80% drawdown</li><li>Property pyramid schemes: Groups of friends buying into syndicates because everyone else was doing it</li><li>Steinhoff shares: Many individual investors held as insiders sold, following analyst upgrades rather than evaluating the fundamentals</li></ul><p><strong>How to think independently:</strong></p><ul><li>Ask: do I understand what I am buying?</li><li>Ask: would I buy this if no one was talking about it?</li><li>Ask: can I explain clearly how this generates a return?</li><li>Delay — make a rule: any investment decision requires a 48-hour wait before acting</li></ul>",
+                },
+                {
+                  type: "mcq",
+                  question: "You hear that many people in your network are buying a specific cryptocurrency. What should you do before investing?",
+                  options: ["Buy immediately so you don't miss the gains", "Check how many people have bought before deciding", "Research the asset independently and understand how it works before investing", "Ask your friends how much they made"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Independent research — understanding what you are buying and why it should increase in value — is the only sound basis for an investment decision.",
+                    incorrect: "The number of buyers is irrelevant to whether an investment is sound. Doing your own research and understanding the asset is the only protection against herd-driven losses.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "When many people are buying an investment, it is usually a sign that the price is at its lowest point.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Mass participation is often a sign that an asset has already experienced significant price appreciation. By the time everyone is talking about it, early buyers are usually selling.",
+                    incorrect: "In reality, mass buying typically occurs after prices have already risen significantly. The herd often arrives at the top, not the bottom.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Loss Aversion",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Why Losing Hurts Twice as Much as Winning Feels Good",
+                  content: "<p>Behavioural economists Daniel Kahneman and Amos Tversky proved that humans feel the pain of a loss approximately <strong>twice as intensely</strong> as the pleasure of an equivalent gain. Losing R1 000 hurts about twice as much as gaining R1 000 feels good.</p><p><strong>How loss aversion destroys investment returns:</strong></p><ul><li><strong>Holding losing investments too long:</strong> Selling a share at a loss feels devastating, so people hold losers indefinitely hoping to break even — even when the investment case is broken.</li><li><strong>Panic selling at market lows:</strong> When markets fall 20–30%, the emotional pain is so intense that people sell at the bottom to stop the psychological pain — crystallising losses at exactly the wrong moment.</li><li><strong>Avoiding investing altogether:</strong> The fear of potential losses keeps some people in cash forever, earning 8% while inflation erodes their purchasing power.</li></ul><p><strong>The rational response:</strong> Evaluate investments based on future prospects, not what you paid. If you would not buy the investment today at the current price, consider selling — regardless of whether it is above or below your purchase price. Past price is irrelevant to future performance.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "You bought shares in a company for R10 000. They are now worth R4 000 and the business outlook is poor. Loss aversion would make you:",
+                  options: ["Sell immediately and accept the loss", "Hold indefinitely hoping to get back to R10 000", "Buy more shares to lower your average cost", "Switch to a different company at a loss"],
+                  correct: 1,
+                  feedback: {
+                    correct: "Correct. Loss aversion causes investors to hold losing positions far too long, anchored to the original price rather than evaluating the investment on its current merits.",
+                    incorrect: "Loss aversion causes holding — the pain of selling at a loss feels worse than the pain of continuing to hold. The rational approach is to evaluate whether you would buy the shares today at R4 000.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "When deciding whether to sell an investment, the price you originally paid for it should be the primary factor in your decision.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Your purchase price is irrelevant to the future performance of the investment. The question is: based on current information, is this still the best use of this capital?",
+                    incorrect: "Purchase price is irrelevant to future performance. This anchoring to original cost is a cognitive bias. Sell or hold based on current and future prospects, not past price.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -2402,7 +2962,32 @@ const RAW_COURSES: Course[] = [
             {
               id: "lesson-6",
               title: "Social Media & Money Pressure",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Instagram Shows You the Highlight Reel, Not the Balance Sheet",
+                  content: "<p>Social media has amplified one of the oldest financial traps: comparing your spending and lifestyle to others. The problem has intensified because you are now comparing yourself to thousands of curated personas simultaneously.</p><p><strong>What you don't see:</strong> The person posting a luxury holiday may be R200 000 in personal loan debt. The influencer showing designer clothes may be getting them for free or on credit. The car parked in front of the house may be on a 72-month finance agreement that consumes 30% of their income.</p><p><strong>Lifestyle inflation in the social media era:</strong> You see a product, feel you need it to maintain your status or belong to a group, buy it on credit or at the cost of saving. This cycle — consume, post, compare, consume more — is the engine of financial vulnerability in the smartphone generation.</p><p><strong>Practical boundaries:</strong></p><ul><li>Unfollow or mute accounts that trigger spending impulses</li><li>Use the 72-hour rule: wait 3 days before any non-essential purchase over R500</li><li>Distinguish between inspiration (I want to build toward that) and comparison (I must have that now)</li><li>Track your actual net worth monthly — this grounds you in reality when social feeds distort your perception</li></ul>",
+                },
+                {
+                  type: "mcq",
+                  question: "A colleague posts pictures of a new car and expensive lifestyle. What is the most financially sound response?",
+                  options: ["Finance a similar car so you don't fall behind", "Assume they are in debt and feel better about yourself", "Focus on your own financial goals and net worth progress", "Ask them how they can afford it and try to match their strategy"],
+                  correct: 2,
+                  feedback: {
+                    correct: "Correct. Your financial trajectory is measured against your own goals — not against what others display publicly. Their visible consumption tells you nothing about their financial health.",
+                    incorrect: "Focusing on your own goals and tracking your own net worth is the only comparison that is financially meaningful. What others display publicly reveals nothing about their financial health.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "People who post about luxury purchases and travel on social media are almost always in a strong financial position.",
+                  correct: false,
+                  feedback: {
+                    correct: "Correct. Research consistently shows that visible wealth and actual wealth are poorly correlated. Conspicuous consumption is often funded by debt, not savings.",
+                    incorrect: "Visible spending and financial security are poorly correlated. Many of the most financially secure people live modestly. Conspicuous display is often funded by credit.",
+                  },
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },

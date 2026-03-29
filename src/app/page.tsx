@@ -2430,9 +2430,35 @@ function LessonView({
   const renderStep = () => {
     if (!step) return null;
     if (step.type === "info") {
+      // Extract a short tip from content — strip HTML tags and take first 80 chars
+      const rawTip = step.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+      const tipText = rawTip.length > 80 ? rawTip.slice(0, 77) + "…" : rawTip;
       return (
         <>
-          <FundiCharacter expression="thinking" size={120} style={{ margin: "0 auto 12px" }} />
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 4 }}>
+            {/* Speech bubble */}
+            <div style={{
+              background: "white",
+              border: "1.5px solid #e5e7eb",
+              borderLeft: "3px solid var(--color-primary)",
+              borderRadius: 12,
+              padding: "10px 14px",
+              maxWidth: 260,
+              marginBottom: 8,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
+              position: "relative",
+            }}>
+              <p style={{ fontSize: 12, color: "#374151", fontStyle: "italic", margin: 0, lineHeight: 1.5 }}>{tipText}</p>
+              {/* bubble tail pointing down toward Fundi */}
+              <div style={{
+                position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
+                width: 0, height: 0,
+                borderLeft: "7px solid transparent", borderRight: "7px solid transparent",
+                borderTop: "8px solid white",
+              }} />
+            </div>
+            <FundiCharacter expression="thinking" size={120} style={{ marginBottom: 4 }} />
+          </div>
           <h2 className="step-title">{step.title}</h2>
           <div
             className="step-content"
@@ -4090,19 +4116,56 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (sessionLoading || !splashMinElapsed) {
     return (
-      <div style={{
-        minHeight: "100dvh", display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-        background: "#0d1f17",
-      }}>
-        <img
-          src="/fundi-logo.png"
-          alt="Fundi Finance"
-          style={{ width: 280, height: 280, objectFit: "contain", marginBottom: 24, animation: "pulse 1.5s ease-in-out infinite" }}
-        />
-        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 16, fontWeight: 700, letterSpacing: 2, marginBottom: 6 }}>FUNDI FINANCE</div>
-        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, letterSpacing: 1 }}>Loading…</div>
-      </div>
+      <>
+        <style>{`
+          @keyframes fundiFadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fundiBob {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-10px); }
+          }
+          @keyframes fundiTextIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+          }
+          .splash-logo {
+            animation: fundiFadeIn 0.6s ease-out forwards, fundiBob 2.4s 0.6s ease-in-out infinite;
+          }
+          .splash-title {
+            animation: fundiTextIn 0.5s 0.7s ease-out both;
+          }
+          .splash-tagline {
+            animation: fundiTextIn 0.5s 1s ease-out both;
+          }
+        `}</style>
+        <div style={{
+          minHeight: "100dvh", display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          background: "radial-gradient(ellipse at 50% 40%, #163328 0%, #0d1f17 70%)",
+          position: "relative", overflow: "hidden",
+        }}>
+          {/* subtle glow ring behind logo */}
+          <div style={{
+            position: "absolute", width: 320, height: 320, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(34,197,94,0.13) 0%, transparent 70%)",
+            pointerEvents: "none",
+          }} />
+          <img
+            src="/fundi-logo.png"
+            alt="Fundi Finance"
+            className="splash-logo"
+            style={{ width: 280, height: 280, objectFit: "contain", marginBottom: 20, position: "relative" }}
+          />
+          <div className="splash-title" style={{ color: "rgba(255,255,255,0.85)", fontSize: 18, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", marginBottom: 8 }}>
+            Fundi Finance
+          </div>
+          <div className="splash-tagline" style={{ color: "rgba(255,255,255,0.38)", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", fontWeight: 500 }}>
+            Your Financial Journey Starts Here
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -4160,9 +4223,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
-        <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
-          <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20 }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ padding: 16, background: "linear-gradient(160deg, #0d1f17 0%, #1a3a28 100%)" }}>
+        <div style={{ background: "white", padding: 28, borderRadius: 20, border: "none", maxWidth: 420, width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.28)", overflow: "hidden", position: "relative" }}>
+          {/* brand accent line */}
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: "var(--color-primary)", borderRadius: "20px 20px 0 0" }} />
+          <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20, marginTop: 8 }}>
             <img src="/fundi-logo.png" alt="" width={100} height={100} style={{ objectFit: "contain" }} />
             <h1 style={{ fontSize: 24, fontWeight: 800 }}>Fundi Finance</h1>
           </div>
