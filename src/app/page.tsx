@@ -4,7 +4,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { analytics } from "@/lib/analytics";
 import { CONTENT_DATA } from "@/data/content";
+import { DAILY_FACTS_365 } from "@/data/content-extra";
+import {
+  COURSE_BADGES,
+  getInvestorProfile,
+  INVESTOR_PROFILE_STYLES,
+  INVESTOR_QUIZ_QUESTIONS,
+} from "@/data/gamificationExtras";
 import { useProgress } from "@/hooks/useProgress";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import {
@@ -33,8 +41,12 @@ import {
   FileText,
   Flag,
   Flame,
+  GraduationCap,
   Hash,
+  Heart,
+  HeartOff,
   Home as HomeIcon,
+  Info,
   KeyRound,
   Landmark,
   Lightbulb,
@@ -43,11 +55,13 @@ import {
   LogOut,
   Mail,
   Moon,
-  PiggyBank,
+  Play,
   Search,
   Settings as SettingsIcon,
+  Share2,
   Shield,
   Siren,
+  Sparkles,
   Sun,
   Target,
   TrendingUp,
@@ -60,6 +74,65 @@ import {
 } from "lucide-react";
 
 import type { Course, Lesson, LessonStep } from "@/data/content";
+
+function getDailyFact(): string {
+  const start = new Date(new Date().getFullYear(), 0, 0);
+  const diff = Date.now() - start.getTime();
+  const dayOfYear = Math.floor(diff / 86400000);
+  return DAILY_FACTS_365[dayOfYear % DAILY_FACTS_365.length];
+}
+
+type WeeklyProgressJSON = {
+  lessonsCompleted: number;
+  xpEarned: number;
+  perfectLessons: number;
+  dailyXp: number;
+  completed: boolean;
+};
+
+const EMPTY_WEEKLY_PROGRESS: WeeklyProgressJSON = {
+  lessonsCompleted: 0,
+  xpEarned: 0,
+  perfectLessons: 0,
+  dailyXp: 0,
+  completed: false,
+};
+
+function parseWeeklyChallengeStorage(
+  raw: string | null
+): WeeklyProgressJSON | null {
+  if (raw == null || raw === "") return null;
+  try {
+    const asNum = parseInt(raw, 10);
+    if (!Number.isNaN(asNum) && String(asNum).trim() === raw.trim()) {
+      return { ...EMPTY_WEEKLY_PROGRESS, lessonsCompleted: asNum };
+    }
+    const j = JSON.parse(raw) as Partial<WeeklyProgressJSON> & {
+      dailyXp?: number;
+    };
+    return {
+      lessonsCompleted: j.lessonsCompleted ?? 0,
+      xpEarned: j.xpEarned ?? 0,
+      perfectLessons: j.perfectLessons ?? 0,
+      dailyXp: j.dailyXp ?? 0,
+      completed: Boolean(j.completed),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function progressNumberFromWeeklyState(
+  wc: { unit: string },
+  st: WeeklyProgressJSON,
+  streakDays: number
+): number {
+  if (wc.unit === "lessons") return st.lessonsCompleted;
+  if (wc.unit === "perfect") return st.perfectLessons;
+  if (wc.unit === "daily_xp") return st.dailyXp;
+  if (wc.unit === "streak_days") return streakDays;
+  return 0;
+}
 
 function playSound(type: "correct" | "incorrect" | "complete") {
   if (typeof window === "undefined") return;
@@ -100,20 +173,135 @@ function playSound(type: "correct" | "incorrect" | "complete") {
 }
 
 // ── Onboarding component ─────────────────────────────────────────────────────
-function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) {
+const ONBOARDING_GOAL_OPTIONS = [
+  { id: "debt-free", label: "Get debt-free", Icon: CreditCard },
+  { id: "emergency", label: "Build emergency fund", Icon: Shield },
+  { id: "invest", label: "Start investing", Icon: TrendingUp },
+  { id: "home", label: "Save for a home", Icon: HomeIcon },
+  { id: "retire", label: "Plan for retirement", Icon: Flag },
+  { id: "business", label: "Grow my business", Icon: Briefcase },
+] as const;
+
+const ONBOARDING_AGE_RANGES = [
+  { id: "18-25", label: "18–25", Icon: GraduationCap },
+  { id: "26-35", label: "26–35", Icon: Briefcase },
+  { id: "36-45", label: "36–45", Icon: HomeIcon },
+  { id: "46-55", label: "46–55", Icon: BarChart2 },
+  { id: "56+", label: "56+", Icon: Flag },
+] as const;
+
+/** Onboarding goal ids + labels — reuse for Learn screen banner (Patch 17). */
+const GOAL_OPTIONS = ONBOARDING_GOAL_OPTIONS;
+
+const GOAL_COURSE_MAP: Record<string, string[]> = {
+  "debt-free": ["credit-debt", "money-basics", "money-psychology"],
+  emergency: ["emergency-fund", "money-basics", "banking-debit"],
+  invest: ["investing-basics", "sa-investing", "rand-economy"],
+  home: ["property", "credit-debt", "banking-debit"],
+  retire: ["retirement", "sa-investing", "investing-basics"],
+  business: ["business-finance", "taxes", "money-basics"],
+};
+
+function generateShareText(
+  type: "lesson" | "badge" | "streak",
+  data: {
+    lessonTitle?: string;
+    badgeName?: string;
+    streakDays?: number;
+    xp?: number;
+  }
+): string {
+  if (type === "lesson") {
+    const t = data.lessonTitle ?? "a lesson";
+    return `I just completed "${t}" on Fundi Finance. Short, South Africa–focused money lessons that actually make sense.\n\nJoin me: fundi-finance.vercel.app`;
+  }
+  if (type === "badge") {
+    const n = data.badgeName ?? "a";
+    return `I just earned the "${n}" badge on Fundi Finance. Building real financial knowledge, one lesson at a time.\n\nfundi-finance.vercel.app`;
+  }
+  if (type === "streak") {
+    const d = data.streakDays ?? 0;
+    return `${d}-day learning streak on Fundi Finance. Showing up for my money goals every day.\n\nfundi-finance.vercel.app`;
+  }
+  return "";
+}
+
+function ShareButton({
+  text,
+  label = "Share",
+  shareType,
+}: {
+  text: string;
+  label?: string;
+  shareType?: "lesson" | "badge" | "streak";
+}) {
+  const handleShare = async () => {
+    const method =
+      typeof navigator !== "undefined" && typeof navigator.share === "function"
+        ? "native"
+        : "whatsapp";
+    if (shareType) analytics.shareTriggered(shareType, method);
+    if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch {
+        /* dismissed or unavailable */
+      }
+    }
+    const encoded = encodeURIComponent(text);
+    window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      className="flex w-full items-center justify-center gap-2 rounded-xl border border-green-200 bg-green-50 py-3 text-sm font-semibold text-green-700 transition-colors hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40"
+    >
+      <Share2 size={16} className="shrink-0" aria-hidden />
+      <span>{label}</span>
+    </button>
+  );
+}
+
+async function persistUserGoalToStorageAndSupabase(goalId: string) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("fundi-user-goal", goalId);
+  localStorage.removeItem("fundi-goal-banner-dismissed");
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    await supabase.from("profiles").upsert({ user_id: user.id, goal: goalId }, { onConflict: "user_id" });
+  }
+}
+
+function getLessonTitle(
+  courseId: string | null | undefined,
+  lessonId: string | null | undefined
+): string | undefined {
+  if (!courseId || !lessonId) return undefined;
+  const course = CONTENT_DATA.courses.find((c) => c.id === courseId);
+  if (!course) return undefined;
+  for (const u of course.units) {
+    const le = u.lessons.find((l) => l.id === lessonId);
+    if (le) return le.title;
+  }
+  return undefined;
+}
+
+function OnboardingView({
+  onComplete,
+}: {
+  onComplete: (payload: { goal?: string; ageRange?: string }) => void;
+}) {
   const [screen, setScreen] = React.useState(0);
   const [selectedGoal, setSelectedGoal] = React.useState("");
+  const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
 
-  const goals = [
-    { id: "debt", label: "Get out of debt", Icon: CreditCard },
-    { id: "save", label: "Build savings", Icon: PiggyBank },
-    { id: "invest", label: "Start investing", Icon: TrendingUp },
-    { id: "literacy", label: "General financial literacy", Icon: BookOpen },
-    { id: "retirement", label: "Plan for retirement", Icon: Sun },
-    { id: "home", label: "Buy a home", Icon: HomeIcon },
-  ];
-
-  const screens = [
+  const screenCount = 4;
+  const screensMeta = [
     {
       title: "Welcome to Fundi Finance",
       body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
@@ -122,21 +310,33 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
     },
     {
       title: "What's your money goal?",
-      body: "We'll personalise your learning path based on what matters most to you right now.",
+      body: "We'll personalise tips based on what matters most to you. Optional — skip if you prefer.",
       cta: "Next",
       action: () => {
         if (selectedGoal) setScreen(2);
       },
     },
     {
+      title: "Your age range",
+      body: "Helps us keep examples relevant. Optional — skip if you prefer.",
+      cta: "Next",
+      action: () => {
+        setScreen(3);
+      },
+    },
+    {
       title: "How it works",
       body: "Earn XP for every lesson. Build streaks. Unlock badges. Compete on the leaderboard. Every lesson takes less than 3 minutes.",
       cta: "Start learning",
-      action: () => onComplete(selectedGoal),
+      action: () =>
+        onComplete({
+          goal: selectedGoal || undefined,
+          ageRange: selectedAgeRange || undefined,
+        }),
     },
   ];
 
-  const current = screens[screen];
+  const current = screensMeta[screen];
 
   return (
     <div
@@ -151,7 +351,7 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
       }}
     >
       <div style={{ display: "flex", gap: 6, marginBottom: 40 }}>
-        {screens.map((_, i) => (
+        {Array.from({ length: screenCount }).map((_, i) => (
           <div
             key={i}
             style={{
@@ -171,7 +371,7 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
             <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
           </div>
         )}
-        {screen === 2 && (
+        {screen === 3 && (
           <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
             {[Target, Zap, Trophy].map((IconComp, i) => (
               <div
@@ -201,10 +401,11 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
         </p>
 
         {screen === 1 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 24, textAlign: "left" }}>
-            {goals.map((g) => (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
+            {ONBOARDING_GOAL_OPTIONS.map((g) => (
               <button
                 key={g.id}
+                type="button"
                 onClick={() => setSelectedGoal(g.id)}
                 style={{
                   padding: "12px 14px",
@@ -221,8 +422,37 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
                   transition: "all 0.15s",
                 }}
               >
-                <g.Icon size={18} />
+                <g.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
                 {g.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {screen === 2 && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
+            {ONBOARDING_AGE_RANGES.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setSelectedAgeRange(a.id)}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  border: `2px solid ${selectedAgeRange === a.id ? "var(--color-primary)" : "var(--color-border)"}`,
+                  background: selectedAgeRange === a.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: "var(--color-text-primary)",
+                  transition: "all 0.15s",
+                }}
+              >
+                <a.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
+                {a.label}
               </button>
             ))}
           </div>
@@ -237,8 +467,45 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
           {current.cta}
         </button>
 
+        {screen === 1 && (
+          <button
+            type="button"
+            onClick={() => setScreen(2)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+              width: "100%",
+            }}
+          >
+            Skip
+          </button>
+        )}
+
+        {screen === 2 && (
+          <button
+            type="button"
+            onClick={() => setScreen(3)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+              width: "100%",
+            }}
+          >
+            Skip
+          </button>
+        )}
+
         {screen > 0 && (
           <button
+            type="button"
             onClick={() => setScreen((s) => s - 1)}
             style={{
               marginTop: 12,
@@ -255,32 +522,6 @@ function OnboardingView({ onComplete }: { onComplete: (goal: string) => void }) 
       </div>
     </div>
   );
-}
-
-// ── Analytics (PostHog) ────────────────────────────────────────────────────────
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "YOUR_POSTHOG_KEY";
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://app.posthog.com";
-
-function loadPostHog() {
-  if (typeof window === "undefined") return;
-  if ((window as any).__phLoaded) return;
-  (window as any).__phLoaded = true;
-  const s = document.createElement("script");
-  s.src = POSTHOG_HOST + "/static/array.js";
-  s.async = true;
-  s.onload = () => {
-    (window as any).posthog?.init(POSTHOG_KEY, { api_host: POSTHOG_HOST, capture_pageview: false });
-  };
-  document.head.appendChild(s);
-}
-
-function track(event: string, props?: Record<string, unknown>) {
-  try {
-    if (POSTHOG_KEY === "YOUR_POSTHOG_KEY") return; // not configured yet
-    (window as any).posthog?.capture(event, props);
-  } catch {
-    /* ignore */
-  }
 }
 
 type UserData = {
@@ -355,88 +596,94 @@ function formatWithSpaces(value: number) {
   return Math.round(value).toLocaleString("en-ZA").replace(/,/g, " ");
 }
 
-function formatZAR(value: number) {
-  return `R${formatWithSpaces(value)}`;
+/** Rand amounts with space grouping (en-ZA). */
+function formatRand(n: number): string {
+  return "R" + Math.round(n).toLocaleString("en-ZA").replace(/,/g, " ");
 }
 
-function SliderInput({
+function formatZAR(value: number) {
+  return formatRand(value);
+}
+
+function FieldTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-flex align-middle">
+      <button
+        type="button"
+        className="rounded-full p-0.5 text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-green-500 dark:text-gray-500 dark:hover:text-gray-300"
+        aria-label="More info"
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
+      >
+        <Info size={14} strokeWidth={2.5} aria-hidden />
+      </button>
+      {open ? (
+        <span
+          role="tooltip"
+          className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-1 w-max max-w-[220px] -translate-x-1/2 rounded-lg bg-gray-900 px-2.5 py-2 text-left text-xs font-medium leading-snug text-white shadow-lg dark:bg-gray-700"
+        >
+          {text}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+function CalcNumberRow({
   label,
+  tooltip,
   value,
-  min,
-  max,
-  step,
-  format,
   onChange,
+  step = "any",
 }: {
   label: string;
+  tooltip: string;
   value: number;
-  min: number;
-  max: number;
-  step: number;
-  format: (v: number) => string;
-  onChange: (v: number) => void;
+  onChange: (n: number) => void;
+  step?: string;
 }) {
-  const [inputStr, setInputStr] = useState(String(value));
+  const [str, setStr] = useState(String(value));
   useEffect(() => {
-    setInputStr(String(value));
+    setStr(String(value));
   }, [value]);
-
-  const handleBlur = () => {
-    let v = parseFloat(inputStr);
-    if (isNaN(v)) v = min;
-    v = Math.max(min, Math.round(v / step) * step);
-    onChange(v);
-    setInputStr(String(v));
-  };
 
   return (
     <div style={{ marginBottom: 20 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)" }}>{label}</span>
-        <span style={{ fontSize: 15, fontWeight: 800, color: "var(--color-primary)" }}>{format(value)}</span>
+        <FieldTip text={tooltip} />
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          step="any"
-          value={value}
-          onChange={(e) => {
-            const raw = parseFloat(e.target.value);
-            const snapped = Math.round(raw / step) * step;
-            const clamped = Math.max(min, Math.min(max, snapped));
-            onChange(clamped);
-          }}
-          style={{ flex: 1, accentColor: "var(--color-primary)", height: 6, cursor: "pointer" }}
-        />
-        <input
-          type="number"
-          min={min}
-          step={step}
-          value={inputStr}
-          onChange={(e) => setInputStr(e.target.value)}
-          onBlur={handleBlur}
-          onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
-          style={{
-            width: 72,
-            padding: "4px 6px",
-            borderRadius: 8,
-            textAlign: "right",
-            border: "1.5px solid var(--color-border)",
-            fontSize: 13,
-            fontWeight: 700,
-            background: "var(--color-surface)",
-            color: "var(--color-primary)",
-            MozAppearance: "textfield",
-          }}
-          aria-label={`${label} exact value`}
-        />
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
-        <span>{format(min)}</span>
-        <span>{format(max)}</span>
-      </div>
+      <input
+        type="number"
+        step={step}
+        value={str}
+        onChange={(e) => setStr(e.target.value)}
+        onBlur={() => {
+          const n = parseFloat(str.replace(/,/g, ""));
+          if (Number.isNaN(n)) {
+            setStr(String(value));
+            return;
+          }
+          onChange(n);
+          setStr(String(n));
+        }}
+        onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
+        style={{
+          width: "100%",
+          boxSizing: "border-box",
+          padding: "10px 12px",
+          borderRadius: 8,
+          border: "1.5px solid var(--color-border)",
+          fontSize: 15,
+          fontWeight: 600,
+          background: "var(--color-surface)",
+          color: "var(--color-text-primary)",
+        }}
+        aria-label={label}
+      />
     </div>
   );
 }
@@ -471,14 +718,40 @@ function FundiTopBar({
           backdropFilter: "blur(8px)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <Flame size={20} style={{ color: "#FFB612" }} />
-          <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <Flame size={20} style={{ color: "#FFB612" }} />
+            <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
+          </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const text = generateShareText("streak", { streakDays: streak });
+              if (typeof navigator !== "undefined" && navigator.share) {
+                try {
+                  await navigator.share({ text });
+                  return;
+                } catch {
+                  /* ignore */
+                }
+              }
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(text)}`,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            }}
+            className="text-orange-400 hover:text-orange-600 p-1"
+            title="Share your streak"
+            aria-label="Share your streak"
+          >
+            <Share2 size={18} aria-hidden />
+          </button>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <Zap size={18} style={{ color: "var(--color-primary)" }} />
-          <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>{xp.toLocaleString()} XP</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>{formatWithSpaces(xp)} XP</span>
         </div>
 
         <button
@@ -728,50 +1001,38 @@ function CalculatorView() {
         </div>
       )}
 
-      <SliderInput
-        label="Initial Lump Sum"
+      <CalcNumberRow
+        label="Initial Amount"
+        tooltip="The lump sum you're starting with today."
         value={inputs.principal}
-        min={0}
-        max={2000000}
-        step={5000}
-        format={formatZAR}
         onChange={(v) => setInputs({ ...inputs, principal: v })}
       />
-      <SliderInput
+      <CalcNumberRow
         label="Monthly Contribution"
+        tooltip="How much you add every month."
         value={inputs.monthly}
-        min={0}
-        max={50000}
-        step={500}
-        format={formatZAR}
         onChange={(v) => setInputs({ ...inputs, monthly: v })}
       />
-      <SliderInput
-        label="Annual Return (%)"
+      <CalcNumberRow
+        label="Annual Return Rate (%)"
+        tooltip="The yearly growth rate of your investment (e.g. JSE average is ~10%)."
         value={inputs.rate}
-        min={1}
-        max={30}
-        step={0.5}
-        format={(v) => `${v}%`}
+        step="0.01"
         onChange={(v) => setInputs({ ...inputs, rate: v })}
       />
-      <SliderInput
-        label="Investment Term"
-        value={inputs.years}
-        min={1}
-        max={40}
-        step={1}
-        format={(v) => `${v} yrs`}
-        onChange={(v) => setInputs({ ...inputs, years: v })}
-      />
-      <SliderInput
+      <CalcNumberRow
         label="Annual Contribution Increase (%)"
+        tooltip="How much you increase your monthly contribution each year, to keep up with inflation."
         value={inputs.escalation}
-        min={0}
-        max={20}
-        step={1}
-        format={(v) => `${v}%`}
+        step="0.01"
         onChange={(v) => setInputs({ ...inputs, escalation: v })}
+      />
+      <CalcNumberRow
+        label="Investment Period (years)"
+        tooltip="How many years you plan to invest for."
+        value={inputs.years}
+        step="1"
+        onChange={(v) => setInputs({ ...inputs, years: v })}
       />
 
       <div style={{ marginBottom: 20 }}>
@@ -924,38 +1185,30 @@ function CalculatorView() {
         </div>
       )}
 
-      {/* CTA */}
       <div
-        style={{
-          background: "var(--color-primary-light)",
-          border: "1px solid var(--color-primary)",
-          borderRadius: 16,
-          padding: 24,
-          textAlign: "center",
-          marginBottom: 32,
-        }}
+        className="relative overflow-hidden bg-gradient-to-br from-green-700 to-green-900 rounded-2xl p-5 text-white mb-8"
+        style={{ marginBottom: 32 }}
       >
-        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>Want a personalised investment plan?</div>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 16 }}>
-          These numbers are a starting point. A qualified financial professional can help you turn them into a real plan built for your life.
+        <div className="mb-3 flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
+        </div>
+        <p className="text-green-100 text-sm leading-relaxed mb-4">
+          Ready to take the next step? Book a free 30-minute financial consultation.
         </p>
-        <a
-          href="https://wealthwithkwanele.co.za"
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: "inline-block",
-            padding: "12px 28px",
-            background: "var(--color-primary)",
-            color: "white",
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: 15,
-            textDecoration: "none",
+        <button
+          type="button"
+          onClick={() => {
+            analytics.advisorCtaClicked("advisor_card");
+            window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
           }}
+          className="block w-full py-3 bg-white text-green-800 rounded-xl font-bold text-center text-sm hover:bg-green-50 transition-colors"
         >
-          Talk to a Finance Professional
-        </a>
+          Book a Free Consultation
+        </button>
       </div>
     </main>
   );
@@ -980,13 +1233,36 @@ function useFundiState() {
   const HEART_REGEN_MS = 60 * 60 * 1000; // 1 hour
   const [hearts, setHearts] = useState<number>(() => {
     if (typeof window === "undefined") return MAX_HEARTS;
-    return parseInt(localStorage.getItem("fundi-hearts") ?? String(MAX_HEARTS), 10);
+    const storedRaw = localStorage.getItem("fundi-hearts");
+    const lastLostRaw = localStorage.getItem("fundi-last-heart-lost");
+    if (storedRaw === null) return MAX_HEARTS;
+    let current = parseInt(storedRaw, 10);
+    if (Number.isNaN(current)) current = MAX_HEARTS;
+    if (lastLostRaw) {
+      const lastLost = parseInt(lastLostRaw, 10);
+      if (!Number.isNaN(lastLost) && current < MAX_HEARTS) {
+        const elapsed = Date.now() - lastLost;
+        const regained = Math.floor(elapsed / HEART_REGEN_MS);
+        if (regained > 0) {
+          current = Math.min(MAX_HEARTS, current + regained);
+          localStorage.setItem("fundi-hearts", String(current));
+          const newLast = lastLost + regained * HEART_REGEN_MS;
+          if (current >= MAX_HEARTS) {
+            localStorage.removeItem("fundi-last-heart-lost");
+          } else {
+            localStorage.setItem("fundi-last-heart-lost", String(newLast));
+          }
+        }
+      }
+    }
+    return current;
   });
   const [lastHeartLostAt, setLastHeartLostAt] = useState<number | null>(() => {
     if (typeof window === "undefined") return null;
     const v = localStorage.getItem("fundi-last-heart-lost");
     return v ? parseInt(v, 10) : null;
   });
+  const [showNoHearts, setShowNoHearts] = useState(false);
 
   // Persist hearts to localStorage
   useEffect(() => {
@@ -1006,9 +1282,7 @@ function useFundiState() {
       const toAdd = Math.floor(elapsed / HEART_REGEN_MS);
       if (toAdd > 0) {
         setHearts((h) => Math.min(h + toAdd, MAX_HEARTS));
-        setLastHeartLostAt((prev) =>
-          prev ? prev + toAdd * HEART_REGEN_MS : null
-        );
+        setLastHeartLostAt(Date.now() - (elapsed % HEART_REGEN_MS));
       }
     }, 30000);
     return () => clearInterval(interval);
@@ -1016,8 +1290,13 @@ function useFundiState() {
 
   const loseHeart = () => {
     setHearts((h) => {
-      const next = Math.max(h - 1, 0);
+      if (h <= 0) return h;
+      const next = h - 1;
       localStorage.setItem("fundi-hearts", String(next));
+      localStorage.setItem("fundi-last-heart-lost", String(Date.now()));
+      if (next === 0) {
+        queueMicrotask(() => setShowNoHearts(true));
+      }
       return next;
     });
     setLastHeartLostAt(Date.now());
@@ -1052,16 +1331,27 @@ function useFundiState() {
     return WEEKLY_CHALLENGES[weekNum % WEEKLY_CHALLENGES.length];
   };
   const weeklyChallenge = getWeeklyChallenge();
-  const [challengeProgress, setChallengeProgress] = useState<number>(() => {
-    if (typeof window === "undefined") return 0;
-    const saved = localStorage.getItem(`fundi-wc-${weeklyChallenge.id}`);
-    return saved ? parseInt(saved, 10) : 0;
-  });
-  const challengeComplete = challengeProgress >= weeklyChallenge.target;
-  const [challengeRewardClaimed, setChallengeRewardClaimed] = useState<boolean>(() => {
-    if (typeof window === "undefined") return false;
-    return localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.id}`) === "true";
-  });
+  const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgressJSON>(
+    EMPTY_WEEKLY_PROGRESS
+  );
+  const [challengeProgress, setChallengeProgress] = useState(0);
+  const [challengeRewardClaimed, setChallengeRewardClaimed] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const wc = weeklyChallenge;
+    const raw = localStorage.getItem(`fundi-wc-${wc.id}`);
+    const parsed = parseWeeklyChallengeStorage(raw) ?? EMPTY_WEEKLY_PROGRESS;
+    setWeeklyProgress(parsed);
+    const n = progressNumberFromWeeklyState(wc, parsed, progress.streak);
+    setChallengeProgress(Math.min(n, wc.target));
+    setChallengeRewardClaimed(
+      localStorage.getItem(`fundi-wc-claimed-${wc.id}`) === "true"
+    );
+  }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready]);
+
+  const challengeComplete =
+    weeklyProgress.completed || challengeProgress >= weeklyChallenge.target;
   // ── End weekly challenge ──────────────────────────────────────────────────
 
 
@@ -1089,59 +1379,23 @@ function useFundiState() {
     correctCount: 0,
   });
 
-  useEffect(() => {
-    progress.updateStreak();
-    // daily XP resets on new day (simple in-memory tracker)
-    setDailyXP(0);
-  }, []);
-
-  // spendXP removed from hook, handled in Home via direct localStorage
-
   const addXP = (amount: number) => {
     progress.addXP(amount);
     setDailyXP((v) => v + amount);
-    // Show XP toast
     setXpToast({ amount, id: Date.now() });
     setTimeout(() => setXpToast(null), 2000);
   };
 
-  const updateStreakOnComplete = async () => {
-    if (typeof window === "undefined") return;
-    const today = new Date().toDateString();
-    const lastActivity = localStorage.getItem("fundi-last-activity");
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (lastActivity === today) return; // already updated today
-    const currentStreak = parseInt(localStorage.getItem("fundi-streak") ?? "0", 10);
-    const newStreak = lastActivity === yesterday ? currentStreak + 1 : 1;
-    localStorage.setItem("fundi-streak", String(newStreak));
-    localStorage.setItem("fundi-last-activity", today);
-    // Push to Supabase
-    const { data } = await supabase.auth.getUser();
-    if (data.user) {
-      const { error } = await supabase.from("user_progress").upsert(
-        {
-          user_id: data.user.id,
-          streak: newStreak,
-          last_activity_date: today,
-        },
-        { onConflict: "user_id" }
-      );
-      if (error) {
-        // silent fail, offline is fine
-      }
-    }
-  };
-
-  const completeLesson = (courseId: string, lessonId: string, xpEarned: number) => {
+  const completeLesson = (
+    courseId: string,
+    lessonId: string,
+    xpEarned: number
+  ): number | null => {
     progress.completeLesson(`${courseId}:${lessonId}`);
-    updateStreakOnComplete().catch(() => {});
+    const newStreak = progress.applyStreakAfterLesson();
+    if (newStreak !== null) analytics.streakUpdated(newStreak);
     addXP(xpEarned);
-    // Update weekly challenge progress for lesson-count challenges
-    if (weeklyChallenge.unit === "lessons") {
-      const next = Math.min(challengeProgress + 1, weeklyChallenge.target);
-      setChallengeProgress(next);
-      localStorage.setItem(`fundi-wc-${weeklyChallenge.id}`, String(next));
-    }
+    return newStreak;
   };
 
   const isLessonCompleted = (courseId: string, lessonId: string) =>
@@ -1179,6 +1433,7 @@ function useFundiState() {
   }, [route.name]);
 
   const value = {
+    progressReady: progress.ready,
     hearts,
     maxHearts: MAX_HEARTS,
     loseHeart,
@@ -1210,17 +1465,31 @@ function useFundiState() {
     reviewAnswers,
     setReviewAnswers,
     weeklyChallenge,
+    weeklyProgress,
+    setWeeklyProgress,
     challengeProgress,
     challengeComplete,
     challengeRewardClaimed,
+    setChallengeRewardClaimed,
     claimChallengeReward: () => {
+      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.id}`) === "true") {
+        return;
+      }
       if (challengeComplete && !challengeRewardClaimed) {
         progress.addXP(weeklyChallenge.xp);
-        setDailyXP(v => v + weeklyChallenge.xp);
+        setDailyXP((v) => v + weeklyChallenge.xp);
         setChallengeRewardClaimed(true);
         localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.id}`, "true");
+        void progress.persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);
       }
     },
+    tryDeductXp: progress.tryDeductXp,
+    persistWeeklyChallengeCompletion: progress.persistWeeklyChallengeCompletion,
+    addXP,
+    setChallengeProgress,
+    setDailyXP,
+    showNoHearts,
+    setShowNoHearts,
   };
 
   return value;
@@ -1272,6 +1541,23 @@ const COURSE_COLOURS = [
   { bg: "#FCE4EC", accent: "#C2185B", light: "#F5B8CE" }, // pink
 ];
 
+const CourseCardSkeleton = () => (
+  <div className="bg-gray-100 dark:bg-gray-800 rounded-2xl p-4 animate-pulse">
+    <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-xl mb-3" />
+    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-2" />
+    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-full mb-1" />
+    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-5/6" />
+  </div>
+);
+
+type SavedLessonProgress = {
+  courseId: string;
+  lessonId: string;
+  lessonTitle?: string;
+  stepIndex: number;
+  savedAt: number;
+};
+
 const RECOMMENDED_READING_BOOKS: {
   title: string;
   author: string;
@@ -1291,22 +1577,42 @@ function LearnView({
   isLessonCompleted,
   goToCourse,
   weeklyChallenge,
+  weeklyProgress,
   challengeProgress,
   challengeComplete,
   challengeRewardClaimed,
   claimChallengeReward,
+  contentLoaded = true,
+  savedProgress,
+  onResumeLesson,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
   goToCourse: (courseId: string) => void;
   weeklyChallenge?: { text: string; target: number; xp: number; id: string; unit: string };
+  weeklyProgress?: WeeklyProgressJSON;
   challengeProgress?: number;
   challengeComplete?: boolean;
   challengeRewardClaimed?: boolean;
   claimChallengeReward?: () => void;
+  contentLoaded?: boolean;
+  savedProgress?: SavedLessonProgress | null;
+  onResumeLesson?: (p: SavedLessonProgress) => void;
 }) {
   const [search, setSearch] = useState("");
+  const [userGoal, setUserGoal] = useState<string | null>(null);
+  const [goalBannerDismissed, setGoalBannerDismissed] = useState(false);
+  const [showGoalPicker, setShowGoalPicker] = useState(false);
+  const [pickerGoalId, setPickerGoalId] = useState<string>("");
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setUserGoal(localStorage.getItem("fundi-user-goal"));
+    setGoalBannerDismissed(localStorage.getItem("fundi-goal-banner-dismissed") === "1");
+  }, []);
+
+  const recommendedCourseIds =
+    userGoal && GOAL_COURSE_MAP[userGoal] ? GOAL_COURSE_MAP[userGoal] : [];
 
   // Simple fuzzy match: returns true if query is a substring OR within 1 char edit distance
   const fuzzyMatch = (text: string, query: string): boolean => {
@@ -1340,23 +1646,63 @@ function LearnView({
       )
     : courses;
 
-  // Fact of the Day
-  const FACTS = [
-    "Only 42% of South Africans are financially literate. You're changing that right now.",
-    "The Rule of 72: divide 72 by your return rate to find how long to double your money.",
-    "73% of South Africans live paycheque to paycheque. A R1,000 emergency fund breaks the cycle.",
-    "South Africans pay some of the highest bank fees in the world. Switching banks can save R1,700/year.",
-    "Less than 7% of South Africans are on track for a comfortable retirement. Start your RA today.",
-    "Your TFSA lifetime limit is R500,000. Invest in it early, all growth is tax-free.",
-    "Paying R500/month extra on a 20-year bond at 11.75% saves over R300,000 in interest.",
-    "A R50 daily coffee = R18,250/year. Invested at 10% over 20 years = over R1 million.",
-    "The two-pot retirement system lets you access 1/3 of new contributions in emergencies.",
-    "Compound interest at 10%: R10,000 becomes R67,275 in 20 years. Time is everything.",
-  ];
-  const todayFact = FACTS[new Date().getDate() % FACTS.length];
+  const todayFact = getDailyFact();
 
   return (
     <main className="main-content main-with-stats" id="mainContent">
+      {savedProgress && onResumeLesson && (
+        <button
+          type="button"
+          onClick={() => onResumeLesson(savedProgress)}
+          className="w-full flex items-center gap-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl px-4 py-3 mb-4 text-left"
+        >
+          <Play size={28} className="shrink-0 text-blue-600 dark:text-blue-400" fill="currentColor" aria-hidden />
+          <div>
+            <p className="text-blue-800 dark:text-blue-300 font-bold text-sm">
+              Continue where you left off
+            </p>
+            <p className="text-blue-600 dark:text-blue-400 text-xs">
+              {savedProgress.lessonTitle || "Resume lesson"}
+            </p>
+          </div>
+          <span className="ml-auto text-blue-400" aria-hidden>
+            →
+          </span>
+        </button>
+      )}
+
+      {userGoal && !goalBannerDismissed && (
+        <div className="mb-4 flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
+          <p className="flex items-center gap-2 text-sm font-medium text-green-800 dark:text-green-300">
+            <Target size={18} className="shrink-0 text-green-600 dark:text-green-400" aria-hidden />
+            <span>Goal: {GOAL_OPTIONS.find((g) => g.id === userGoal)?.label ?? userGoal}</span>
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setPickerGoalId(userGoal);
+                setShowGoalPicker(true);
+              }}
+              className="text-xs font-semibold text-green-600 dark:text-green-400"
+            >
+              Change
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setGoalBannerDismissed(true);
+                localStorage.setItem("fundi-goal-banner-dismissed", "1");
+              }}
+              className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400"
+              aria-label="Dismiss goal banner"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Fact of the Day */}
       <div style={{
         background: "linear-gradient(135deg, rgba(0,122,77,0.08) 0%, rgba(255,182,18,0.06) 100%)",
@@ -1374,6 +1720,35 @@ function LearnView({
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>
         Your Learning Path
       </h2>
+
+      {!search.trim() && recommendedCourseIds.length > 0 && (
+        <div className="mb-6">
+          <div className="mb-3 flex items-center justify-between px-1">
+            <h3 className="text-base font-bold text-gray-900 dark:text-white">Recommended for You</h3>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Based on your goal</span>
+          </div>
+          <div className="-mx-4 flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+            {recommendedCourseIds.map((courseId) => {
+              const course = CONTENT_DATA.courses.find((c) => c.id === courseId);
+              if (!course) return null;
+              return (
+                <button
+                  key={courseId}
+                  type="button"
+                  onClick={() => goToCourse(course.id)}
+                  className="w-44 flex-shrink-0 rounded-2xl border-2 border-green-200 bg-white p-4 text-left shadow-sm transition-all hover:border-green-400 hover:shadow-md dark:border-green-800 dark:bg-gray-800"
+                >
+                  <div className="mb-2 flex justify-center text-[var(--color-primary)]" aria-hidden>
+                    <CourseIcon name={course.icon} size={40} />
+                  </div>
+                  <p className="text-sm font-bold leading-tight text-gray-900 dark:text-white">{course.title}</p>
+                  <p className="mt-1 text-xs font-medium text-green-600 dark:text-green-400">Start here →</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div style={{ position: "relative", marginBottom: 24 }}>
@@ -1394,9 +1769,17 @@ function LearnView({
         </span>
       </div>
 
-      {filteredCourses.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 0", color: "var(--color-text-secondary)" }}>
-          No courses found for "{search}"
+      {search.trim() && filteredCourses.length === 0 && (
+        <div className="text-center py-12">
+          <div className="mb-3 flex justify-center text-gray-400 dark:text-gray-500" aria-hidden>
+            <Search size={40} strokeWidth={1.5} />
+          </div>
+          <p className="text-gray-700 dark:text-gray-300 font-semibold">
+            No results for &quot;{search.trim()}&quot;
+          </p>
+          <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+            Try searching for a topic like &quot;budget&quot;, &quot;TFSA&quot;, or &quot;debt&quot;
+          </p>
         </div>
       )}
 
@@ -1428,6 +1811,21 @@ function LearnView({
             <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
               {challengeProgress || 0}/{weeklyChallenge.target} · Reward: +{weeklyChallenge.xp} XP
             </div>
+            {weeklyProgress && weeklyChallenge && (
+              <div
+                className="text-gray-500 dark:text-gray-400"
+                style={{ fontSize: 10, marginTop: 6, lineHeight: 1.4 }}
+              >
+                {weeklyChallenge.unit === "lessons" &&
+                  `${weeklyProgress.lessonsCompleted} lesson${weeklyProgress.lessonsCompleted === 1 ? "" : "s"} this week`}
+                {weeklyChallenge.unit === "perfect" &&
+                  `${weeklyProgress.perfectLessons} perfect lesson${weeklyProgress.perfectLessons === 1 ? "" : "s"}`}
+                {weeklyChallenge.unit === "daily_xp" &&
+                  `${weeklyProgress.dailyXp} XP earned today (goal ${weeklyChallenge.target})`}
+                {weeklyChallenge.unit === "streak_days" &&
+                  `Uses your learning streak (goal: ${weeklyChallenge.target} days)`}
+              </div>
+            )}
           </div>
           {challengeComplete && !challengeRewardClaimed && (
             <button className="btn btn-primary" style={{ fontSize: 12, padding: "6px 14px", flexShrink: 0 }}
@@ -1443,7 +1841,15 @@ function LearnView({
         </div>
       )}
 
-      <div className="courses-grid">
+      {!contentLoaded && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CourseCardSkeleton key={i} />
+          ))}
+        </div>
+      )}
+
+      <div className={`courses-grid ${!contentLoaded ? "hidden" : ""}`}>
         {filteredCourses.map((course, courseIndex) => {
           const originalIndex = courses.indexOf(course);
           const courseIndex2 = originalIndex;
@@ -1494,6 +1900,64 @@ function LearnView({
           );
         })}
       </div>
+
+      {showGoalPicker && (
+        <div
+          className="fixed inset-0 z-[400] flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="goal-picker-title"
+        >
+          <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-5 dark:bg-gray-800">
+            <h2 id="goal-picker-title" className="mb-1 text-lg font-bold text-gray-900 dark:text-white">
+              Your money goal
+            </h2>
+            <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
+              We&apos;ll prioritise courses that match what you want to achieve.
+            </p>
+            <div className="mb-4 grid grid-cols-2 gap-2">
+              {GOAL_OPTIONS.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setPickerGoalId(g.id)}
+                  className={`rounded-xl border-2 p-3 text-left text-sm font-semibold transition-colors ${
+                    pickerGoalId === g.id
+                      ? "border-green-600 bg-green-50 dark:border-green-500 dark:bg-green-900/20"
+                      : "border-gray-200 bg-gray-50 dark:border-gray-600 dark:bg-gray-900/40"
+                  }`}
+                >
+                  <g.Icon size={16} className="mr-1 inline align-text-bottom text-green-600 dark:text-green-400" aria-hidden />
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className="flex-1 rounded-xl border border-gray-300 py-3 text-sm font-semibold text-gray-700 dark:border-gray-600 dark:text-gray-200"
+                onClick={() => setShowGoalPicker(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
+                disabled={!pickerGoalId}
+                onClick={async () => {
+                  if (!pickerGoalId) return;
+                  await persistUserGoalToStorageAndSupabase(pickerGoalId);
+                  setUserGoal(pickerGoalId);
+                  setGoalBannerDismissed(false);
+                  setShowGoalPicker(false);
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -1536,14 +2000,11 @@ function CourseView({
     const lesson = unitLessons[lessonIndex];
     const hasContent = Array.isArray(lesson.steps) && lesson.steps.length > 0;
 
-    if (isLessonCompleted(course.id, lesson.id)) return "completed";
     if (!hasContent) return "coming_soon";
+    if (isLessonCompleted(course.id, lesson.id)) return "completed";
     if (lessonIndex === 0) return "playable";
     const prevDone = isLessonCompleted(course.id, unitLessons[lessonIndex - 1].id);
     const state = prevDone ? "playable" : "locked";
-    if (prevDone) {
-      console.log("[Fundi] Unlock:", course.id + ":" + lesson.id, "unlocked because", unitLessons[lessonIndex - 1].id, "is complete");
-    }
     return state;
   }
 
@@ -1736,9 +2197,12 @@ function CourseView({
     </main>
   );
 }
-function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit, onNext, isLast, correctCount }: {
+function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit, onNext, isLast, correctCount, finalizeLesson, nextLessonTitle, lessonTitle }: {
   step: any; isAnswered: boolean; isCorrect: boolean; submittedAnswer: string | undefined;
   onSubmit: (v: string) => void; onNext: () => void; isLast: boolean; correctCount: number;
+  finalizeLesson?: (choice: "next" | "course") => void;
+  nextLessonTitle?: string;
+  lessonTitle?: string;
 }) {
   const [val, setVal] = React.useState("");
   React.useEffect(() => {
@@ -1811,7 +2275,50 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                 <div style={{ color: "var(--color-text-secondary)", marginBottom: 16 }}>
                   +{50 + correctCount * 10} XP earned
                 </div>
-                <button className="btn btn-primary" onClick={onNext}>Continue</button>
+                {finalizeLesson ? (
+                  <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
+                    {nextLessonTitle ? (
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        style={{ width: "100%", padding: "14px 16px", fontSize: 17, fontWeight: 800 }}
+                        onClick={() => finalizeLesson("next")}
+                      >
+                        Next Lesson: {nextLessonTitle} →
+                      </button>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+                        <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                        Course Complete!
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{
+                        width: "100%",
+                        padding: "12px 16px",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        background: "var(--color-bg)",
+                        color: "var(--color-text-primary)",
+                        border: "1.5px solid var(--color-border)",
+                      }}
+                      onClick={() => finalizeLesson("course")}
+                    >
+                      ✓ Done — Back to Course
+                    </button>
+                    {lessonTitle ? (
+                      <ShareButton
+                        text={generateShareText("lesson", { lessonTitle })}
+                        label="Share your progress"
+                        shareType="lesson"
+                      />
+                    ) : null}
+                  </div>
+                ) : (
+                  <button className="btn btn-primary" onClick={onNext}>Continue</button>
+                )}
               </div>
             ) : (
               <button className="btn btn-primary" onClick={onNext}>Continue</button>
@@ -1827,16 +2334,17 @@ function LessonView({
   lessonState,
   completeLessonFlow,
   nextStep,
+  finalizeLesson,
   answerQuestion,
   answerTrueFalse,
   correctCount,
   hearts = 5,
   maxHearts = 5,
-  heartsRegenInfo,
   goBack,
   courseId,
   courseAccent,
   nextLessonTitle,
+  lessonTitle,
 }: {
   lessonState: {
     steps: LessonStep[];
@@ -1845,16 +2353,17 @@ function LessonView({
   };
   completeLessonFlow: () => void;
   nextStep: () => void;
+  finalizeLesson?: (choice: "next" | "course") => void;
   answerQuestion: (index: number) => void;
   answerTrueFalse: (value: boolean) => void;
   correctCount: number;
   hearts?: number;
   maxHearts?: number;
-  heartsRegenInfo?: () => { nextHeartIn: string; minutesLeft: number } | null;
   goBack?: () => void;
   courseId?: string;
   courseAccent?: string;
   nextLessonTitle?: string;
+  lessonTitle?: string;
 }) {
   const step = lessonState.steps[lessonState.stepIndex];
   const progress =
@@ -1918,44 +2427,6 @@ function LessonView({
   }
   // ── End exit modal ────────────────────────────────────────────────────────
 
-  // ── Hearts gate ────────────────────────────────────────────────────────────
-  if (hearts === 0) {
-    const regen = heartsRegenInfo ? heartsRegenInfo() : null;
-    return (
-      <main className="main-content main-with-stats">
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "center",
-          minHeight: "60vh", padding: "2rem",
-        }}>
-          <div style={{
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 20, padding: "2.5rem 2rem",
-            textAlign: "center", maxWidth: 360,
-          }}>
-            <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 20, opacity: 0.3 }}>
-              {Array.from({ length: maxHearts }).map((_, i) => (
-                <svg key={i} viewBox="0 0 24 24" fill="#E03C31" width="28" height="28">
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-              ))}
-            </div>
-            <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>No hearts left!</div>
-            <p style={{ color: "var(--color-text-secondary)", marginBottom: 20, lineHeight: 1.5 }}>
-              {regen
-                ? `Your next heart arrives in ${regen.nextHeartIn}. Hearts refill 1 per hour.`
-                : "Hearts refill 1 per hour. Come back soon!"}
-            </p>
-            {goBack && (
-              <button className="btn btn-primary" onClick={() => setShowExitConfirm(true)}>Exit Lesson</button>
-            )}
-          </div>
-        </div>
-      </main>
-    );
-  }
-  // ── End hearts gate ────────────────────────────────────────────────────────
-
   const renderStep = () => {
     if (!step) return null;
     if (step.type === "info") {
@@ -1973,6 +2444,36 @@ function LessonView({
             </button>
           </div>
         </>
+      );
+    }
+
+    if (step.type === "action") {
+      return (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 rounded-xl bg-green-600 px-5 py-4">
+            <Zap className="h-8 w-8 shrink-0 text-white" strokeWidth={2} aria-hidden />
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-green-100">Do This Now</p>
+              <p className="text-lg font-bold leading-tight text-white">{step.title}</p>
+            </div>
+          </div>
+          <div className="rounded-xl border border-green-200 bg-green-50 p-5 dark:border-green-800 dark:bg-green-900/20">
+            <p className="text-base leading-relaxed text-gray-800 dark:text-gray-100">{step.instruction}</p>
+          </div>
+          {step.tip ? (
+            <div className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 dark:border-yellow-800 dark:bg-yellow-900/20">
+              <p className="flex items-start gap-2 text-sm text-yellow-800 dark:text-yellow-300">
+                <Lightbulb size={16} className="mt-0.5 shrink-0" aria-hidden />
+                <span><span className="font-semibold">Tip:</span> {step.tip}</span>
+              </p>
+            </div>
+          ) : null}
+          <div className="lesson-actions">
+            <button type="button" className="btn btn-primary" onClick={nextStep}>
+              Continue
+            </button>
+          </div>
+        </div>
       );
     }
 
@@ -2058,14 +2559,62 @@ function LessonView({
                     >
                       +{50 + correctCount * 10} XP earned
                     </div>
-                    {nextLessonTitle && (
-                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 14, opacity: 0.8 }}>
-                        Up next: <strong>{nextLessonTitle}</strong>
+                    {finalizeLesson ? (
+                      <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
+                        {nextLessonTitle ? (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ width: "100%", padding: "14px 16px", fontSize: 17, fontWeight: 800 }}
+                            onClick={() => finalizeLesson("next")}
+                          >
+                            Next Lesson: {nextLessonTitle} →
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+                            <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                            Course Complete!
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            fontSize: 15,
+                            fontWeight: 700,
+                            background: "var(--color-bg)",
+                            color: "var(--color-text-primary)",
+                            border: "1.5px solid var(--color-border)",
+                          }}
+                          onClick={() => finalizeLesson("course")}
+                        >
+                          <span className="inline-flex items-center justify-center gap-2">
+                            <CheckCircle2 size={18} aria-hidden />
+                            Done — Back to Course
+                          </span>
+                        </button>
+                        {lessonTitle ? (
+                          <ShareButton
+                            text={generateShareText("lesson", { lessonTitle })}
+                            label="Share your progress"
+                            shareType="lesson"
+                          />
+                        ) : null}
                       </div>
+                    ) : (
+                      <>
+                        {nextLessonTitle && (
+                          <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 14, opacity: 0.8 }}>
+                            Up next: <strong>{nextLessonTitle}</strong>
+                          </div>
+                        )}
+                        <button className="btn btn-primary" onClick={nextStep}>
+                          {nextLessonTitle ? "Next Lesson →" : "Back to Course"}
+                        </button>
+                      </>
                     )}
-                    <button className="btn btn-primary" onClick={nextStep}>
-                      {nextLessonTitle ? "Next Lesson →" : "Back to Course"}
-                    </button>
                   </div>
                 ) : (
                   <button className="btn btn-primary" onClick={nextStep}>
@@ -2147,9 +2696,55 @@ function LessonView({
                     >
                       +{50 + correctCount * 10} XP earned
                     </div>
-                    <button className="btn btn-primary" onClick={nextStep}>
-                      Continue
-                    </button>
+                    {finalizeLesson ? (
+                      <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
+                        {nextLessonTitle ? (
+                          <button
+                            type="button"
+                            className="btn btn-primary"
+                            style={{ width: "100%", padding: "14px 16px", fontSize: 17, fontWeight: 800 }}
+                            onClick={() => finalizeLesson("next")}
+                          >
+                            Next Lesson: {nextLessonTitle} →
+                          </button>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+                            <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                            Course Complete!
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{
+                            width: "100%",
+                            padding: "12px 16px",
+                            fontSize: 15,
+                            fontWeight: 700,
+                            background: "var(--color-bg)",
+                            color: "var(--color-text-primary)",
+                            border: "1.5px solid var(--color-border)",
+                          }}
+                          onClick={() => finalizeLesson("course")}
+                        >
+                          <span className="inline-flex items-center justify-center gap-2">
+                            <CheckCircle2 size={18} aria-hidden />
+                            Done — Back to Course
+                          </span>
+                        </button>
+                        {lessonTitle ? (
+                          <ShareButton
+                            text={generateShareText("lesson", { lessonTitle })}
+                            label="Share your progress"
+                            shareType="lesson"
+                          />
+                        ) : null}
+                      </div>
+                    ) : (
+                      <button className="btn btn-primary" onClick={nextStep}>
+                        Continue
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <button className="btn btn-primary" onClick={nextStep}>
@@ -2184,6 +2779,9 @@ function LessonView({
           onNext={nextStep}
           isLast={lessonState.stepIndex === lessonState.steps.length - 1}
           correctCount={correctCount}
+          finalizeLesson={finalizeLesson}
+          nextLessonTitle={nextLessonTitle}
+          lessonTitle={lessonTitle}
         />
       );
     }
@@ -2254,10 +2852,16 @@ function ProfileView({
   userData,
   onSignOut,
   currentUser,
+  dailyGoal,
+  setDailyGoal,
+  courseBadgeIds,
 }: {
   userData: UserData;
   onSignOut: () => void;
   currentUser: any;
+  dailyGoal: number;
+  setDailyGoal: (n: number) => void;
+  courseBadgeIds: string[];
 }) {
   const [selectedBadge, setSelectedBadge] = useState<null | {
     name: string; desc: string; icon: React.ReactNode;
@@ -2270,34 +2874,81 @@ function ProfileView({
   const [editAge, setEditAge] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [saveToast, setSaveToast] = useState<string | null>(null);
+  const [investorQuizOpen, setInvestorQuizOpen] = useState(false);
+  const [quizIdx, setQuizIdx] = useState(0);
+  const [quizScores, setQuizScores] = useState<number[]>([]);
+  const [quizSelected, setQuizSelected] = useState<number | null>(null);
+  const [investorProfileLabel, setInvestorProfileLabel] = useState<string | null>(null);
 
   // Load name, show update form if no real full_name exists
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       const user = data.user;
       if (!user) return;
       setProfileEmail(user.email ?? "");
       const meta = user.user_metadata;
       const fullName = meta?.full_name ?? "";
-      // Consider it "missing" if empty OR looks like an email prefix
-      const isMissing = !fullName || fullName.includes("@") || fullName === user.email?.split("@")[0];
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("full_name, age, investor_profile")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const row = prof as { full_name?: string; age?: number | null; investor_profile?: string | null } | null;
+      if (row?.age != null) setEditAge(String(row.age));
+      if (row?.investor_profile) setInvestorProfileLabel(row.investor_profile);
+      const nameFromProfile = row?.full_name?.trim();
+      const display = nameFromProfile || fullName;
+      const isMissing =
+        !display ||
+        display.includes("@") ||
+        display === user.email?.split("@")[0];
       if (!isMissing) {
-        setProfileName(fullName);
+        setProfileName(display);
+        const parts = display.split(" ");
+        setEditFirstName(parts[0] ?? "");
+        setEditLastName(parts.slice(1).join(" ") ?? "");
       } else {
-        // Pre-fill edit fields from whatever we have
         setNeedsProfileUpdate(true);
       }
     });
   }, []);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = localStorage.getItem("fundi-investor-profile");
+      if (raw) {
+        const j = JSON.parse(raw) as { profile?: string };
+        if (j.profile) setInvestorProfileLabel(j.profile);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const showQuizResult =
+    investorQuizOpen && quizIdx >= INVESTOR_QUIZ_QUESTIONS.length;
+  useEffect(() => {
+    if (showQuizResult) {
+      analytics.advisorCtaShown("investor_quiz");
+    }
+  }, [showQuizResult]);
+
   const handleSaveProfile = async () => {
     const firstName = editFirstName.trim();
     const lastName = editLastName.trim();
-    const ageNum = parseInt(editAge, 10);
+    const ageTrim = editAge.trim();
+    const ageNum =
+      ageTrim === "" ? null : parseInt(ageTrim, 10);
     if (!firstName) { setSaveError("Please enter your first name."); return; }
     if (!lastName) { setSaveError("Please enter your last name."); return; }
-    if (!editAge || isNaN(ageNum) || ageNum < 13 || ageNum > 120) {
-      setSaveError("Please enter a valid age (13+).");
+    if (
+      ageTrim !== "" &&
+      (ageNum === null || Number.isNaN(ageNum) || ageNum < 13 || ageNum > 120)
+    ) {
+      setSaveError("Please enter a valid age (13–120) or leave blank.");
       return;
     }
     setSaving(true);
@@ -2306,19 +2957,26 @@ function ProfileView({
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Not signed in");
-      // Update Supabase auth metadata
+      const metaPayload: Record<string, unknown> = { full_name: fullName };
+      if (ageNum != null) metaPayload.age = ageNum;
       const { error: updateError } = await supabase.auth.updateUser({
-        data: { full_name: fullName, age: ageNum },
+        data: metaPayload,
       });
       if (updateError) throw updateError;
-      // Also upsert to profiles table for leaderboard
       await supabase.from("profiles").upsert({
         user_id: user.id,
         full_name: fullName,
         age: ageNum,
       }, { onConflict: "user_id" });
+      await supabase.from("user_progress").upsert(
+        { user_id: user.id, display_name: fullName },
+        { onConflict: "user_id" }
+      );
       setProfileName(fullName);
       setNeedsProfileUpdate(false);
+      setEditingProfile(false);
+      setSaveToast("Profile saved.");
+      setTimeout(() => setSaveToast(null), 2500);
     } catch (e: any) {
       setSaveError(e?.message ?? "Failed to save. Please try again.");
     } finally {
@@ -2342,32 +3000,43 @@ function ProfileView({
     ? parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10) : 0;
 
   const BADGE_DEFS = [
-    // Lesson milestones
-    { id: "lesson-1",   name: "First Step",       desc: "Completed your first lesson",     icon: <CheckCircle2 size={22} className="text-current" />, earned: tc >= 1 },
-    { id: "lesson-5",   name: "Getting Going",    desc: "Completed 5 lessons",             icon: <BookOpen size={22} className="text-current" />,     earned: tc >= 5 },
-    { id: "lesson-10",  name: "On a Roll",        desc: "Completed 10 lessons",            icon: <TrendingUp size={22} className="text-current" />,   earned: tc >= 10 },
-    { id: "lesson-25",  name: "Dedicated",        desc: "Completed 25 lessons",            icon: <Target size={22} className="text-current" />,       earned: tc >= 25 },
-    { id: "lesson-50",  name: "Half Century",     desc: "Completed 50 lessons",            icon: <Trophy size={22} className="text-current" />,       earned: tc >= 50 },
-    { id: "lesson-100", name: "Centurion",        desc: "Completed 100 lessons",           icon: <Trophy size={22} className="text-current" />,       earned: tc >= 100 },
+    // Lesson milestones (ids align with lesson completion thresholds)
+    { id: "lesson-1-badge",   name: "First Step",       desc: "Completed your first lesson",     icon: <CheckCircle2 size={22} className="text-current" />, earned: tc >= 1 },
+    { id: "lesson-5-badge",   name: "Getting Going",    desc: "Completed 5 lessons",             icon: <BookOpen size={22} className="text-current" />,     earned: tc >= 5 },
+    { id: "lesson-10-badge",  name: "On a Roll",        desc: "Completed 10 lessons",            icon: <TrendingUp size={22} className="text-current" />,   earned: tc >= 10 },
+    { id: "lesson-25-badge",  name: "Dedicated",        desc: "Completed 25 lessons",            icon: <Target size={22} className="text-current" />,       earned: tc >= 25 },
+    { id: "lesson-50-badge",  name: "Half Century",     desc: "Completed 50 lessons",            icon: <Trophy size={22} className="text-current" />,       earned: tc >= 50 },
+    { id: "lesson-100-badge", name: "Centurion",        desc: "Completed 100 lessons",           icon: <Trophy size={22} className="text-current" />,       earned: tc >= 100 },
     // Streak milestones
-    { id: "streak-3",   name: "3 Day Streak",     desc: "Learned 3 days in a row",        icon: <Flame size={22} className="text-current" />,        earned: str >= 3 },
-    { id: "streak-7",   name: "Week Warrior",     desc: "7-day learning streak",          icon: <Flame size={22} className="text-current" />,        earned: str >= 7 },
-    { id: "streak-14",  name: "Two Weeks Strong", desc: "14-day learning streak",         icon: <Zap size={22} className="text-current" />,          earned: str >= 14 },
-    { id: "streak-30",  name: "Monthly Habit",    desc: "30-day learning streak",         icon: <Zap size={22} className="text-current" />,          earned: str >= 30 },
-    { id: "streak-60",  name: "Unstoppable",      desc: "60-day learning streak",         icon: <Trophy size={22} className="text-current" />,       earned: str >= 60 },
-    { id: "streak-100", name: "Legendary",        desc: "100-day learning streak",        icon: <Trophy size={22} className="text-current" />,       earned: str >= 100 },
+    { id: "streak-3-badge",   name: "3 Day Streak",     desc: "Learned 3 days in a row",        icon: <Flame size={22} className="text-current" />,        earned: str >= 3 },
+    { id: "streak-7-badge",   name: "Week Warrior",     desc: "7-day learning streak",          icon: <Flame size={22} className="text-current" />,        earned: str >= 7 },
+    { id: "streak-14-badge",  name: "Two Weeks Strong", desc: "14-day learning streak",         icon: <Zap size={22} className="text-current" />,          earned: str >= 14 },
+    { id: "streak-30-badge",  name: "Monthly Habit",    desc: "30-day learning streak",         icon: <Zap size={22} className="text-current" />,          earned: str >= 30 },
+    { id: "streak-60-badge",  name: "Unstoppable",      desc: "60-day learning streak",         icon: <Trophy size={22} className="text-current" />,       earned: str >= 60 },
+    { id: "streak-100-badge", name: "Legendary",        desc: "100-day learning streak",        icon: <Trophy size={22} className="text-current" />,       earned: str >= 100 },
     // XP milestones
-    { id: "xp-100",     name: "First 100",        desc: "Earned 100 XP",                  icon: <Zap size={22} className="text-current" />,          earned: xpv >= 100 },
-    { id: "xp-500",     name: "XP Builder",       desc: "Earned 500 XP",                  icon: <Zap size={22} className="text-current" />,          earned: xpv >= 500 },
-    { id: "xp-1000",    name: "Knowledge Is Power", desc: "Earned 1 000 XP",              icon: <Brain size={22} className="text-current" />,        earned: xpv >= 1000 },
-    { id: "xp-5000",    name: "Finance Pro",      desc: "Earned 5 000 XP",                icon: <Wallet size={22} className="text-current" />,       earned: xpv >= 5000 },
+    { id: "xp-100-badge",     name: "First 100",        desc: "Earned 100 XP",                  icon: <Zap size={22} className="text-current" />,          earned: xpv >= 100 },
+    { id: "xp-500-badge",     name: "XP Builder",       desc: "Earned 500 XP",                  icon: <Zap size={22} className="text-current" />,          earned: xpv >= 500 },
+    { id: "xp-1000-badge",    name: "Knowledge Is Power", desc: "Earned 1 000 XP",              icon: <Brain size={22} className="text-current" />,        earned: xpv >= 1000 },
+    { id: "xp-5000-badge",    name: "Finance Pro",      desc: "Earned 5 000 XP",                icon: <Wallet size={22} className="text-current" />,       earned: xpv >= 5000 },
     // Perfect lesson milestones
-    { id: "perfect-1",  name: "Flawless",         desc: "Got a perfect score on a lesson", icon: <CheckCircle2 size={22} className="text-current" />, earned: perfectLessons >= 1 },
-    { id: "perfect-5",  name: "Sharp Mind",       desc: "5 perfect lesson scores",         icon: <Brain size={22} className="text-current" />,        earned: perfectLessons >= 5 },
-    { id: "perfect-10", name: "Untouchable",      desc: "10 perfect lesson scores",        icon: <Trophy size={22} className="text-current" />,       earned: perfectLessons >= 10 },
+    { id: "perfect-1-badge",  name: "Flawless",         desc: "Got a perfect score on a lesson", icon: <CheckCircle2 size={22} className="text-current" />, earned: perfectLessons >= 1 },
+    { id: "perfect-5-badge",  name: "Sharp Mind",       desc: "5 perfect lesson scores",         icon: <Brain size={22} className="text-current" />,        earned: perfectLessons >= 5 },
+    { id: "perfect-10-badge", name: "Untouchable",      desc: "10 perfect lesson scores",        icon: <Trophy size={22} className="text-current" />,       earned: perfectLessons >= 10 },
   ];
 
-  const earnedBadges = BADGE_DEFS.filter((b) => b.earned);
+  const earnedProgressBadges = BADGE_DEFS.filter((b) => b.earned);
+  const earnedCourseBadgeItems = courseBadgeIds
+    .map((bid) => Object.values(COURSE_BADGES).find((b) => b.id === bid))
+    .filter((b): b is (typeof COURSE_BADGES)[string] => Boolean(b))
+    .map((b) => ({
+      id: b.id,
+      name: b.name,
+      desc: b.description,
+      icon: <Trophy size={22} style={{ color: b.color }} aria-hidden />,
+    }));
+
+  const earnedBadges = [...earnedProgressBadges, ...earnedCourseBadgeItems];
 
   const BadgeIcon = ({ id }: { id: string }) => {
     const icons: Record<string, React.ReactNode> = {
@@ -2396,10 +3065,22 @@ function ProfileView({
         }}>{initials}</div>
         <div style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>{displayName.split(" ")[0]}</div>
         <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Financial Learner · Level {userData.level}</div>
+        {investorProfileLabel && (() => {
+          const st =
+            INVESTOR_PROFILE_STYLES[investorProfileLabel] ??
+            INVESTOR_PROFILE_STYLES["Moderate"];
+          return (
+            <div
+              className={`mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${st.bg} ${st.darkBg} ${st.color}`}
+            >
+              <Award size={16} className="shrink-0" aria-hidden />
+              <span>{investorProfileLabel} Investor</span>
+            </div>
+          );
+        })()}
       </div>
 
-      {/* ── Profile update prompt (shown until user sets name) ── */}
-      {needsProfileUpdate && (
+      {needsProfileUpdate && !editingProfile && (
         <div style={{
           background: "var(--color-primary-light, #E8F5EE)",
           border: "1.5px solid var(--color-primary)",
@@ -2411,33 +3092,20 @@ function ProfileView({
           <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 12 }}>
             Add your name so we can personalise your experience and show you on the leaderboard.
           </div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <input
-              type="text" placeholder="First name" value={editFirstName}
-              onChange={(e) => setEditFirstName(e.target.value)}
-              style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }}
-            />
-            <input
-              type="text" placeholder="Last name" value={editLastName}
-              onChange={(e) => setEditLastName(e.target.value)}
-              style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }}
-            />
-          </div>
-          <input
-            type="number" placeholder="Age" value={editAge} min={13} max={120}
-            inputMode="numeric"
-            onKeyDown={(e) => { if (["e","E","+","-","."].includes(e.key)) e.preventDefault(); }}
-            onChange={(e) => setEditAge(e.target.value.replace(/D/g, ""))}
-            style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, marginBottom: 8, boxSizing: "border-box" as const }}
-          />
-          {saveError && <p style={{ color: "var(--error-red, #E03C31)", fontSize: 12, marginBottom: 8 }}>{saveError}</p>}
           <button
+            type="button"
             className="btn btn-primary"
             style={{ width: "100%" }}
-            onClick={handleSaveProfile}
-            disabled={saving}
+            onClick={() => {
+              setEditingProfile(true);
+              if (!editFirstName && profileName) {
+                const parts = profileName.split(" ");
+                setEditFirstName(parts[0] ?? "");
+                setEditLastName(parts.slice(1).join(" ") ?? "");
+              }
+            }}
           >
-            {saving ? "Saving..." : "Save Profile"}
+            Add details
           </button>
         </div>
       )}
@@ -2449,7 +3117,7 @@ function ProfileView({
         marginBottom: 16, overflow: "hidden",
       }}>
         {[
-          { label: "XP", value: userData.xp.toLocaleString(), color: "var(--color-primary)" },
+          { label: "XP", value: formatWithSpaces(userData.xp), color: "var(--color-primary)" },
           { label: "Level", value: userData.level, color: "var(--color-text-primary)" },
           { label: "Streak", value: userData.streak, color: "#FFB612" },
           { label: "Lessons", value: userData.totalCompleted, color: "var(--color-text-primary)" },
@@ -2464,41 +3132,250 @@ function ProfileView({
         ))}
       </div>
 
-      {/* ── Talk to a finance professional (same style as calculator CTA) ── */}
-      <div
-        style={{
-          background: "var(--color-primary-light)",
-          border: "1px solid var(--color-primary)",
-          borderRadius: 16,
-          padding: 24,
-          textAlign: "center",
-          marginBottom: 24,
-        }}
-      >
-        <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 4 }}>Talk to a finance professional</div>
-        <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 16 }}>
-          Get personalised guidance for your goals. Email Kwanele to start the conversation.
+      {saveToast && (
+        <div style={{
+          background: "rgba(0,122,77,0.12)", border: "1px solid var(--color-primary)",
+          borderRadius: 12, padding: "10px 14px", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--color-primary)",
+        }}>{saveToast}</div>
+      )}
+
+      <div style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button type="button" className="btn btn-secondary" onClick={() => {
+          setEditingProfile(true);
+          const parts = profileName.split(" ");
+          setEditFirstName(parts[0] ?? "");
+          setEditLastName(parts.slice(1).join(" ") ?? "");
+        }}>
+          Edit Profile
+        </button>
+      </div>
+
+      {editingProfile && (
+        <div style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16,
+        }}>
+          <div style={{ fontWeight: 700, marginBottom: 10 }}>Profile details</div>
+          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+            <input type="text" placeholder="First name" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)}
+              style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }} />
+            <input type="text" placeholder="Last name" value={editLastName} onChange={(e) => setEditLastName(e.target.value)}
+              style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }} />
+          </div>
+          <input type="number" placeholder="Age (optional)" value={editAge} min={13} max={120}
+            onChange={(e) => setEditAge(e.target.value.replace(/\D/g, ""))}
+            style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, marginBottom: 8, boxSizing: "border-box" as const }} />
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>Daily XP goal</label>
+            <select value={dailyGoal} onChange={(e) => {
+              const v = parseInt(e.target.value, 10);
+              setDailyGoal(v);
+              localStorage.setItem("fundi-daily-goal", String(v));
+            }} style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }}>
+              {[25, 50, 100, 150, 200].map((g) => (
+                <option key={g} value={g}>{g} XP / day</option>
+              ))}
+            </select>
+          </div>
+          {saveError && <p style={{ color: "var(--error-red)", fontSize: 12 }}>{saveError}</p>}
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" className="btn btn-primary" style={{ flex: 1 }} disabled={saving} onClick={handleSaveProfile}>
+              {saving ? "Saving..." : "Save"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setEditingProfile(false);
+                setSaveError(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div style={{
+        background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14,
+        padding: 16, marginBottom: 16,
+      }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
+          <div style={{ fontWeight: 800 }}>Investor Profile</div>
+          {investorProfileLabel && (() => {
+            const st =
+              INVESTOR_PROFILE_STYLES[investorProfileLabel] ??
+              INVESTOR_PROFILE_STYLES["Moderate"];
+            return (
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${st.bg} ${st.darkBg} ${st.color}`}
+              >
+                <Award size={14} className="shrink-0" aria-hidden />
+                {investorProfileLabel}
+              </span>
+            );
+          })()}
+        </div>
+        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 10 }}>
+          {investorProfileLabel
+            ? `Your style: ${investorProfileLabel}`
+            : "Take a 10-question quiz to see how you think about risk and investing."}
         </p>
-        <a
-          href="mailto:kwanele@wealthwithkwanele.co.za?subject=Fundi%20Finance%20-%20Financial%20guidance"
-          style={{
-            display: "inline-block",
-            padding: "12px 28px",
-            background: "var(--color-primary)",
-            color: "white",
-            borderRadius: 12,
-            fontWeight: 700,
-            fontSize: 15,
-            textDecoration: "none",
+        <button type="button" className="btn btn-primary" onClick={() => {
+          setInvestorQuizOpen(true);
+          setQuizIdx(0);
+          setQuizScores([]);
+          setQuizSelected(null);
+        }}>
+          {investorProfileLabel ? "Retake Quiz" : "Take Quiz"}
+        </button>
+      </div>
+
+      {investorQuizOpen && (
+        <div className="fixed inset-0 z-[300] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/60">
+          <div className="bg-white dark:bg-gray-800 rounded-t-2xl md:rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 shadow-xl">
+            {quizIdx >= INVESTOR_QUIZ_QUESTIONS.length ? (
+              (() => {
+                const total = quizScores.reduce((a, b) => a + b, 0);
+                const res = getInvestorProfile(total);
+                return (
+                  <div>
+                    <div className="flex justify-center mb-2">
+                      <Award size={56} style={{ color: res.color }} aria-hidden />
+                    </div>
+                    <h2 className="text-xl font-black text-center text-gray-900 dark:text-white">{res.profile} Investor</h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mt-3">{res.description}</p>
+                    <p className="text-xs font-semibold mt-3 text-gray-700 dark:text-gray-200">{res.allocation}</p>
+                    <ul className="text-sm mt-2 list-disc pl-5 text-gray-700 dark:text-gray-200">
+                      {res.products.map((p) => <li key={p}>{p}</li>)}
+                    </ul>
+                    <div className="flex flex-col gap-2 mt-6">
+                      <button type="button" className="btn btn-primary w-full" onClick={async () => {
+                        analytics.investorQuizCompleted(res.profile, total);
+                        const payload = { profile: res.profile, total, savedAt: Date.now() };
+                        localStorage.setItem("fundi-investor-profile", JSON.stringify(payload));
+                        setInvestorProfileLabel(res.profile);
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                          await supabase.from("profiles").upsert(
+                            { user_id: user.id, investor_profile: res.profile } as Record<string, unknown>,
+                            { onConflict: "user_id" }
+                          );
+                        }
+                        setInvestorQuizOpen(false);
+                        setSaveToast("Investor profile saved.");
+                        setTimeout(() => setSaveToast(null), 2500);
+                      }}>Save to Profile</button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary w-full"
+                        onClick={() => {
+                          setQuizIdx(0);
+                          setQuizScores([]);
+                          setQuizSelected(null);
+                        }}
+                      >
+                        Retake Quiz
+                      </button>
+                      <button type="button" className="btn btn-secondary w-full" onClick={() => setInvestorQuizOpen(false)}>Close</button>
+                    </div>
+                    <div className="mt-4 bg-gradient-to-br from-green-600 to-green-800 rounded-2xl p-5 text-white">
+                      <p className="text-xs font-bold uppercase tracking-widest text-green-200 mb-1">
+                        Want a personalised plan?
+                      </p>
+                      <p className="text-green-100 text-sm mb-4 leading-relaxed">
+                        Ready to take the next step? Book a free 30-minute financial consultation.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          analytics.advisorCtaClicked("investor_quiz");
+                          window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
+                        }}
+                        className="block w-full py-3 bg-white text-green-800 rounded-xl font-bold text-center hover:bg-green-50 transition-colors"
+                      >
+                        Book a Free Consultation
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()
+            ) : (
+              <div>
+                <div className="text-xs font-bold text-gray-500 dark:text-gray-400 mb-2">
+                  Question {quizIdx + 1} of {INVESTOR_QUIZ_QUESTIONS.length}
+                </div>
+                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
+                  <div className="h-2 bg-green-600 rounded-full transition-all" style={{ width: `${((quizIdx + 1) / INVESTOR_QUIZ_QUESTIONS.length) * 100}%` }} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">
+                  {INVESTOR_QUIZ_QUESTIONS[quizIdx].question}
+                </h3>
+                <div className="flex flex-col gap-2">
+                  {INVESTOR_QUIZ_QUESTIONS[quizIdx].options.map((opt, oi) => (
+                    <button
+                      key={oi}
+                      type="button"
+                      className={`text-left px-4 py-3 rounded-xl border-2 transition-colors text-gray-900 dark:text-gray-100 ${
+                        quizSelected === oi
+                          ? "border-green-600 bg-green-50 dark:bg-green-900/30 dark:border-green-500"
+                          : "border-gray-200 dark:border-gray-600 hover:border-green-600 dark:hover:border-green-500"
+                      }`}
+                      onClick={() => setQuizSelected(oi)}
+                    >
+                      {opt.text}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary w-full mt-4"
+                  disabled={quizSelected === null}
+                  onClick={() => {
+                    const oi = quizSelected;
+                    if (oi === null) return;
+                    const opt = INVESTOR_QUIZ_QUESTIONS[quizIdx].options[oi];
+                    setQuizScores((prev) => [...prev, opt.score]);
+                    setQuizIdx((i) => i + 1);
+                    setQuizSelected(null);
+                  }}
+                >
+                  Next
+                </button>
+                <button type="button" className="mt-3 w-full text-sm text-gray-500 dark:text-gray-400" onClick={() => setInvestorQuizOpen(false)}>Cancel</button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-green-700 to-green-900 p-5 text-white">
+        <div className="mb-3 flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5 shrink-0">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-60" />
+            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
+        </div>
+        <p className="mb-4 text-sm leading-relaxed text-green-100">
+          Ready to take the next step? Book a free 30-minute financial consultation.
+        </p>
+        <button
+          type="button"
+          onClick={() => {
+            analytics.advisorCtaClicked("advisor_card");
+            window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
           }}
+          className="block w-full rounded-xl bg-white py-3 text-center text-sm font-bold text-green-800 transition-colors hover:bg-green-50"
         >
-          Talk to a Finance Professional
-        </a>
+          Book a Free Consultation
+        </button>
       </div>
 
       {/* ── Earned badges ── */}
       <div style={{ marginBottom: 24 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+          <Trophy size={18} style={{ color: "var(--color-primary)" }} aria-hidden />
           <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>Your Badges</span>
         </div>
         {earnedBadges.length === 0 ? (
@@ -2510,7 +3387,7 @@ function ProfileView({
             {earnedBadges.map((badge) => (
               <button
                 key={badge.id}
-                onClick={() => setSelectedBadge(badge)}
+                onClick={() => setSelectedBadge({ name: badge.name, desc: badge.desc, icon: badge.icon })}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
                   background: "var(--color-surface)", border: "1.5px solid var(--color-border)",
@@ -2567,7 +3444,7 @@ function ProfileView({
       {/* ── Free financial guides ── */}
       <div style={{ marginBottom: 24 }}>
         <a
-          href="https://www.wealthwithkwanele.co.za/resources"
+          href="https://www.wealthwithkwanele.co.za/#resources"
           target="_blank"
           rel="noopener noreferrer"
           className="btn btn-primary"
@@ -2750,7 +3627,7 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                 </div>
               </div>
               <div className="leaderboard-xp" style={{ color: leader.isYou ? "var(--color-primary)" : undefined }}>
-                {leader.xp.toLocaleString()} XP
+                {formatWithSpaces(leader.xp)} XP
               </div>
             </div>
           ))}
@@ -2877,7 +3754,7 @@ function SettingsView({
 
   return (
     <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 24 }}>Settings</h2>
+      <h2 className="text-gray-900 dark:text-gray-100" style={{ fontSize: 32, fontWeight: 800, marginBottom: 24 }}>Settings</h2>
 
       {/* ── Learning ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", marginBottom: 8 }}>Learning</div>
@@ -2941,13 +3818,8 @@ function SettingsView({
 
       {/* ── Support ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Support</div>
-      <a href="mailto:kwanele@wealthwithkwanele.co.za?subject=Fundi%20Finance%20Support" style={{ textDecoration: "none" }}>
-        <Row icon={<Shield size={18} />} label="Email support" sub="kwanele@wealthwithkwanele.co.za">
-          <ArrowLeft size={16} style={{ transform: "rotate(180deg)", color: "var(--color-text-secondary)" }} />
-        </Row>
-      </a>
       <a href="https://wealthwithkwanele.co.za" target="_blank" rel="noopener noreferrer" style={{ textDecoration: "none" }}>
-        <Row icon={<TrendingUp size={18} />} label="Wealth with Kwanele" sub="wealthwithkwanele.co.za">
+        <Row icon={<Shield size={18} />} label="Help and consultations" sub="Book or enquire via the official site">
           <ArrowLeft size={16} style={{ transform: "rotate(180deg)", color: "var(--color-text-secondary)" }} />
         </Row>
       </a>
@@ -2966,13 +3838,6 @@ function SettingsView({
           A Duolingo-style financial literacy app for South Africans.
         </p>
         <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>Version 1.0.0</div>
-        <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-          Built by{" "}
-          <a href="https://wealthwithkwanele.co.za" target="_blank" rel="noopener noreferrer"
-            style={{ color: "var(--color-primary)", fontWeight: 600, textDecoration: "none" }}>
-            Kwanele Ntshangase
-          </a>
-        </div>
       </div>
 
       {/* ── Data management ── */}
@@ -3054,16 +3919,41 @@ function StatsPanel({ userData }: { userData: UserData }) {
     <aside className="stats-panel" id="statsPanel">
       <div className="stats-section">
         <h3>My Stats</h3>
-        <div className="stat-item">
+        <div className="stat-item" style={{ position: "relative" }}>
           <div className="stat-icon">
             <Flame size={28} className="text-current" />
           </div>
-          <div className="stat-content">
+          <div className="stat-content" style={{ flex: 1 }}>
             <div className="stat-label">Day Streak</div>
             <div className="stat-value" id="streakValue">
               {userData.streak}
             </div>
           </div>
+          <button
+            type="button"
+            onClick={async () => {
+              const text = generateShareText("streak", { streakDays: userData.streak });
+              if (typeof navigator !== "undefined" && navigator.share) {
+                try {
+                  await navigator.share({ text });
+                  return;
+                } catch {
+                  /* ignore */
+                }
+              }
+              window.open(
+                `https://wa.me/?text=${encodeURIComponent(text)}`,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            }}
+            className="text-orange-400 hover:text-orange-600"
+            title="Share your streak"
+            aria-label="Share your streak"
+            style={{ background: "none", border: "none", cursor: "pointer", padding: 4, flexShrink: 0 }}
+          >
+            <Share2 size={18} aria-hidden />
+          </button>
         </div>
         <div className="stat-item">
           <div className="stat-icon">
@@ -3360,19 +4250,32 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function routePageLabel(route: Route): string {
+  switch (route.name) {
+    case "learn":
+      return "learn";
+    case "course":
+      return `course:${route.courseId}`;
+    case "lesson":
+      return `lesson:${route.courseId}/${route.lessonId}`;
+    case "profile":
+      return "profile";
+    case "leaderboard":
+      return "leaderboard";
+    case "settings":
+      return "settings";
+    case "calculator":
+      return "calculator";
+    case "onboarding":
+      return "onboarding";
+    default:
+      return "unknown";
+  }
+}
+
 export default function Home() {
-  // Streak freeze, stored in localStorage, managed locally
-  const streakFreezeActive: boolean =
-    typeof window !== "undefined" && localStorage.getItem("fundi-streak-freeze") === "true";
-  const buyStreakFreeze = () => {
-    if (typeof window === "undefined" || streakFreezeActive) return;
-    const currentXP = parseInt(localStorage.getItem("fundi-xp") ?? "0", 10);
-    if (currentXP < 50) return;
-    localStorage.setItem("fundi-xp", String(currentXP - 50));
-    localStorage.setItem("fundi-streak-freeze", "true");
-    window.location.reload();
-  };
   const {
+    progressReady,
     userData,
     dailyXP,
     dailyGoal,
@@ -3396,14 +4299,168 @@ export default function Home() {
     reviewAnswers,
     setReviewAnswers,
     weeklyChallenge,
+    weeklyProgress,
+    setWeeklyProgress,
     challengeProgress,
     challengeComplete,
     challengeRewardClaimed,
+    setChallengeRewardClaimed,
     claimChallengeReward,
+    addXP,
+    setChallengeProgress,
+    setDailyXP,
+    showNoHearts,
+    setShowNoHearts,
+    tryDeductXp,
+    persistWeeklyChallengeCompletion,
   } = useFundiState();
 
-  // Load PostHog analytics on mount
-  useEffect(() => { loadPostHog(); }, []);
+  const streakFreezeActive: boolean =
+    typeof window !== "undefined" && localStorage.getItem("fundi-streak-freeze") === "true";
+  const buyStreakFreeze = () => {
+    if (typeof window === "undefined" || streakFreezeActive) return;
+    if (userData.xp < 50) return;
+    if (!tryDeductXp(50)) return;
+    localStorage.setItem("fundi-streak-freeze", "true");
+    window.location.reload();
+  };
+
+  const [showMilestoneCta, setShowMilestoneCta] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<SavedLessonProgress | null>(null);
+  const lessonStartTimeRef = useRef(0);
+  const lessonHeartLostRef = useRef(false);
+  const lessonStateRef = useRef(currentLessonState);
+  lessonStateRef.current = currentLessonState;
+
+  const beginLessonSession = React.useCallback(
+    (courseId: string, lessonId: string, lessonTitle: string) => {
+      lessonStartTimeRef.current = Date.now();
+      lessonHeartLostRef.current = false;
+      analytics.lessonStarted(courseId, lessonId, lessonTitle);
+    },
+    []
+  );
+
+  const resumeLesson = React.useCallback(
+    (progress: SavedLessonProgress) => {
+      const course = CONTENT_DATA.courses.find((c) => c.id === progress.courseId);
+      if (!course) return;
+      let found: Lesson | undefined;
+      for (const unit of course.units) {
+        const lesson = unit.lessons.find((l) => l.id === progress.lessonId);
+        if (lesson) {
+          found = lesson;
+          break;
+        }
+      }
+      if (!found?.steps?.length) return;
+      if (hearts <= 0) {
+        setShowNoHearts(true);
+        return;
+      }
+      const stepIdx = Math.min(
+        Math.max(0, progress.stepIndex),
+        found.steps.length - 1
+      );
+      lessonStartTimeRef.current = Date.now();
+      lessonHeartLostRef.current = false;
+      setCurrentLessonState({
+        courseId: progress.courseId,
+        lessonId: progress.lessonId,
+        stepIndex: stepIdx,
+        steps: found.steps,
+        answers: {},
+        correctCount: 0,
+      });
+      setRoute({ name: "lesson", courseId: progress.courseId, lessonId: progress.lessonId });
+      setSavedProgress(null);
+      localStorage.removeItem("fundi-lesson-progress");
+    },
+    [hearts, setCurrentLessonState, setRoute, setShowNoHearts]
+  );
+
+  const [weeklyChallengeCelebration, setWeeklyChallengeCelebration] = useState<{
+    bonusXP: number;
+    description: string;
+  } | null>(null);
+  const [courseCompleteModal, setCourseCompleteModal] = useState<
+    (typeof COURSE_BADGES)[string] | null
+  >(null);
+
+  const [courseBadgeIds, setCourseBadgeIds] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try {
+      return JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "fundi-earned-badges" && e.newValue) {
+        try {
+          setCourseBadgeIds(JSON.parse(e.newValue));
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  useEffect(() => {
+    analytics.pageViewed(routePageLabel(route));
+  }, [route]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem("fundi-lesson-progress");
+    if (!raw) return;
+    try {
+      const progress = JSON.parse(raw) as SavedLessonProgress;
+      const age = Date.now() - progress.savedAt;
+      if (age < 24 * 60 * 60 * 1000) {
+        const title = getLessonTitle(progress.courseId, progress.lessonId);
+        setSavedProgress({ ...progress, lessonTitle: title ?? progress.lessonTitle });
+      } else {
+        localStorage.removeItem("fundi-lesson-progress");
+      }
+    } catch {
+      localStorage.removeItem("fundi-lesson-progress");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (
+      route.name !== "lesson" ||
+      !currentLessonState.courseId ||
+      !currentLessonState.lessonId
+    ) {
+      return;
+    }
+    const title = getLessonTitle(
+      currentLessonState.courseId,
+      currentLessonState.lessonId
+    );
+    localStorage.setItem(
+      "fundi-lesson-progress",
+      JSON.stringify({
+        courseId: currentLessonState.courseId,
+        lessonId: currentLessonState.lessonId,
+        lessonTitle: title,
+        stepIndex: currentLessonState.stepIndex,
+        savedAt: Date.now(),
+      })
+    );
+  }, [
+    route.name,
+    currentLessonState.courseId,
+    currentLessonState.lessonId,
+    currentLessonState.stepIndex,
+  ]);
 
   // Weekly leaderboard XP reset, resets every Sunday at midnight
   useEffect(() => {
@@ -3492,22 +4549,26 @@ export default function Home() {
   const getNextLesson = (courseId: string, lessonId: string): Lesson | null => {
     const course = CONTENT_DATA.courses.find((c) => c.id === courseId);
     if (!course) return null;
-    // Flatten all lessons across all units
-    const allLessons: Lesson[] = course.units.flatMap((u) => u.lessons);
+    const allLessons: Lesson[] = course.units.flatMap((u) =>
+      u.lessons.filter((l) => !l.comingSoon)
+    );
     const currentIndex = allLessons.findIndex((l) => l.id === lessonId);
     if (currentIndex === -1) return null;
-    // Find the next lesson that has steps (not coming soon)
     for (let i = currentIndex + 1; i < allLessons.length; i++) {
       const candidate = allLessons[i];
       if (candidate.steps && candidate.steps.length > 0) return candidate;
     }
-    return null; // end of course
+    return null;
   };
 
   // ── Start a specific lesson (used for auto-advance) ──────────────────────
   const startLesson = (courseId: string, lesson: Lesson) => {
     if (!lesson.steps || lesson.steps.length === 0) return;
-    console.log("[Fundi] Auto-advancing to:", courseId + ":" + lesson.id);
+    if (hearts <= 0) {
+      setShowNoHearts(true);
+      return;
+    }
+    beginLessonSession(courseId, lesson.id, lesson.title);
     setCurrentLessonState({
       courseId,
       lessonId: lesson.id,
@@ -3519,130 +4580,287 @@ export default function Home() {
     setRoute({ name: "lesson", courseId, lessonId: lesson.id });
   };
 
+  const bumpWeeklyChallengeProgress = (
+    wc: { id: string; unit: string; target: number; xp: number; text: string },
+    payload: { xpEarned: number; isPerfect: boolean }
+  ) => {
+    if (typeof window === "undefined") return;
+    const key = `fundi-wc-${wc.id}`;
+    const raw = localStorage.getItem(key);
+    type WCState = {
+      lessonsCompleted: number;
+      xpEarned: number;
+      perfectLessons: number;
+      dailyXp: number;
+      completed: boolean;
+    };
+    let state: WCState = {
+      lessonsCompleted: 0,
+      xpEarned: 0,
+      perfectLessons: 0,
+      dailyXp: 0,
+      completed: false,
+    };
+    if (raw) {
+      try {
+        const n = parseInt(raw, 10);
+        if (!Number.isNaN(n) && String(n).trim() === raw.trim()) {
+          state.lessonsCompleted = n;
+        } else {
+          state = { ...state, ...JSON.parse(raw) };
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+    const today = new Date().toDateString();
+    const dailyKey = `fundi-daily-xp-${today}`;
+    const dailyXpSoFar =
+      parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
+    localStorage.setItem(dailyKey, String(dailyXpSoFar));
+
+    state.lessonsCompleted += 1;
+    state.xpEarned += payload.xpEarned;
+    state.perfectLessons += payload.isPerfect ? 1 : 0;
+    state.dailyXp = dailyXpSoFar;
+
+    let progressVal = 0;
+    if (wc.unit === "lessons") progressVal = state.lessonsCompleted;
+    else if (wc.unit === "perfect") progressVal = state.perfectLessons;
+    else if (wc.unit === "daily_xp") progressVal = state.dailyXp;
+    else if (wc.unit === "streak_days") progressVal = userData.streak;
+
+    const meets =
+      wc.unit === "lessons"
+        ? state.lessonsCompleted >= wc.target
+        : wc.unit === "perfect"
+          ? state.perfectLessons >= wc.target
+          : wc.unit === "daily_xp"
+            ? state.dailyXp >= wc.target
+            : userData.streak >= wc.target;
+
+    if (meets && !state.completed) {
+      analytics.challengeCompleted(wc.text, wc.xp);
+      state.completed = true;
+      localStorage.setItem(key, JSON.stringify(state));
+      setChallengeProgress(wc.target);
+      void persistWeeklyChallengeCompletion(wc.id, wc.xp);
+      const claimed = localStorage.getItem(`fundi-wc-claimed-${wc.id}`) === "true";
+      if (!claimed) {
+        localStorage.setItem(`fundi-wc-claimed-${wc.id}`, "true");
+        setChallengeRewardClaimed(true);
+        setWeeklyChallengeCelebration({ bonusXP: wc.xp, description: wc.text });
+        addXP(wc.xp);
+        setDailyXP((v) => v + wc.xp);
+      }
+    } else {
+      localStorage.setItem(key, JSON.stringify(state));
+      setChallengeProgress(Math.min(progressVal, wc.target));
+    }
+    setWeeklyProgress({
+      lessonsCompleted: state.lessonsCompleted,
+      xpEarned: state.xpEarned,
+      perfectLessons: state.perfectLessons,
+      dailyXp: state.dailyXp,
+      completed: state.completed,
+    });
+  };
+
+  const checkCourseBadgeEarned = (courseId: string, lessonId: string) => {
+    const course = CONTENT_DATA.courses.find((x) => x.id === courseId);
+    if (!course) return;
+    const lessonIds = course.units.flatMap((u) =>
+      u.lessons.filter((l) => !l.comingSoon).map((l) => l.id)
+    );
+    const allDone = lessonIds.every((lid) =>
+      lid === lessonId ? true : isLessonCompleted(courseId, lid)
+    );
+    if (!allDone) return;
+    const badge = COURSE_BADGES[courseId];
+    if (!badge) return;
+    const earned = JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]") as string[];
+    if (earned.includes(badge.id)) return;
+    analytics.courseCompleted(courseId, course.title, badge.name);
+    analytics.badgeEarned(badge.id, badge.name);
+    const next = [...earned, badge.id];
+    localStorage.setItem("fundi-earned-badges", JSON.stringify(next));
+    setCourseBadgeIds(next);
+    setCourseCompleteModal(badge);
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      void supabase.from("user_progress").upsert(
+        { user_id: user.id, badges: next as unknown as string[] },
+        { onConflict: "user_id" }
+      );
+    });
+  };
+
+  const finalizeCurrentLesson = (choice: "next" | "course") => {
+    const baseXP = 50;
+    const totalXP = baseXP + currentLessonState.correctCount * 10;
+    if (!currentLessonState.courseId || !currentLessonState.lessonId) return;
+
+    const totalQuestions = currentLessonState.steps.filter(
+      (s) =>
+        s.type === "mcq" ||
+        s.type === "true-false" ||
+        s.type === "scenario" ||
+        s.type === "fill-blank"
+    ).length;
+    const isPerfect =
+      totalQuestions > 0 && currentLessonState.correctCount === totalQuestions;
+
+    const lessonTitleDone =
+      getLessonTitle(currentLessonState.courseId, currentLessonState.lessonId) ?? "";
+    analytics.lessonCompleted(
+      currentLessonState.courseId,
+      currentLessonState.lessonId,
+      lessonTitleDone,
+      {
+        xpEarned: totalXP,
+        isPerfect,
+        timeSeconds: Math.round((Date.now() - lessonStartTimeRef.current) / 1000),
+        heartLost: lessonHeartLostRef.current,
+      }
+    );
+
+    const streakAfterLesson = completeLesson(
+      currentLessonState.courseId,
+      currentLessonState.lessonId,
+      totalXP
+    );
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("fundi-lesson-progress");
+    }
+    setSavedProgress(null);
+    if (isPerfect) {
+      const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
+      localStorage.setItem("fundi-perfect-lessons", String(prev + 1));
+      if (hearts < maxHearts) gainHeart();
+    }
+    bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
+
+    playSound("complete");
+
+    const reviewList: {
+      question: string;
+      yourAnswer: string;
+      correct: string;
+      wasCorrect: boolean;
+    }[] = [];
+    currentLessonState.steps.forEach((s: any, i: number) => {
+      const ans = currentLessonState.answers[i];
+      if (ans === undefined) return;
+      if (s.type === "mcq" || s.type === "scenario") {
+        const wasCorrect = ans === s.correct;
+        if (!wasCorrect) {
+          reviewList.push({
+            question: s.question,
+            yourAnswer: s.options?.[ans as number] ?? String(ans),
+            correct: s.options?.[s.correct] ?? String(s.correct),
+            wasCorrect,
+          });
+        }
+      } else if (s.type === "true-false") {
+        const wasCorrect = ans === s.correct;
+        if (!wasCorrect) {
+          reviewList.push({
+            question: s.statement,
+            yourAnswer: ans ? "True" : "False",
+            correct: s.correct ? "True" : "False",
+            wasCorrect,
+          });
+        }
+      }
+    });
+    if (reviewList.length > 0) {
+      setReviewAnswers(reviewList);
+    }
+
+    const tc = userData.totalCompleted + 1;
+    if (typeof window !== "undefined") {
+      const alreadyShown = localStorage.getItem("fundi-cta-milestone-shown");
+      if (tc >= 5 && !alreadyShown) {
+        localStorage.setItem("fundi-cta-milestone-shown", "1");
+        setTimeout(() => setShowMilestoneCta(true), 1500);
+        analytics.advisorCtaShown("lesson_milestone_5");
+      }
+    }
+    const str = streakAfterLesson ?? userData.streak;
+    const xpv = userData.xp + totalXP;
+    const perf = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
+    const THRESHOLDS = [
+      { id: "lesson-1-badge", test: tc >= 1, name: "First Step" },
+      { id: "lesson-5-badge", test: tc >= 5, name: "Getting Going" },
+      { id: "lesson-10-badge", test: tc >= 10, name: "On a Roll" },
+      { id: "lesson-25-badge", test: tc >= 25, name: "Dedicated" },
+      { id: "streak-3-badge", test: str >= 3, name: "3 Day Streak" },
+      { id: "streak-7-badge", test: str >= 7, name: "Week Warrior" },
+      { id: "xp-100-badge", test: xpv >= 100, name: "First 100" },
+      { id: "xp-500-badge", test: xpv >= 500, name: "XP Builder" },
+      { id: "perfect-1-badge", test: perf >= 1, name: "Flawless" },
+    ];
+    const earned = JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]") as string[];
+    const justEarned = THRESHOLDS.filter((b) => b.test && !earned.includes(b.id)).map((b) => b.id);
+    const nextLesson = getNextLesson(
+      currentLessonState.courseId,
+      currentLessonState.lessonId
+    );
+
+    checkCourseBadgeEarned(
+      currentLessonState.courseId,
+      currentLessonState.lessonId
+    );
+
+    if (justEarned.length > 0) {
+      const merged = [...earned, ...justEarned];
+      localStorage.setItem("fundi-earned-badges", JSON.stringify(merged));
+      setCourseBadgeIds(merged);
+      setNewlyEarnedBadges(justEarned);
+      nextLessonRef.current = nextLesson;
+      return;
+    }
+    if (choice === "next" && nextLesson) {
+      startLesson(currentLessonState.courseId, nextLesson);
+    } else {
+      setRoute({ name: "course", courseId: currentLessonState.courseId });
+    }
+  };
+
   const nextStep = () => {
     if (currentLessonState.stepIndex < currentLessonState.steps.length - 1) {
       setCurrentLessonState((prev) => ({
         ...prev,
         stepIndex: prev.stepIndex + 1,
       }));
-    } else {
-      const baseXP = 50;
-      const totalXP =
-        baseXP + currentLessonState.correctCount * 10;
-      if (
-        currentLessonState.courseId &&
-        currentLessonState.lessonId
-      ) {
-        console.log("[Fundi] Lesson complete:", currentLessonState.courseId + ":" + currentLessonState.lessonId, "+" + totalXP + "XP");
-        track("lesson_completed", {
-          course_id: currentLessonState.courseId,
-          lesson_id: currentLessonState.lessonId,
-          xp_earned: totalXP,
-          correct_count: currentLessonState.correctCount,
-        });
-        completeLesson(
-          currentLessonState.courseId,
-          currentLessonState.lessonId,
-          totalXP
-        );
-      }
-      playSound("complete");
-      // Track perfect lessons for badge system
-      const totalQuestions = currentLessonState.steps.filter(
-        (s) => s.type === "mcq" || s.type === "true-false" || s.type === "scenario"
-      ).length;
-      if (totalQuestions > 0 && currentLessonState.correctCount === totalQuestions) {
-        const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
-        localStorage.setItem("fundi-perfect-lessons", String(prev + 1));
-      }
-      // Build wrong-answer review list
-      const reviewList: { question: string; yourAnswer: string; correct: string; wasCorrect: boolean; }[] = [];
-      currentLessonState.steps.forEach((s: any, i: number) => {
-        const ans = currentLessonState.answers[i];
-        if (ans === undefined) return;
-        if (s.type === "mcq" || s.type === "scenario") {
-          const wasCorrect = ans === s.correct;
-          if (!wasCorrect) {
-            reviewList.push({
-              question: s.question,
-              yourAnswer: s.options?.[ans as number] ?? String(ans),
-              correct: s.options?.[s.correct] ?? String(s.correct),
-              wasCorrect,
-            });
-          }
-        } else if (s.type === "true-false") {
-          const wasCorrect = ans === s.correct;
-          if (!wasCorrect) {
-            reviewList.push({
-              question: s.statement,
-              yourAnswer: String(ans),
-              correct: String(s.correct),
-              wasCorrect,
-            });
-          }
-        }
-      });
-      if (reviewList.length > 0) {
-        setReviewAnswers(reviewList);
-        // Still compute badges and next lesson, they'll show after review
-      }
-
-      // Compute newly earned badges for celebration modal
-      const tc = userData.totalCompleted + 1; // +1 because completeLesson just ran
-      const str = userData.streak;
-      const xpv = userData.xp + totalXP;
-      const perf = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
-      const THRESHOLDS = [
-        { id: "lesson-1-badge", test: tc >= 1, name: "First Step" },
-        { id: "lesson-5-badge", test: tc >= 5, name: "Getting Going" },
-        { id: "lesson-10-badge", test: tc >= 10, name: "On a Roll" },
-        { id: "lesson-25-badge", test: tc >= 25, name: "Dedicated" },
-        { id: "streak-3-badge", test: str >= 3, name: "3 Day Streak" },
-        { id: "streak-7-badge", test: str >= 7, name: "Week Warrior" },
-        { id: "xp-100-badge", test: xpv >= 100, name: "First 100" },
-        { id: "xp-500-badge", test: xpv >= 500, name: "XP Builder" },
-        { id: "perfect-1-badge", test: perf >= 1, name: "Flawless" },
-      ];
-      const earned = JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]") as string[];
-      const justEarned = THRESHOLDS.filter(b => b.test && !earned.includes(b.id)).map(b => b.id);
-      // Determine next lesson for auto-advance
-      const nextLesson = getNextLesson(
-        currentLessonState.courseId!,
-        currentLessonState.lessonId!
-      );
-
-      if (justEarned.length > 0) {
-        localStorage.setItem("fundi-earned-badges", JSON.stringify([...earned, ...justEarned]));
-        setNewlyEarnedBadges(justEarned);
-        // nextLesson stored in ref so badge dismiss can use it
-        nextLessonRef.current = nextLesson;
-      } else if (nextLesson) {
-        // Auto-advance directly
-        startLesson(currentLessonState.courseId!, nextLesson);
-      } else {
-        setRoute({ name: "course", courseId: currentLessonState.courseId! });
-      }
     }
   };
 
-  // Wire fill-blank submissions
   React.useEffect(() => {
     (window as any).__fillBlankSubmit = (val: string, correct: boolean) => {
-      setCurrentLessonState(prev => ({
+      setCurrentLessonState((prev) => ({
         ...prev,
         answers: { ...prev.answers, [prev.stepIndex]: val },
         correctCount: correct ? prev.correctCount + 1 : prev.correctCount,
       }));
       playSound(correct ? "correct" : "incorrect");
-      track(correct ? "answer_correct" : "answer_incorrect", {
-        course_id: currentLessonState.courseId,
-        lesson_id: currentLessonState.lessonId,
-        step_index: currentLessonState.stepIndex,
-        type: "fill-blank",
-      });
-      if (!correct) loseHeart();
+      if (!correct) {
+        const ls = lessonStateRef.current;
+        lessonHeartLostRef.current = true;
+        const st = ls.steps[ls.stepIndex];
+        if (ls.courseId && ls.lessonId) {
+          analytics.wrongAnswer(
+            ls.courseId,
+            ls.lessonId,
+            ls.stepIndex,
+            st?.type ?? "fill-blank"
+          );
+        }
+        loseHeart();
+      }
     };
-  }, [currentLessonState]);
+  }, [loseHeart]);
 
   const answerQuestion = (index: number) => {
     const step = currentLessonState.steps[currentLessonState.stepIndex];
@@ -3654,12 +4872,18 @@ export default function Home() {
       correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
     playSound(isCorrect ? "correct" : "incorrect");
-    track(isCorrect ? "answer_correct" : "answer_incorrect", {
-      course_id: currentLessonState.courseId,
-      lesson_id: currentLessonState.lessonId,
-      step_index: currentLessonState.stepIndex,
-    });
-    if (!isCorrect) loseHeart();
+    if (!isCorrect) {
+      lessonHeartLostRef.current = true;
+      if (currentLessonState.courseId && currentLessonState.lessonId) {
+        analytics.wrongAnswer(
+          currentLessonState.courseId,
+          currentLessonState.lessonId,
+          currentLessonState.stepIndex,
+          step.type
+        );
+      }
+      loseHeart();
+    }
   };
 
   const answerTrueFalse = (value: boolean) => {
@@ -3672,13 +4896,48 @@ export default function Home() {
       correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
     playSound(isCorrect ? "correct" : "incorrect");
-    if (!isCorrect) loseHeart();
+    if (!isCorrect) {
+      lessonHeartLostRef.current = true;
+      if (currentLessonState.courseId && currentLessonState.lessonId) {
+        analytics.wrongAnswer(
+          currentLessonState.courseId,
+          currentLessonState.lessonId,
+          currentLessonState.stepIndex,
+          "true-false"
+        );
+      }
+      loseHeart();
+    }
   };
 
   const handleResetProgress = () => {
     if (typeof window !== "undefined" && window.confirm("Reset all progress?")) {
       void resetProgressState();
       window.location.reload();
+    }
+  };
+
+  const handleLessonExit = () => {
+    if (
+      currentLessonState.courseId &&
+      currentLessonState.lessonId &&
+      currentLessonState.steps.length > 0
+    ) {
+      analytics.lessonAbandoned(
+        currentLessonState.courseId,
+        currentLessonState.lessonId,
+        currentLessonState.stepIndex,
+        currentLessonState.steps.length
+      );
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("fundi-lesson-progress");
+    }
+    setSavedProgress(null);
+    if (currentLessonState.courseId) {
+      setRoute({ name: "course", courseId: currentLessonState.courseId });
+    } else {
+      setRoute({ name: "learn" });
     }
   };
 
@@ -3691,9 +4950,19 @@ export default function Home() {
   };
 
   // Handle onboarding complete
-  const handleOnboardingComplete = (goal: string) => {
+  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string }) => {
     localStorage.setItem("fundi-onboarded", "true");
-    if (goal) localStorage.setItem("fundi-user-goal", goal);
+    if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
+    if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const row: { user_id: string; goal?: string; age_range?: string } = { user_id: user.id };
+      if (payload.goal) row.goal = payload.goal;
+      if (payload.ageRange) row.age_range = payload.ageRange;
+      if (row.goal ?? row.age_range) {
+        await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
+      }
+    }
     setRoute({ name: "learn" } as Route);
   };
 
@@ -3714,8 +4983,9 @@ export default function Home() {
         />
       </div>
       <div className="app-container">
-        <nav className="sidebar hidden md:block">
-          <div className="logo">
+        <nav className="sidebar hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-64 md:flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r-2 border-gray-200 dark:border-gray-700 shadow-lg">
+          <div className="h-1 w-full bg-gradient-to-r from-green-600 to-yellow-400 flex-shrink-0" aria-hidden />
+          <div className="logo" style={{ paddingTop: 16 }}>
             <h1 className="inline-flex items-center gap-2">
               <Wallet size={22} className="text-[var(--primary-green)]" />
               Fundi Finance
@@ -3779,17 +5049,22 @@ export default function Home() {
         </nav>
 
         {/* keep content above bottom nav on mobile */}
-        <div className="pb-24">
+        <div className="pb-24 md:pb-8">
         {/* TopBar moved outside scroll area, see below */}
         {route.name === "learn" && (
           <LearnView
             courses={CONTENT_DATA.courses}
             isLessonCompleted={isLessonCompleted}
             goToCourse={(courseId) => {
-              track("course_opened", { course_id: courseId });
+              const c = CONTENT_DATA.courses.find((x) => x.id === courseId);
+              analytics.courseOpened(courseId, c?.title ?? courseId);
               setRoute({ name: "course", courseId });
             }}
+            contentLoaded={progressReady}
+            savedProgress={savedProgress}
+            onResumeLesson={resumeLesson}
             weeklyChallenge={weeklyChallenge}
+            weeklyProgress={weeklyProgress}
             challengeProgress={challengeProgress}
             challengeComplete={challengeComplete}
             challengeRewardClaimed={challengeRewardClaimed}
@@ -3823,8 +5098,11 @@ export default function Home() {
               }
               // Only block if there are genuinely no steps (content not written yet)
               if (!found || !found.steps || found.steps.length === 0) return;
-              console.log("[Fundi] Lesson loaded:", courseId + ":" + lessonId, "(" + found.steps.length + " steps)");
-              track("lesson_started", { course_id: courseId, lesson_id: lessonId, step_count: found.steps.length });
+              if (hearts <= 0) {
+                setShowNoHearts(true);
+                return;
+              }
+              beginLessonSession(courseId, lessonId, found.title);
               setCurrentLessonState({
                 courseId,
                 lessonId,
@@ -3847,17 +5125,13 @@ export default function Home() {
             }}
             completeLessonFlow={() => undefined}
             nextStep={nextStep}
+            finalizeLesson={finalizeCurrentLesson}
             answerQuestion={answerQuestion}
             answerTrueFalse={answerTrueFalse}
             correctCount={currentLessonState.correctCount}
             hearts={hearts}
             maxHearts={maxHearts}
-            heartsRegenInfo={heartsRegenInfo}
-            goBack={() =>
-              currentLessonState.courseId
-                ? setRoute({ name: "course", courseId: currentLessonState.courseId })
-                : setRoute({ name: "learn" })
-            }
+            goBack={handleLessonExit}
             courseId={currentLessonState.courseId ?? undefined}
             courseAccent={(() => {
               const ACCENTS: Record<string, string> = {
@@ -3886,11 +5160,19 @@ export default function Home() {
               const next = getNextLesson(currentLessonState.courseId, currentLessonState.lessonId);
               return next?.title ?? undefined;
             })()}
+            lessonTitle={getLessonTitle(currentLessonState.courseId, currentLessonState.lessonId)}
           />
         )}
 
         {route.name === "profile" && (
-          <ProfileView userData={userData} onSignOut={handleProfileSignOut} currentUser={null} />
+          <ProfileView
+            userData={userData}
+            onSignOut={handleProfileSignOut}
+            currentUser={null}
+            dailyGoal={dailyGoal}
+            setDailyGoal={setDailyGoal}
+            courseBadgeIds={courseBadgeIds}
+          />
         )}
 
         {route.name === "leaderboard" && (
@@ -3906,6 +5188,93 @@ export default function Home() {
         )}
 
         {route.name === "calculator" && <CalculatorView />}
+
+        {showNoHearts && (
+          <div className="fixed inset-0 z-[550] flex items-center justify-center bg-black/80 p-4">
+            <div className="w-full max-w-sm rounded-2xl bg-white p-8 text-center dark:bg-gray-800">
+              <div className="mb-3 flex justify-center text-red-500 dark:text-red-400" aria-hidden>
+                <HeartOff size={48} strokeWidth={1.5} />
+              </div>
+              <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-white">Out of Hearts</h2>
+              <p className="mb-2 text-sm text-gray-500 dark:text-gray-400">
+                You&apos;ll get a heart back in 1 hour, or finish a lesson perfectly to earn one back.
+              </p>
+              <div className="my-4 flex justify-center gap-0.5" aria-label="Hearts remaining">
+                {Array.from({ length: maxHearts }).map((_, i) => (
+                  <svg
+                    key={i}
+                    viewBox="0 0 24 24"
+                    fill={i < hearts ? "#E03C31" : "none"}
+                    stroke={i < hearts ? "#E03C31" : "#ccc"}
+                    strokeWidth="2"
+                    width="26"
+                    height="26"
+                    className="opacity-100"
+                    aria-hidden
+                  >
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="w-full rounded-xl bg-gray-100 py-3 font-semibold text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                onClick={() => {
+                  const cid = currentLessonState.courseId;
+                  setShowNoHearts(false);
+                  setCurrentLessonState({
+                    courseId: null,
+                    lessonId: null,
+                    stepIndex: 0,
+                    steps: [],
+                    answers: {},
+                    correctCount: 0,
+                  });
+                  setRoute(cid ? { name: "course", courseId: cid } : { name: "learn" });
+                }}
+              >
+                Come Back Later
+              </button>
+            </div>
+          </div>
+        )}
+
+        {showMilestoneCta && (
+          <div className="fixed inset-0 bg-black/80 z-[520] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-sm w-full text-center">
+              <div className="mb-3 flex justify-center text-green-600 dark:text-green-400" aria-hidden>
+                <Target size={48} strokeWidth={1.5} />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-widest text-green-600 mb-2">
+                You&apos;re making real progress
+              </p>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                5 Lessons Completed
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-5 leading-relaxed">
+                You now know more about your money than most South Africans. Ready to turn
+                this knowledge into a real financial plan?
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  analytics.advisorCtaClicked("lesson_milestone_5");
+                  window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
+                }}
+                className="block w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold mb-3 transition-colors"
+              >
+                Book a Free Consultation
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowMilestoneCta(false)}
+                className="text-gray-400 dark:text-gray-500 text-sm hover:text-gray-600"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Wrong answer review modal */}
         {reviewAnswers && (
@@ -3940,6 +5309,75 @@ export default function Home() {
                 onClick={() => setReviewAnswers(null)}>
                 Got it, Continue
               </button>
+            </div>
+          </div>
+        )}
+
+        {weeklyChallengeCelebration && (
+          <div className="fixed inset-0 bg-black/80 z-[500] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center max-w-sm w-full shadow-xl">
+              <div className="mb-4 flex justify-center text-[#FFB612]" aria-hidden>
+                <Trophy size={56} strokeWidth={1.5} />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                Weekly Challenge Complete!
+              </h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-4 text-sm">
+                {weeklyChallengeCelebration.description}
+              </p>
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-xl p-4 mb-6">
+                <p className="flex items-center justify-center gap-2 text-yellow-800 dark:text-yellow-400 font-bold text-lg">
+                  <Sparkles size={20} className="shrink-0" aria-hidden />
+                  +{weeklyChallengeCelebration.bonusXP} Bonus XP earned
+                </p>
+              </div>
+              <button
+                type="button"
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold"
+                onClick={() => {
+                  localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.id}`, "true");
+                  setWeeklyChallengeCelebration(null);
+                }}
+              >
+                Claim Reward
+              </button>
+            </div>
+          </div>
+        )}
+
+        {courseCompleteModal && (
+          <div className="fixed inset-0 bg-black/80 z-[500] flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center max-w-sm w-full animate-pulse shadow-xl">
+              <div className="mb-4 flex justify-center" aria-hidden>
+                <Trophy size={64} strokeWidth={1.5} style={{ color: courseCompleteModal.color }} />
+              </div>
+              <div className="text-xs font-bold text-green-600 uppercase tracking-widest mb-2">
+                Course Complete!
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">You earned the</h2>
+              <h3 className="text-3xl font-black mb-4" style={{ color: courseCompleteModal.color }}>
+                &quot;{courseCompleteModal.name}&quot;
+              </h3>
+              <p className="text-gray-600 dark:text-gray-300 text-sm mb-6">
+                {courseCompleteModal.description}
+              </p>
+              <button
+                type="button"
+                className="flex w-full items-center justify-center gap-2 bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700"
+                onClick={() => setCourseCompleteModal(null)}
+              >
+                <Sparkles size={20} aria-hidden />
+                Awesome
+              </button>
+              <div className="mt-3">
+                <ShareButton
+                  text={generateShareText("badge", {
+                    badgeName: courseCompleteModal.name,
+                  })}
+                  label="Share this badge"
+                  shareType="badge"
+                />
+              </div>
             </div>
           </div>
         )}

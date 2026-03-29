@@ -1,3 +1,6 @@
+// Extra lessons & daily facts live in `content-extra.ts` and are merged via `mergeContentExtras.ts`.
+import { mergeContentExtras } from "./mergeContentExtras";
+
 export type LessonStep =
   | {
       type: "info";
@@ -26,6 +29,12 @@ export type LessonStep =
       correct: number;
       explanation?: string;
       feedback?: { correct: string; incorrect: string };
+    }
+  | {
+      type: "action";
+      title: string;
+      instruction: string;
+      tip?: string;
     };
 
 export type Lesson = {
@@ -50,8 +59,7 @@ export type Course = {
   units: Unit[];
 };
 
-export const CONTENT_DATA: { courses: Course[] } = {
-  courses: [
+const RAW_COURSES: Course[] = [
     // ─────────────────────────────────────────────────────────────────────────
     // MONEY BASICS
     // ─────────────────────────────────────────────────────────────────────────
@@ -73,7 +81,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "Money is More Than Cash",
-                  content: "<p>Money is anything that people agree has value and can be exchanged for goods and services. In South Africa, we use the <strong>Rand (R)</strong> as our currency.</p><p>But money is more than just the notes and coins in your pocket. It includes:</p><ul><li>Cash in your wallet</li><li>Money in your bank account</li><li>Digital payments (like SnapScan or Zapper)</li><li>Even investments like stocks</li></ul>",
+                  content: "<p>Most people spend 40+ years working and retire with almost nothing. Not because they earned too little — because they never understood the system their money lives in.</p><p>Money has three jobs: <strong>Spend</strong> (survive today), <strong>Save</strong> (protect yourself), <strong>Invest</strong> (build your future). Most South Africans only do the first one — and that's why 77% can't replace a single month's income from savings.</p>",
                 },
                 {
                   type: "info",
@@ -124,7 +132,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "The Most Important Distinction",
-                  content: "<p>Understanding needs vs wants is the foundation of smart money management.</p><p><strong>Needs:</strong> Food, shelter, transport to work, healthcare, basic clothing.</p><p><strong>Wants:</strong> Eating out, latest smartphone, DSTV Premium, designer clothes, a third pair of sneakers.</p>",
+                  content: "<p>If you treat wants like needs, you will feel broke no matter how much you earn. This is not about income — it's about priority.</p><p><strong>Needs</strong> are non-negotiable survival: food, shelter, transport to earn income. <strong>Wants</strong> are everything else. The line between them is where most South African household budgets collapse.</p>",
                 },
                 {
                   type: "mcq",
@@ -169,7 +177,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "Why a Budget Changes Everything",
-                  content: "<p>A budget isn't a restriction, it's a plan. Without one, money just disappears. With one, every rand has a job.</p><p>Step 1: Write down your monthly net income.<br/>Step 2: List every fixed expense (rent, insurance, debt payments).<br/>Step 3: List variable expenses (groceries, petrol, airtime).<br/>Step 4: Whatever's left = your discretionary money.</p>",
+                  content: "<p>Without a budget, money disappears and you never know where it went. With one, every rand has a job — and you stop wondering why you're always short before month-end.</p><p>A budget is not restriction. It's control. Step 1: write your monthly net income. Step 2: list all fixed expenses. Step 3: list variable expenses. Step 4: whatever's left is discretionary — spend it guilt-free because everything important is already covered.</p>",
                 },
                 {
                   type: "mcq",
@@ -195,7 +203,61 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-4",
               title: "Tracking Your Spending",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Every Rand Tells a Story",
+                  content:
+                    "<p>Lerato in Tembisa thought she spent about R3 500 a month on food. When she tracked every card swipe and cash slip for 30 days, the real number was close to R5 800. The gap was not one big purchase but dozens of small ones: R120 here at a taxi rank, R80 at a spaza, R250 takeaways after late shifts.</p><p>Tracking is not about shame. It is about seeing where money really goes so you can redirect even R500 a month to debt or savings. Use your banking app categories, a simple notebook, or a free spreadsheet. In South Africa where prices move fast, a weekly five-minute check beats a perfect budget you never look at.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Why is tracking spending for a few weeks often more useful than guessing from memory?",
+                  options: [
+                    "Banks always report spending wrong",
+                    "People usually underestimate small, frequent purchases that add up",
+                    "SARS requires proof of every expense",
+                    "Memory is more accurate than bank statements",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Small purchases repeat often. Tracking reveals the true total.",
+                    incorrect: "Memory misses repeating small amounts. Statements and notes show the real pattern.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "If you use one main bank card for daily spending, your app transaction list can be a starting point for tracking.",
+                  correct: true,
+                  feedback: {
+                    correct: "Yes. Export or review categories, then add cash spend you remember.",
+                    incorrect: "Card history is a solid base. Add cash and side accounts for a full picture.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You earn R18 000 take-home. Essentials (rent, lights, transport to work) are R12 500. You want to save R1 500. What should you track most closely?",
+                  options: [
+                    "Only rent",
+                    "The R5 500 left after essentials, especially food and discretionary spend",
+                    "Your boss's salary policy",
+                    "Only long-weekend trips",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "The flexible slice after essentials is where small choices decide if saving happens.",
+                    incorrect: "Focus on variable spend after fixed bills. That is where tracking changes outcomes.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Log this week's spending",
+                  instruction:
+                    "Pick one method you will use for seven days: banking app export, notes on your phone, or a paper list. Tonight, write down every rand you spend once, including airtime and taxi cash.",
+                  tip: "Set a daily alarm for 20:00 so you do not forget small buys.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -227,7 +289,56 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-6",
               title: "Avoiding Impulse Buys",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "When the Want Hits Now",
+                  content:
+                    "<p>Sipho walked into a mall for socks and left with bluetooth earphones on a three-month store plan. The extra cost was about R1 800 over the ticket price once fees and interest were included. Impulse buys are designed to feel urgent: limited stock, sale ends today, one-click checkout.</p><p>In South Africa, high fuel prices and long commutes already squeeze households, so unplanned extras hurt more. A simple pause rule (wait 24 hours for anything over R200 that was not on your list) cuts many mistakes. If you still want it after a night's sleep and you can pay cash or debit without touching your emergency fund, it may be a fair choice.</p>",
+                },
+                {
+                  type: "true-false",
+                  statement: "A 'cooling-off' delay before non-essential purchases usually leads to fewer regrets.",
+                  correct: true,
+                  feedback: {
+                    correct: "Time weakens impulse. Many wants fade after a day.",
+                    incorrect: "Delays help you decide with a clear head instead of in the moment.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Which habit best reduces impulse spending online?",
+                  options: [
+                    "Saving card details on every shopping site",
+                    "Removing saved cards and using a shopping list before you open apps",
+                    "Checking sales every lunch break",
+                    "Deleting your budget",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Friction and a list turn mindless scrolling into a conscious choice.",
+                    incorrect: "Less one-tap buying and a written list protect you from quick mistakes.",
+                  },
+                },
+                {
+                  type: "fill-blank",
+                  title: "Quick math check",
+                  prompt: "You planned R600 for clothes but spent R900. The unplanned extra is R___ .",
+                  correct: 300,
+                  explanation: "R900 minus R600 leaves R300 that was not planned.",
+                  feedback: {
+                    correct: "Right. Naming the overrun helps you adjust next month.",
+                    incorrect: "Subtract planned from actual: R900 − R600 = R300 extra.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Try the 24-hour rule once",
+                  instruction:
+                    "The next time you want a non-essential item over R250 that was not on your list, write it on paper with the price and wait until tomorrow before you buy. If you still need it, choose debit you can afford.",
+                  tip: "Keep the note in your pocket so the urge does not vanish from memory without a decision.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -476,7 +587,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "Your Financial Report Card",
-                  content: "<p>Your credit score is a number (300–850 in SA) that tells lenders how likely you are to repay debt. The higher the number, the better.</p><p>It's calculated by credit bureaus like TransUnion, Experian, and Compuscan based on:</p><ul><li>Payment history (most important!)</li><li>How much of your credit limit you're using</li><li>Length of credit history</li><li>Types of credit</li><li>New credit applications</li></ul>",
+                  content: "<p>A bad credit score costs you money every single month — through higher interest rates on every loan you ever take. A good score is worth tens of thousands of rands in interest savings over a lifetime.</p><p>Your credit score (300–850 in SA) tells lenders how likely you are to repay. It's calculated by TransUnion, Experian, and Compuscan based on your payment history, credit utilisation, length of history, and number of recent applications.</p>",
                 },
                 {
                   type: "mcq",
@@ -506,7 +617,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "The Price of Borrowed Money",
-                  content: "<p>Interest is the cost of borrowing money. It's expressed as an annual percentage rate (APR).</p><p>Example: R10,000 credit card debt at 20% interest per year = R2,000 in interest annually, R167 per month just to stand still.</p><p>The minimum payment trap: paying only the minimum means you'll be in debt for years and pay back far more than you borrowed.</p>",
+                  content: "<p>Interest is the tax you pay for spending money you don't have. At 20% per year, a R10,000 credit card balance you never pay off costs you R2,000 every year — for nothing. Just for existing.</p><p>Interest is the price of borrowed money, expressed as an annual percentage rate (APR). The minimum payment trap: paying only the minimum means you pay back far more than you borrowed, over far more years than you planned.</p>",
                 },
                 {
                   type: "mcq",
@@ -523,12 +634,115 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-3",
               title: "Good Debt vs Bad Debt",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Not All Debt Is the Same",
+                  content:
+                    "<p>Good debt can be an affordable home loan on a stable income with emergency savings, where the asset may appreciate and your rate is competitive. Bad debt is high-interest revolving credit for things that lose value fast—clothes on budget, nights out rolled month to month—especially when you only pay minimums.</p><p>In South Africa, store cards near 20%+ and short-term loans can turn a R3 000 lounge suite into R7 000 paid over years. Before you sign, annualise the cost and ask if the purchase still feels worth it.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which example usually behaves more like ‘bad debt' for most households?",
+                  options: [
+                    "A 48-month vehicle loan at prime+ with insurance on a car needed for night-shift work",
+                    "Revolving clothing account balances at high APR for non-essential fashion",
+                    "Student study loan with clear repayment plan for a scarce skill",
+                    "Home loan with affordable repayment under 30% of stable gross",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "High-rate consumption debt on depreciating stuff drains wealth fastest.",
+                    incorrect: "Match debt purpose, rate, and income stability before labelling it ‘good'.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "If repayments fit the budget today, you do not need to stress-test for rate hikes or income loss.",
+                  correct: false,
+                  feedback: {
+                    correct: "Stress tests matter; jobs and rates change.",
+                    incorrect: "Affordability should survive small shocks, not only today’s best month.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "Two offers: (A) personal loan at 18% for a holiday, (B) extra payments on an 24% store card until it is cleared. You can only pick one this month. Which improves health more?",
+                  options: [
+                    "Take holiday loan for ‘memories'",
+                    "Attack the higher-rate revolving debt first",
+                    "Ignore both because maths is scary",
+                    "Open a third card to balance the others",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Eliminating expensive revolving balances saves more than new interest on wants.",
+                    incorrect: "Avalanche and snowball methods both start by stopping costly interest traps.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "List debts with rates",
+                  instruction:
+                    "On paper, write every debt: balance, minimum, interest rate or approximate monthly fee, and whether it is secured. Circle the highest rate to target after essentials are paid.",
+                  tip: "If you do not know the rate, call the issuer before spending again.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Store Cards & Credit Cards",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Swipe Now, Pay Far More",
+                  content:
+                    "<p>Retail cards tempt you with instant approval and birthdays discounts. Credit cards can help cash flow if you clear the full balance each month and the rewards exceed fees you truly use. Problems start when revolving balances meet 20%+ yearly rates—then a R2 500 splurge lingers for years.</p><p>Set a hard rule: never autopay only the minimum unless you are in a structured emergency plan. Move subscriptions off high-rate cards when possible and unlink tap-to-pay from accounts you cannot track weekly.</p>",
+                },
+                {
+                  type: "true-false",
+                  statement: "Paying the full credit card balance by the due date usually avoids purchase interest on new spend.",
+                  correct: true,
+                  feedback: {
+                    correct: "Grace periods reward discipline; check your specific card terms.",
+                    incorrect: "Revolving balances lose grace benefits—read your monthly mail.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Before signing a store card at checkout, what should you verify first?",
+                  options: [
+                    "Only the free gift at the desk",
+                    "APR or monthly fees, arrears penalties, and whether you already carry similar debt",
+                    "Whether the card colour matches your phone cover",
+                    "Nothing; sales staff already chose for you",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Cost and consequences beat the momentary perk.",
+                    incorrect: "If you cannot quote the rate, you are not ready to sign.",
+                  },
+                },
+                {
+                  type: "fill-blank",
+                  title: "Minimum payment trap",
+                  prompt: "If your statement says minimum R450 but interest this month is R380, only about R___ of principal drops before new spend.",
+                  correct: 70,
+                  explanation: "450 − 380 = 70; tiny principal cuts stretch repayment for years.",
+                  feedback: {
+                    correct: "Small principal cuts are why minimums trap people.",
+                    incorrect: "Subtract interest from the minimum to see real debt reduction.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Turn off one-click temptations",
+                  instruction:
+                    "Delete saved shopping app cards from your phone except one main account you monitor weekly. Write a sticky note with your next debt target balance on your screen edge for seven days.",
+                  tip: "If removal feels scary, you might be relying on credit for lifestyle, not timing.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -589,7 +803,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "Your Financial Airbag",
-                  content: "<p>An emergency fund is 3–6 months of essential living expenses set aside in cash. It covers job loss, medical emergencies, car repairs, without going into debt.</p><p>Example: If your essential monthly expenses are R12,000, your target emergency fund is R36,000–R72,000.</p><p>Start with a mini-goal of R5,000. It protects you from small emergencies immediately.</p>",
+                  content: "<p>One unexpected expense — a R8,000 car repair, a R15,000 medical bill, two weeks without income — is all it takes to destroy a budget that has no safety net. This is how debt spirals start.</p><p>An emergency fund is 3–6 months of essential living expenses in cash, accessible within 24 hours. If your essential monthly expenses are R12,000, your target is R36,000–R72,000. Start with a mini-goal of R5,000 — it protects you from small emergencies immediately.</p>",
                 },
                 {
                   type: "mcq",
@@ -635,8 +849,62 @@ export const CONTENT_DATA: { courses: Course[] } = {
             },
             {
               id: "lesson-3",
-              title: "When to Use It",
-              comingSoon: true,
+              title: "When to Use Your Emergency Fund",
+              steps: [
+                {
+                  type: "info",
+                  title: "Real Emergencies Only",
+                  content:
+                    "<p>Nomsa saved R24 000 for three months of essentials. When the fridge broke, the quote was R6 500 and she used her fund instead of a high-interest store loan. Two months later her cousin asked to ‘borrow' R4 000 for a wedding outfit pressure buy. That second one was not an emergency for her household.</p><p>Your emergency fund is for income loss you did not choose, medical co-payments you cannot delay, or essential repairs that keep you safe or earning. Black Friday upgrades, holidays, and helping every relative who asks are not the same thing. Clear rules now prevent you from draining the account and restarting from zero.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which expense is the best fit for an emergency fund?",
+                  options: [
+                    "A limited-time deal on a new phone on account",
+                    "Paying the excess on a car insurance claim after a crash you need for work",
+                    "A year-end holiday special",
+                    "Upgrading DSTV for sport season",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Keeping a work vehicle insured and roadworthy protects income.",
+                    incorrect: "Choose costs that protect health, housing, or income. Skip entertainment deals.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "If you lose your job, using the emergency fund for rent and food while you search is an appropriate use.",
+                  correct: true,
+                  feedback: {
+                    correct: "That is exactly what the buffer is for.",
+                    incorrect: "Covering essentials after involuntary income loss is a textbook emergency.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You have R18 000 saved. Your geyser bursts and water damages a wall. The plumber and repair quote is R12 000 and insurance will only pay later. What is the smartest first step?",
+                  options: [
+                    "Put the full R12 000 on a clothing store card at 22% interest",
+                    "Use emergency savings if you must, then refill when the claim pays",
+                    "Ignore the leak for two months",
+                    "Borrow from an unregistered lender who messages you on WhatsApp",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Use the fund for urgent shelter repair, then rebuild with the claim if applicable.",
+                    incorrect: "Avoid toxic debt for genuine home emergencies when you already saved cash.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Write your three emergency rules",
+                  instruction:
+                    "On paper or in your notes app, list three situations where you will allow yourself to spend the emergency fund (for example: job loss, critical medical, car repair for commuting). Keep it somewhere you will see before transfers.",
+                  tip: "Share the rules with a trusted person so excitement spending has a second check.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -648,12 +916,120 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-4",
               title: "Types of Financial Risk",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "More Than Market Ups and Downs",
+                  content:
+                    "<p>Thabo thought ‘risk' only meant the JSE going red on his app. Then load-shedding cost his spaza R2 000 in spoiled stock in one week. Financial risk also includes losing your income, fraud, bank scams, medical shocks, interest-rate jumps on a home loan, and being underinsured.</p><p>You cannot remove all risk, but you can sort it: risks you can insure, risks you diversify with savings and different income streams, and risks you accept because the cost of full protection is too high. Naming the risks helps you stop one problem from wiping out everything else you built.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which example is mainly 'income risk'?",
+                  options: [
+                    "A unit trust unit price moves up and down",
+                    "Your employer announces retrenchments in your division",
+                    "You choose the wrong colour paint for a room",
+                    "Inflation over a decade",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Job loss risk hits your monthly cash directly.",
+                    incorrect: "Income risk is about losing or shrinking the money that arrives each month.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Keeping six months of expenses in cash can reduce the impact of some income and expense shocks even if you also invest.",
+                  correct: true,
+                  feedback: {
+                    correct: "Liquidity lowers the chance you sell investments in a panic or take expensive loans.",
+                    incorrect: "Cash savings absorb shocks so long-term investments stay on track.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question:
+                    "You have third-party-only car insurance and you cause an accident that writes off your own car. Who pays to replace your vehicle?",
+                  options: [
+                    "The insurer replaces your car fully",
+                    "You pay from your own pocket; third-party cover focuses on damage to others",
+                    "The other driver always pays everything",
+                    "SARS refunds the loss",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Third-party cover does not fix your own car. Check your policy wording.",
+                    incorrect: "Own damage usually needs higher cover levels you choose and pay for.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "List one insurable risk",
+                  instruction:
+                    "Pick one financial shock that worries you (car theft, illness, retrenchment). Write whether you rely on insurance, savings, family help, or nothing yet. Book one concrete step this week: a quote, a savings target, or a policy review.",
+                  tip: "Use official insurer or broker channels, not random WhatsApp ‘specials'.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-5",
               title: "Risk vs Reward",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "The Trade-Off in Plain Words",
+                  content:
+                    "<p>A 32-day notice account might pay a modest rate but rarely loses nominal value. A broad equity ETF can average much higher growth over decades but might drop 20% in a bad year. That trade-off is not good or bad by itself; it depends on when you need the money and whether you can stay calm when markets wobble.</p><p>Many South Africans hear ‘crypto doubled' from a friend and ignore the friend who lost quietly. Higher possible reward without real skills, time horizon, or diversification is often just higher chance of loss. Match the tool to the goal and the timeline, not the story that sounds exciting at a braai.</p>",
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You need the money in 14 months for a child’s first university deposit. Which choice best matches the timeline?",
+                  options: [
+                    "100% of the deposit in a single small-cap share tip from social media",
+                    "A mix biased to stable, shorter-term savings and low-volatile funds, not all in volatile equities",
+                    "Daily forex ‘signals' from an anonymous group",
+                    "Spend half on shoes now and hope for a bonus later",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Short horizons need more stability; avoid all-or-nothing bets.",
+                    incorrect: "A known deadline needs controlled risk, not hype investments.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Longer time horizons generally allow more room to recover from market dips than money needed next month.",
+                  correct: true,
+                  feedback: {
+                    correct: "Time lets compounding work and smooths out some volatility.",
+                    incorrect: "Years in the market changes what level of ups and downs you can live through.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Which phrase best describes a healthy view of risk?",
+                  options: [
+                    "Avoid every investment because markets move",
+                    "Chase anyone who promises a fixed 8% a week",
+                    "Understand what you can lose, what you might gain, and how long you can wait",
+                    "Copy every trade you see online",
+                  ],
+                  correct: 2,
+                  feedback: {
+                    correct: "Clarity on timeline and downside beats blind fear or blind greed.",
+                    incorrect: "Adults match risk to goals; they do not outsource thinking to hype.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Label one goal by timeline",
+                  instruction:
+                    "Write down one savings or investing goal with the year you expect to spend it. Next to it, note ‘low', ‘medium', or ‘high' risk you are willing to accept and one product type you will research (notice account, money market, balanced fund, ETF).",
+                  tip: "Use SARS-registered providers and FSCA-licensed institutions when you compare options.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -681,7 +1057,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "What Happens When You're Gone?",
-                  content: "<p>Life insurance pays a lump sum to your family if you die. In South Africa, many families fall into poverty because the breadwinner passes away without cover.</p><p><strong>Who needs it:</strong> Anyone with dependants, a spouse, children, or parents who rely on your income.</p><p><strong>How much:</strong> A rule of thumb is 10x your annual salary. So if you earn R300,000/year, aim for R3 million in cover.</p>",
+                  content: "<p>Every week in South Africa, families lose their homes and children drop out of school because the breadwinner died without life cover. This is not a rare tragedy — it's the predictable outcome of skipping one product.</p><p>Life insurance pays a lump sum to your family if you die. If you have dependants, a spouse, children, or parents who rely on your income — you need it. The rule of thumb: 10× your annual salary. Earning R300,000/year means R3 million in cover.</p>",
                 },
                 {
                   type: "mcq",
@@ -794,7 +1170,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "The Golden Rule of Investing",
-                  content: "<p>Higher potential return always comes with higher risk. There is no such thing as high return with zero risk, that's a scam.</p><p>The risk spectrum:</p><ul><li><strong>Low risk/low return:</strong> Savings account, money market</li><li><strong>Medium risk/medium return:</strong> Bonds, balanced funds</li><li><strong>High risk/high return:</strong> Shares, ETFs, property</li></ul>",
+                  content: "<p>Every year you leave R100,000 in cash instead of investing it, you silently lose R6,000 in purchasing power to inflation. After 10 years, your R100,000 buys what R55,000 used to. Doing nothing is not safe — it's slow financial destruction.</p><p>Higher potential return always comes with higher risk. There is no high return with zero risk — that's the definition of a scam. The risk spectrum: low risk/low return (savings account, money market) → medium (bonds, balanced funds) → high (shares, ETFs, property).</p>",
                 },
                 {
                   type: "mcq",
@@ -861,7 +1237,61 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-4",
               title: "Time Horizon Matters",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "When Do You Need the Money?",
+                  content:
+                    "<p>Anele saved R40 000 in a notice account for a car deposit she plans to use in nine months. Her colleague put the same amount in volatile single shares for the same goal. When prices dipped 18%, only one of them could still buy the car without delay.</p><p>Time horizon is the gap between today and when you must spend the money. Under two years usually favours stability. Five years or more can carry more growth assets if you will not panic-sell. Mixing up timelines is how people sell low right before prices recover.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "You need funds in 11 months for school fees. Which stance fits best?",
+                  options: [
+                    "100% in speculative trades because ‘markets always bounce back'",
+                    "Emphasis on capital you can access without severe loss, not long-shot bets",
+                    "Borrow the full amount on a microloan at any cost",
+                    "Hide cash under a mattress only",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Short needs deserve predictable access and controlled risk.",
+                    incorrect: "Match the tool to months, not hype. Stability usually matters more under two years.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "If you might need every rand next year, investments that swing wildly month to month are usually a poor fit.",
+                  correct: true,
+                  feedback: {
+                    correct: "Volatility plus a fixed deadline is a classic mismatch.",
+                    incorrect: "Near-term spending needs steadier choices than long retirement money.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "Two friends each invest R500 a month. One needs the money in four years for relocation; the other will only touch it after 20 years for retirement. Who can more reasonably accept bigger equity swings?",
+                  options: [
+                    "The four-year friend",
+                    "The twenty-year friend",
+                    "Neither should ever buy shares",
+                    "Only people earning over R80 000",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Longer timelines absorb dips better if behaviour stays steady.",
+                    incorrect: "Time is the cushion that makes volatility more tolerable.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Date-stamp one goal",
+                  instruction:
+                    "Write one financial goal with the exact month and year you expect to spend it. Circle whether it is under 3 years, 3–7 years, or 7+ years. Keep the note where you review savings monthly.",
+                  tip: "If the date moved closer, revisit how much risk you still accept.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -873,12 +1303,114 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-5",
               title: "What Are Stocks?",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "A Small Slice of a Company",
+                  content:
+                    "<p>When you buy a share on the JSE, you buy part ownership in a listed company. If the firm grows profits over years and pays dividends, you may earn from both price increases and distributions. If the business struggles, your slice can lose value. That is normal market behaviour, not necessarily fraud.</p><p>Many beginners start with broad ETFs that hold dozens or hundreds of companies so one bad executive decision does not dominate the outcome. In South Africa you still pay taxes outside a TFSA, so wrapping long-term equity ETFs inside your annual limit can make sense when rules allow.</p>",
+                },
+                {
+                  type: "true-false",
+                  statement: "Owning one share means you own a small part of that company.",
+                  correct: true,
+                  feedback: {
+                    correct: "Shares represent equity ownership, usually with voting and dividend rights.",
+                    incorrect: "Listed shares are legal claims on company value, not a loan you made to the firm.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Why might a diversified equity ETF be easier for a beginner than picking three individual shares?",
+                  options: [
+                    "ETFs always pay higher returns every year",
+                    "Spread across many holdings reduces the impact if one firm performs badly",
+                    "ETFs never fall in price",
+                    "SARS forbids individual shares",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Dilution of company-specific risk is the main beginner benefit.",
+                    incorrect: "Broad funds spread outcomes; they do not guarantee profits.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Cash a listed company pays shareholders from profits is most often called a:",
+                  options: ["Dividend", "PAYE refund", "Debit order", "UIF payout"],
+                  correct: 0,
+                  feedback: {
+                    correct: "Dividends reward share owners when boards declare them.",
+                    incorrect: "Dividends are not tax refunds or bank charges; they come from company profits.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Read one factsheet",
+                  instruction:
+                    "Open any JSE-listed ETF or unit trust factsheet from a licensed provider. Write down three lines: what it invests in, its total expense ratio or fee note, and the biggest risk paragraph. File it on your phone for next month’s review.",
+                  tip: "If you cannot find fees clearly, ask the provider before you invest.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
               title: "Understanding Bonds",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Lending, Not Owning",
+                  content:
+                    "<p>A government or company bond is a loan you give in return for interest and your principal back at maturity. Stable bonds can smooth a portfolio when shares fall, but they are not risk-free if the issuer struggles or if interest rates move sharply.</p><p>In South Africa, retail investors often access bonds through unit trusts, bond ETFs, or bank-fixed products rather than buying individual certificates directly. Expected returns are usually lower than equities over decades, but the ride can be calmer.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "In simple terms, a bond holder is mostly:",
+                  options: [
+                    "Part owner with voting rights like a CEO",
+                    "A lender to the issuer who expects scheduled interest and return of principal",
+                    "Guaranteed to beat inflation every year",
+                    "Insured against all losses by the Reserve Bank",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Bonds are debt instruments: you lend; they promise to pay back under the contract.",
+                    incorrect: "Ownership is equities; lending is bonds.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "When interest rates rise sharply, prices of many existing bonds often fall.",
+                  correct: true,
+                  feedback: {
+                    correct: "Duration and rate moves matter; older lower-rate bonds look less attractive.",
+                    incorrect: "Rate shifts change what buyers will pay for older fixed payments.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You want less drama than pure shares but can still wait several years. Which blended idea is most sensible to discuss with a licensed adviser or read about first?",
+                  options: [
+                    "All-in leveraged currency trades from WhatsApp",
+                    "A balanced or multi-asset fund that mixes bonds and equities within stated rules",
+                    "Cash under the bed only forever",
+                    "Borrowing to buy jewellery",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Mixed mandates exist precisely for moderate timelines and temperaments.",
+                    incorrect: "Schemes on chat apps are not a bond education plan.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Compare two yield numbers",
+                  instruction:
+                    "Find any retail bond fund or RSA retail bond rate note and a high-interest savings rate. Write both percentages and the institution names. Note which is fixed for how long and what penalties apply if you withdraw early.",
+                  tip: "Use official .co.za sites or apps, not screenshots from strangers.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -906,7 +1438,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "The Best Legal Tax Break You're Probably Not Using",
-                  content: "<p>A Tax-Free Savings Account (TFSA) lets you invest <strong>R36,000 per year</strong> (R500,000 lifetime limit) and pay <strong>zero tax</strong> on interest, dividends, or capital gains.</p><p>Over 30 years, the tax saving can be worth hundreds of thousands of rands.</p><p>Available at: Sygnia, Satrix, Capitec, most major banks and investment platforms.</p>",
+                  content: "<p>Every year you don't use your TFSA allowance is R36,000 of tax-free growth you lose permanently — it doesn't roll over. Over 30 years, the difference between using your TFSA and not is often over R1 million in tax saved.</p><p>A Tax-Free Savings Account lets you invest R36,000 per year (R500,000 lifetime limit) and pay zero tax on interest, dividends, or capital gains — ever. Available at Sygnia, Satrix, EasyEquities, Capitec, and most major platforms.</p>",
                 },
                 {
                   type: "mcq",
@@ -932,12 +1464,115 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-2",
               title: "TFSA vs Regular Savings",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Tax Sheltered Growth",
+                  content:
+                    "<p>Zandile puts R2 500 a month into a normal unit trust outside a TFSA. Over years she owes tax on some interest, dividends, and capital gains when rules trigger. Her twin uses the same funds inside a TFSA wrapper until lifetime limits are respected. The twin keeps more of the compounding because qualifying growth is not taxed inside the account.</p><p>TFSAs still have annual and lifetime caps; breaking rules like over-contributing can trigger SARS penalties. Regular taxable accounts have no caps but no shield. Many people use both: TFSA for long wealth and a plain account for flexibility after limits.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "What is the main long-term advantage of a compliant TFSA compared with the same assets in a standard taxable account?",
+                  options: [
+                    "Guaranteed higher returns every year",
+                    "No tax on qualifying returns while rules are followed",
+                    "No need to read statements",
+                    "SARS automatically gives you cash back monthly",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Tax-free growth is the structural benefit, not a performance promise.",
+                    incorrect: "Returns still vary; the wrapper changes tax treatment when used correctly.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You should still track TFSA contributions so you do not exceed annual and lifetime limits.",
+                  correct: true,
+                  feedback: {
+                    correct: "Breaches can cost penalties; your platform helps but you stay responsible.",
+                    incorrect: "Limits are real. Keep your own tally across providers.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You already maxed this year’s TFSA with one provider and receive a bonus. What is the cautious next step?",
+                  options: [
+                    "Deposit the bonus into the same TFSA anyway",
+                    "Park extra in a high-interest account or taxable investment until a new tax year, or use other allowed products",
+                    "Send cash to the first WhatsApp investment group that replies",
+                    "Hide cash in a gym locker",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Respect limits; plan the bonus for the next allowed window or another suitable product.",
+                    incorrect: "Over-contributing triggers SARS issues you can avoid with timing.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Add up your TFSA deposits this year",
+                  instruction:
+                    "Log every TFSA deposit you made since 1 March (or your platform’s tax year start). Total them and compare to the current annual limit from a trusted SARS or provider page. Write the remaining room if any.",
+                  tip: "If you use more than one bank or broker, add them all—limits are per person, not per brand.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-3",
               title: "How to Open a TFSA",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Start With Licensed Players",
+                  content:
+                    "<p>Most major banks, LISPs, and platforms offer TFSA wrappers. You will complete FICA with ID and proof of address, sign risk disclosures, and choose underlying funds or ETFs that fit your timeline. Online onboarding often takes under an hour if documents are ready.</p><p>Check platform fees, whether you want ad hoc or debit orders, and how you will track contributions across apps. Opening is not the finish line—low recurring fees and steady contributions matter more than a flashy advert on social media.</p>",
+                },
+                {
+                  type: "true-false",
+                  statement: "You normally need FICA documents before a regulated institution activates a TFSA.",
+                  correct: true,
+                  feedback: {
+                    correct: "AML rules apply; expect ID and address proof.",
+                    incorrect: "Legitimate providers verify identity; skip anyone who refuses basics.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Before funding, which pair should you compare between two TFSA platforms?",
+                  options: [
+                    "Only the colour of the app icon",
+                    "Total yearly costs and which funds or ETFs you may hold",
+                    "How many influencers mention them",
+                    "Whether they trade only crypto",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Fees and investment choice drive long outcomes.",
+                    incorrect: "Marketing noise matters less than cost and suitability.",
+                  },
+                },
+                {
+                  type: "fill-blank",
+                  title: "Monthly automation",
+                  prompt: "Setting a debit order of R___ per month can help consistency if it fits your budget.",
+                  correct: 500,
+                  explanation: "Any positive number you can sustain works; 500 is a practice example.",
+                  feedback: {
+                    correct: "Automation beats hoping you remember each payday.",
+                    incorrect: "Pick an amount you can keep for months without missing essentials.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Complete one checklist item",
+                  instruction:
+                    "Choose one licensed provider’s website. Download their TFSA checklist PDF or page. Tick one item you can finish today: scan your ID, gather a recent municipal bill, or create a login. Book 20 minutes on your calendar.",
+                  tip: "Screenshot nothing with passwords; store documents securely offline.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -970,12 +1605,115 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-5",
               title: "Tax Benefits of RAs",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Deductions Now, Discipline Later",
+                  content:
+                    "<p>Priya contributes R4 000 monthly to an RA while earning R42 000 taxable income. SARS may let her deduct those contributions up to the legal percentage and cap, lowering income tax today while locking money for retirement. Exact savings depend on your bracket and updates to law.</p><p>You still follow product rules: penalties if you cash out early outside allowed events, and you must use approved funds. Treat the deduction as a nudge to save, not ‘free money'—plan cash flow so living costs stay covered after the debit order.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "A main tax feature of many RAs for working South Africans is:",
+                  options: [
+                    "No tax ever on anything worldwide automatically",
+                    "Potential income-tax deductions on qualifying contributions within limits",
+                    "Cash withdrawals any week without questions",
+                    "Exemption from FICA",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Deductibility within caps is the headline benefit for many employees.",
+                    incorrect: "Read current SARS guides; myths about unlimited tax freedom are dangerous.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You should confirm your own allowable RA deduction percentage each year rather than copying a friend’s story.",
+                  correct: true,
+                  feedback: {
+                    correct: "Tax depends on income, caps, and law updates.",
+                    incorrect: "Use official guidance or a registered tax practitioner for your case.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You want the tax deduction but might need the cash next year for an unplanned move. What is wisest?",
+                  options: [
+                    "Lock the full amount in an RA anyway",
+                    "First secure an emergency buffer, then commit only what you can truly tie up for the product rules",
+                    "Hide income from SARS",
+                    "Borrow on credit cards to fund the RA",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Liquidity needs and lock-in rules matter alongside tax perks.",
+                    incorrect: "Do not trade tomorrow’s rent for today’s deduction without a plan.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "One SARS check",
+                  instruction:
+                    "Open the official SARS page on retirement fund contributions or download their summary table. Write down the current percentage limit phrase and the rand cap line in your own words. Store it in your money folder.",
+                  tip: "If wording confuses you, note questions for a registered practitioner before you increase debits.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-6",
               title: "Unit Trusts & ETFs",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Pooled Investing",
+                  content:
+                    "<p>A unit trust pools money from many investors into a basket chosen by a manager and mandates. An ETF typically tracks an index and trades like a share. Both can sit in TFSAs or other wrappers when rules allow, but fees and trading differ.</p><p>Read Total Expense Ratio, transaction costs, and how often you may switch. In South Africa, flashy past performance charts ignore tax you would pay outside shelters and your personal timing—focus on fit, fees, and whether you understand what you hold.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which statement is most accurate for beginners comparing ETFs and active unit trusts?",
+                  options: [
+                    "ETFs always beat every unit trust forever",
+                    "ETFs often follow an index passively; many unit trusts try to beat a benchmark with higher fees",
+                    "Unit trusts cannot charge fees",
+                    "Neither needs a mandate document",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Passive vs active is a cost and expectation trade-off.",
+                    incorrect: "Neither structure guarantees victory every year.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Reading the minimum disclosure document or fund fact sheet is part of responsible investing.",
+                  correct: true,
+                  feedback: {
+                    correct: "Fees, risks, and benchmarks belong in your files.",
+                    incorrect: "If factsheets confuse you, pause until you understand or get advice.",
+                  },
+                },
+                {
+                  type: "fill-blank",
+                  title: "Fee awareness",
+                  prompt: "If a fund lists total yearly costs near 1.5% and another near 0.35% for a similar index, the lower number often means you keep more growth when performance is similar. Express 1.5% as the number 1.5 (not R).",
+                  correct: 1.5,
+                  explanation: "Comparing TER numbers helps you question expensive duplicates.",
+                  feedback: {
+                    correct: "Small fee gaps compound over decades.",
+                    incorrect: "Re-read the fee column on both fact sheets.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Save two screenshot-free notes",
+                  instruction:
+                    "Pick one unit trust and one ETF factsheet. Write by hand: benchmark name, TER or cost line, and minimum suggested investment period. No trade yet—just understanding.",
+                  tip: "If TER is missing, email the provider’s compliance address before proceeding.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1084,7 +1822,7 @@ export const CONTENT_DATA: { courses: Course[] } = {
                 {
                   type: "info",
                   title: "How SARS Taxes Your Income",
-                  content: "<p>South Africa uses marginal tax brackets. You only pay the higher rate on income ABOVE each threshold, not on your entire salary.</p><p>Common mistake: thinking a raise will push you into a higher bracket and leave you worse off. This is impossible, you always keep more by earning more.</p><p>Key threshold: The primary rebate means if you earn less than ~R95,750/year, you pay zero income tax.</p>",
+                  content: "<p>SARS will take exactly what you owe — but they won't tell you about the legal ways to pay less. Employees who don't know about RA deductions, travel allowances, and home office deductions overpay by thousands of rands every year.</p><p>South Africa uses marginal tax brackets. You only pay the higher rate on income above each threshold — never on your entire salary. Common myth: a raise pushes you into a higher bracket and you take home less. This is impossible. You always keep more by earning more.</p>",
                 },
                 {
                   type: "true-false",
@@ -1212,12 +1950,115 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-3",
               title: "Fake Investment Schemes",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Promises That Do Not Add Up",
+                  content:
+                    "<p>Elite traders on WhatsApp groups post screenshots of R10 000 turning into R250 000 in weeks. They urge you to ‘top up' before the window closes. Legitimate growth takes time, regulation, and visible paperwork; it is boring compared to the story.</p><p>In South Africa check FSCA warnings, ask for FSP numbers, call the institution on its official switchboard—not the number the salesperson gives—and never move money to random personal accounts. If recruitment pays more than investing returns, you are likely looking at something closer to a pyramid than an asset.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "Which detail should make you pause before sending money to an ‘investment club'?",
+                  options: [
+                    "They share glossy PDFs",
+                    "Returns are guaranteed every week regardless of markets and you must recruit friends to unlock tiers",
+                    "They use a registered business name you can verify",
+                    "They explain fees slowly",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Guarantees plus recruitment pressure are classic warning patterns.",
+                    incorrect: "Verify licensing, custodians, and whether returns depend on new cash.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "You can check whether a South African financial services provider is registered before you invest.",
+                  correct: true,
+                  feedback: {
+                    correct: "Regulators publish lists and warnings—use them.",
+                    incorrect: "If you skip verification, you carry extra avoidable risk.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "Someone offers 6% per month ‘risk free' if you EFT to their personal Capitec account today. What is the safest response?",
+                  options: [
+                    "Send R5 000 to test",
+                    "Stop, refuse, and report or verify through official channels only",
+                    "Ask three cousins to join",
+                    "Share your OTP so they can ‘load the platform'",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Personal accounts and OTP demands override slick talk.",
+                    incorrect: "Never mix remote access, OTP sharing, and investment marketing.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Save one hotline",
+                  instruction:
+                    "Look up the SA Police Service or banking fraud number you would dial if cash left your account suspiciously. Store it as a contact labelled Fraud—do not wait until panic strikes.",
+                  tip: "Screenshot official pages sparingly; prefer typing numbers yourself from .gov.za or your bank’s PDF.",
+                },
+              ] satisfies LessonStep[],
             },
             {
               id: "lesson-4",
               title: "Romance & Social Media Scams",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Love Bombs and Empty Wallets",
+                  content:
+                    "<p>Fraudsters build trust over weeks—compliments, voice notes, shared playlists—then an ‘emergency': customs holding a gift, a sick relative in a private hospital, crypto software that only needs a small activation fee. Victims in South Africa have lost cars, stokvel savings, and study money.</p><p>Cut contact if anyone you have never met in person asks for e-wallet sends, airtime ladders, or remote access to your banking app. Real partners do not acceleration-test your overdraft on week three.</p>",
+                },
+                {
+                  type: "true-false",
+                  statement: "A person who truly cares for you will respect a firm ‘no' when you refuse to send cash to a stranger’s account.",
+                  correct: true,
+                  feedback: {
+                    correct: "Pressure after boundaries is manipulation.",
+                    incorrect: "Guilt trips about love versus money are a tactic, not affection.",
+                  },
+                },
+                {
+                  type: "mcq",
+                  question: "Which habit reduces catfish money risk on dating apps?",
+                  options: [
+                    "Move chat immediately to encrypted apps only with no photo proof",
+                    "Video call in a safe public pattern, tell family you are meeting someone new, and refuse upfront cash",
+                    "Send pictures of your bank card ‘for vibes'",
+                    "Share OTPs to prove honesty",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Accountability to people you trust beats secret online intensity.",
+                    incorrect: "Financial transparency with criminals is self harm.",
+                  },
+                },
+                {
+                  type: "fill-blank",
+                  title: "Gift card trick",
+                  prompt: "If a stranger insists you buy retail gift cards worth R2 000 and photograph the codes, assume it is a ___ (answer with number 100 for ‘percent scam likelihood').",
+                  correct: 100,
+                  explanation: "Gift-card code harvesting is overwhelmingly fraudulent.",
+                  feedback: {
+                    correct: "Treat gift-card urgency as a bright red flag.",
+                    incorrect: "Legit firms do not harvest scratched codes from strangers online.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Tell one ally",
+                  instruction:
+                    "Choose one person who will hear you say ‘I met someone online' before you send funds or share ID copies. Message them today with that agreement—no judgement, just a pause partner.",
+                  tip: "Scammers isolate you; allies break the trance.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1234,7 +2075,61 @@ export const CONTENT_DATA: { courses: Course[] } = {
             {
               id: "lesson-6",
               title: "What to Do If Scammed",
-              comingSoon: true,
+              steps: [
+                {
+                  type: "info",
+                  title: "Speed and Paper Trail",
+                  content:
+                    "<p>The hour after you realise money moved wrongly matters. Call your bank’s fraud line, change passwords, and gather references. Open a case with SAPS if theft occurred; some recovery paths need a case number. Screen-capture chats ethically for investigators, not for public shaming that tips off the criminal.</p><p>Expect emotions: shame delays reporting. Acting quickly does not guarantee return of funds, but it can freeze downstream accounts and protect others. Follow your bank’s affidavit process and ask which ombudsman or regulator handles your product type.</p>",
+                },
+                {
+                  type: "mcq",
+                  question: "First practical step after unauthorised debit orders appear:",
+                  options: [
+                    "Delete banking apps to hide the problem",
+                    "Contact your bank’s fraud department and request blocks on affected channels",
+                    "Send more money to ‘reverse' the glitch",
+                    "Ignore it for 30 days",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Rapid reporting starts investigation and limits damage.",
+                    incorrect: "Silence helps only the thief.",
+                  },
+                },
+                {
+                  type: "true-false",
+                  statement: "Keeping SMS, email, and proof of payment helps investigators even if recovery is uncertain.",
+                  correct: true,
+                  feedback: {
+                    correct: "Documentation supports disputes and police work.",
+                    incorrect: "Organise evidence calmly; emotional deletes hurt your case.",
+                  },
+                },
+                {
+                  type: "scenario",
+                  question:
+                    "You paid a fake landlord deposit. The scammer ghosted you. Besides the bank, who else should you notify quickly?",
+                  options: [
+                    "Nobody; hope Facebook karma works",
+                    "SAPS with a case reference and any rental platform that hosted the listing",
+                    "Only your ex",
+                    "The scammer’s mother",
+                  ],
+                  correct: 1,
+                  feedback: {
+                    correct: "Official reports plus platform abuse teams can warn the next victim.",
+                    incorrect: "Community revenge posts are not a substitute for records.",
+                  },
+                },
+                {
+                  type: "action",
+                  title: "Dry-run your contacts",
+                  instruction:
+                    "Type your bank fraud line, your network fraud SMS shortcode if any, and SAPS 10111 into your phone now. Add one sentence note: ‘Call if money moves odd.'",
+                  tip: "Practice once when calm so muscle memory exists when stressed.",
+                },
+              ] satisfies LessonStep[],
             },
           ],
         },
@@ -1655,5 +2550,8 @@ export const CONTENT_DATA: { courses: Course[] } = {
       ],
     },
 
-  ],
+];
+
+export const CONTENT_DATA: { courses: Course[] } = {
+  courses: mergeContentExtras(RAW_COURSES),
 };
