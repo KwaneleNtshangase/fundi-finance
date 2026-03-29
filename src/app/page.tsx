@@ -2432,7 +2432,7 @@ function LessonView({
     if (step.type === "info") {
       return (
         <>
-          <FundiCharacter expression="thinking" size={80} style={{ margin: "0 auto 12px" }} />
+          <FundiCharacter expression="thinking" size={120} style={{ margin: "0 auto 12px" }} />
           <h2 className="step-title">{step.title}</h2>
           <div
             className="step-content"
@@ -4098,9 +4098,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         <img
           src="/fundi-logo.png"
           alt="Fundi Finance"
-          style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 20, animation: "pulse 1.5s ease-in-out infinite" }}
+          style={{ width: 280, height: 280, objectFit: "contain", marginBottom: 24, animation: "pulse 1.5s ease-in-out infinite" }}
         />
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, letterSpacing: 1 }}>Loading…</div>
+        <div style={{ color: "rgba(255,255,255,0.7)", fontSize: 16, fontWeight: 700, letterSpacing: 2, marginBottom: 6 }}>FUNDI FINANCE</div>
+        <div style={{ color: "rgba(255,255,255,0.4)", fontSize: 13, letterSpacing: 1 }}>Loading…</div>
       </div>
     );
   }
@@ -4162,8 +4163,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
         <div style={{ background: "white", padding: 28, borderRadius: 20, border: "2px solid var(--border-light)", maxWidth: 420, width: "100%" }}>
           <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20 }}>
-            <img src="/fundi-logo.png" alt="" width={80} height={80} style={{ objectFit: "contain" }} />
-            <h1 style={{ fontSize: 22, fontWeight: 800 }}>Fundi Finance</h1>
+            <img src="/fundi-logo.png" alt="" width={100} height={100} style={{ objectFit: "contain" }} />
+            <h1 style={{ fontSize: 24, fontWeight: 800 }}>Fundi Finance</h1>
           </div>
 
           {/* Tab switcher */}

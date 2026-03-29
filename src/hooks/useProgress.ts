@@ -115,6 +115,8 @@ export function useProgress() {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasMigratedGuestRef = useRef(false);
   const suppressNextPersistRef = useRef(false);
+  /** Guards against writing empty state to Supabase before the server load has completed. */
+  const serverLoadDoneRef = useRef(false);
 
   const completedLessons = useMemo(() => new Set(state.completedLessons), [state.completedLessons]);
 
@@ -156,8 +158,14 @@ export function useProgress() {
 
   useEffect(() => {
     if (!ready) return;
-    if (!userId) return;
+    if (!userId) {
+      // Guest session — allow persisting immediately (localStorage only)
+      serverLoadDoneRef.current = true;
+      return;
+    }
 
+    // New user session — block persist until we've read from Supabase
+    serverLoadDoneRef.current = false;
     let cancelled = false;
 
     (async () => {
@@ -222,6 +230,12 @@ export function useProgress() {
           setState(serverState);
         }
       }
+
+      // Only allow the persist effect to write AFTER we have loaded (or confirmed absence of)
+      // server data. This prevents a race condition where a new-device sign-in with empty
+      // localStorage writes DEFAULT_STATE to Supabase before the Supabase read completes,
+      // wiping the user's progress.
+      serverLoadDoneRef.current = true;
     })();
 
     return () => {
@@ -231,6 +245,9 @@ export function useProgress() {
 
   useEffect(() => {
     if (!ready) return;
+    // Don't write until the server load has completed — prevents wiping Supabase data
+    // on new devices where localStorage is empty but the user has a server-side record.
+    if (userId && !serverLoadDoneRef.current) return;
 
     if (suppressNextPersistRef.current) {
       suppressNextPersistRef.current = false;
