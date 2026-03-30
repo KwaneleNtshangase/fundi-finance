@@ -54,9 +54,14 @@ import {
   Lock,
   LogOut,
   Mail,
+  ChevronLeft,
+  ChevronRight,
   Moon,
   PenLine,
   Play,
+  Plus,
+  ShoppingCart,
+  Trash2,
   Search,
   Settings as SettingsIcon,
   Share2,
@@ -598,6 +603,7 @@ type Route =
   | { name: "leaderboard" }
   | { name: "settings" }
   | { name: "calculator" }
+  | { name: "budget" }
   | { name: "onboarding" };
 
 type CalcInputs = {
@@ -1306,7 +1312,7 @@ function useFundiState() {
     const onboarded = localStorage.getItem("fundi-onboarded");
     if (!onboarded) return { name: "onboarding" } as Route;
     const saved = localStorage.getItem("fundi-last-route");
-    const simpleRoutes = ["learn", "calculator", "profile", "leaderboard", "settings"];
+    const simpleRoutes = ["learn", "calculator", "profile", "leaderboard", "settings", "budget"];
     if (saved && simpleRoutes.includes(saved)) return { name: saved } as Route;
     return { name: "learn" } as Route;
   });
@@ -1508,7 +1514,7 @@ function useFundiState() {
 
   // Persist route so refresh returns to same section
   useEffect(() => {
-    const simpleRoutes = ["learn", "calculator", "profile", "leaderboard", "settings"];
+    const simpleRoutes = ["learn", "calculator", "profile", "leaderboard", "settings", "budget"];
     if (simpleRoutes.includes(route.name)) {
       localStorage.setItem("fundi-last-route", route.name);
     }
@@ -4221,6 +4227,347 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
   );
 }
 
+// ─── Budget Tracker ──────────────────────────────────────────────────────────
+
+type BudgetEntry = {
+  id: string;
+  type: "income" | "expense";
+  category: string;
+  amount: number;
+  description?: string;
+  entry_date: string;
+};
+
+const BUDGET_EXPENSE_CATS = [
+  { id: "food",          label: "Food & Groceries", color: "#007A4D", tag: "needs",   Icon: ShoppingCart },
+  { id: "transport",     label: "Transport",         color: "#FFB612", tag: "needs",   Icon: Zap },
+  { id: "housing",       label: "Housing/Rent",      color: "#3B7DD8", tag: "needs",   Icon: HomeIcon },
+  { id: "debt",          label: "Debt Repayments",   color: "#E03C31", tag: "debt",    Icon: CreditCard },
+  { id: "savings",       label: "Savings",           color: "#00BFA5", tag: "savings", Icon: Shield },
+  { id: "entertainment", label: "Entertainment",     color: "#7C4DFF", tag: "wants",   Icon: Play },
+  { id: "airtime",       label: "Airtime & Data",    color: "#F57C00", tag: "needs",   Icon: Zap },
+  { id: "healthcare",    label: "Healthcare",        color: "#C2185B", tag: "needs",   Icon: Umbrella },
+  { id: "education",     label: "Education",         color: "#1976D2", tag: "needs",   Icon: GraduationCap },
+  { id: "other",         label: "Other",             color: "#9E9E9E", tag: "other",   Icon: Hash },
+] as const;
+
+const BUDGET_INCOME_CATS = [
+  { id: "salary",       label: "Salary / Wages",    Icon: Briefcase },
+  { id: "freelance",    label: "Freelance",          Icon: Zap },
+  { id: "business",     label: "Business Income",   Icon: Building2 },
+  { id: "other-income", label: "Other Income",      Icon: Wallet },
+] as const;
+
+function BudgetView() {
+  const now = new Date();
+  const [monthOffset, setMonthOffset] = useState(0); // 0 = current month
+  const [entries, setEntries] = useState<BudgetEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAdd, setShowAdd] = useState(false);
+  const [addType, setAddType] = useState<"income" | "expense">("expense");
+  const [addCategory, setAddCategory] = useState("");
+  const [addAmount, setAddAmount] = useState("");
+  const [addDesc, setAddDesc] = useState("");
+  const [addDate, setAddDate] = useState(() => now.toISOString().slice(0, 10));
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const year = targetDate.getFullYear();
+  const month = targetDate.getMonth(); // 0-indexed
+  const monthLabel = targetDate.toLocaleString("en-ZA", { month: "long", year: "numeric" });
+  const isCurrentMonth = monthOffset === 0;
+
+  const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+
+  const loadEntries = React.useCallback(async () => {
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setLoading(false); return; }
+    const { data } = await supabase
+      .from("budget_entries")
+      .select("id, type, category, amount, description, entry_date")
+      .eq("user_id", user.id)
+      .gte("entry_date", startDate)
+      .lte("entry_date", endDate)
+      .order("entry_date", { ascending: false })
+      .order("created_at", { ascending: false });
+    setEntries((data ?? []) as BudgetEntry[]);
+    setLoading(false);
+  }, [startDate, endDate]);
+
+  useEffect(() => { loadEntries(); }, [loadEntries]);
+
+  const handleAdd = async () => {
+    if (!addCategory || !addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) return;
+    setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSaving(false); return; }
+    await supabase.from("budget_entries").insert({
+      user_id: user.id,
+      type: addType,
+      category: addCategory,
+      amount: Number(addAmount),
+      description: addDesc.trim() || null,
+      entry_date: addDate,
+    });
+    setSaving(false);
+    setShowAdd(false);
+    setAddCategory("");
+    setAddAmount("");
+    setAddDesc("");
+    setAddDate(now.toISOString().slice(0, 10));
+    loadEntries();
+  };
+
+  const handleDelete = async (id: string) => {
+    setDeleting(id);
+    await supabase.from("budget_entries").delete().eq("id", id);
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+    setDeleting(null);
+  };
+
+  const income = entries.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
+  const expenses = entries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
+  const surplus = income - expenses;
+
+  const catTotals = BUDGET_EXPENSE_CATS.map((c) => ({
+    ...c,
+    total: entries.filter((e) => e.type === "expense" && e.category === c.id).reduce((s, e) => s + e.amount, 0),
+  })).filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
+
+  const needsTotal = entries.filter((e) => e.type === "expense" && ["food","transport","housing","airtime","healthcare","education"].includes(e.category)).reduce((s, e) => s + e.amount, 0);
+  const wantsTotal = entries.filter((e) => e.type === "expense" && e.category === "entertainment").reduce((s, e) => s + e.amount, 0);
+  const debtTotal = entries.filter((e) => e.type === "expense" && e.category === "debt").reduce((s, e) => s + e.amount, 0);
+  const savingsTotal = entries.filter((e) => e.type === "expense" && e.category === "savings").reduce((s, e) => s + e.amount, 0);
+  const savingsRate = income > 0 ? Math.round((savingsTotal / income) * 100) : 0;
+  const debtRate = income > 0 ? Math.round((debtTotal / income) * 100) : 0;
+
+  const getCatLabel = (type: string, cat: string) => {
+    if (type === "income") return BUDGET_INCOME_CATS.find((c) => c.id === cat)?.label ?? cat;
+    return BUDGET_EXPENSE_CATS.find((c) => c.id === cat)?.label ?? cat;
+  };
+
+  const getCatColor = (cat: string) => BUDGET_EXPENSE_CATS.find((c) => c.id === cat)?.color ?? "#9E9E9E";
+
+  const formatEntry = (date: string) => {
+    const d = new Date(date + "T00:00:00");
+    return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
+  };
+
+  return (
+    <main className="main-content main-with-stats">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
+        <button
+          type="button"
+          onClick={() => { setAddType("expense"); setAddCategory(""); setAddAmount(""); setAddDesc(""); setAddDate(now.toISOString().slice(0, 10)); setShowAdd(true); }}
+          style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--color-primary)", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
+        >
+          <Plus size={16} aria-hidden /> Add
+        </button>
+      </div>
+
+      {/* Month selector */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "10px 14px", marginBottom: 20 }}>
+        <button type="button" onClick={() => setMonthOffset((o) => o - 1)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 4 }} aria-label="Previous month">
+          <ChevronLeft size={20} />
+        </button>
+        <span style={{ fontWeight: 700, fontSize: 15 }}>{monthLabel}</span>
+        <button type="button" onClick={() => setMonthOffset((o) => Math.min(o + 1, 0))} disabled={isCurrentMonth} style={{ background: "none", border: "none", cursor: isCurrentMonth ? "default" : "pointer", color: isCurrentMonth ? "var(--color-border)" : "var(--color-text-secondary)", padding: 4 }} aria-label="Next month">
+          <ChevronRight size={20} />
+        </button>
+      </div>
+
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--color-text-secondary)" }}>Loading...</div>
+      ) : (
+        <>
+          {/* Summary cards */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
+            {[
+              { label: "Income", value: income, color: "#007A4D" },
+              { label: "Expenses", value: expenses, color: "#E03C31" },
+              { label: surplus >= 0 ? "Surplus" : "Deficit", value: Math.abs(surplus), color: surplus >= 0 ? "#007A4D" : "#E03C31" },
+            ].map((c) => (
+              <div key={c.label} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "12px 10px", textAlign: "center" }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{c.label}</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: c.color, lineHeight: 1.2 }}>{formatRand(c.value)}</div>
+              </div>
+            ))}
+          </div>
+
+          {entries.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "40px 20px", color: "var(--color-text-secondary)" }}>
+              <Wallet size={48} strokeWidth={1.2} style={{ color: "var(--color-border)", margin: "0 auto 12px" }} />
+              <p style={{ fontWeight: 700, fontSize: 16, marginBottom: 8, color: "var(--color-text-primary)" }}>No entries yet</p>
+              <p style={{ fontSize: 14, marginBottom: 20 }}>Start by adding your income and expenses for {monthLabel}.</p>
+              <button type="button" onClick={() => { setAddType("income"); setShowAdd(true); }} className="btn btn-primary" style={{ padding: "12px 28px" }}>
+                Add your first entry
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Fundi insights */}
+              {income > 0 && (
+                <div style={{ background: "linear-gradient(135deg,rgba(0,122,77,0.07) 0%,rgba(255,182,18,0.05) 100%)", border: "1px solid rgba(0,122,77,0.2)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14, marginBottom: 12 }}>
+                    <Lightbulb size={16} style={{ color: "var(--color-primary)" }} /> Fundi Insights
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Savings rate</span>
+                      <span style={{ fontWeight: 700, color: savingsRate >= 10 ? "#007A4D" : "#E03C31" }}>{savingsRate}% {savingsRate >= 10 ? "✓ On track" : "— aim for 10%+"}</span>
+                    </div>
+                    {debtTotal > 0 && (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
+                        <span style={{ color: "var(--color-text-secondary)" }}>Debt repayments</span>
+                        <span style={{ fontWeight: 700, color: debtRate > 40 ? "#E03C31" : debtRate > 20 ? "#FFB612" : "var(--color-text-primary)" }}>{debtRate}% of income</span>
+                      </div>
+                    )}
+                    {needsTotal + wantsTotal > 0 && (
+                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        Needs: {formatRand(needsTotal)} · Wants: {formatRand(wantsTotal)}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Category breakdown */}
+              {catTotals.length > 0 && (
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14 }}>Expense breakdown</div>
+                  {catTotals.map((c) => (
+                    <div key={c.id} style={{ marginBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13 }}>
+                        <span style={{ fontWeight: 600 }}>{c.label}</span>
+                        <span style={{ fontWeight: 700, color: "var(--color-text-primary)" }}>{formatRand(c.total)}</span>
+                      </div>
+                      <div style={{ height: 6, borderRadius: 3, background: "var(--color-border)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 3, background: c.color, width: `${Math.min(100, expenses > 0 ? (c.total / expenses) * 100 : 0)}%`, transition: "width 0.4s ease" }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Entry list */}
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden", marginBottom: 24 }}>
+                <div style={{ fontWeight: 800, fontSize: 14, padding: "14px 16px", borderBottom: "1px solid var(--color-border)" }}>Transactions</div>
+                {entries.map((e) => (
+                  <div key={e.id} style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--color-border)", gap: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {e.type === "income"
+                        ? <TrendingUp size={16} style={{ color: "#007A4D" }} />
+                        : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />
+                      }
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13 }}>{getCatLabel(e.type, e.category)}</div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1 }}>
+                        {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
+                      </div>
+                    </div>
+                    <div style={{ fontWeight: 800, fontSize: 14, color: e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
+                      {e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(e.id)}
+                      disabled={deleting === e.id}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 4, flexShrink: 0, opacity: deleting === e.id ? 0.4 : 1 }}
+                      aria-label="Delete entry"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </>
+      )}
+
+      {/* Add Entry Modal */}
+      {showAdd && (
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
+          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>Add Entry</h3>
+              <button type="button" onClick={() => setShowAdd(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
+            </div>
+
+            {/* Income / Expense toggle */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {(["expense", "income"] as const).map((t) => (
+                <button key={t} type="button" onClick={() => { setAddType(t); setAddCategory(""); }}
+                  style={{ padding: "10px", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${addType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: addType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
+                  {t === "income" ? "Income +" : "Expense −"}
+                </button>
+              ))}
+            </div>
+
+            {/* Category grid */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {(addType === "expense" ? BUDGET_EXPENSE_CATS : BUDGET_INCOME_CATS).map((c) => (
+                  <button key={c.id} type="button" onClick={() => setAddCategory(c.id)}
+                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
+                    <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
+                    <span>{c.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Amount */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Amount (R)</div>
+              <input
+                type="number" inputMode="decimal" placeholder="0.00" value={addAmount}
+                onChange={(e) => setAddAmount(e.target.value)} min="0.01" step="0.01"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 16, fontWeight: 700, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+              />
+            </div>
+
+            {/* Description */}
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Description (optional)</div>
+              <input
+                type="text" placeholder="e.g. Woolworths, Uber" value={addDesc}
+                onChange={(e) => setAddDesc(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+              />
+            </div>
+
+            {/* Date */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Date</div>
+              <input
+                type="date" value={addDate} onChange={(e) => setAddDate(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+              />
+            </div>
+
+            <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 16 }}
+              disabled={saving || !addCategory || !addAmount || Number(addAmount) <= 0}
+              onClick={handleAdd}>
+              {saving ? "Saving..." : "Save Entry"}
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 function SettingsAccountSection() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -5729,6 +6076,19 @@ export default function Home() {
             <li className="nav-item">
               <button
                 className={`nav-link ${
+                  route.name === "budget" ? "active" : ""
+                }`}
+                onClick={() => handleNav("budget")}
+              >
+                <span className="nav-icon">
+                  <Wallet size={20} className="text-current" />
+                </span>
+                Budget
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${
                   route.name === "settings" ? "active" : ""
                 }`}
                 onClick={() => handleNav("settings")}
@@ -5882,6 +6242,8 @@ export default function Home() {
         )}
 
         {route.name === "calculator" && <CalculatorView />}
+
+        {route.name === "budget" && <BudgetView />}
 
         {showNoHearts && (
           <div className="fixed inset-0 z-[550] flex items-center justify-center bg-black/80 p-4">
@@ -6202,12 +6564,20 @@ export default function Home() {
             order: "order-2",
           },
           {
+            key: "budget",
+            label: "Budget",
+            icon: <Wallet size={20} className="text-current" />,
+            isActive: route.name === "budget",
+            onClick: () => handleNav("budget"),
+            order: "order-3",
+          },
+          {
             key: "progress",
             label: "Progress",
             icon: <TrendingUp size={20} className="text-current" />,
             isActive: route.name === "leaderboard",
             onClick: () => handleNav("leaderboard"),
-            order: "order-3",
+            order: "order-4",
           },
           {
             key: "profile",
@@ -6215,7 +6585,7 @@ export default function Home() {
             icon: <UserIcon size={20} className="text-current" />,
             isActive: route.name === "profile",
             onClick: () => handleNav("profile"),
-            order: "order-4",
+            order: "order-5",
           },
         ]}
       />
