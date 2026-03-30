@@ -945,11 +945,30 @@ function CalculatorView() {
   const [hasCalculated, setHasCalculated] = useState(false);
   const [calcA, setCalcA] = useState<CalcInputs>(defaultInputs);
   const [calcB, setCalcB] = useState<CalcInputs>({ ...defaultInputs, rate: 7, monthly: 500 });
+  const [projectionSaved, setProjectionSaved] = useState(false);
+
+  // Load user's previously saved projection as default inputs
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const saved = localStorage.getItem("fundi-calc-saved");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as Partial<CalcInputs>;
+        setInputsA((prev) => ({ ...prev, ...parsed }));
+        setCalcA((prev) => ({ ...prev, ...parsed }));
+      } catch { /* ignore */ }
+    }
+  }, []);
 
   const handleCalculate = () => {
     setCalcA(inputsA);
     setCalcB(inputsB);
     setHasCalculated(true);
+    // Save the user's personal projection
+    if (typeof window !== "undefined") {
+      localStorage.setItem("fundi-calc-saved", JSON.stringify(inputsA));
+      setProjectionSaved(true);
+    }
   };
 
   const dataA = useMemo(() => (hasCalculated ? calcGrowth(calcA) : []), [hasCalculated, calcA]);
@@ -1238,6 +1257,13 @@ function CalculatorView() {
               )}
             </LineChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {projectionSaved && (
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 dark:border-green-700 dark:bg-green-900/20 dark:text-green-300">
+          <CheckCircle2 size={16} className="shrink-0" aria-hidden />
+          <span>Projection saved to your profile — you can revisit it anytime.</span>
         </div>
       )}
 
@@ -3225,12 +3251,24 @@ function ProfileView({
   const [investorProfileLabel, setInvestorProfileLabel] = useState<string | null>(null);
   const [profileGoal, setProfileGoal] = useState<string | null>(null);
   const [profileGoalDescription, setProfileGoalDescription] = useState<string>("");
+  const [savedProjection, setSavedProjection] = useState<CalcInputs | null>(null);
+  const [projectionFinalValue, setProjectionFinalValue] = useState<number | null>(null);
 
   // Load goal from localStorage for the goal lookback card
   useEffect(() => {
     if (typeof window === "undefined") return;
     setProfileGoal(localStorage.getItem("fundi-user-goal"));
     setProfileGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
+    // Load saved calculator projection
+    const raw = localStorage.getItem("fundi-calc-saved");
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as CalcInputs;
+        setSavedProjection(parsed);
+        const growth = calcGrowth(parsed);
+        if (growth.length > 0) setProjectionFinalValue(growth[growth.length - 1].value);
+      } catch { /* ignore */ }
+    }
   }, []);
 
   // Load name, show update form if no real full_name exists
@@ -3457,6 +3495,46 @@ function ProfileView({
               Go to the Learn tab and tap &ldquo;Edit&rdquo; on your goal to add more detail.
             </p>
           )}
+        </div>
+      )}
+
+      {/* ── Savings Projection card ── */}
+      {savedProjection && projectionFinalValue !== null && (
+        <div style={{
+          background: "linear-gradient(135deg, rgba(0,122,77,0.07) 0%, rgba(255,182,18,0.05) 100%)",
+          border: "1px solid rgba(0,122,77,0.2)",
+          borderRadius: 14, padding: 16, marginBottom: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14, marginBottom: 8 }}>
+            <TrendingUp size={16} style={{ color: "var(--color-primary)" }} aria-hidden />
+            My Savings Projection
+          </div>
+          <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 10 }}>
+            {savedProjection.frequency === "once-off"
+              ? `R${savedProjection.principal.toLocaleString("en-ZA")} once-off`
+              : `R${savedProjection.monthly.toLocaleString("en-ZA")}/month`}
+            {" · "}{savedProjection.rate}% return{" · "}{savedProjection.years} years
+          </p>
+          <div style={{ display: "flex", gap: 10 }}>
+            <div style={{
+              flex: 1, background: "var(--color-surface)", borderRadius: 10, padding: "10px 14px",
+              border: "1px solid var(--color-border)", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Projected Value</div>
+              <div style={{ fontSize: 17, fontWeight: 900, color: "var(--color-primary)" }}>
+                {formatRand(projectionFinalValue)}
+              </div>
+            </div>
+            <div style={{
+              flex: 1, background: "var(--color-surface)", borderRadius: 10, padding: "10px 14px",
+              border: "1px solid var(--color-border)", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>Time Horizon</div>
+              <div style={{ fontSize: 17, fontWeight: 900, color: "var(--color-text-primary)" }}>
+                {savedProjection.years} yrs
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -3883,7 +3961,7 @@ function ProfileView({
 }
 
 function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: string }) {
-  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; isYou: boolean; rank: number }[]>([]);
+  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; isYou: boolean; rank: number; ageRange?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -3911,20 +3989,23 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
         const userIds = progressRows.map((r: any) => r.user_id);
         const { data: profileRows } = await supabase
           .from("profiles")
-          .select("user_id, full_name")
+          .select("user_id, full_name, age_range")
           .in("user_id", userIds);
 
         const nameMap: Record<string, string> = {};
+        const ageRangeMap: Record<string, string> = {};
         (profileRows ?? []).forEach((p: any) => {
           if (p.full_name) nameMap[p.user_id] = p.full_name.split(" ")[0];
+          if (p.age_range) ageRangeMap[p.user_id] = p.age_range;
         });
 
-        const rows = progressRows.map((row: any, idx: number) => {
+        const rows: { id: string; name: string; xp: number; isYou: boolean; rank: number; ageRange?: string }[] = progressRows.map((row: any, idx: number) => {
           const isYou = row.user_id === myId;
           const name = isYou
             ? "You"
             : (nameMap[row.user_id] ?? "Learner " + row.user_id.slice(0, 4).toUpperCase());
-          return { id: row.user_id, name, xp: row.xp ?? 0, isYou, rank: idx + 1 };
+          const ageRange = ageRangeMap[row.user_id] as string | undefined;
+          return { id: row.user_id, name, xp: row.xp ?? 0, isYou, rank: idx + 1, ageRange };
         });
 
         const alreadyIn = rows.some((r) => r.isYou);
@@ -4032,6 +4113,7 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                   border: top3[1].isYou ? "3px solid var(--color-primary)" : "3px solid #C0C0C0",
                 }}>{top3[1].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[1].name}</div>
+                {top3[1].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[1].ageRange}</div>}
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF" }}>{formatWithSpaces(top3[1].xp)} XP</div>
                 <div style={{ background: "#C0C0C0", borderRadius: "8px 8px 0 0", height: 60, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 22, fontWeight: 900, color: "white" }}>2</span>
@@ -4050,6 +4132,7 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                   boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
                 }}>{top3[0].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
+                {top3[0].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[0].ageRange}</div>}
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#FFB612" }}>{formatWithSpaces(top3[0].xp)} XP</div>
                 <div style={{ background: "#FFB612", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 26, fontWeight: 900, color: "white" }}>1</span>
@@ -4064,6 +4147,7 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                   border: top3[2].isYou ? "3px solid var(--color-primary)" : "3px solid #CD7F32",
                 }}>{top3[2].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[2].name}</div>
+                {top3[2].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[2].ageRange}</div>}
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#CD7F32" }}>{formatWithSpaces(top3[2].xp)} XP</div>
                 <div style={{ background: "#CD7F32", borderRadius: "8px 8px 0 0", height: 44, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 20, fontWeight: 900, color: "white" }}>3</span>
@@ -4112,11 +4196,14 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                         <span style={{ fontSize: 10, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>You</span>
                       )}
                     </div>
-                    {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
-                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
-                        {formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}
-                      </div>
-                    )}
+                    <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
+                      {leader.ageRange && (
+                        <span style={{ background: "var(--color-border)", borderRadius: 999, padding: "1px 6px", fontWeight: 600 }}>{leader.ageRange}</span>
+                      )}
+                      {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
+                        <span>{formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}</span>
+                      )}
+                    </div>
                   </div>
                   <div style={{
                     fontWeight: 800, fontSize: 14, flexShrink: 0,
@@ -4863,6 +4950,15 @@ export default function Home() {
   };
 
   const [showMilestoneCta, setShowMilestoneCta] = useState(false);
+  const [milestoneCtaContent, setMilestoneCtaContent] = useState<{
+    headline: string;
+    body: string;
+    button: string;
+  }>({
+    headline: "5 Lessons Completed",
+    body: "You now know more about your money than most South Africans. Want a personalised plan to reach your first R10k emergency fund or start investing?",
+    button: "Get Your Free R10k Savings Plan",
+  });
   const [savedProgress, setSavedProgress] = useState<SavedLessonProgress | null>(null);
   const lessonStartTimeRef = useRef(0);
   const lessonHeartLostRef = useRef(false);
@@ -5320,6 +5416,55 @@ export default function Home() {
       const alreadyShown = localStorage.getItem("fundi-cta-milestone-shown");
       if (tc >= 5 && !alreadyShown) {
         localStorage.setItem("fundi-cta-milestone-shown", "1");
+        // Build goal-specific CTA content
+        const goal = localStorage.getItem("fundi-user-goal") ?? "";
+        const courseId = currentLessonState.courseId ?? "";
+        const ctaMap: Record<string, { headline: string; body: string; button: string }> = {
+          "debt-free": {
+            headline: "You're Serious About Getting Debt-Free",
+            body: "You've built real knowledge. Let's turn it into a step-by-step debt-freedom plan tailored to your situation.",
+            button: "Get Your Free Debt Plan",
+          },
+          emergency: {
+            headline: "5 Lessons Down — Emergency Fund Next",
+            body: "You understand why an emergency fund matters. Want a plan to actually build yours — how much, where to keep it, how fast?",
+            button: "Get Your Free Emergency Fund Plan",
+          },
+          invest: {
+            headline: "You're Ready to Start Investing",
+            body: "You've learned the foundations. Get a personalised investment plan built around your income and timeline.",
+            button: "Get Your Free Investment Plan",
+          },
+          home: {
+            headline: "Saving for a Home? Let's Build the Plan",
+            body: "You know how money works. Now let's map out exactly how to get to that deposit.",
+            button: "Get Your Free Home Savings Plan",
+          },
+          retire: {
+            headline: "Retirement Planning Starts Now",
+            body: "The earlier you start, the bigger the difference. Get a retirement roadmap built around your age and income.",
+            button: "Get Your Free Retirement Plan",
+          },
+          business: {
+            headline: "Growing Your Business With Better Money Skills",
+            body: "You've got the knowledge. Let's turn it into a practical business finance plan.",
+            button: "Get Your Free Business Finance Plan",
+          },
+        };
+        // Fall back to course-based CTA if no goal, or use goal CTA
+        const debtCourses = ["credit-debt", "money-basics"];
+        const investCourses = ["investing-basics", "sa-investing", "retirement"];
+        let ctaContent = ctaMap[goal];
+        if (!ctaContent) {
+          if (debtCourses.includes(courseId)) ctaContent = ctaMap["debt-free"];
+          else if (investCourses.includes(courseId)) ctaContent = ctaMap["invest"];
+          else ctaContent = {
+            headline: "5 Lessons Completed",
+            body: "You now know more about your money than most South Africans. Want a personalised plan to reach your first R10k emergency fund or start investing?",
+            button: "Get Your Free R10k Savings Plan",
+          };
+        }
+        setMilestoneCtaContent(ctaContent);
         setTimeout(() => setShowMilestoneCta(true), 1500);
         analytics.advisorCtaShown("lesson_milestone_5");
       }
@@ -5798,11 +5943,10 @@ export default function Home() {
                 You&apos;re making real progress
               </p>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                5 Lessons Completed
+                {milestoneCtaContent.headline}
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-5 leading-relaxed">
-                You now know more about your money than most South Africans. Want a personalised
-                plan to reach your first R10k emergency fund or start investing?
+                {milestoneCtaContent.body}
               </p>
               <button
                 type="button"
@@ -5812,7 +5956,7 @@ export default function Home() {
                 }}
                 className="block w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold mb-3 transition-colors"
               >
-                Get Your Free R10k Savings Plan
+                {milestoneCtaContent.button}
               </button>
               <button
                 type="button"
