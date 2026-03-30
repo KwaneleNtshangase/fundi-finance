@@ -35,6 +35,27 @@ export type LessonStep =
       title: string;
       instruction: string;
       tip?: string;
+    }
+  | {
+      type: "action-check";
+      title: string;
+      challenge: string;
+      successMessage: string;
+      skipMessage: string;
+    }
+  | {
+      type: "calculator-embed";
+      title: string;
+      description: string;
+      preset: {
+        principal?: number;
+        monthly?: number;
+        rate?: number;
+        years?: number;
+        escalation?: number;
+        frequency?: "monthly" | "annually" | "once-off";
+      };
+      insight: string;
     };
 
 export type Lesson = {
@@ -123,6 +144,27 @@ const RAW_COURSES: Course[] = [
                     incorrect: "Keeping cash at home means it loses value to inflation. A savings account is better.",
                   },
                 },
+                {
+                  type: "calculator-embed",
+                  title: "See Inflation in Action",
+                  description: "Let's see what happens to R10,000 sitting in cash vs invested over 10 years. Hit Calculate to see the difference.",
+                  preset: {
+                    principal: 10000,
+                    monthly: 0,
+                    rate: 10,
+                    years: 10,
+                    escalation: 0,
+                    frequency: "once-off",
+                  },
+                  insight: "Even a single lump sum grows dramatically when invested. R10,000 doing nothing loses value every year to inflation — but invested at 10%, it more than doubles.",
+                },
+                {
+                  type: "action-check",
+                  title: "Real-World Action",
+                  challenge: "Check your bank app right now: how much cash is sitting in your main account earning 0% interest?",
+                  successMessage: "Great start! Awareness is the first step. Next lesson we'll talk about what to do with that money.",
+                  skipMessage: "No worries — try this before your next lesson. Small actions build big habits.",
+                },
               ] satisfies LessonStep[],
             },
             {
@@ -168,6 +210,13 @@ const RAW_COURSES: Course[] = [
                     incorrect: "Actually, it's fine to enjoy some of your raise, just make sure savings go up too.",
                   },
                 },
+                {
+                  type: "action-check",
+                  title: "Real-World Action",
+                  challenge: "Look at your last 5 transactions on your bank app. Label each one as a NEED or a WANT.",
+                  successMessage: "Well done! You're already thinking differently about your spending. That awareness changes everything.",
+                  skipMessage: "Try this when you get a chance — most people are shocked at how many 'needs' are actually wants.",
+                },
               ] satisfies LessonStep[],
             },
             {
@@ -197,6 +246,13 @@ const RAW_COURSES: Course[] = [
                     correct: "Correct. Non-negotiable expenses first, then budget the rest.",
                     incorrect: "Fixed expenses are non-negotiable. They must be covered first.",
                   },
+                },
+                {
+                  type: "action-check",
+                  title: "Real-World Action",
+                  challenge: "Open your notes app and write down your net (take-home) salary, then list your 3 biggest fixed expenses.",
+                  successMessage: "You just wrote the first lines of your budget. That's more than most people ever do.",
+                  skipMessage: "Come back to this — knowing your fixed costs is the foundation of every budget.",
                 },
               ] satisfies LessonStep[],
             },
@@ -984,6 +1040,27 @@ const RAW_COURSES: Course[] = [
                     incorrect: "Never invest your emergency fund in stocks. It must be instantly accessible in cash or a money market account.",
                   },
                 },
+                {
+                  type: "calculator-embed",
+                  title: "Your Emergency Fund Target",
+                  description: "If your essential expenses are R12,000/month and you save R2,000/month in a money market at 8%, how long until you have 3 months covered?",
+                  preset: {
+                    principal: 0,
+                    monthly: 2000,
+                    rate: 8,
+                    years: 2,
+                    escalation: 0,
+                    frequency: "monthly",
+                  },
+                  insight: "At R2,000/month you'd reach R36,000 (3 months) in about 17 months. That's less than 1.5 years to financial peace of mind.",
+                },
+                {
+                  type: "action-check",
+                  title: "Real-World Action",
+                  challenge: "Calculate your monthly essential expenses right now (rent + food + transport + utilities). Write down the total.",
+                  successMessage: "Now multiply that by 3 — that's your emergency fund target. You've just set your first real financial goal.",
+                  skipMessage: "This is one of the most important numbers in personal finance. Come back to it when you can.",
+                },
               ] satisfies LessonStep[],
             },
             {
@@ -1446,6 +1523,27 @@ const RAW_COURSES: Course[] = [
                     correct: "Time is everything. Starting 10 years earlier can double or triple your final amount.",
                     incorrect: "Time is the secret ingredient. The earlier you start, the more compound interest works for you.",
                   },
+                },
+                {
+                  type: "calculator-embed",
+                  title: "See Compound Interest Work",
+                  description: "Let's see what R500/month looks like over 20 years at 10% growth (the JSE average). Hit Calculate.",
+                  preset: {
+                    principal: 0,
+                    monthly: 500,
+                    rate: 10,
+                    years: 20,
+                    escalation: 5,
+                    frequency: "monthly",
+                  },
+                  insight: "R500/month turns into over R400,000 in 20 years — and you only contributed about R200,000 of that. The rest is compound interest doing the work. Now imagine starting 10 years earlier.",
+                },
+                {
+                  type: "action-check",
+                  title: "Real-World Action",
+                  challenge: "Google 'TFSA South Africa' and find out the annual contribution limit. Write it down.",
+                  successMessage: "Now you know about one of SA's best tax-free tools. We'll cover TFSAs in detail soon.",
+                  skipMessage: "TFSAs are one of SA's best-kept secrets. Look it up when you can — it could save you thousands in tax.",
                 },
               ] satisfies LessonStep[],
             },

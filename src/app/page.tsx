@@ -55,6 +55,7 @@ import {
   LogOut,
   Mail,
   Moon,
+  PenLine,
   Play,
   Search,
   Settings as SettingsIcon,
@@ -180,6 +181,7 @@ const ONBOARDING_GOAL_OPTIONS = [
   { id: "home", label: "Save for a home", Icon: HomeIcon },
   { id: "retire", label: "Plan for retirement", Icon: Flag },
   { id: "business", label: "Grow my business", Icon: Briefcase },
+  { id: "other", label: "Something else", Icon: PenLine },
 ] as const;
 
 const ONBOARDING_AGE_RANGES = [
@@ -265,15 +267,20 @@ function ShareButton({
   );
 }
 
-async function persistUserGoalToStorageAndSupabase(goalId: string) {
+async function persistUserGoalToStorageAndSupabase(goalId: string, goalDescription?: string) {
   if (typeof window === "undefined") return;
   localStorage.setItem("fundi-user-goal", goalId);
+  if (goalDescription !== undefined) {
+    localStorage.setItem("fundi-goal-description", goalDescription);
+  }
   localStorage.removeItem("fundi-goal-banner-dismissed");
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (user) {
-    await supabase.from("profiles").upsert({ user_id: user.id, goal: goalId }, { onConflict: "user_id" });
+    const update: Record<string, unknown> = { user_id: user.id, goal: goalId };
+    if (goalDescription !== undefined) update.goal_description = goalDescription;
+    await supabase.from("profiles").upsert(update, { onConflict: "user_id" });
   }
 }
 
@@ -294,11 +301,12 @@ function getLessonTitle(
 function OnboardingView({
   onComplete,
 }: {
-  onComplete: (payload: { goal?: string; ageRange?: string }) => void;
+  onComplete: (payload: { goal?: string; ageRange?: string; goalDescription?: string }) => void;
 }) {
   const [screen, setScreen] = React.useState(0);
   const [selectedGoal, setSelectedGoal] = React.useState("");
   const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
+  const [goalDescription, setGoalDescription] = React.useState("");
 
   const screenCount = 4;
   const screensMeta = [
@@ -332,6 +340,7 @@ function OnboardingView({
         onComplete({
           goal: selectedGoal || undefined,
           ageRange: selectedAgeRange || undefined,
+          goalDescription: goalDescription.trim() || undefined,
         }),
     },
   ];
@@ -401,32 +410,79 @@ function OnboardingView({
         </p>
 
         {screen === 1 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
-            {ONBOARDING_GOAL_OPTIONS.map((g) => (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => setSelectedGoal(g.id)}
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12, textAlign: "left" }}>
+              {ONBOARDING_GOAL_OPTIONS.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedGoal(g.id);
+                    if (g.id !== "other") setGoalDescription("");
+                  }}
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
+                    background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: "var(--color-text-primary)",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <g.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            {selectedGoal === "other" && (
+              <textarea
+                placeholder="Describe your goal — e.g. save for my child's education"
+                value={goalDescription}
+                onChange={(e) => setGoalDescription(e.target.value)}
+                rows={3}
                 style={{
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                  background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 600,
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "2px solid var(--color-primary)",
                   fontSize: 13,
+                  resize: "vertical",
+                  marginBottom: 12,
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  background: "var(--color-surface)",
                   color: "var(--color-text-primary)",
-                  transition: "all 0.15s",
                 }}
-              >
-                <g.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
-                {g.label}
-              </button>
-            ))}
-          </div>
+              />
+            )}
+            {selectedGoal && selectedGoal !== "other" && (
+              <textarea
+                placeholder="Anything more to say about this goal? (optional)"
+                value={goalDescription}
+                onChange={(e) => setGoalDescription(e.target.value)}
+                rows={2}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "1px solid var(--color-border)",
+                  fontSize: 13,
+                  resize: "vertical",
+                  marginBottom: 12,
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  background: "var(--color-surface)",
+                  color: "var(--color-text-primary)",
+                }}
+              />
+            )}
+          </>
         )}
 
         {screen === 2 && (
@@ -462,7 +518,7 @@ function OnboardingView({
           className="btn btn-primary"
           style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
           onClick={current.action}
-          disabled={screen === 1 && !selectedGoal}
+          disabled={screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))}
         >
           {current.cta}
         </button>
@@ -1197,17 +1253,17 @@ function CalculatorView() {
           <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
         </div>
         <p className="text-green-100 text-sm leading-relaxed mb-4">
-          Ready to take the next step? Book a free 30-minute financial consultation.
+          See how your investments could grow with a personalised plan built around your numbers.
         </p>
         <button
           type="button"
           onClick={() => {
-            analytics.advisorCtaClicked("advisor_card");
+            analytics.advisorCtaClicked("calculator_cta");
             window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
           }}
           className="block w-full py-3 bg-white text-green-800 rounded-xl font-bold text-center text-sm hover:bg-green-50 transition-colors"
         >
-          Book a Free Consultation
+          Get Your Free Investment Plan
         </button>
       </div>
     </main>
@@ -1601,13 +1657,16 @@ function LearnView({
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
+  const [goalDescription, setGoalDescription] = useState<string>("");
   const [goalBannerDismissed, setGoalBannerDismissed] = useState(false);
   const [showGoalPicker, setShowGoalPicker] = useState(false);
   const [pickerGoalId, setPickerGoalId] = useState<string>("");
+  const [pickerGoalDescription, setPickerGoalDescription] = useState<string>("");
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     setUserGoal(localStorage.getItem("fundi-user-goal"));
+    setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
     setGoalBannerDismissed(localStorage.getItem("fundi-goal-banner-dismissed") === "1");
   }, []);
 
@@ -1672,33 +1731,45 @@ function LearnView({
       )}
 
       {userGoal && !goalBannerDismissed && (
-        <div className="mb-4 flex items-center justify-between rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
-          <p className="flex items-center gap-2 text-sm font-medium text-green-800 dark:text-green-300">
-            <Target size={18} className="shrink-0 text-green-600 dark:text-green-400" aria-hidden />
-            <span>Goal: {GOAL_OPTIONS.find((g) => g.id === userGoal)?.label ?? userGoal}</span>
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setPickerGoalId(userGoal);
-                setShowGoalPicker(true);
-              }}
-              className="text-xs font-semibold text-green-600 dark:text-green-400"
-            >
-              Change
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setGoalBannerDismissed(true);
-                localStorage.setItem("fundi-goal-banner-dismissed", "1");
-              }}
-              className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400"
-              aria-label="Dismiss goal banner"
-            >
-              Dismiss
-            </button>
+        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 min-w-0">
+              <Target size={18} className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" aria-hidden />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                  {GOAL_OPTIONS.find((g) => g.id === userGoal)?.label ?? userGoal}
+                </p>
+                {goalDescription && (
+                  <p className="mt-0.5 text-xs text-green-700 dark:text-green-400 opacity-90 break-words">
+                    {goalDescription}
+                  </p>
+                )}
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPickerGoalId(userGoal);
+                  setPickerGoalDescription(goalDescription);
+                  setShowGoalPicker(true);
+                }}
+                className="text-xs font-semibold text-green-600 dark:text-green-400"
+              >
+                Edit
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setGoalBannerDismissed(true);
+                  localStorage.setItem("fundi-goal-banner-dismissed", "1");
+                }}
+                className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400"
+                aria-label="Dismiss goal banner"
+              >
+                ✕
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1915,12 +1986,15 @@ function LearnView({
             <p className="mb-4 text-sm text-gray-500 dark:text-gray-400">
               We&apos;ll prioritise courses that match what you want to achieve.
             </p>
-            <div className="mb-4 grid grid-cols-2 gap-2">
+            <div className="mb-3 grid grid-cols-2 gap-2">
               {GOAL_OPTIONS.map((g) => (
                 <button
                   key={g.id}
                   type="button"
-                  onClick={() => setPickerGoalId(g.id)}
+                  onClick={() => {
+                    setPickerGoalId(g.id);
+                    if (g.id !== "other") setPickerGoalDescription("");
+                  }}
                   className={`rounded-xl border-2 p-3 text-left text-sm font-semibold transition-colors ${
                     pickerGoalId === g.id
                       ? "border-green-600 bg-green-50 dark:border-green-500 dark:bg-green-900/20"
@@ -1932,6 +2006,24 @@ function LearnView({
                 </button>
               ))}
             </div>
+            {pickerGoalId === "other" && (
+              <textarea
+                placeholder="Describe your goal — e.g. save for my child's education"
+                value={pickerGoalDescription}
+                onChange={(e) => setPickerGoalDescription(e.target.value)}
+                rows={3}
+                className="mb-3 w-full resize-y rounded-xl border-2 border-green-600 bg-gray-50 p-3 text-sm text-gray-900 focus:outline-none dark:bg-gray-900/40 dark:text-white"
+              />
+            )}
+            {pickerGoalId && pickerGoalId !== "other" && (
+              <textarea
+                placeholder="Anything more to say about this goal? (optional)"
+                value={pickerGoalDescription}
+                onChange={(e) => setPickerGoalDescription(e.target.value)}
+                rows={2}
+                className="mb-3 w-full resize-y rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-900 focus:outline-none dark:border-gray-600 dark:bg-gray-900/40 dark:text-white"
+              />
+            )}
             <div className="flex gap-2">
               <button
                 type="button"
@@ -1943,11 +2035,13 @@ function LearnView({
               <button
                 type="button"
                 className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-semibold text-white disabled:opacity-40"
-                disabled={!pickerGoalId}
+                disabled={!pickerGoalId || (pickerGoalId === "other" && !pickerGoalDescription.trim())}
                 onClick={async () => {
                   if (!pickerGoalId) return;
-                  await persistUserGoalToStorageAndSupabase(pickerGoalId);
+                  const desc = pickerGoalDescription.trim() || undefined;
+                  await persistUserGoalToStorageAndSupabase(pickerGoalId, desc);
                   setUserGoal(pickerGoalId);
+                  setGoalDescription(desc ?? "");
                   setGoalBannerDismissed(false);
                   setShowGoalPicker(false);
                 }}
@@ -2503,6 +2597,228 @@ function LessonView({
       );
     }
 
+    // ── Action Check step (behaviour change) ──────────────────────────────
+    if ((step as any).type === "action-check") {
+      const s = step as any;
+      const didAction = lessonState.answers[lessonState.stepIndex] as string | undefined;
+      return (
+        <div className="flex flex-col gap-4">
+          <div style={{
+            background: "linear-gradient(135deg, #007A4D 0%, #00A86B 100%)",
+            borderRadius: 16, padding: "20px 20px 16px", color: "white",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Target size={24} className="shrink-0" />
+              <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.9 }}>
+                Take Action
+              </span>
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.3, marginBottom: 0 }}>{s.title}</h3>
+          </div>
+          <div style={{
+            background: "var(--color-surface)", border: "2px solid var(--color-primary)",
+            borderRadius: 14, padding: "18px 16px",
+          }}>
+            <p style={{ fontSize: 15, lineHeight: 1.6, color: "var(--color-text-primary)", fontWeight: 500 }}>{s.challenge}</p>
+          </div>
+          {!didAction ? (
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                style={{ flex: 2, padding: "14px 16px", fontSize: 15, fontWeight: 800 }}
+                onClick={() => {
+                  // Track action completed
+                  const key = "fundi-actions-completed";
+                  const count = parseInt(localStorage.getItem(key) ?? "0", 10);
+                  localStorage.setItem(key, String(count + 1));
+                  // Store answer as "done"
+                  (window as any).__actionCheckAnswer?.("done");
+                }}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <CheckCircle2 size={18} aria-hidden />
+                  Done — I did it!
+                </span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1, padding: "14px 12px", fontSize: 13, fontWeight: 600 }}
+                onClick={() => {
+                  (window as any).__actionCheckAnswer?.("skipped");
+                }}
+              >
+                Skip for now
+              </button>
+            </div>
+          ) : (
+            <div style={{
+              borderRadius: 14, padding: "16px",
+              background: didAction === "done" ? "rgba(0,122,77,0.08)" : "rgba(255,182,18,0.08)",
+              border: `1.5px solid ${didAction === "done" ? "var(--color-primary)" : "#FFB612"}`,
+            }}>
+              <p style={{
+                fontSize: 14, lineHeight: 1.6, fontWeight: 600,
+                color: didAction === "done" ? "var(--color-primary)" : "#8B6914",
+              }}>
+                {didAction === "done" ? s.successMessage : s.skipMessage}
+              </p>
+            </div>
+          )}
+          {didAction && (
+            <div className="lesson-actions">
+              {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+                <div style={{ textAlign: "center", width: "100%" }}>
+                  <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
+                  <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
+                  <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
+                  <div style={{ color: "var(--color-text-secondary)", marginBottom: 16 }}>
+                    +{50 + correctCount * 10} XP earned
+                  </div>
+                  {finalizeLesson ? (
+                    <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
+                      {nextLessonTitle ? (
+                        <button type="button" className="btn btn-primary"
+                          style={{ width: "100%", padding: "14px 16px", fontSize: 17, fontWeight: 800 }}
+                          onClick={() => finalizeLesson("next")}
+                        >Next Lesson: {nextLessonTitle} →</button>
+                      ) : (
+                        <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
+                          <Sparkles size={22} className="text-[#FFB612]" aria-hidden /> Course Complete!
+                        </div>
+                      )}
+                      <button type="button" className="btn btn-secondary"
+                        style={{ width: "100%", padding: "12px 16px", fontSize: 15, fontWeight: 700,
+                          background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)" }}
+                        onClick={() => finalizeLesson("course")}>
+                        <span className="inline-flex items-center justify-center gap-2">
+                          <CheckCircle2 size={18} aria-hidden /> Done — Back to Course
+                        </span>
+                      </button>
+                    </div>
+                  ) : (
+                    <button className="btn btn-primary" onClick={nextStep}>Continue</button>
+                  )}
+                </div>
+              ) : (
+                <button className="btn btn-primary" onClick={nextStep}>Continue</button>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // ── Calculator Embed step ─────────────────────────────────────────────
+    if ((step as any).type === "calculator-embed") {
+      const s = step as any;
+      const [embedCalcDone, setEmbedCalcDone] = React.useState(false);
+      const preset = s.preset ?? {};
+      const embedInputs: CalcInputs = {
+        principal: preset.principal ?? 0,
+        monthly: preset.monthly ?? 500,
+        rate: preset.rate ?? 10,
+        years: preset.years ?? 10,
+        escalation: preset.escalation ?? 5,
+        frequency: preset.frequency ?? "monthly",
+      };
+      const embedData = React.useMemo(() => calcGrowth(embedInputs), []);
+      const embedFinal = embedData.length > 0 ? embedData[embedData.length - 1] : { value: 0, contributions: 0, interest: 0 };
+      const embedChart = embedData.map((d) => ({
+        year: d.year,
+        "Portfolio Value": d.value,
+        "Total Contributions": d.contributions,
+      }));
+
+      return (
+        <div className="flex flex-col gap-4">
+          <div style={{
+            background: "linear-gradient(135deg, #3B7DD8 0%, #2563EB 100%)",
+            borderRadius: 16, padding: "20px", color: "white",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Calculator size={22} className="shrink-0" />
+              <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.9 }}>
+                Interactive Calculator
+              </span>
+            </div>
+            <h3 style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.3, marginBottom: 6 }}>{s.title}</h3>
+            <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5 }}>{s.description}</p>
+          </div>
+
+          {!embedCalcDone ? (
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ width: "100%", padding: "14px", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              onClick={() => setEmbedCalcDone(true)}
+            >
+              <BarChart2 size={20} aria-hidden /> Calculate
+            </button>
+          ) : (
+            <>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                <div style={{
+                  flex: 1, minWidth: 120, background: "var(--color-primary)", borderRadius: 12,
+                  padding: "14px 16px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: 0.5 }}>Final Value</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "white" }}>{formatRand(embedFinal.value)}</div>
+                </div>
+                <div style={{
+                  flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
+                  borderRadius: 12, padding: "14px 16px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>You Put In</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "var(--color-text-primary)" }}>{formatRand(embedFinal.contributions)}</div>
+                </div>
+                <div style={{
+                  flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
+                  borderRadius: 12, padding: "14px 16px", textAlign: "center",
+                }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>Interest Earned</div>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#007A4D" }}>{formatRand(embedFinal.interest)}</div>
+                </div>
+              </div>
+
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={embedChart} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} />
+                    <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} width={45} />
+                    <Tooltip
+                      formatter={(v) => formatRand(typeof v === "number" ? v : Number(v ?? 0))}
+                      labelFormatter={(l) => `Year ${l}`}
+                      contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }}
+                    />
+                    <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
+                    <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div style={{
+                background: "rgba(0,122,77,0.06)", border: "1.5px solid rgba(0,122,77,0.2)",
+                borderRadius: 12, padding: "14px 16px", borderLeft: "4px solid var(--color-primary)",
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <Lightbulb size={14} style={{ color: "var(--color-primary)" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)" }}>Key Insight</span>
+                </div>
+                <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--color-text-primary)" }}>{s.insight}</p>
+              </div>
+            </>
+          )}
+
+          <div className="lesson-actions">
+            <button className="btn btn-primary" onClick={nextStep}>Continue</button>
+          </div>
+        </div>
+      );
+    }
+
     if (step.type === "mcq" || step.type === "scenario") {
       const selectedAnswer = lessonState.answers[lessonState.stepIndex] as
         | number
@@ -2907,6 +3223,15 @@ function ProfileView({
   const [quizScores, setQuizScores] = useState<number[]>([]);
   const [quizSelected, setQuizSelected] = useState<number | null>(null);
   const [investorProfileLabel, setInvestorProfileLabel] = useState<string | null>(null);
+  const [profileGoal, setProfileGoal] = useState<string | null>(null);
+  const [profileGoalDescription, setProfileGoalDescription] = useState<string>("");
+
+  // Load goal from localStorage for the goal lookback card
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setProfileGoal(localStorage.getItem("fundi-user-goal"));
+    setProfileGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
+  }, []);
 
   // Load name, show update form if no real full_name exists
   useEffect(() => {
@@ -3105,6 +3430,35 @@ function ProfileView({
           );
         })()}
       </div>
+
+      {/* ── My Goal card ── */}
+      {profileGoal && (
+        <div style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: 14, padding: 16, marginBottom: 16,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14 }}>
+              <Target size={16} style={{ color: "var(--color-primary)" }} aria-hidden />
+              My Goal
+            </div>
+          </div>
+          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: profileGoalDescription ? 4 : 0 }}>
+            {GOAL_OPTIONS.find((g) => g.id === profileGoal)?.label ?? profileGoal}
+          </p>
+          {profileGoalDescription && (
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.5 }}>
+              {profileGoalDescription}
+            </p>
+          )}
+          {!profileGoalDescription && (
+            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4 }}>
+              Go to the Learn tab and tap &ldquo;Edit&rdquo; on your goal to add more detail.
+            </p>
+          )}
+        </div>
+      )}
 
       {needsProfileUpdate && !editingProfile && (
         <div style={{
@@ -3307,10 +3661,10 @@ function ProfileView({
                     </div>
                     <div className="mt-4 bg-gradient-to-br from-green-600 to-green-800 rounded-2xl p-5 text-white">
                       <p className="text-xs font-bold uppercase tracking-widest text-green-200 mb-1">
-                        Want a personalised plan?
+                        Built for your profile
                       </p>
                       <p className="text-green-100 text-sm mb-4 leading-relaxed">
-                        Ready to take the next step? Book a free 30-minute financial consultation.
+                        As a {res.profile} investor, here&apos;s what a personalised portfolio could look like — get a free plan in 30 minutes.
                       </p>
                       <button
                         type="button"
@@ -3320,7 +3674,7 @@ function ProfileView({
                         }}
                         className="block w-full py-3 bg-white text-green-800 rounded-xl font-bold text-center hover:bg-green-50 transition-colors"
                       >
-                        Book a Free Consultation
+                        Get Your {res.profile} Investment Plan
                       </button>
                     </div>
                   </div>
@@ -3384,17 +3738,17 @@ function ProfileView({
           <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
         </div>
         <p className="mb-4 text-sm leading-relaxed text-green-100">
-          Ready to take the next step? Book a free 30-minute financial consultation.
+          Turn what you&apos;ve learned into a real plan. Get a personalised roadmap for your money goals in 30 minutes.
         </p>
         <button
           type="button"
           onClick={() => {
-            analytics.advisorCtaClicked("advisor_card");
+            analytics.advisorCtaClicked("profile_cta");
             window.open("https://wealthwithkwanele.co.za", "_blank", "noopener,noreferrer");
           }}
           className="block w-full rounded-xl bg-white py-3 text-center text-sm font-bold text-green-800 transition-colors hover:bg-green-50"
         >
-          Book a Free Consultation
+          Get Your Free Financial Roadmap
         </button>
       </div>
 
@@ -3529,7 +3883,7 @@ function ProfileView({
 }
 
 function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: string }) {
-  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; isYou: boolean }[]>([]);
+  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; isYou: boolean; rank: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -3539,16 +3893,14 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
     setLoadError(false);
     async function load() {
       try {
-        // 1. Get current user
         const { data: { user } } = await supabase.auth.getUser();
         const myId = user?.id ?? currentUserId ?? null;
 
-        // 2. Fetch top 20 by XP
         const { data: progressRows, error } = await supabase
           .from("user_progress")
           .select("user_id, xp")
           .order("xp", { ascending: false })
-          .limit(20);
+          .limit(50);
 
         if (error || !progressRows) {
           setLoadError(true);
@@ -3556,7 +3908,6 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
           return;
         }
 
-        // 3. Fetch display names from profiles table
         const userIds = progressRows.map((r: any) => r.user_id);
         const { data: profileRows } = await supabase
           .from("profiles")
@@ -3565,23 +3916,23 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
 
         const nameMap: Record<string, string> = {};
         (profileRows ?? []).forEach((p: any) => {
-          if (p.full_name) nameMap[p.user_id] = p.full_name.split(" ")[0]; // first name only
+          if (p.full_name) nameMap[p.user_id] = p.full_name.split(" ")[0];
         });
 
-        const rows = progressRows.map((row: any) => {
+        const rows = progressRows.map((row: any, idx: number) => {
           const isYou = row.user_id === myId;
           const name = isYou
             ? "You"
             : (nameMap[row.user_id] ?? "Learner " + row.user_id.slice(0, 4).toUpperCase());
-          return { id: row.user_id, name, xp: row.xp ?? 0, isYou };
+          return { id: row.user_id, name, xp: row.xp ?? 0, isYou, rank: idx + 1 };
         });
 
-        // Ensure current user is in the list even if outside top 20
         const alreadyIn = rows.some((r) => r.isYou);
         if (!alreadyIn && myId) {
           const myName = user?.user_metadata?.full_name?.split(" ")[0] ?? "You";
-          rows.push({ id: myId, name: "You (" + myName + ")", xp, isYou: true });
+          rows.push({ id: myId, name: "You (" + myName + ")", xp, isYou: true, rank: rows.length + 1 });
           rows.sort((a, b) => b.xp - a.xp);
+          rows.forEach((r, i) => { r.rank = i + 1; });
         }
 
         setLeaders(rows);
@@ -3590,14 +3941,63 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
       }
     }
     load();
-  }, [xp, currentUserId]);
+  }, [xp, currentUserId, retryCount]);
+
+  const myRank = leaders.find((l) => l.isYou);
+  const myIndex = leaders.findIndex((l) => l.isYou);
+  const aheadOfMe = myIndex > 0 ? leaders[myIndex - 1] : null;
+  const xpToNext = aheadOfMe && myRank ? aheadOfMe.xp - myRank.xp : null;
+
+  // Top 3 podium + nearby section
+  const top3 = leaders.slice(0, 3);
+  const restLeaders = leaders.slice(3);
 
   return (
     <main className="main-content main-with-stats">
       <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Leaderboard</h2>
-      <p style={{ color: "var(--color-text-secondary)", marginBottom: 24, fontSize: 14 }}>
-        All players ranked by XP
+      <p style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>
+        Compete with other learners for the top spot
       </p>
+
+      {/* Your rank summary card */}
+      {myRank && !loading && (
+        <div style={{
+          background: "linear-gradient(135deg, rgba(0,122,77,0.1) 0%, rgba(255,182,18,0.06) 100%)",
+          border: "2px solid var(--color-primary)",
+          borderRadius: 16, padding: "16px 18px", marginBottom: 20,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 4 }}>
+                Your Rank
+              </div>
+              <div style={{ fontSize: 32, fontWeight: 900, color: "var(--color-text-primary)", lineHeight: 1 }}>
+                #{myRank.rank}
+              </div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "var(--color-primary)", marginTop: 4 }}>
+                {formatWithSpaces(myRank.xp)} XP
+              </div>
+            </div>
+            {xpToNext !== null && xpToNext > 0 && aheadOfMe && (
+              <div style={{
+                background: "var(--color-surface)", borderRadius: 12, padding: "10px 14px",
+                border: "1px solid var(--color-border)", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.06em", marginBottom: 2 }}>
+                  To overtake {aheadOfMe.name}
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: "#FFB612" }}>
+                  {formatWithSpaces(xpToNext)} XP
+                </div>
+                <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                  ≈ {Math.ceil(xpToNext / 60)} lessons away
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div style={{ textAlign: "center", padding: 40 }}>
           <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>Loading leaderboard...</div>
@@ -3619,45 +4019,116 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
           No players yet. Be the first to earn XP!
         </div>
       ) : (
-        <div
-          className="leaderboard-table"
-          style={{
-            background: "var(--color-surface)",
-            color: "var(--color-text-primary)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 16,
-            overflow: "hidden",
-          }}
-        >
-          {leaders.map((leader, index) => (
-            <div
-              key={leader.id}
-              className="leaderboard-row"
-              style={leader.isYou ? { background: "rgba(0,122,77,0.08)", border: "1.5px solid var(--color-primary)" } : undefined}
-            >
-              <div className={`leaderboard-rank ${index < 3 ? "top" : ""}`} style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {index === 0 ? <Trophy size={22} style={{ color: "#FFB612" }} aria-hidden /> :
-                  index === 1 ? <Trophy size={22} style={{ color: "#9CA3AF" }} aria-hidden /> :
-                  index === 2 ? <Trophy size={22} style={{ color: "#CD7F32" }} aria-hidden /> :
-                  index + 1}
-              </div>
-              <div className="leaderboard-avatar" style={{ background: leader.isYou ? "var(--color-primary)" : "#eee", color: leader.isYou ? "white" : "#555" }}>
-                {leader.name[0].toUpperCase()}
-              </div>
-              <div className="leaderboard-info">
-                <div className="leaderboard-name">
-                  {leader.name}
-                  {leader.isYou && (
-                    <span style={{ marginLeft: 6, fontSize: 11, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 7px", fontWeight: 700 }}>You</span>
-                  )}
+        <>
+          {/* Top 3 podium */}
+          {top3.length >= 3 && (
+            <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 10, marginBottom: 24 }}>
+              {/* 2nd place */}
+              <div style={{ textAlign: "center", flex: 1 }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: "50%", margin: "0 auto 6px",
+                  background: "#C0C0C0", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 20, fontWeight: 900, color: "white",
+                  border: top3[1].isYou ? "3px solid var(--color-primary)" : "3px solid #C0C0C0",
+                }}>{top3[1].name[0].toUpperCase()}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[1].name}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF" }}>{formatWithSpaces(top3[1].xp)} XP</div>
+                <div style={{ background: "#C0C0C0", borderRadius: "8px 8px 0 0", height: 60, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 22, fontWeight: 900, color: "white" }}>2</span>
                 </div>
               </div>
-              <div className="leaderboard-xp" style={{ color: leader.isYou ? "var(--color-primary)" : undefined }}>
-                {formatWithSpaces(leader.xp)} XP
+              {/* 1st place */}
+              <div style={{ textAlign: "center", flex: 1 }}>
+                <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+                  <Trophy size={20} style={{ color: "#FFB612" }} />
+                </div>
+                <div style={{
+                  width: 60, height: 60, borderRadius: "50%", margin: "0 auto 6px",
+                  background: "#FFB612", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 22, fontWeight: 900, color: "white",
+                  border: top3[0].isYou ? "3px solid var(--color-primary)" : "3px solid #FFB612",
+                  boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
+                }}>{top3[0].name[0].toUpperCase()}</div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#FFB612" }}>{formatWithSpaces(top3[0].xp)} XP</div>
+                <div style={{ background: "#FFB612", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 26, fontWeight: 900, color: "white" }}>1</span>
+                </div>
+              </div>
+              {/* 3rd place */}
+              <div style={{ textAlign: "center", flex: 1 }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: "50%", margin: "0 auto 6px",
+                  background: "#CD7F32", display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 18, fontWeight: 900, color: "white",
+                  border: top3[2].isYou ? "3px solid var(--color-primary)" : "3px solid #CD7F32",
+                }}>{top3[2].name[0].toUpperCase()}</div>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[2].name}</div>
+                <div style={{ fontSize: 11, fontWeight: 600, color: "#CD7F32" }}>{formatWithSpaces(top3[2].xp)} XP</div>
+                <div style={{ background: "#CD7F32", borderRadius: "8px 8px 0 0", height: 44, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <span style={{ fontSize: 20, fontWeight: 900, color: "white" }}>3</span>
+                </div>
               </div>
             </div>
-          ))}
-        </div>
+          )}
+
+          {/* Rest of leaderboard */}
+          <div style={{
+            background: "var(--color-surface)", color: "var(--color-text-primary)",
+            border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
+          }}>
+            {restLeaders.map((leader) => {
+              const prevLeader = leaders[leader.rank - 2]; // person above
+              return (
+                <div
+                  key={leader.id}
+                  className="leaderboard-row"
+                  style={{
+                    ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
+                    display: "flex", alignItems: "center", padding: "12px 16px",
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
+                >
+                  <div style={{
+                    width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
+                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    flexShrink: 0,
+                  }}>
+                    {leader.rank}
+                  </div>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
+                    background: leader.isYou ? "var(--color-primary)" : "#eee",
+                    color: leader.isYou ? "white" : "#555",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 14, fontWeight: 800, flexShrink: 0,
+                  }}>
+                    {leader.name[0].toUpperCase()}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                      {leader.name}
+                      {leader.isYou && (
+                        <span style={{ fontSize: 10, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>You</span>
+                      )}
+                    </div>
+                    {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        {formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{
+                    fontWeight: 800, fontSize: 14, flexShrink: 0,
+                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                  }}>
+                    {formatWithSpaces(leader.xp)} XP
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
       )}
     </main>
   );
@@ -4903,6 +5374,16 @@ export default function Home() {
     }
   };
 
+  // ── Action check handler ─────────────────────────────────────────────────
+  React.useEffect(() => {
+    (window as any).__actionCheckAnswer = (result: string) => {
+      setCurrentLessonState((prev) => ({
+        ...prev,
+        answers: { ...prev.answers, [prev.stepIndex]: result },
+      }));
+    };
+  }, []);
+
   React.useEffect(() => {
     (window as any).__fillBlankSubmit = (val: string, correct: boolean) => {
       setCurrentLessonState((prev) => ({
@@ -5016,16 +5497,18 @@ export default function Home() {
   };
 
   // Handle onboarding complete
-  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string }) => {
+  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string }) => {
     localStorage.setItem("fundi-onboarded", "true");
     if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
+    if (payload.goalDescription) localStorage.setItem("fundi-goal-description", payload.goalDescription);
     if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const row: { user_id: string; goal?: string; age_range?: string } = { user_id: user.id };
+      const row: Record<string, unknown> = { user_id: user.id };
       if (payload.goal) row.goal = payload.goal;
+      if (payload.goalDescription) row.goal_description = payload.goalDescription;
       if (payload.ageRange) row.age_range = payload.ageRange;
-      if (row.goal ?? row.age_range) {
+      if (row.goal ?? row.age_range ?? row.goal_description) {
         await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
       }
     }
@@ -5318,8 +5801,8 @@ export default function Home() {
                 5 Lessons Completed
               </h2>
               <p className="text-gray-500 dark:text-gray-400 text-sm mb-5 leading-relaxed">
-                You now know more about your money than most South Africans. Ready to turn
-                this knowledge into a real financial plan?
+                You now know more about your money than most South Africans. Want a personalised
+                plan to reach your first R10k emergency fund or start investing?
               </p>
               <button
                 type="button"
@@ -5329,7 +5812,7 @@ export default function Home() {
                 }}
                 className="block w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold mb-3 transition-colors"
               >
-                Book a Free Consultation
+                Get Your Free R10k Savings Plan
               </button>
               <button
                 type="button"
