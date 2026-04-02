@@ -970,7 +970,10 @@ function CalculatorView() {
     setCalcA(inputsA);
     setCalcB(inputsB);
     setHasCalculated(true);
-    // Save the user's personal projection
+    setProjectionSaved(false); // reset so pin button shows fresh
+  };
+
+  const handlePinProjection = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("fundi-calc-saved", JSON.stringify(inputsA));
       setProjectionSaved(true);
@@ -1266,10 +1269,24 @@ function CalculatorView() {
         </div>
       )}
 
+      {hasCalculated && !projectionSaved && (
+        <button
+          onClick={handlePinProjection}
+          style={{
+            width: "100%", marginBottom: 12, padding: "11px 16px", borderRadius: 12,
+            border: "1.5px solid var(--color-primary)", background: "transparent",
+            color: "var(--color-primary)", fontWeight: 700, fontSize: 14, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}
+        >
+          <TrendingUp size={16} aria-hidden />
+          Save this projection to my Profile
+        </button>
+      )}
       {projectionSaved && (
         <div className="mb-4 flex items-center gap-2 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 dark:border-green-700 dark:bg-green-900/20 dark:text-green-300">
           <CheckCircle2 size={16} className="shrink-0" aria-hidden />
-          <span>Projection saved to your profile — you can revisit it anytime.</span>
+          <span>Projection pinned to your Profile — tap Profile to view it.</span>
         </div>
       )}
 
@@ -1278,11 +1295,8 @@ function CalculatorView() {
         style={{ marginBottom: 32 }}
       >
         <div className="mb-3 flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
-          </span>
-          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
+          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 shrink-0" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Available</span>
         </div>
         <p className="text-green-100 text-sm leading-relaxed mb-4">
           See how your investments could grow with a personalised plan built around your numbers.
@@ -1519,6 +1533,28 @@ function useFundiState() {
       localStorage.setItem("fundi-last-route", route.name);
     }
   }, [route.name]);
+
+  // ── Restore profile settings from Supabase when user logs in ─────────────
+  // Prevents returning users from seeing onboarding again if localStorage was
+  // cleared (new device, cleared cache, etc.)
+  useEffect(() => {
+    if (!progress.userId) return;
+    if (route.name !== "onboarding") return;
+    (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("goal, goal_description, age_range")
+        .eq("user_id", progress.userId!)
+        .maybeSingle();
+      if (profile?.goal) {
+        localStorage.setItem("fundi-onboarded", "true");
+        localStorage.setItem("fundi-user-goal", profile.goal);
+        if (profile.goal_description) localStorage.setItem("fundi-goal-description", profile.goal_description);
+        if (profile.age_range) localStorage.setItem("fundi-age-range", profile.age_range);
+        setRoute({ name: "learn" });
+      }
+    })().catch(() => {});
+  }, [progress.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = {
     progressReady: progress.ready,
@@ -3259,6 +3295,9 @@ function ProfileView({
   const [profileGoalDescription, setProfileGoalDescription] = useState<string>("");
   const [savedProjection, setSavedProjection] = useState<CalcInputs | null>(null);
   const [projectionFinalValue, setProjectionFinalValue] = useState<number | null>(null);
+  const [showProfileGoalEdit, setShowProfileGoalEdit] = useState(false);
+  const [profileGoalEditId, setProfileGoalEditId] = useState<string>("");
+  const [profileGoalEditDesc, setProfileGoalEditDesc] = useState<string>("");
 
   // Load goal from localStorage for the goal lookback card
   useEffect(() => {
@@ -3487,6 +3526,20 @@ function ProfileView({
               <Target size={16} style={{ color: "var(--color-primary)" }} aria-hidden />
               My Goal
             </div>
+            <button
+              onClick={() => {
+                setProfileGoalEditId(profileGoal ?? "");
+                setProfileGoalEditDesc(profileGoalDescription ?? "");
+                setShowProfileGoalEdit(true);
+              }}
+              style={{
+                background: "none", border: "1px solid var(--color-border)", borderRadius: 8,
+                padding: "4px 10px", fontSize: 12, fontWeight: 600, cursor: "pointer",
+                color: "var(--color-primary)",
+              }}
+            >
+              Edit
+            </button>
           </div>
           <p style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)", marginBottom: profileGoalDescription ? 4 : 0 }}>
             {GOAL_OPTIONS.find((g) => g.id === profileGoal)?.label ?? profileGoal}
@@ -3497,10 +3550,94 @@ function ProfileView({
             </p>
           )}
           {!profileGoalDescription && (
-            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4 }}>
-              Go to the Learn tab and tap &ldquo;Edit&rdquo; on your goal to add more detail.
+            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 4, fontStyle: "italic" }}>
+              Tap Edit to describe your goal in more detail.
             </p>
           )}
+        </div>
+      )}
+
+      {/* ── Profile goal edit modal ── */}
+      {showProfileGoalEdit && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 600,
+          display: "flex", alignItems: "flex-end", justifyContent: "center",
+        }}>
+          <div style={{
+            background: "var(--color-surface)", borderRadius: "20px 20px 0 0",
+            padding: "24px 20px 32px", width: "100%", maxWidth: 480,
+            maxHeight: "85vh", overflowY: "auto",
+          }}>
+            <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 16 }}>Edit My Goal</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+              {ONBOARDING_GOAL_OPTIONS.map((g) => {
+                const sel = profileGoalEditId === g.id;
+                return (
+                  <button key={g.id} onClick={() => setProfileGoalEditId(g.id)} style={{
+                    padding: "12px 10px", borderRadius: 12, border: `2px solid ${sel ? "var(--color-primary)" : "var(--color-border)"}`,
+                    background: sel ? "var(--color-primary-light, #E6F4EF)" : "var(--color-surface)",
+                    color: sel ? "var(--color-primary)" : "var(--color-text-primary)",
+                    fontWeight: 700, fontSize: 13, cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 6,
+                  }}>
+                    <g.Icon size={16} />
+                    {g.label}
+                  </button>
+                );
+              })}
+            </div>
+            <textarea
+              value={profileGoalEditDesc}
+              onChange={(e) => setProfileGoalEditDesc(e.target.value)}
+              placeholder={profileGoalEditId === "other" ? "Describe your goal (required)…" : "Add detail about your goal (optional)…"}
+              rows={3}
+              style={{
+                width: "100%", borderRadius: 10, border: "1.5px solid var(--color-border)",
+                padding: "10px 12px", fontSize: 14, background: "var(--color-surface)",
+                color: "var(--color-text-primary)", resize: "none", boxSizing: "border-box",
+                marginBottom: 14,
+              }}
+            />
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                onClick={() => setShowProfileGoalEdit(false)}
+                style={{
+                  flex: 1, padding: "12px", borderRadius: 12, border: "1.5px solid var(--color-border)",
+                  background: "transparent", color: "var(--color-text-primary)", fontWeight: 600, cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!profileGoalEditId || (profileGoalEditId === "other" && !profileGoalEditDesc.trim())}
+                onClick={async () => {
+                  const desc = profileGoalEditDesc.trim();
+                  localStorage.setItem("fundi-user-goal", profileGoalEditId);
+                  if (desc) localStorage.setItem("fundi-goal-description", desc);
+                  else localStorage.removeItem("fundi-goal-description");
+                  setProfileGoal(profileGoalEditId);
+                  setProfileGoalDescription(desc);
+                  setShowProfileGoalEdit(false);
+                  // Persist to Supabase
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    await supabase.from("profiles").upsert({
+                      user_id: user.id,
+                      goal: profileGoalEditId,
+                      goal_description: desc || null,
+                    }, { onConflict: "user_id" });
+                  }
+                }}
+                style={{
+                  flex: 2, padding: "12px", borderRadius: 12, border: "none",
+                  background: "var(--color-primary)", color: "#fff", fontWeight: 700, cursor: "pointer",
+                  opacity: (!profileGoalEditId || (profileGoalEditId === "other" && !profileGoalEditDesc.trim())) ? 0.5 : 1,
+                }}
+              >
+                Save Goal
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -3815,11 +3952,8 @@ function ProfileView({
 
       <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-green-700 to-green-900 p-5 text-white">
         <div className="mb-3 flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-300 opacity-60" />
-            <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
-          </span>
-          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Online</span>
+          <span className="inline-flex h-2.5 w-2.5 rounded-full bg-green-400 shrink-0" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Available</span>
         </div>
         <p className="mb-4 text-sm leading-relaxed text-green-100">
           Turn what you&apos;ve learned into a real plan. Get a personalised roadmap for your money goals in 30 minutes.
@@ -4928,6 +5062,35 @@ function StatsPanel({ userData }: { userData: UserData }) {
   );
 }
 
+// Disposable / obviously-fake email domains to block at signup
+const BLOCKED_EMAIL_DOMAINS = new Set([
+  "mailinator.com","guerrillamail.com","guerrillamail.net","guerrillamail.org",
+  "sharklasers.com","guerrillamailblock.com","grr.la","guerrillamail.info",
+  "spam4.me","trashmail.com","trashmail.net","trashmail.me","trashmail.at",
+  "trashmail.io","trashmail.org","yopmail.com","yopmail.fr","cool.fr.nf",
+  "jetable.fr.nf","nospam.ze.tc","nomail.xl.cx","mega.zik.dj","speed.1s.fr",
+  "courriel.fr.nf","moncourrier.fr.nf","monemail.fr.nf","monmail.fr.nf",
+  "dispostable.com","fakeinbox.com","throwam.com","maildrop.cc",
+  "throwaway.email","tempmail.com","temp-mail.org","temp-mail.io",
+  "getnada.com","mailnesia.com","mailnull.com","spamgourmet.com",
+  "spamgourmet.net","spamgourmet.org","spamdecoy.net","spamspot.com",
+  "spamfree24.org","spamfree24.de","spamfree24.info","spamfree24.com",
+  "emailondeck.com","getairmail.com","fakemailgenerator.com",
+  "10minutemail.com","10minutemail.net","10minemail.com",
+  "tempr.email","discard.email","spamwc.de","rcpt.at","spam.la",
+  "boun.cr","filzmail.com","spamgob.com","spam.su","spamthisplease.com",
+]);
+
+function isBlockedEmailDomain(emailAddr: string): boolean {
+  const parts = emailAddr.toLowerCase().trim().split("@");
+  if (parts.length !== 2) return false;
+  return BLOCKED_EMAIL_DOMAINS.has(parts[1]);
+}
+
+function isValidEmailFormat(emailAddr: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailAddr.trim());
+}
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [firstName, setFirstName] = useState("");
@@ -4943,6 +5106,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
+  const [awaitingVerification, setAwaitingVerification] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
 
   const handleForgotPassword = async () => {
     if (!forgotEmail.trim()) { setError("Please enter your email."); return; }
@@ -4986,30 +5151,56 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   const handleSignIn = async () => {
     setError(null);
-    const { error: e } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    if (!isValidEmailFormat(email)) { setError("Please enter a valid email address."); return; }
+    const { error: e } = await supabase.auth.signInWithPassword({ email, password });
+    if (e) {
+      if (e.message.toLowerCase().includes("email not confirmed") ||
+          e.message.toLowerCase().includes("not confirmed")) {
+        setVerificationEmail(email);
+        setAwaitingVerification(true);
+      } else {
+        setError("Incorrect email or password. Please try again.");
+      }
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setError(null);
+    const { error: e } = await supabase.auth.resend({ type: "signup", email: verificationEmail });
     if (e) setError(e.message);
+    else setError(null);
   };
 
   const handleSignUp = async () => {
     setError(null);
     if (!firstName.trim()) { setError("Please enter your first name."); return; }
     if (!lastName.trim()) { setError("Please enter your last name."); return; }
+    if (!isValidEmailFormat(email)) { setError("Please enter a valid email address."); return; }
+    if (isBlockedEmailDomain(email)) {
+      setError("Please sign up with a real email address. Temporary or disposable emails are not allowed.");
+      return;
+    }
     const ageNum = parseInt(age, 10);
     if (!age || isNaN(ageNum) || ageNum < 13 || ageNum > 120) {
       setError("Please enter a valid age (13+).");
       return;
     }
+    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     const fullName = firstName.trim() + " " + lastName.trim();
     const { data, error: e } = await supabase.auth.signUp({
-      email,
+      email: email.trim().toLowerCase(),
       password,
       options: { data: { full_name: fullName, age: ageNum } },
     });
     if (e) { setError(e.message); return; }
-    // Also write to profiles table for leaderboard display
+    // If Supabase email confirmation is enabled, user.identities will be present
+    // but session will be null — show verify screen
+    if (data.user && !data.session) {
+      setVerificationEmail(email.trim().toLowerCase());
+      setAwaitingVerification(true);
+      return;
+    }
+    // Auto-confirmed (email confirm disabled) — write profile immediately
     if (data.user) {
       await supabase.from("profiles").upsert({
         user_id: data.user.id,
@@ -5081,6 +5272,46 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   if (!session) {
+    // ── Email verification pending screen ────────────────────────────────────
+    if (awaitingVerification) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-[var(--bg-gray)]" style={{ padding: 16 }}>
+          <div style={{ background: "var(--color-surface)", padding: 32, borderRadius: 20, border: "1px solid var(--color-border)", maxWidth: 420, width: "100%", textAlign: "center" }}>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "var(--color-primary-light, #E6F4EF)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Mail size={32} style={{ color: "var(--color-primary)" }} aria-hidden />
+              </div>
+            </div>
+            <h2 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8, color: "var(--color-text-primary)" }}>
+              Check your email
+            </h2>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 6, lineHeight: 1.6 }}>
+              We sent a verification link to
+            </p>
+            <p style={{ fontWeight: 700, fontSize: 15, color: "var(--color-primary)", marginBottom: 20 }}>
+              {verificationEmail}
+            </p>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, marginBottom: 24, lineHeight: 1.6 }}>
+              Click the link in that email to activate your account. Check your spam folder if you don&apos;t see it.
+            </p>
+            {error && <p style={{ color: "var(--error-red)", fontSize: 13, marginBottom: 12 }}>{error}</p>}
+            <button
+              className="btn btn-primary" style={{ width: "100%", marginBottom: 10 }}
+              onClick={handleResendVerification}
+            >
+              Resend verification email
+            </button>
+            <button
+              onClick={() => { setAwaitingVerification(false); setMode("signin"); setError(null); }}
+              style={{ background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 13, textDecoration: "underline" }}
+            >
+              Back to Sign In
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // Forgot password screen
     if (forgotMode) {
       return (
@@ -5523,6 +5754,7 @@ export default function Home() {
     if (name === "profile") setRoute({ name: "profile" });
     if (name === "leaderboard") setRoute({ name: "leaderboard" });
     if (name === "settings") setRoute({ name: "settings" });
+    if (name === "budget") setRoute({ name: "budget" });
   };
 
   // ── Find the next playable lesson after the current one ──────────────────

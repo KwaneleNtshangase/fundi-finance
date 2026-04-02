@@ -1036,11 +1036,40 @@ html.dark {
   --bg-gray: #0D1117;
   --border-light: #30363D;
   --text-light: #8B949E;
+  --text-dark: #E6EDF3;
+  /* Bottom nav — ensure strong contrast in dark mode */
+  --color-nav-bg: #111827;
+  --color-nav-active: #4ade80;
 }
 
 html.dark body {
   background: #0D1117;
   color: #E6EDF3;
+}
+
+/* ── Dark mode bottom nav — strong contrast ─────────────────────────────── */
+html.dark .bottom-nav {
+  background: #111827 !important;
+  border-top-color: #1f2937 !important;
+}
+
+/* White backgrounds in inline styles need dark equivalents */
+html.dark [style*="background: white"],
+html.dark [style*="background:white"],
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"] {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Ensure hardcoded dark text in inline styles is readable in dark mode */
+html.dark [style*="color: #111"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color: #374151"],
+html.dark [style*="color: black"] {
+  color: var(--color-text-primary) !important;
 }
 
 html.dark .course-card {
