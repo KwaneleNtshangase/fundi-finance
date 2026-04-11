@@ -8174,6 +8174,51 @@ export default function Home() {
     (typeof COURSE_BADGES)[string] | null
   >(null);
 
+  // ── Universal modal / nav orchestration ─────────────────────────────────
+  // Any one of these being truthy means a blocking UI is visible. When any
+  // modal is open we (a) hide the mobile bottom nav so modal actions aren't
+  // obscured and (b) lock body scrolling so the page underneath doesn't move.
+  const isAnyModalOpen =
+    !!lessonSummary ||
+    showMilestoneCta ||
+    !!courseCompleteModal ||
+    newlyEarnedBadges.length > 0 ||
+    showNoHearts ||
+    !!weeklyChallengeCelebration;
+
+  const hideMobileNav = route.name === "lesson" || isAnyModalOpen;
+
+  // Body scroll lock: while a modal is open (or we're in a lesson), disable
+  // page scrolling so scrolling inside the modal/lesson can't bleed through.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const body = document.body;
+    const html = document.documentElement;
+    if (isAnyModalOpen) {
+      const prevBody = body.style.overflow;
+      const prevHtml = html.style.overflow;
+      const prevTouch = (body.style as CSSStyleDeclaration & {
+        overscrollBehavior?: string;
+      }).overscrollBehavior ?? "";
+      body.style.overflow = "hidden";
+      html.style.overflow = "hidden";
+      (body.style as CSSStyleDeclaration & {
+        overscrollBehavior?: string;
+      }).overscrollBehavior = "contain";
+      body.classList.add("modal-open");
+      return () => {
+        body.style.overflow = prevBody;
+        html.style.overflow = prevHtml;
+        (body.style as CSSStyleDeclaration & {
+          overscrollBehavior?: string;
+        }).overscrollBehavior = prevTouch;
+        body.classList.remove("modal-open");
+      };
+    }
+    return;
+  }, [isAnyModalOpen]);
+  // ── End modal orchestration ──────────────────────────────────────────────
+
   const [courseBadgeIds, setCourseBadgeIds] = useState<string[]>(() => {
     if (typeof window === "undefined") return [];
     try {
@@ -9178,8 +9223,18 @@ export default function Home() {
           </ul>
         </nav>
 
-        {/* keep content above bottom nav on mobile */}
-        <div className="pb-24 md:pb-8">
+        {/* keep content above bottom nav on mobile (nav is ~56px + safe area) */}
+        <div
+          className={hideMobileNav ? "pb-4 md:pb-8" : "md:pb-8"}
+          style={
+            hideMobileNav
+              ? undefined
+              : {
+                  paddingBottom:
+                    "calc(88px + env(safe-area-inset-bottom))",
+                }
+          }
+        >
         {/* TopBar moved outside scroll area, see below */}
         {route.name === "learn" && (
           <LearnView
@@ -9786,6 +9841,7 @@ export default function Home() {
       </div>
 
       <MobileBottomNav
+        hidden={hideMobileNav}
         items={[
           {
             key: "learn",

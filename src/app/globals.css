@@ -663,6 +663,24 @@ html.dark .nav-link.active {
   gap: 12px;
   justify-content: flex-end;
   margin-top: 32px;
+  /* Extra bottom room so primary CTA is never behind the mobile bottom nav
+     or below the iOS home indicator. The nav is hidden during lessons, but
+     we still guarantee safe-area clearance. */
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+}
+
+@media (max-width: 768px) {
+  .lesson-actions {
+    /* Stack buttons on mobile so long CTA text like "Next Lesson: …" fits */
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .lesson-actions .btn {
+    width: 100%;
+  }
 }
 
 .btn {
@@ -1062,6 +1080,21 @@ html.dark body {
   box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.13) !important;
 }
 
+/* ── Universal modal scroll lock ────────────────────────────────────────── */
+/* When any modal / notification is open, page content behind it must not
+   scroll. The `.modal-open` class is toggled on <body> from page.tsx. */
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+  /* iOS Safari needs position: fixed to actually lock the scroll */
+  touch-action: none;
+}
+body.modal-open .bottom-nav {
+  /* Ensure the nav is out of the way when a modal is open, even if a
+     stale render leaves it mounted for a frame. */
+  display: none !important;
+}
+
 /* ── Bottom nav icon + label — strong visibility ─────────────────────────── */
 .bottom-nav button {
   color: #4a6a5c !important;
@@ -1256,6 +1289,10 @@ html.dark .option-button:hover:not(:disabled) {
     transform: translateX(-50%);
     width: 480px;
     max-width: 100vw;
+  }
+  /* Body scroll lock must still win over the desktop nav override */
+  body.modal-open .bottom-nav {
+    display: none !important;
   }
 }
 

@@ -11,7 +11,14 @@ type Item = {
   order: string; // tailwind order-* utility
 };
 
-export function MobileBottomNav({ items }: { items: Item[] }) {
+export function MobileBottomNav({
+  items,
+  hidden = false,
+}: {
+  items: Item[];
+  hidden?: boolean;
+}) {
+  if (hidden) return null;
   return (
     <nav
       className="bottom-nav fixed bottom-0 left-0 right-0 z-[200] pb-[env(safe-area-inset-bottom)] md:hidden"
