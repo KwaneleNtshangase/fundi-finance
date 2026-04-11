@@ -19,6 +19,65 @@ export type WeeklyCompletionEntry = {
 export type WeeklyCompletionsMap = Record<string, WeeklyCompletionEntry>;
 
 const LS_KEY = "fundiUserProgress_v1";
+const FREEZE_LS_KEY = "fundi-freeze-count";
+const WEEKLY_XP_LS_KEY = "fundi-weekly-xp";
+const WEEK_KEY_LS_KEY = "fundi-week-key";
+
+function getStoredFreezeCount(): number {
+  if (typeof window === "undefined") return 0;
+  return Math.max(0, parseInt(window.localStorage.getItem(FREEZE_LS_KEY) ?? "0", 10));
+}
+
+/** Returns the ISO week key for the most recent Sunday: "fundi-week-YYYY-MM-DD" */
+function getCurrentWeekKey(): string {
+  const now = new Date();
+  const sunday = new Date(now);
+  sunday.setDate(now.getDate() - now.getDay()); // roll back to Sunday
+  const y = sunday.getFullYear();
+  const m = String(sunday.getMonth() + 1).padStart(2, "0");
+  const d = String(sunday.getDate()).padStart(2, "0");
+  return `fundi-week-${y}-${m}-${d}`;
+}
+
+/** Sum fundi-daily-xp-* keys for every day of the current week (Sun→today).
+ *  Used as a migration fallback so lessons earned before weekly tracking was
+ *  added are still reflected in the leaderboard/stats. */
+function sumDailyXpThisWeek(): number {
+  if (typeof window === "undefined") return 0;
+  const today = new Date();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+  let total = 0;
+  for (let i = 0; i <= today.getDay(); i++) {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    total += Math.max(0, parseInt(window.localStorage.getItem(`fundi-daily-xp-${iso}`) ?? "0", 10));
+  }
+  return total;
+}
+
+function getStoredWeeklyXp(): { weeklyXp: number; weekKey: string } {
+  if (typeof window === "undefined") return { weeklyXp: 0, weekKey: "" };
+  const stored = window.localStorage.getItem(WEEK_KEY_LS_KEY) ?? "";
+  const current = getCurrentWeekKey();
+  if (stored !== current) {
+    // New week — seed from daily keys in case there are pre-tracking lessons this week
+    const fromDaily = sumDailyXpThisWeek();
+    window.localStorage.setItem(WEEKLY_XP_LS_KEY, String(fromDaily));
+    window.localStorage.setItem(WEEK_KEY_LS_KEY, current);
+    return { weeklyXp: fromDaily, weekKey: current };
+  }
+  const storedXp = Math.max(0, parseInt(window.localStorage.getItem(WEEKLY_XP_LS_KEY) ?? "0", 10));
+  // Migration: if daily keys have more XP than stored (e.g. lessons before tracking was added),
+  // use the daily sum and write it back so future sessions stay in sync.
+  const fromDaily = sumDailyXpThisWeek();
+  const xp = Math.max(storedXp, fromDaily);
+  if (xp > storedXp) {
+    window.localStorage.setItem(WEEKLY_XP_LS_KEY, String(xp));
+  }
+  return { weeklyXp: xp, weekKey: current };
+}
 
 const DEFAULT_STATE: ProgressState = {
   xp: 0,
@@ -111,6 +170,9 @@ export function useProgress() {
   const [state, setState] = useState<ProgressState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [freezeCount, setFreezeCount] = useState<number>(0);
+  const [weeklyXp, setWeeklyXp] = useState<number>(0);
+  const [weekKey, setWeekKey] = useState<string>("");
 
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasMigratedGuestRef = useRef(false);
@@ -123,6 +185,10 @@ export function useProgress() {
   useEffect(() => {
     const guest = safeParse<ProgressState>(window.localStorage.getItem(LS_KEY));
     if (guest) setState((prev) => ({ ...prev, ...guest }));
+    setFreezeCount(getStoredFreezeCount());
+    const { weeklyXp: wXp, weekKey: wKey } = getStoredWeeklyXp();
+    setWeeklyXp(wXp);
+    setWeekKey(wKey);
   }, []);
 
   useEffect(() => {
@@ -257,6 +323,8 @@ export function useProgress() {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = setTimeout(async () => {
       if (userId) {
+        const currentKey = getCurrentWeekKey();
+        const { weeklyXp: currentWeeklyXp } = getStoredWeeklyXp();
         const { error } = await supabase
           .from("user_progress")
           .upsert(
@@ -268,6 +336,8 @@ export function useProgress() {
                 ? localActivityToPgDate(state.lastActivityDate)
                 : null,
               completed_lessons: state.completedLessons,
+              weekly_xp: currentWeeklyXp,
+              week_key: currentKey,
               updated_at: new Date().toISOString(),
             },
             { onConflict: "user_id" }
@@ -289,6 +359,19 @@ export function useProgress() {
       ...prev,
       xp: Math.max(0, prev.xp + amount),
     }));
+    // Also track this week's XP
+    if (typeof window !== "undefined") {
+      const currentKey = getCurrentWeekKey();
+      const storedKey = window.localStorage.getItem(WEEK_KEY_LS_KEY) ?? "";
+      const base = storedKey === currentKey
+        ? Math.max(0, parseInt(window.localStorage.getItem(WEEKLY_XP_LS_KEY) ?? "0", 10))
+        : 0;
+      const next = base + amount;
+      window.localStorage.setItem(WEEKLY_XP_LS_KEY, String(next));
+      window.localStorage.setItem(WEEK_KEY_LS_KEY, currentKey);
+      setWeeklyXp(next);
+      setWeekKey(currentKey);
+    }
   };
 
   /** Deduct XP if balance is enough. Syncs guest localStorage immediately; authed Supabase upsert immediately. */
@@ -345,19 +428,37 @@ export function useProgress() {
     const yPrev = new Date(todayD);
     yPrev.setDate(yPrev.getDate() - 1);
     const yesterday = yPrev.toDateString();
+    const twoDaysAgo = new Date(todayD);
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+    const twoDaysAgoStr = twoDaysAgo.toDateString();
     let result: number | null = null;
     setState((prev) => {
       if (prev.lastActivityDate === today) return prev;
+      // If exactly one day was missed and user has a freeze, auto-consume it
+      const missedExactlyOneDay = prev.lastActivityDate === twoDaysAgoStr;
+      const currentFreezes = getStoredFreezeCount();
+      if (missedExactlyOneDay && currentFreezes > 0) {
+        const newCount = currentFreezes - 1;
+        window.localStorage.setItem(FREEZE_LS_KEY, String(newCount));
+        setFreezeCount(newCount);
+        result = prev.streak + 1;
+        return { ...prev, streak: prev.streak + 1, lastActivityDate: today };
+      }
       const newStreak =
         prev.lastActivityDate === yesterday ? prev.streak + 1 : 1;
       result = newStreak;
-      return {
-        ...prev,
-        streak: newStreak,
-        lastActivityDate: today,
-      };
+      return { ...prev, streak: newStreak, lastActivityDate: today };
     });
     return result;
+  };
+
+  /** Buy a streak freeze for `cost` XP (default 200). Returns true if purchase succeeded. */
+  const buyStreakFreeze = (cost = 200): boolean => {
+    if (!tryDeductXp(cost)) return false;
+    const next = getStoredFreezeCount() + 1;
+    window.localStorage.setItem(FREEZE_LS_KEY, String(next));
+    setFreezeCount(next);
+    return true;
   };
 
   const persistWeeklyChallengeCompletion = async (
@@ -422,10 +523,14 @@ export function useProgress() {
     xp: state.xp,
     streak: state.streak,
     completedLessons,
+    freezeCount,
+    weeklyXp,
+    weekKey,
     addXP,
     tryDeductXp,
     completeLesson,
     applyStreakAfterLesson,
+    buyStreakFreeze,
     persistWeeklyChallengeCompletion,
     resetProgress,
   };

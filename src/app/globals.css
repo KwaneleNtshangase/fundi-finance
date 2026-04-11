@@ -187,8 +187,14 @@ html.dark .nav-link.active {
   overflow-y: auto;
 }
 
+/* Only push content left of stats panel when the panel is actually visible */
 .main-with-stats {
-  margin-right: 320px;
+  margin-right: 0;
+}
+@media (min-width: 1200px) {
+  .main-with-stats {
+    margin-right: 320px;
+  }
 }
 
 .stats-section {
@@ -343,10 +349,10 @@ html.dark .nav-link.active {
   display: inline-flex;
   align-items: center;
   padding: 10px 20px;
-  background: white;
-  border: 2px solid var(--border-light);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
   border-radius: 12px;
-  color: var(--text-dark);
+  color: var(--color-text-primary);
   text-decoration: none;
   font-weight: 600;
   margin-bottom: 24px;
@@ -355,7 +361,7 @@ html.dark .nav-link.active {
 }
 
 .back-button:hover {
-  background: var(--bg-gray);
+  background: var(--color-bg);
 }
 
 .course-map-title {
@@ -431,7 +437,7 @@ html.dark .nav-link.active {
 }
 
 .lesson-node.locked {
-  background: #f9fafb;
+  background: var(--color-bg);
   border-color: var(--color-border);
   color: var(--color-text-secondary);
   cursor: not-allowed;
@@ -439,7 +445,7 @@ html.dark .nav-link.active {
 }
 
 .lesson-node.coming-soon {
-  background: #f9fafb;
+  background: var(--color-bg);
   border-color: var(--color-border);
   color: var(--color-text-secondary);
   font-size: 24px;
@@ -1047,10 +1053,36 @@ html.dark body {
   color: #E6EDF3;
 }
 
+/* ── Bottom nav — always clearly visible ────────────────────────────────── */
+.bottom-nav {
+  background: #ffffff !important;
+  border-top: 2.5px solid #b3d9c8 !important;
+  box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.13) !important;
+}
+
+/* ── Bottom nav icon + label — strong visibility ─────────────────────────── */
+.bottom-nav button {
+  color: #4a6a5c !important;
+  font-weight: 700 !important;
+}
+.bottom-nav button.text-\[var\(--color-nav-active\)\],
+.bottom-nav button[class*="text-[var(--color-nav-active)]"] {
+  color: var(--color-nav-active) !important;
+}
+
 /* ── Dark mode bottom nav — strong contrast ─────────────────────────────── */
 html.dark .bottom-nav {
-  background: #111827 !important;
-  border-top-color: #1f2937 !important;
+  background: #0f1923 !important;
+  border-top: 2.5px solid #1e3448 !important;
+  box-shadow: 0 -6px 32px rgba(0, 0, 0, 0.7) !important;
+}
+html.dark .bottom-nav button {
+  color: #8eafc0 !important;
+}
+
+/* main-no-stats: full width, no right margin for stats panel */
+.main-no-stats {
+  margin-right: 0 !important;
 }
 
 /* White backgrounds in inline styles need dark equivalents */
@@ -1074,6 +1106,54 @@ html.dark [style*="color: black"] {
 
 html.dark .course-card {
   background: #161B22 !important;
+}
+
+/* ── Dark mode: course map header uses hardcoded light inline bg — override ── */
+html.dark .course-map-header {
+  background: #1a2332 !important;
+}
+html.dark .course-map-header .course-map-title,
+html.dark .course-map-header h2 {
+  color: var(--color-text-primary) !important;
+}
+html.dark .course-map-description,
+html.dark .course-map-header p {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── Dark mode: unit-header category name text ── */
+html.dark .unit-header {
+  background: #161B22 !important;
+  border-color: var(--color-primary) !important;
+}
+html.dark .unit-title {
+  color: var(--color-primary) !important;
+}
+html.dark .unit-description {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── Dark mode: lesson node label text ── */
+html.dark .lesson-label {
+  color: var(--color-text-primary) !important;
+}
+
+/* ── Dark mode: course card inline bg colours (pastel bg → dark surface) ── */
+html.dark [class*="course-card"] [style*="background: #E8F"],
+html.dark [class*="course-card"] [style*="background: #FFF"],
+html.dark [class*="course-card"] [style*="background: #EEF"],
+html.dark [class*="course-card"] [style*="background: #F3E"],
+html.dark [class*="course-card"] [style*="background: #FCE"] {
+  background: #161B22 !important;
+}
+
+/* ── Dark mode: advisor CTA card white button ── */
+html.dark .bg-white {
+  background: rgba(255,255,255,0.08) !important;
+  color: #e2e8f0 !important;
+}
+html.dark .text-green-800 {
+  color: #4ade80 !important;
 }
 
 html.dark input,
@@ -1113,6 +1193,43 @@ html.dark .option-button {
 
 html.dark .option-button:hover:not(:disabled) {
   background: #1F2937;
+}
+
+/* ── Budget page desktop scaling ──────────────────────────────────────── */
+@media (min-width: 768px) {
+  .budget-page {
+    max-width: 760px;
+  }
+
+  /* Scale up summary cards */
+  .budget-page h2 {
+    font-size: 36px !important;
+  }
+
+  /* Bigger month navigator text */
+  .budget-page [aria-label="Previous month"],
+  .budget-page [aria-label="Next month"] {
+    padding: 8px !important;
+  }
+
+  /* Wider summary card labels + values */
+  .budget-page [style*="font-size: 10px"] {
+    font-size: 13px !important;
+  }
+  .budget-page [style*="font-size: 15px"] {
+    font-size: 20px !important;
+  }
+
+  /* Category breakdown + transaction list row padding */
+  .budget-page [style*="font-size: 13px"] {
+    font-size: 15px !important;
+  }
+  .budget-page [style*="font-size: 14px"] {
+    font-size: 15px !important;
+  }
+  .budget-page [style*="font-size: 11px"] {
+    font-size: 13px !important;
+  }
 }
 
 /* patch-14: logo pulse */

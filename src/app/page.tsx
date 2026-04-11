@@ -13,6 +13,14 @@ import {
   INVESTOR_PROFILE_STYLES,
   INVESTOR_QUIZ_QUESTIONS,
 } from "@/data/gamificationExtras";
+import { CONCEPTS, getConceptIdsForCourse } from "@/data/concepts";
+import {
+  applyReview,
+  getDueCards,
+  saveMastery,
+  scheduleConceptsForCourse,
+} from "@/lib/spaced-repetition";
+import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import {
@@ -24,18 +32,27 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
 } from "recharts";
 import {
   AlertTriangle,
   ArrowLeft,
   Award,
   BarChart2,
+  Bell,
   BookOpen,
   Brain,
   Briefcase,
   Building2,
   Calculator,
+  Car,
   CheckCircle2,
+  Clock,
+  Copy,
   CreditCard,
   ExternalLink,
   FileText,
@@ -45,6 +62,8 @@ import {
   Hash,
   Heart,
   HeartOff,
+  HelpCircle,
+  MessageSquare,
   Home as HomeIcon,
   Info,
   KeyRound,
@@ -57,11 +76,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Moon,
+  MoreHorizontal,
   PenLine,
+  PiggyBank,
   Play,
   Plus,
   ShoppingCart,
+  Smartphone,
   Trash2,
+  TrendingDown,
   Search,
   Settings as SettingsIcon,
   Share2,
@@ -72,14 +95,16 @@ import {
   Target,
   TrendingUp,
   Trophy,
+  Tv,
   Umbrella,
   User as UserIcon,
   Wallet,
+  WifiOff,
   X,
   Zap,
 } from "lucide-react";
 
-import type { Course, Lesson, LessonStep } from "@/data/content";
+import type { Course, Unit, Lesson, LessonStep } from "@/data/content";
 
 function getDailyFact(): string {
   const start = new Date(new Date().getFullYear(), 0, 0);
@@ -220,15 +245,16 @@ function generateShareText(
 ): string {
   if (type === "lesson") {
     const t = data.lessonTitle ?? "a lesson";
-    return `I just completed "${t}" on Fundi Finance. Short, South Africa–focused money lessons that actually make sense.\n\nJoin me: fundi-finance.vercel.app`;
+    const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
+    return `I just completed "${t}"${xpPart} on Fundi Finance 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just earned the "${n}" badge on Fundi Finance. Building real financial knowledge, one lesson at a time.\n\nfundi-finance.vercel.app`;
+    return `I just earned the "${n}" badge on Fundi Finance 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d}-day learning streak on Fundi Finance. Showing up for my money goals every day.\n\nfundi-finance.vercel.app`;
+    return `${d}-day learning streak on Fundi Finance 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
   }
   return "";
 }
@@ -312,6 +338,7 @@ function OnboardingView({
   const [selectedGoal, setSelectedGoal] = React.useState("");
   const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
+  const [ageConfirmed, setAgeConfirmed] = React.useState(false);
 
   const screenCount = 4;
   const screensMeta = [
@@ -319,7 +346,7 @@ function OnboardingView({
       title: "Welcome to Fundi Finance",
       body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
       cta: "Let's go",
-      action: () => setScreen(1),
+      action: () => { if (ageConfirmed) setScreen(1); },
     },
     {
       title: "What's your money goal?",
@@ -413,6 +440,27 @@ function OnboardingView({
         <p style={{ fontSize: 15, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>
           {current.body}
         </p>
+
+        {/* Age confirmation — screen 0 only */}
+        {screen === 0 && (
+          <label style={{
+            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24,
+            textAlign: "left", cursor: "pointer",
+            padding: "14px 16px", borderRadius: 12,
+            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
+          }}>
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+              I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
+            </span>
+          </label>
+        )}
 
         {screen === 1 && (
           <>
@@ -523,7 +571,10 @@ function OnboardingView({
           className="btn btn-primary"
           style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
           onClick={current.action}
-          disabled={screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))}
+          disabled={
+            (screen === 0 && !ageConfirmed) ||
+            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim())))
+          }
         >
           {current.cta}
         </button>
@@ -653,14 +704,47 @@ function calcGrowth(inputs: CalcInputs) {
   return data;
 }
 
-/** Thousands use spaces (e.g. R1 000), not commas. */
+/** Bisection solver — finds value where fn(v) ≈ 0; fn must be monotone increasing. */
+function bisectSolver(fn: (v: number) => number, lo: number, hi: number, iters = 64): number {
+  for (let i = 0; i < iters; i++) {
+    const mid = (lo + hi) / 2;
+    if (fn(mid) < 0) lo = mid; else hi = mid;
+  }
+  return (lo + hi) / 2;
+}
+function solveForYears(base: CalcInputs, goal: number): number {
+  if ((calcGrowth({ ...base, years: 0 }).at(-1)?.value ?? 0) >= goal) return 0;
+  if ((calcGrowth({ ...base, years: 100 }).at(-1)?.value ?? 0) < goal) return Infinity;
+  return bisectSolver((n) => (calcGrowth({ ...base, years: Math.ceil(n) }).at(-1)?.value ?? 0) - goal, 0, 100);
+}
+function solveForMonthly(base: CalcInputs, goal: number): number {
+  if ((calcGrowth({ ...base, monthly: 0 }).at(-1)?.value ?? 0) >= goal) return 0;
+  const cap = Math.max(goal / Math.max(base.years, 1) / 12, 50000);
+  return bisectSolver((m) => (calcGrowth({ ...base, monthly: m }).at(-1)?.value ?? 0) - goal, 0, cap);
+}
+function solveForRate(base: CalcInputs, goal: number): number {
+  if ((calcGrowth({ ...base, rate: 0 }).at(-1)?.value ?? 0) >= goal) return 0;
+  if ((calcGrowth({ ...base, rate: 100 }).at(-1)?.value ?? 0) < goal) return Infinity;
+  return bisectSolver((r) => (calcGrowth({ ...base, rate: r }).at(-1)?.value ?? 0) - goal, 0, 100);
+}
+function solveForInitial(base: CalcInputs, goal: number): number {
+  if ((calcGrowth({ ...base, principal: 0 }).at(-1)?.value ?? 0) >= goal) return 0;
+  return bisectSolver((p) => (calcGrowth({ ...base, principal: p }).at(-1)?.value ?? 0) - goal, 0, Math.max(goal * 2, 10_000_000));
+}
+
+/** Thousands use spaces (e.g. 1 000), not commas. */
 function formatWithSpaces(value: number) {
-  return Math.round(value).toLocaleString("en-ZA").replace(/,/g, " ");
+  if (!isFinite(value) || isNaN(value)) return "0";
+  return Math.round(Math.abs(value)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
 }
 
 /** Rand amounts with space grouping (en-ZA). */
-function formatRand(n: number): string {
-  return "R" + Math.round(n).toLocaleString("en-ZA").replace(/,/g, " ");
+function formatRand(v: number): string {
+  if (!isFinite(v) || isNaN(v)) return "R0";
+  const abs = Math.abs(v);
+  const sign = v < 0 ? "-" : "";
+  const formatted = Math.round(abs).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u00A0");
+  return `${sign}R${formatted}`;
 }
 
 function formatZAR(value: number) {
@@ -930,6 +1014,8 @@ function FundiCharacter({
   );
 }
 
+type SolveMode = "goal" | "time" | "monthly" | "rate" | "initial";
+
 function CalculatorView() {
   const defaultInputs: CalcInputs = {
     principal: 50000,
@@ -941,6 +1027,9 @@ function CalculatorView() {
   };
 
   const [mode, setMode] = useState<"single" | "compare">("single");
+  const [solveMode, setSolveMode] = useState<SolveMode>("goal");
+  const [goalTarget, setGoalTarget] = useState("500000");
+  const [solveResult, setSolveResult] = useState<{ label: string; value: string; sub?: string } | null>(null);
   const [inputsA, setInputsA] = useState<CalcInputs>(defaultInputs);
   const [inputsB, setInputsB] = useState<CalcInputs>({
     ...defaultInputs,
@@ -967,10 +1056,54 @@ function CalculatorView() {
   }, []);
 
   const handleCalculate = () => {
-    setCalcA(inputsA);
+    const goal = parseFloat(goalTarget.replace(/[^0-9.]/g, "")) || 0;
+
+    // Build effective inputs for the chart — if solving for a variable,
+    // fill in the computed value so the chart still draws meaningfully.
+    let effectiveA = { ...inputsA };
+    let result: { label: string; value: string; sub?: string } | null = null;
+
+    if (solveMode !== "goal" && goal > 0) {
+      if (solveMode === "time") {
+        const yrs = solveForYears(inputsA, goal);
+        if (!isFinite(yrs)) {
+          result = { label: "Time Needed", value: "Not achievable", sub: "Try a higher monthly amount or return rate" };
+        } else {
+          const roundedYrs = Math.ceil(yrs);
+          effectiveA = { ...inputsA, years: roundedYrs };
+          result = { label: "Time Needed", value: `${roundedYrs} year${roundedYrs !== 1 ? "s" : ""}`, sub: `to reach ${formatZAR(goal)}` };
+        }
+      } else if (solveMode === "monthly") {
+        const monthly = solveForMonthly(inputsA, goal);
+        effectiveA = { ...inputsA, monthly };
+        result = { label: "Monthly Savings Needed", value: formatZAR(monthly), sub: `per month to reach ${formatZAR(goal)} in ${inputsA.years} years` };
+      } else if (solveMode === "rate") {
+        const rate = solveForRate(inputsA, goal);
+        if (!isFinite(rate)) {
+          result = { label: "Return Rate Needed", value: "Not achievable", sub: "Try a higher contribution or longer period" };
+        } else {
+          effectiveA = { ...inputsA, rate };
+          result = { label: "Annual Return Rate Needed", value: `${rate.toFixed(2)}% p.a.`, sub: `to reach ${formatZAR(goal)} in ${inputsA.years} years` };
+        }
+      } else if (solveMode === "initial") {
+        const principal = solveForInitial(inputsA, goal);
+        effectiveA = { ...inputsA, principal };
+        result = { label: "Lump Sum Needed Today", value: formatZAR(principal), sub: `to reach ${formatZAR(goal)} in ${inputsA.years} years` };
+      }
+    }
+
+    setCalcA(effectiveA);
     setCalcB(inputsB);
     setHasCalculated(true);
-    setProjectionSaved(false); // reset so pin button shows fresh
+    setProjectionSaved(false);
+    setSolveResult(result);
+    // Analytics: track solve mode usage
+    analytics.calculatorSolveModeUsed(solveMode, {
+      monthly: inputsA.monthly,
+      rate: inputsA.rate,
+      years: inputsA.years,
+      principal: inputsA.principal,
+    });
   };
 
   const handlePinProjection = () => {
@@ -1056,10 +1189,12 @@ function CalculatorView() {
     label,
     inputs,
     setInputs,
+    hideField,
   }: {
     label?: string;
     inputs: CalcInputs;
     setInputs: (i: CalcInputs) => void;
+    hideField?: SolveMode;
   }) => (
     <div
       style={{
@@ -1071,76 +1206,30 @@ function CalculatorView() {
       }}
     >
       {label && (
-        <div
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            color: "var(--color-primary)",
-            marginBottom: 16,
-            textTransform: "uppercase",
-            letterSpacing: 1,
-          }}
-        >
+        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-primary)", marginBottom: 16, textTransform: "uppercase", letterSpacing: 1 }}>
           {label}
         </div>
       )}
 
-      <CalcNumberRow
-        label="Initial Amount"
-        tooltip="The lump sum you're starting with today."
-        value={inputs.principal}
-        onChange={(v) => setInputs({ ...inputs, principal: v })}
-      />
-      <CalcNumberRow
-        label="Monthly Contribution"
-        tooltip="How much you add every month."
-        value={inputs.monthly}
-        onChange={(v) => setInputs({ ...inputs, monthly: v })}
-      />
-      <CalcNumberRow
-        label="Annual Return Rate (%)"
-        tooltip="The yearly growth rate of your investment (e.g. JSE average is ~10%)."
-        value={inputs.rate}
-        step="0.01"
-        onChange={(v) => setInputs({ ...inputs, rate: v })}
-      />
-      <CalcNumberRow
-        label="Annual Contribution Increase (%)"
-        tooltip="How much you increase your monthly contribution each year, to keep up with inflation."
-        value={inputs.escalation}
-        step="0.01"
-        onChange={(v) => setInputs({ ...inputs, escalation: v })}
-      />
-      <CalcNumberRow
-        label="Investment Period (years)"
-        tooltip="How many years you plan to invest for."
-        value={inputs.years}
-        step="1"
-        onChange={(v) => setInputs({ ...inputs, years: v })}
-      />
+      {hideField !== "initial" && (
+        <CalcNumberRow label="Initial Amount (R)" tooltip="The lump sum you're starting with today." value={inputs.principal} onChange={(v) => setInputs({ ...inputs, principal: v })} />
+      )}
+      {hideField !== "monthly" && (
+        <CalcNumberRow label="Monthly Contribution (R)" tooltip="How much you add every month." value={inputs.monthly} onChange={(v) => setInputs({ ...inputs, monthly: v })} />
+      )}
+      {hideField !== "rate" && (
+        <CalcNumberRow label="Annual Return Rate (%)" tooltip="The yearly growth rate (e.g. JSE average is ~10%)." value={inputs.rate} step="0.01" onChange={(v) => setInputs({ ...inputs, rate: v })} />
+      )}
+      <CalcNumberRow label="Annual Contribution Increase (%)" tooltip="How much you increase your monthly contribution each year (inflation hedge)." value={inputs.escalation} step="0.01" onChange={(v) => setInputs({ ...inputs, escalation: v })} />
+      {hideField !== "time" && (
+        <CalcNumberRow label="Investment Period (years)" tooltip="How many years you plan to invest for." value={inputs.years} step="1" onChange={(v) => setInputs({ ...inputs, years: v })} />
+      )}
 
       <div style={{ marginBottom: 20 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>
-          Investment Frequency
-        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Investment Frequency</div>
         <div style={{ display: "flex", gap: 8 }}>
           {(["monthly", "annually", "once-off"] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setInputs({ ...inputs, frequency: f })}
-              style={{
-                flex: 1,
-                padding: "8px 4px",
-                borderRadius: 8,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                border: "2px solid",
-                borderColor: inputs.frequency === f ? "var(--color-primary)" : "var(--color-border)",
-                background: inputs.frequency === f ? "var(--color-primary-light)" : "white",
-                color: inputs.frequency === f ? "var(--color-primary)" : "var(--color-text-secondary)",
-              }}
-            >
+            <button key={f} onClick={() => setInputs({ ...inputs, frequency: f })} style={{ flex: 1, padding: "8px 4px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer", border: "2px solid", borderColor: inputs.frequency === f ? "var(--color-primary)" : "var(--color-border)", background: inputs.frequency === f ? "var(--color-primary-light)" : "white", color: inputs.frequency === f ? "var(--color-primary)" : "var(--color-text-secondary)" }}>
               {f === "once-off" ? "Once-off" : f.charAt(0).toUpperCase() + f.slice(1)}
             </button>
           ))}
@@ -1149,31 +1238,57 @@ function CalculatorView() {
     </div>
   );
 
+  const SOLVE_OPTIONS: { id: SolveMode; label: string; Icon: React.ComponentType<{size?: number; style?: React.CSSProperties}>; desc: string }[] = [
+    { id: "goal",    label: "End Goal",        Icon: Target,       desc: "What will my investment be worth?" },
+    { id: "time",    label: "Time Needed",     Icon: Clock,        desc: "How long to reach my goal?" },
+    { id: "monthly", label: "Monthly Amount",  Icon: TrendingUp,   desc: "How much must I save monthly?" },
+    { id: "rate",    label: "Return Rate",     Icon: BarChart2,    desc: "What return rate do I need?" },
+    { id: "initial", label: "Starting Amount", Icon: Wallet,       desc: "How much must I invest today?" },
+  ];
+
   return (
     <main className="main-content main-with-stats" id="mainContent">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 10 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Investment Calculator</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            className={mode === "single" ? "btn btn-primary" : "btn btn-secondary"}
-            style={{ padding: "8px 12px", fontSize: 13 }}
-            onClick={() => setMode("single")}
-          >
-            Single
-          </button>
-          <button
-            className={mode === "compare" ? "btn btn-primary" : "btn btn-secondary"}
-            style={{ padding: "8px 12px", fontSize: 13 }}
-            onClick={() => setMode("compare")}
-          >
-            Compare
-          </button>
+        {solveMode === "goal" && (
+          <div style={{ display: "flex", gap: 8 }}>
+            <button className={mode === "single" ? "btn btn-primary" : "btn btn-secondary"} style={{ padding: "8px 12px", fontSize: 13 }} onClick={() => setMode("single")}>Single</button>
+            <button className={mode === "compare" ? "btn btn-primary" : "btn btn-secondary"} style={{ padding: "8px 12px", fontSize: 13 }} onClick={() => setMode("compare")}>Compare</button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Solve For selector ── */}
+      <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>What are you solving for?</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
+          {SOLVE_OPTIONS.map((opt) => (
+            <button key={opt.id} onClick={() => { setSolveMode(opt.id); setHasCalculated(false); setSolveResult(null); }}
+              style={{ padding: "10px 8px", borderRadius: 10, border: `2px solid ${solveMode === opt.id ? "var(--color-primary)" : "var(--color-border)"}`, background: solveMode === opt.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", cursor: "pointer", textAlign: "center" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 4, color: solveMode === opt.id ? "var(--color-primary)" : "var(--color-text-secondary)" }}>
+                <opt.Icon size={18} />
+              </div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: solveMode === opt.id ? "var(--color-primary)" : "var(--color-text-primary)" }}>{opt.label}</div>
+            </button>
+          ))}
         </div>
+        {solveMode !== "goal" && (
+          <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid var(--color-border)" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+              {SOLVE_OPTIONS.find(o => o.id === solveMode)?.desc} — Target Goal Amount (R)
+            </div>
+            <input
+              type="number" inputMode="decimal" placeholder="e.g. 1000000"
+              value={goalTarget} onChange={(e) => setGoalTarget(e.target.value)}
+              style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1.5px solid var(--color-primary)", fontSize: 16, fontWeight: 700, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" }}
+            />
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-        <InputPanel inputs={inputsA} setInputs={setInputsA} label={mode === "compare" ? "Investment A" : undefined} />
-        {mode === "compare" && <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />}
+        <InputPanel inputs={inputsA} setInputs={setInputsA} label={mode === "compare" && solveMode === "goal" ? "Investment A" : undefined} hideField={solveMode !== "goal" ? solveMode : undefined} />
+        {mode === "compare" && solveMode === "goal" && <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />}
       </div>
 
       {/* Results + chart section (clean) */}
@@ -1184,16 +1299,49 @@ function CalculatorView() {
 
       {!hasCalculated && (
         <div style={{ textAlign: "center", padding: "18px 0", color: "var(--color-text-secondary)" }}>
-          Set your values above, then tap Calculate
+          {solveMode === "goal" ? "Set your values above, then tap Calculate" : "Set your inputs above and enter a target goal, then tap Calculate"}
         </div>
       )}
 
-      {hasCalculated && mode === "single" && (
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 24 }}>
-          <ResultCard label="Final Value" value={formatZAR(finalA.value)} highlight />
-          <ResultCard label="Total Contributions" value={formatZAR(finalA.contributions)} />
-          <ResultCard label="Total Interest" value={formatZAR(finalA.interest)} />
-        </div>
+      {/* ── Solve Result (non-goal modes) ── */}
+      {hasCalculated && solveResult && (
+        <>
+          <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, #005c3a 100%)", borderRadius: 16, padding: "20px 24px", marginBottom: 12, color: "white", textAlign: "center" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, opacity: 0.8, marginBottom: 8 }}>{solveResult.label}</div>
+            <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>{solveResult.value}</div>
+            {solveResult.sub && <div style={{ fontSize: 13, opacity: 0.85 }}>{solveResult.sub}</div>}
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <ShareResultButton
+              data={{
+                type: "calculator",
+                headline: `${solveResult.value} — ${solveResult.label.toLowerCase()}`,
+                sub: solveResult.sub ?? `Saving R${formatWithSpaces(inputsA.monthly)}/month at ${inputsA.rate}% p.a. — calculated on Fundi Finance`,
+              }}
+              label="Share this result 📲"
+            />
+          </div>
+        </>
+      )}
+
+      {hasCalculated && mode === "single" && solveMode === "goal" && (
+        <>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 12 }}>
+            <ResultCard label="Final Value" value={formatZAR(finalA.value)} highlight />
+            <ResultCard label="Total Contributions" value={formatZAR(finalA.contributions)} />
+            <ResultCard label="Total Interest" value={formatZAR(finalA.interest)} />
+          </div>
+          <div style={{ marginBottom: 20 }}>
+            <ShareResultButton
+              data={{
+                type: "calculator",
+                headline: `My R${formatWithSpaces(inputsA.monthly)}/month investment could be worth ${formatZAR(finalA.value)} in ${inputsA.years} years`,
+                sub: `At ${inputsA.rate}% p.a. · R${formatWithSpaces(finalA.interest)} in interest earned · Calculated on Fundi Finance`,
+              }}
+              label="Share this calculation 📲"
+            />
+          </div>
+        </>
       )}
 
       {hasCalculated && mode === "compare" && (
@@ -1319,7 +1467,10 @@ function CalculatorView() {
 function useFundiState() {
   const progress = useProgress();
   const [dailyXP, setDailyXP] = useState(0);
-  const [dailyGoal, setDailyGoal] = useState(50);
+  const [dailyGoal, setDailyGoal] = useState<number>(() => {
+    if (typeof window === "undefined") return 50;
+    return parseInt(window.localStorage.getItem("fundi-daily-goal") ?? "50", 10);
+  });
   const [userBadges, setUserBadges] = useState<string[]>([]);
   const [route, setRoute] = useState<Route>(() => {
     if (typeof window === "undefined") return { name: "learn" } as Route;
@@ -1423,10 +1574,11 @@ function useFundiState() {
 
   // ── Weekly challenge ─────────────────────────────────────────────────────
   const WEEKLY_CHALLENGES = [
-    { id: "wc-3lessons", text: "Complete 3 lessons this week", target: 3, unit: "lessons", xp: 150 },
+    { id: "wc-7lessons", text: "Complete 7 lessons this week", target: 7, unit: "lessons", xp: 250 },
     { id: "wc-5streak", text: "Maintain your streak for 5 days", target: 5, unit: "streak_days", xp: 200 },
-    { id: "wc-perfect", text: "Get a perfect score on 2 lessons", target: 2, unit: "perfect", xp: 250 },
-    { id: "wc-100xp", text: "Earn 100 XP in a single day", target: 100, unit: "daily_xp", xp: 180 },
+    { id: "wc-perfect", text: "Get a perfect score on 5 lessons", target: 5, unit: "perfect", xp: 350 },
+    { id: "wc-200xp", text: "Earn 200 XP in a single day", target: 200, unit: "daily_xp", xp: 280 },
+    { id: "wc-5lessons-perfect", text: "Complete 5 lessons with at least 80% score", target: 5, unit: "lessons", xp: 300 },
   ];
   const getWeeklyChallenge = () => {
     const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
@@ -1463,6 +1615,16 @@ function useFundiState() {
   const [reviewAnswers, setReviewAnswers] = useState<{
     question: string; yourAnswer: string; correct: string; wasCorrect: boolean;
   }[] | null>(null);
+  const [lessonSummary, setLessonSummary] = useState<{
+    xpEarned: number;
+    timeSeconds: number;
+    accuracy: number;
+    streak: number;
+    isPerfect: boolean;
+    choice: "next" | "course";
+    nextLessonId: string | null;
+    courseId: string;
+  } | null>(null);
   const [xpToast, setXpToast] = useState<{ amount: number; id: number } | null>(null);
 
   const [currentLessonState, setCurrentLessonState] = useState<{
@@ -1579,12 +1741,15 @@ function useFundiState() {
     route,
     setRoute,
     isLessonCompleted,
+    completedLessons: progress.completedLessons,
     completeLesson,
     currentLessonState,
     setCurrentLessonState,
     newlyEarnedBadges,
     setNewlyEarnedBadges,
     xpToast,
+    lessonSummary,
+    setLessonSummary,
     // Add these missing exports below:
     reviewAnswers,
     setReviewAnswers,
@@ -1609,6 +1774,9 @@ function useFundiState() {
     },
     tryDeductXp: progress.tryDeductXp,
     persistWeeklyChallengeCompletion: progress.persistWeeklyChallengeCompletion,
+    freezeCount: progress.freezeCount,
+    buyStreakFreeze: progress.buyStreakFreeze,
+    weeklyXp: progress.weeklyXp,
     addXP,
     setChallengeProgress,
     setDailyXP,
@@ -1696,6 +1864,335 @@ const RECOMMENDED_READING_BOOKS: {
   { title: "Think and Grow Rich", author: "Napoleon Hill", lesson: "A burning desire + a definite plan + persistent action builds lasting wealth.", color: "#E03C31", Icon: TrendingUp },
 ];
 
+// ─── Daily Challenges ────────────────────────────────────────────────────────
+
+const DAILY_CHALLENGE_POOL = [
+  { id: "complete-lesson", text: "Complete a lesson", icon: <BookOpen size={16} />, xp: 15 },
+  { id: "log-expense",     text: "Log an expense",   icon: <CreditCard size={16} />, xp: 10 },
+  { id: "check-budget",    text: "Check your budget", icon: <Wallet size={16} />, xp: 10 },
+  { id: "earn-50xp",       text: "Earn 50 XP today",  icon: <Zap size={16} />, xp: 20 },
+  { id: "perfect-quiz",    text: "Get a perfect quiz score", icon: <Trophy size={16} />, xp: 25 },
+  { id: "complete-2-lessons", text: "Complete 2 lessons today", icon: <BookOpen size={16} />, xp: 15 },
+];
+
+function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
+  // Deterministic daily selection using date as seed
+  const today = new Date().toISOString().slice(0, 10);
+  let seed = 0;
+  for (let i = 0; i < today.length; i++) seed = ((seed << 5) - seed + today.charCodeAt(i)) | 0;
+  const shuffled = [...DAILY_CHALLENGE_POOL].sort((a, b) => {
+    const ha = ((seed * 31 + a.id.charCodeAt(0)) & 0x7fffffff) % 1000;
+    const hb = ((seed * 31 + b.id.charCodeAt(0)) & 0x7fffffff) % 1000;
+    return ha - hb;
+  });
+  return shuffled.slice(0, 3);
+}
+
+function DailyChallenges({ streak = 0 }: { streak?: number }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const storageKey = `fundi-daily-challenges-${today}`;
+  const [claimed, setClaimed] = useState<Record<string, boolean>>({});
+  const [conditions, setConditions] = useState<Record<string, boolean>>({});
+  const challenges = React.useMemo(() => getDailyChallenges(), []);
+
+  // Reload conditions every 5 seconds so UI updates as user completes actions
+  const refreshConditions = React.useCallback(() => {
+    if (typeof window === "undefined") return;
+    setConditions({
+      "complete-lesson": parseInt(localStorage.getItem(`fundi-lessons-today-${today}`) ?? "0") >= 1,
+      "log-expense":     parseInt(localStorage.getItem(`fundi-expense-today-${today}`) ?? "0") >= 1,
+      "check-budget":    localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
+      "earn-50xp":       parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0") >= 50,
+      "perfect-quiz":    parseInt(localStorage.getItem(`fundi-perfect-today-${today}`) ?? "0") >= 1,
+      "complete-2-lessons": (parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0") >= 2),
+    });
+  }, [today, streak]);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey) ?? "{}");
+      setClaimed(saved);
+    } catch { /* ignore */ }
+    refreshConditions();
+
+    // Also load from Supabase to sync across devices
+    (async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data } = await supabase.from("user_progress").select("daily_challenges_date, daily_challenges_claimed").eq("user_id", user.id).single();
+          if (data && data.daily_challenges_date === today && data.daily_challenges_claimed) {
+            try {
+              const claimedFromDb = JSON.parse(typeof data.daily_challenges_claimed === 'string' ? data.daily_challenges_claimed : JSON.stringify(data.daily_challenges_claimed));
+              setClaimed(c => ({ ...c, ...claimedFromDb }));
+              localStorage.setItem(storageKey, JSON.stringify({ ...JSON.parse(localStorage.getItem(storageKey) ?? "{}"), ...claimedFromDb }));
+            } catch { /* ignore parse error */ }
+          }
+        }
+      } catch { /* ignore Supabase error */ }
+    })();
+  }, [storageKey, refreshConditions]);
+
+  useEffect(() => {
+    const timer = setInterval(refreshConditions, 5000);
+    return () => clearInterval(timer);
+  }, [refreshConditions]);
+
+  const claimChallenge = async (challengeId: string, xp: number) => {
+    if (!conditions[challengeId]) return; // Guard: only claim if actually achieved
+    const next = { ...claimed, [challengeId]: true };
+    setClaimed(next);
+    localStorage.setItem(storageKey, JSON.stringify(next));
+    analytics.dailyChallengeClaimed(challengeId, xp);
+    // Award XP via Supabase and sync challenge completion
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const { data } = await supabase.from("user_progress").select("xp").eq("user_id", user.id).single();
+      if (data) {
+        await supabase.from("user_progress").update({
+          xp: (data.xp ?? 0) + xp,
+          daily_challenges_date: today,
+          daily_challenges_claimed: JSON.stringify(next)
+        }).eq("user_id", user.id);
+      }
+    }
+  };
+
+  const allClaimed = challenges.every((c) => claimed[c.id]);
+
+  return (
+    <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 24 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+        <Sparkles size={18} style={{ color: "#FFB612" }} />
+        <div style={{ fontWeight: 800, fontSize: 14 }}>Daily Challenges</div>
+        {allClaimed && <span style={{ fontSize: 11, fontWeight: 700, color: "#007A4D", marginLeft: "auto" }}>All done!</span>}
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {challenges.map((ch) => {
+          const done = !!claimed[ch.id];
+          const achieved = !!conditions[ch.id];
+          return (
+            <div key={ch.id} style={{
+              display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
+              borderRadius: 10,
+              background: done ? "rgba(0,122,77,0.06)" : achieved ? "rgba(255,182,18,0.04)" : "var(--color-bg)",
+              border: `1px solid ${done ? "rgba(0,122,77,0.2)" : achieved ? "rgba(255,182,18,0.3)" : "var(--color-border)"}`,
+              opacity: done ? 1 : achieved ? 1 : 0.65,
+            }}>
+              <div style={{ color: done ? "#007A4D" : achieved ? "#FFB612" : "var(--color-text-secondary)", display: "flex", flexShrink: 0 }}>
+                {done ? <CheckCircle2 size={16} /> : ch.icon}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontWeight: 600, fontSize: 13, color: done ? "#007A4D" : "var(--color-text-primary)", textDecoration: done ? "line-through" : "none" }}>
+                  {ch.text}
+                </div>
+                {!done && !achieved && (
+                  <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 1 }}>
+                    Complete the task first
+                  </div>
+                )}
+              </div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: done ? "#007A4D" : achieved ? "#FFB612" : "var(--color-text-secondary)", flexShrink: 0 }}>
+                {done ? "Done" : `+${ch.xp} XP`}
+              </div>
+              {!done && achieved && (
+                <button type="button" onClick={() => claimChallenge(ch.id, ch.xp)}
+                  style={{ background: "var(--color-primary)", color: "white", border: "none", borderRadius: 8, padding: "5px 10px", fontSize: 11, fontWeight: 700, cursor: "pointer", flexShrink: 0 }}>
+                  Claim
+                </button>
+              )}
+              {!done && !achieved && (
+                <Lock size={13} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 10, textAlign: "center" }}>
+        Resets at midnight · Complete each task to unlock its reward
+      </div>
+    </div>
+  );
+}
+
+// ── Spaced Repetition Review Session ─────────────────────────────────────────
+
+function ReviewSession({ onClose }: { onClose: () => void }) {
+  const [queue, setQueue] = useState<MasteryRecord[]>(() => getDueCards());
+  const [currentIdx, setCurrentIdx] = useState(0);
+  const [selected, setSelected] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+
+  const current = queue[currentIdx];
+  const concept = current ? CONCEPTS.find((c) => c.id === current.concept_id) : null;
+
+  const handleAnswer = (idx: number) => {
+    if (selected !== null) return;
+    setSelected(idx);
+    setShowExplanation(true);
+    const isCorrect = concept && idx === concept.reviewCard.correct;
+    if (isCorrect) {
+      setCorrectCount((n) => n + 1);
+      playSound("correct");
+    } else {
+      playSound("incorrect");
+    }
+  };
+
+  const handleNext = () => {
+    if (!current || !concept) return;
+    const isCorrect = selected === concept.reviewCard.correct;
+    const updated = applyReview(current, isCorrect ? 4 : 1);
+    saveMastery(updated);
+    if (currentIdx + 1 >= queue.length) {
+      // All done — go to summary by setting currentIdx beyond queue
+      setCurrentIdx(queue.length);
+    } else {
+      setSelected(null);
+      setShowExplanation(false);
+      setCurrentIdx((i) => i + 1);
+    }
+  };
+
+  const isDone = currentIdx >= queue.length;
+
+  if (isDone) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
+          <div className="text-5xl mb-3">🧠</div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Review complete!</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            {correctCount} of {queue.length} correct
+          </p>
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-6">
+            <div
+              className="h-2 rounded-full bg-green-500"
+              style={{ width: `${Math.round((correctCount / queue.length) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-6">
+            Cards are rescheduled. Keep it up daily to master your finances!
+          </p>
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full rounded-xl bg-green-600 py-3 text-sm font-bold text-white"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!concept) {
+    onClose();
+    return null;
+  }
+
+  const card = concept.reviewCard;
+  const optionLetters = ["A", "B", "C", "D"];
+
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-950">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-safe-top pb-3 pt-4 border-b border-gray-100 dark:border-gray-800">
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-full p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Close review"
+        >
+          <X size={20} />
+        </button>
+        <div className="flex-1 mx-4">
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+            <div
+              className="h-1.5 rounded-full bg-purple-500 transition-all"
+              style={{ width: `${Math.round(((currentIdx) / queue.length) * 100)}%` }}
+            />
+          </div>
+        </div>
+        <span className="text-xs text-gray-500 dark:text-gray-400 shrink-0">
+          {currentIdx + 1} / {queue.length}
+        </span>
+      </div>
+
+      {/* Card content */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="mb-1 flex items-center gap-1.5">
+          <Brain size={13} className="text-purple-500" aria-hidden />
+          <span className="text-xs font-semibold uppercase tracking-widest text-purple-500">
+            {concept.category}
+          </span>
+        </div>
+        <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-6 leading-snug">
+          {card.question}
+        </h2>
+
+        <div className="space-y-3">
+          {card.options.map((opt, i) => {
+            const isSelected = selected === i;
+            const isCorrect = i === card.correct;
+            let bg = "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white";
+            if (selected !== null) {
+              if (isCorrect) bg = "bg-green-50 dark:bg-green-900/30 border-green-400 text-green-900 dark:text-green-200";
+              else if (isSelected) bg = "bg-red-50 dark:bg-red-900/30 border-red-400 text-red-900 dark:text-red-200";
+              else bg = "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-400 dark:text-gray-500";
+            }
+            return (
+              <button
+                key={i}
+                type="button"
+                disabled={selected !== null}
+                onClick={() => handleAnswer(i)}
+                className={`w-full flex items-center gap-3 rounded-xl border-2 px-4 py-3 text-left transition-all ${bg}`}
+              >
+                <span className="shrink-0 w-7 h-7 rounded-full bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 flex items-center justify-center text-xs font-bold text-gray-500">
+                  {optionLetters[i]}
+                </span>
+                <span className="text-sm font-medium">{opt}</span>
+                {selected !== null && isCorrect && (
+                  <CheckCircle2 size={16} className="ml-auto text-green-500 shrink-0" aria-hidden />
+                )}
+                {isSelected && !isCorrect && (
+                  <X size={16} className="ml-auto text-red-500 shrink-0" aria-hidden />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {showExplanation && (
+          <div className={`mt-5 rounded-xl p-4 ${selected === card.correct ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"}`}>
+            <p className={`text-xs font-bold mb-1 ${selected === card.correct ? "text-green-700 dark:text-green-400" : "text-orange-700 dark:text-orange-400"}`}>
+              {selected === card.correct ? "✓ Correct!" : "Not quite"}
+            </p>
+            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+              {card.explanation}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      {selected !== null && (
+        <div className="px-4 pb-safe-bottom pb-6 pt-3 border-t border-gray-100 dark:border-gray-800">
+          <button
+            type="button"
+            onClick={handleNext}
+            className="w-full rounded-xl bg-purple-600 py-3.5 text-sm font-bold text-white"
+          >
+            {currentIdx + 1 >= queue.length ? "See Results" : "Next →"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LearnView({
   courses,
   isLessonCompleted,
@@ -1709,6 +2206,7 @@ function LearnView({
   contentLoaded = true,
   savedProgress,
   onResumeLesson,
+  streak = 0,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
@@ -1722,6 +2220,7 @@ function LearnView({
   contentLoaded?: boolean;
   savedProgress?: SavedLessonProgress | null;
   onResumeLesson?: (p: SavedLessonProgress) => void;
+  streak?: number;
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
@@ -1730,12 +2229,26 @@ function LearnView({
   const [showGoalPicker, setShowGoalPicker] = useState(false);
   const [pickerGoalId, setPickerGoalId] = useState<string>("");
   const [pickerGoalDescription, setPickerGoalDescription] = useState<string>("");
+  const [showReview, setShowReview] = useState(false);
+  const [dueCount, setDueCount] = useState(0);
+
+  // Refresh due count on mount and when returning from a review
+  useEffect(() => {
+    setDueCount(getDueCards().length);
+  }, [showReview]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     setUserGoal(localStorage.getItem("fundi-user-goal"));
     setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
     setGoalBannerDismissed(localStorage.getItem("fundi-goal-banner-dismissed") === "1");
+    // Listen for cross-device goal sync updates (dispatched by syncFromSupabase)
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "fundi-user-goal" && e.newValue) setUserGoal(e.newValue);
+      if (e.key === "fundi-goal-description") setGoalDescription(e.newValue ?? "");
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const recommendedCourseIds =
@@ -1796,6 +2309,34 @@ function LearnView({
             →
           </span>
         </button>
+      )}
+
+      {/* Spaced Repetition Review Banner */}
+      {dueCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setShowReview(true)}
+          className="w-full flex items-center gap-3 rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 mb-4 text-left"
+        >
+          <div className="shrink-0 w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
+            <Brain size={20} className="text-purple-600 dark:text-purple-300" aria-hidden />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-purple-900 dark:text-purple-200 font-bold text-sm">
+              {dueCount} concept{dueCount > 1 ? "s" : ""} to review
+            </p>
+            <p className="text-purple-600 dark:text-purple-400 text-xs">
+              Quick quiz to keep your memory sharp
+            </p>
+          </div>
+          <span className="shrink-0 text-xs font-bold text-white bg-purple-600 rounded-full px-2.5 py-1">
+            Start
+          </span>
+        </button>
+      )}
+
+      {showReview && (
+        <ReviewSession onClose={() => { setShowReview(false); setDueCount(getDueCards().length); }} />
       )}
 
       {userGoal && !goalBannerDismissed && (
@@ -1980,6 +2521,9 @@ function LearnView({
         </div>
       )}
 
+      {/* Daily Challenges */}
+      <DailyChallenges streak={streak} />
+
       {!contentLoaded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -2141,6 +2685,13 @@ function CourseView({
   nextCourse?: Course | null;
   onGoToNextCourse?: () => void;
 }) {
+  // Scroll to top when course is loaded
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" });
+    const mainContent = document.querySelector(".main-content");
+    if (mainContent) mainContent.scrollTo({ top: 0, behavior: "instant" });
+  }, [course.id]);
+
   const colour = COURSE_COLOURS[courseIndex % COURSE_COLOURS.length];
   const [lockedModal, setLockedModal] = useState<{
     lessonTitle: string;
@@ -2471,10 +3022,9 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                       ✓ Done — Back to Course
                     </button>
                     {lessonTitle ? (
-                      <ShareButton
-                        text={generateShareText("lesson", { lessonTitle })}
-                        label="Share your progress"
-                        shareType="lesson"
+                      <ShareResultButton
+                        data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
+                        label="Share your result 📲"
                       />
                     ) : null}
                   </div>
@@ -2507,6 +3057,8 @@ function LessonView({
   courseAccent,
   nextLessonTitle,
   lessonTitle,
+  lessonStartTimeRef,
+  totalQuestions = 0,
 }: {
   lessonState: {
     steps: LessonStep[];
@@ -2526,6 +3078,8 @@ function LessonView({
   courseAccent?: string;
   nextLessonTitle?: string;
   lessonTitle?: string;
+  lessonStartTimeRef?: React.MutableRefObject<number>;
+  totalQuestions?: number;
 }) {
   const step = lessonState.steps[lessonState.stepIndex];
   const progress =
@@ -2592,44 +3146,30 @@ function LessonView({
   const renderStep = () => {
     if (!step) return null;
     if (step.type === "info") {
-      // Extract a short tip from content — strip HTML tags and take first 80 chars
-      const rawTip = step.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      const tipText = rawTip.length > 80 ? rawTip.slice(0, 77) + "…" : rawTip;
       return (
         <>
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 4 }}>
-            {/* Speech bubble */}
-            <div style={{
-              background: "white",
-              border: "1.5px solid #e5e7eb",
-              borderLeft: "3px solid var(--color-primary)",
-              borderRadius: 12,
-              padding: "10px 14px",
-              maxWidth: 260,
-              marginBottom: 8,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.07)",
-              position: "relative",
-            }}>
-              <p style={{ fontSize: 12, color: "#374151", fontStyle: "italic", margin: 0, lineHeight: 1.5 }}>{tipText}</p>
-              {/* bubble tail pointing down toward Fundi */}
-              <div style={{
-                position: "absolute", bottom: -8, left: "50%", transform: "translateX(-50%)",
-                width: 0, height: 0,
-                borderLeft: "7px solid transparent", borderRight: "7px solid transparent",
-                borderTop: "8px solid white",
-              }} />
-            </div>
-            <FundiCharacter expression="thinking" size={120} style={{ marginBottom: 4 }} />
-          </div>
           <h2 className="step-title">{step.title}</h2>
           <div
             className="step-content"
             dangerouslySetInnerHTML={{ __html: step.content }}
           />
           <div className="lesson-actions">
-            <button className="btn btn-primary" onClick={nextStep}>
-              Continue
-            </button>
+            {isOnLastStep ? (
+              finalizeLesson ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+                  {nextLessonTitle ? (
+                    <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => finalizeLesson("next")}>Next Lesson: {nextLessonTitle} →</button>
+                  ) : null}
+                  <button className="btn btn-secondary" style={{ width: "100%", background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)" }} onClick={() => finalizeLesson("course")}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={18} /> Done — Back to Course</span>
+                  </button>
+                </div>
+              ) : (
+                <button className="btn btn-primary" onClick={nextStep}>Finish</button>
+              )
+            ) : (
+              <button className="btn btn-primary" onClick={nextStep}>Continue</button>
+            )}
           </div>
         </>
       );
@@ -2657,9 +3197,22 @@ function LessonView({
             </div>
           ) : null}
           <div className="lesson-actions">
-            <button type="button" className="btn btn-primary" onClick={nextStep}>
-              Continue
-            </button>
+            {isOnLastStep ? (
+              finalizeLesson ? (
+                <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
+                  {nextLessonTitle ? (
+                    <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={() => finalizeLesson("next")}>Next Lesson: {nextLessonTitle} →</button>
+                  ) : null}
+                  <button type="button" className="btn btn-secondary" style={{ width: "100%", background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)" }} onClick={() => finalizeLesson("course")}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}><CheckCircle2 size={18} /> Done — Back to Course</span>
+                  </button>
+                </div>
+              ) : (
+                <button type="button" className="btn btn-primary" onClick={nextStep}>Finish</button>
+              )
+            ) : (
+              <button type="button" className="btn btn-primary" onClick={nextStep}>Continue</button>
+            )}
           </div>
         </div>
       );
@@ -2741,8 +3294,23 @@ function LessonView({
                   <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
                   <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                   <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
-                  <div style={{ color: "var(--color-text-secondary)", marginBottom: 16 }}>
-                    +{50 + correctCount * 10} XP earned
+                  <div style={{ marginBottom: 16, fontSize: 14 }}>
+                    <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>
+                      {totalQuestions > 0 ? Math.round(correctCount / totalQuestions * 100) : 100}% accuracy
+                    </div>
+                    {lessonStartTimeRef && (
+                      <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>
+                        {(() => {
+                          const elapsed = Math.round((Date.now() - (lessonStartTimeRef.current || 0)) / 1000);
+                          const mins = Math.floor(elapsed / 60);
+                          const secs = elapsed % 60;
+                          return `${mins}m ${secs}s`;
+                        })()}
+                      </div>
+                    )}
+                    <div style={{ fontWeight: 700, fontSize: 16, color: "var(--color-primary)" }}>
+                      +{50 + correctCount * 10} XP earned
+                    </div>
                   </div>
                   {finalizeLesson ? (
                     <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
@@ -2764,6 +3332,12 @@ function LessonView({
                           <CheckCircle2 size={18} aria-hidden /> Done — Back to Course
                         </span>
                       </button>
+                      {lessonTitle && (
+                        <ShareResultButton
+                          data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
+                          label="Share your result 📲"
+                        />
+                      )}
                     </div>
                   ) : (
                     <button className="btn btn-primary" onClick={nextStep}>Continue</button>
@@ -3252,6 +3826,18 @@ function LessonView({
             </button>
           </div>
           <div className="lesson-step">{renderStep()}</div>
+          {/* Financial education disclaimer */}
+          <div style={{
+            textAlign: "center",
+            padding: "8px 16px 12px",
+            color: "var(--color-text-secondary)",
+            fontSize: 11,
+            opacity: 0.75,
+            borderTop: "1px solid var(--color-border)",
+            marginTop: 4,
+          }}>
+            📚 For educational purposes only — not financial advice. Consult a licensed financial advisor before making financial decisions.
+          </div>
         </div>
       </main>
     </>
@@ -3261,18 +3847,28 @@ function LessonView({
 function ProfileView({
   userData,
   onSignOut,
+  onDeleteAccount,
+  onDownloadData,
   currentUser,
   dailyGoal,
   setDailyGoal,
   courseBadgeIds,
+  courses = [],
+  completedLessons = new Set(),
 }: {
   userData: UserData;
   onSignOut: () => void;
+  onDeleteAccount?: () => Promise<void>;
+  onDownloadData?: () => Promise<void>;
   currentUser: any;
   dailyGoal: number;
   setDailyGoal: (n: number) => void;
   courseBadgeIds: string[];
+  courses?: Course[];
+  completedLessons?: Set<string>;
 }) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<null | {
     name: string; desc: string; icon: React.ReactNode;
   }>(null);
@@ -3486,6 +4082,15 @@ function ProfileView({
     return <>{icons[id] ?? <Trophy size={24} className="text-current" />}</>;
   };
 
+  const [showMore, setShowMore] = React.useState(false);
+  const [showAllBadges, setShowAllBadges] = React.useState(false);
+  const [showLegalPage, setShowLegalPage] = React.useState<null | "privacy" | "terms" | "faq">(null);
+  const [feedbackOpen, setFeedbackOpen] = React.useState(false);
+
+  if (showLegalPage) {
+    return <LegalPage page={showLegalPage} onBack={() => setShowLegalPage(null)} onFeedback={() => { setShowLegalPage(null); setFeedbackOpen(true); }} />;
+  }
+
   return (
     <main className="main-content main-with-stats">
       {/* ── Avatar + name ── */}
@@ -3654,8 +4259,8 @@ function ProfileView({
           </div>
           <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 10 }}>
             {savedProjection.frequency === "once-off"
-              ? `R${savedProjection.principal.toLocaleString("en-ZA")} once-off`
-              : `R${savedProjection.monthly.toLocaleString("en-ZA")}/month`}
+              ? `R${formatWithSpaces(savedProjection.principal)} once-off`
+              : `R${formatWithSpaces(savedProjection.monthly)}/month`}
             {" · "}{savedProjection.rate}% return{" · "}{savedProjection.years} years
           </p>
           <div style={{ display: "flex", gap: 10 }}>
@@ -3678,6 +4283,23 @@ function ProfileView({
               </div>
             </div>
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem("fundi-calc-saved");
+              setSavedProjection(null);
+              setProjectionFinalValue(null);
+            }}
+            style={{
+              marginTop: 12, width: "100%", padding: "9px", borderRadius: 10,
+              border: "1.5px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.06)",
+              color: "#dc2626", fontWeight: 700, fontSize: 13, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            }}
+          >
+            <Trash2 size={14} />
+            Remove Projection
+          </button>
         </div>
       )}
 
@@ -3981,84 +4603,232 @@ function ProfileView({
             Complete lessons to earn your first badge!
           </p>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
-            {earnedBadges.map((badge) => (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+              {(showAllBadges ? earnedBadges : earnedBadges.slice(-3).reverse()).map((badge) => (
+                <button
+                  key={badge.id}
+                  onClick={() => setSelectedBadge({ name: badge.name, desc: badge.desc, icon: badge.icon })}
+                  style={{
+                    display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+                    background: "var(--color-surface)", border: "1.5px solid var(--color-border)",
+                    borderRadius: 14, padding: "14px 8px", cursor: "pointer",
+                    transition: "transform 0.15s", color: "var(--color-primary)",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                >
+                  <span style={{ color: "var(--color-primary)" }}>{badge.icon}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, textAlign: "center", color: "var(--color-text-primary)" }}>{badge.name}</span>
+                </button>
+              ))}
+            </div>
+            {earnedBadges.length > 3 && (
               <button
-                key={badge.id}
-                onClick={() => setSelectedBadge({ name: badge.name, desc: badge.desc, icon: badge.icon })}
+                type="button"
+                onClick={() => setShowAllBadges((v) => !v)}
                 style={{
-                  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
-                  background: "var(--color-surface)", border: "1.5px solid var(--color-border)",
-                  borderRadius: 14, padding: "14px 8px", cursor: "pointer",
-                  transition: "transform 0.15s", color: "var(--color-primary)",
+                  marginTop: 10, width: "100%", padding: "9px", borderRadius: 10,
+                  border: "1.5px solid var(--color-border)", background: "transparent",
+                  color: "var(--color-primary)", fontWeight: 700, fontSize: 13, cursor: "pointer",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.04)")}
-                onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
               >
-                <span style={{ color: "var(--color-primary)" }}>{badge.icon}</span>
-                <span style={{ fontSize: 11, fontWeight: 600, textAlign: "center", color: "var(--color-text-primary)" }}>{badge.name}</span>
+                {showAllBadges ? "Show less" : `View all ${earnedBadges.length} badges`}
               </button>
-            ))}
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── Weekly XP Chart ── */}
+      {(() => {
+        const today = new Date();
+        const dayOfWeek = today.getDay(); // 0=Sun
+        const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const weekData = weekDays.map((name, i) => {
+          const diff = i - dayOfWeek;
+          const d = new Date(today);
+          d.setDate(today.getDate() + diff);
+          const key = `fundi-daily-xp-${d.toISOString().slice(0, 10)}`;
+          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(key) ?? "0", 10) : 0;
+          return { name, xp, isToday: diff === 0 };
+        });
+        const maxXP = Math.max(...weekData.map(d => d.xp), 1);
+        return (
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <BarChart2 size={18} style={{ color: "var(--color-primary)" }} />
+              <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>This Week&apos;s XP</span>
+            </div>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={weekData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  formatter={(value: any) => [`${value} XP`, "XP"]}
+                  contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
+                  labelStyle={{ color: "var(--color-text-primary)", fontWeight: 700 }}
+                  itemStyle={{ color: "var(--color-text-primary)" }}
+                />
+                <Bar dataKey="xp" radius={[6, 6, 0, 0]} maxBarSize={36}>
+                  {weekData.map((entry, i) => (
+                    <Cell key={i} fill={entry.isToday ? "var(--color-primary)" : "rgba(0,122,77,0.3)"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            <div style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
+              Week total: {weekData.reduce((s, d) => s + d.xp, 0)} XP
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── Personal Bests ── */}
+      {(() => {
+        let longestStreak = userData.streak;
+        let bestDayXP = 0;
+        if (typeof window !== "undefined") {
+          longestStreak = Math.max(longestStreak, parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10));
+          for (let i = 0; i < 365; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = `fundi-daily-xp-${d.toISOString().slice(0, 10)}`;
+            const v = parseInt(localStorage.getItem(key) ?? "0", 10);
+            if (v > bestDayXP) bestDayXP = v;
+          }
+        }
+        if (typeof window !== "undefined" && userData.streak > longestStreak) {
+          localStorage.setItem("fundi-longest-streak", String(userData.streak));
+          longestStreak = userData.streak;
+        }
+        return (
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+              <Award size={18} style={{ color: "#FFB612" }} />
+              <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>Personal Bests</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+              {[
+                { label: "Longest Streak", value: `${longestStreak}d`, icon: <Flame size={20} style={{ color: "#FFB612" }} /> },
+                { label: "Best Day XP", value: `${formatWithSpaces(bestDayXP)}`, icon: <Zap size={20} style={{ color: "var(--color-primary)" }} /> },
+                { label: "Total Lessons", value: String(userData.totalCompleted), icon: <BookOpen size={20} style={{ color: "var(--color-primary)" }} /> },
+              ].map((pb) => (
+                <div key={pb.label} style={{ textAlign: "center", padding: "12px 6px", background: "var(--color-bg)", borderRadius: 10, border: "1px solid var(--color-border)" }}>
+                  <div style={{ marginBottom: 6 }}>{pb.icon}</div>
+                  <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-text-primary)" }}>{pb.value}</div>
+                  <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", marginTop: 2 }}>{pb.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── More (collapsible) — reading, guides, topic mastery ── */}
+      <div style={{ marginBottom: 16 }}>
+        <button
+          type="button"
+          onClick={() => setShowMore((v) => !v)}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+            background: "var(--color-surface)", border: "1px solid var(--color-border)",
+            borderRadius: 14, padding: "14px 16px", cursor: "pointer",
+          }}
+        >
+          <span style={{ fontWeight: 700, fontSize: 14 }}>More</span>
+          <ChevronRight size={18} style={{ color: "var(--color-text-secondary)", transform: showMore ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+        </button>
+
+        {showMore && (
+          <div style={{ marginTop: 8, display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Topic Mastery */}
+            {courses.length > 0 && (
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                  <BookOpen size={16} style={{ color: "var(--color-primary)" }} />
+                  <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>Topic Mastery</span>
+                </div>
+                {courses.map((course) => {
+                  const totalLessons = course.units.reduce((s: number, u: Unit) => s + u.lessons.length, 0);
+                  const completedCount = course.units.reduce(
+                    (s: number, u: Unit) => s + u.lessons.filter((l: Lesson) => completedLessons.has(`${course.id}:${l.id}`)).length, 0
+                  );
+                  const pct = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
+                  return (
+                    <div key={course.id} style={{ marginBottom: 12 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13 }}>
+                        <span style={{ fontWeight: 600 }}>{course.title}</span>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: pct === 100 ? "#007A4D" : "var(--color-text-secondary)" }}>{pct}%</span>
+                      </div>
+                      <div style={{ height: 7, borderRadius: 4, background: "var(--color-border)", overflow: "hidden" }}>
+                        <div style={{ height: "100%", borderRadius: 4, background: pct === 100 ? "#007A4D" : "var(--color-primary)", width: `${pct}%`, transition: "width 0.4s ease" }} />
+                      </div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{completedCount}/{totalLessons} lessons</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Recommended Reading */}
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <BookOpen size={16} style={{ color: "var(--color-primary)" }} />
+                <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>Recommended Reading</span>
+              </div>
+              <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
+                {RECOMMENDED_READING_BOOKS.map((book) => {
+                  const BookIcon = book.Icon;
+                  return (
+                    <div key={book.title} style={{ minWidth: 170, background: "var(--color-bg)", border: `1.5px solid ${book.color}40`, borderRadius: 14, padding: "12px 12px 10px", flexShrink: 0, borderTop: `4px solid ${book.color}` }}>
+                      <div style={{ marginBottom: 6, color: book.color }}><BookIcon size={24} /></div>
+                      <div style={{ fontWeight: 800, fontSize: 12, marginBottom: 2, color: "var(--color-text-primary)" }}>{book.title}</div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 6 }}>{book.author}</div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>{book.lesson}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Free Financial Guides */}
+            <a
+              href="https://www.wealthwithkwanele.co.za/#resources"
+              target="_blank" rel="noopener noreferrer"
+              className="btn btn-primary"
+              style={{ width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, textDecoration: "none", boxSizing: "border-box" as const }}
+            >
+              <ExternalLink size={16} aria-hidden />
+              Free Financial Guides
+            </a>
           </div>
         )}
       </div>
 
-      {/* ── Recommended Reading ── */}
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <BookOpen size={18} style={{ color: "var(--color-primary)" }} aria-hidden />
-          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>
-            Recommended Reading
-          </span>
-        </div>
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 8 }}>
-          {RECOMMENDED_READING_BOOKS.map((book) => {
-            const BookIcon = book.Icon;
-            return (
-            <div
-              key={book.title}
-              style={{
-                minWidth: 180,
-                background: "var(--color-surface)",
-                border: `1.5px solid ${book.color}40`,
-                borderRadius: 14,
-                padding: "14px 14px 12px",
-                flexShrink: 0,
-                borderTop: `4px solid ${book.color}`,
-              }}
-            >
-              <div style={{ marginBottom: 6, color: book.color }}>
-                <BookIcon size={28} />
-              </div>
-              <div style={{ fontWeight: 800, fontSize: 13, marginBottom: 2, color: "var(--color-text-primary)" }}>{book.title}</div>
-              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 8 }}>{book.author}</div>
-              <div style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.4 }}>{book.lesson}</div>
-            </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Free financial guides ── */}
-      <div style={{ marginBottom: 24 }}>
-        <a
-          href="https://www.wealthwithkwanele.co.za/#resources"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary"
-          style={{
-            width: "100%",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            textDecoration: "none",
-            boxSizing: "border-box" as const,
-          }}
-        >
-          <ExternalLink size={18} aria-hidden />
-          Free Financial Guides
-        </a>
+      {/* ── Help / Legal / Feedback row ── */}
+      <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 16, overflow: "hidden" }}>
+        {[
+          { label: "FAQ & Help", icon: <HelpCircle size={16} />, action: () => setShowLegalPage("faq") },
+          { label: "Privacy Policy", icon: <Shield size={16} />, action: () => setShowLegalPage("privacy") },
+          { label: "Terms of Service", icon: <FileText size={16} />, action: () => setShowLegalPage("terms") },
+          { label: "Send Feedback", icon: <MessageSquare size={16} />, action: () => setFeedbackOpen(true) },
+        ].map((item, i, arr) => (
+          <button
+            key={item.label} type="button"
+            onClick={item.action}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px",
+              background: "none", border: "none", borderBottom: i < arr.length - 1 ? "1px solid var(--color-border)" : "none",
+              cursor: "pointer", textAlign: "left",
+            }}
+          >
+            <span style={{ color: "var(--color-text-secondary)" }}>{item.icon}</span>
+            <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>{item.label}</span>
+            <ChevronRight size={14} style={{ color: "var(--color-text-secondary)" }} />
+          </button>
+        ))}
       </div>
 
       {/* ── Sign out ── */}
@@ -4066,11 +4836,123 @@ function ProfileView({
         type="button"
         onClick={onSignOut}
         className="inline-flex items-center gap-2 text-sm font-semibold"
-        style={{ color: "var(--color-danger)" }}
+        style={{ color: "var(--color-danger)", marginBottom: 32 }}
       >
         <LogOut size={18} className="text-current" />
         Sign Out
       </button>
+
+      {/* ── Danger zone (POPIA / data rights) — collapsed by default ── */}
+      {onDeleteAccount && (
+        <div style={{ marginBottom: 32 }}>
+          <details style={{ borderRadius: 12, border: "1px solid var(--color-border)", overflow: "hidden" }}>
+            <summary style={{
+              padding: "12px 16px", cursor: "pointer", fontSize: 12, fontWeight: 700,
+              textTransform: "uppercase", letterSpacing: "0.08em",
+              color: "var(--color-text-secondary)", listStyle: "none",
+              display: "flex", alignItems: "center", gap: 8,
+              background: "var(--color-surface)",
+            }}>
+              <AlertTriangle size={13} style={{ color: "var(--color-text-secondary)" }} />
+              Account &amp; Data
+            </summary>
+            <div style={{ padding: "8px 0", background: "var(--color-surface)", borderTop: "1px solid var(--color-border)" }}>
+              {/* Download data — POPIA right to access */}
+              {onDownloadData && (
+                <button
+                  type="button"
+                  onClick={onDownloadData}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: 12,
+                    padding: "12px 16px", background: "none", border: "none",
+                    borderBottom: "1px solid var(--color-border)",
+                    cursor: "pointer", textAlign: "left",
+                  }}
+                >
+                  <FileText size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>Download My Data</div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Export your progress as a JSON file (POPIA right to access)</div>
+                  </div>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(true)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 12,
+                  padding: "12px 16px", background: "none", border: "none",
+                  cursor: "pointer", textAlign: "left",
+                }}
+              >
+                <Trash2 size={16} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-danger)" }}>Delete My Data</div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Permanently removes all your account data</div>
+                </div>
+              </button>
+            </div>
+          </details>
+        </div>
+      )}
+
+      {/* ── Delete data confirmation modal ── */}
+      {showDeleteModal && (
+        <div
+          onClick={() => !deleting && setShowDeleteModal(false)}
+          style={{
+            position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)",
+            zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "var(--color-surface)", borderRadius: 20,
+              padding: "28px 24px 24px", width: "100%", maxWidth: 380, textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: 40, marginBottom: 12 }}>⚠️</div>
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "var(--color-text-primary)" }}>
+              Delete All My Data?
+            </div>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+              This permanently deletes your account, XP, progress, and all personal data from Fundi Finance. This cannot be undone.
+            </p>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={async () => {
+                setDeleting(true);
+                try { if (onDeleteAccount) await onDeleteAccount(); } finally { setDeleting(false); }
+              }}
+              style={{
+                width: "100%", padding: "12px", borderRadius: 12, border: "none",
+                background: "#E03C31", color: "#fff", fontWeight: 700, fontSize: 15,
+                cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.6 : 1,
+                marginBottom: 10,
+              }}
+            >
+              {deleting ? "Deleting…" : "Yes, Delete Everything"}
+            </button>
+            <button
+              type="button"
+              disabled={deleting}
+              onClick={() => setShowDeleteModal(false)}
+              style={{
+                width: "100%", padding: "10px", borderRadius: 12, border: "1px solid var(--color-border)",
+                background: "transparent", color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14,
+                cursor: "pointer",
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feedback modal ── */}
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
       {/* ── Badge detail modal ── */}
       {selectedBadge && (
@@ -4091,7 +4973,6 @@ function ProfileView({
             <div style={{ color: "var(--color-primary)", marginBottom: 8, display: "flex", justifyContent: "center" }}>{selectedBadge.icon}</div>
             <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 6, color: "var(--color-text-primary)" }}>{selectedBadge.name}</div>
             <p style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>{selectedBadge.desc}</p>
-
             <button className="btn btn-primary" onClick={() => setSelectedBadge(null)}>Got it</button>
           </div>
         </div>
@@ -4100,11 +4981,50 @@ function ProfileView({
   );
 }
 
-function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: string }) {
-  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; isYou: boolean; rank: number; ageRange?: string }[]>([]);
+/** Returns the week key for the most recent Sunday: "fundi-week-YYYY-MM-DD" */
+function getLeaderboardWeekKey(): string {
+  const now = new Date();
+  const sunday = new Date(now);
+  sunday.setDate(now.getDate() - now.getDay());
+  const y = sunday.getFullYear();
+  const m = String(sunday.getMonth() + 1).padStart(2, "0");
+  const d = String(sunday.getDate()).padStart(2, "0");
+  return `fundi-week-${y}-${m}-${d}`;
+}
+
+/** Next Saturday midnight (end of current week) for the countdown */
+function getWeekResetDate(): Date {
+  const now = new Date();
+  const saturday = new Date(now);
+  saturday.setDate(now.getDate() + (6 - now.getDay())); // roll forward to Saturday
+  saturday.setHours(23, 59, 59, 0);
+  return saturday;
+}
+
+function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp?: number; currentUserId?: string }) {
+  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [timeLeft, setTimeLeft] = useState("");
+  const [showLeagueInfo, setShowLeagueInfo] = useState(false);
+
+  // Countdown to Saturday midnight reset
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const reset = getWeekResetDate();
+      const diff = reset.getTime() - now.getTime();
+      if (diff <= 0) { setTimeLeft("Resetting…"); return; }
+      const days = Math.floor(diff / 86400000);
+      const hrs = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      setTimeLeft(days > 0 ? `${days}d ${hrs}h` : `${hrs}h ${mins}m`);
+    };
+    tick();
+    const interval = setInterval(tick, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -4113,48 +5033,83 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
       try {
         const { data: { user } } = await supabase.auth.getUser();
         const myId = user?.id ?? currentUserId ?? null;
+        const currentWeekKey = getLeaderboardWeekKey();
 
-        const { data: progressRows, error } = await supabase
-          .from("user_progress")
-          .select("user_id, xp")
-          .order("xp", { ascending: false })
-          .limit(50);
+        // 1. Fetch ALL profiles (every registered user, even brand-new ones)
+        const { data: profileRows, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_id, full_name, age_range")
+          .limit(200);
 
-        if (error || !progressRows) {
+        if (profileError) {
           setLoadError(true);
           setLoading(false);
           return;
         }
 
-        const userIds = progressRows.map((r: any) => r.user_id);
-        const { data: profileRows } = await supabase
-          .from("profiles")
-          .select("user_id, full_name, age_range")
-          .in("user_id", userIds);
+        // 2. Fetch progress rows (weekly_xp + week_key + total xp)
+        const { data: progressRows } = await supabase
+          .from("user_progress")
+          .select("user_id, xp, weekly_xp, week_key")
+          .limit(200);
 
-        const nameMap: Record<string, string> = {};
-        const ageRangeMap: Record<string, string> = {};
+        // Build lookup maps
+        const profileMap: Record<string, { name: string; ageRange?: string }> = {};
         (profileRows ?? []).forEach((p: any) => {
-          if (p.full_name) nameMap[p.user_id] = p.full_name.split(" ")[0];
-          if (p.age_range) ageRangeMap[p.user_id] = p.age_range;
+          profileMap[p.user_id] = {
+            name: p.full_name ? p.full_name.split(" ")[0] : "",
+            ageRange: p.age_range ?? undefined,
+          };
         });
 
-        const rows: { id: string; name: string; xp: number; isYou: boolean; rank: number; ageRange?: string }[] = progressRows.map((row: any, idx: number) => {
-          const isYou = row.user_id === myId;
-          const name = isYou
-            ? "You"
-            : (nameMap[row.user_id] ?? "Learner " + row.user_id.slice(0, 4).toUpperCase());
-          const ageRange = ageRangeMap[row.user_id] as string | undefined;
-          return { id: row.user_id, name, xp: row.xp ?? 0, isYou, rank: idx + 1, ageRange };
+        const progressMap: Record<string, { xp: number; weeklyXp: number; weekKey: string }> = {};
+        (progressRows ?? []).forEach((r: any) => {
+          progressMap[r.user_id] = {
+            xp: r.xp ?? 0,
+            weeklyXp: r.weekly_xp ?? 0,
+            weekKey: r.week_key ?? "",
+          };
         });
 
-        const alreadyIn = rows.some((r) => r.isYou);
-        if (!alreadyIn && myId) {
-          const myName = user?.user_metadata?.full_name?.split(" ")[0] ?? "You";
-          rows.push({ id: myId, name: "You (" + myName + ")", xp, isYou: true, rank: rows.length + 1 });
-          rows.sort((a, b) => b.xp - a.xp);
-          rows.forEach((r, i) => { r.rank = i + 1; });
-        }
+        // 3. Union of all user IDs from both tables
+        const allIds = new Set([
+          ...Object.keys(profileMap),
+          ...Object.keys(progressMap),
+        ]);
+
+        // 4. Build rows — weekly XP only counts if week_key matches current week
+        const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[] = [];
+
+        allIds.forEach((uid) => {
+          const profile = profileMap[uid];
+          const progress = progressMap[uid];
+          const isCurrentWeek = progress?.weekKey === currentWeekKey;
+          const thisWeekXp = isCurrentWeek ? (progress?.weeklyXp ?? 0) : 0;
+          const totalXp = progress?.xp ?? 0;
+          const isYou = uid === myId;
+
+          // Merge: current user's local weekly XP takes priority (most up-to-date)
+          const displayWeeklyXp = isYou
+            ? Math.max(thisWeekXp, weeklyXp ?? 0)
+            : thisWeekXp;
+
+          const rawName = profile?.name ?? "";
+          const name = isYou ? "You" : (rawName || "Learner " + uid.slice(0, 4).toUpperCase());
+
+          rows.push({
+            id: uid,
+            name,
+            xp: displayWeeklyXp,
+            totalXp,
+            isYou,
+            rank: 0,
+            ageRange: profile?.ageRange,
+          });
+        });
+
+        // Sort by this week's XP descending
+        rows.sort((a, b) => b.xp - a.xp || b.totalXp - a.totalXp);
+        rows.forEach((r, i) => { r.rank = i + 1; });
 
         setLeaders(rows);
       } finally {
@@ -4162,7 +5117,7 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
       }
     }
     load();
-  }, [xp, currentUserId, retryCount]);
+  }, [xp, weeklyXp, currentUserId, retryCount]);
 
   const myRank = leaders.find((l) => l.isYou);
   const myIndex = leaders.findIndex((l) => l.isYou);
@@ -4173,12 +5128,96 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
   const top3 = leaders.slice(0, 3);
   const restLeaders = leaders.slice(3);
 
+  const LEAGUES = [
+    { name: "Bronze",  min: 0,     max: 999,   emoji: "🥉", color: "#CD7F32" },
+    { name: "Silver",  min: 1000,  max: 4999,  emoji: "🥈", color: "#A8A9AD" },
+    { name: "Gold",    min: 5000,  max: 14999, emoji: "🥇", color: "#FFB612" },
+    { name: "Diamond", min: 15000, max: Infinity, emoji: "💎", color: "#7DD3FC" },
+  ];
+  // Leagues based on total XP (permanent achievement), not weekly
+  const getLeague = (totalXpVal: number) => LEAGUES.find((l) => totalXpVal >= l.min && totalXpVal <= l.max) ?? LEAGUES[0];
+  const myLeague = myRank ? getLeague(myRank.totalXp) : null;
+
   return (
     <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8 }}>Leaderboard</h2>
-      <p style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>
-        Compete with other learners for the top spot
+      <div>
+      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 8 }}>
+        <h2 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>Leaderboard</h2>
+        {timeLeft && (
+          <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", background: "var(--color-border)", borderRadius: 20, padding: "4px 12px", marginBottom: 4 }}>
+            🔄 Resets in {timeLeft}
+          </div>
+        )}
+      </div>
+      <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 14 }}>
+        This week's XP — everyone starts fresh every Sunday
       </p>
+
+      {/* League tier legend + info */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {LEAGUES.map((league) => {
+          const isMyLeague = myLeague?.name === league.name;
+          return (
+            <div key={league.name} style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "4px 10px", borderRadius: 20,
+              background: isMyLeague ? league.color + "22" : "var(--color-border)",
+              border: isMyLeague ? `1.5px solid ${league.color}` : "1.5px solid transparent",
+              fontSize: 12, fontWeight: isMyLeague ? 700 : 500,
+              color: isMyLeague ? league.color : "var(--color-text-secondary)",
+            }}>
+              <span>{league.emoji}</span>
+              <span>{league.name}</span>
+              <span style={{ fontSize: 10, opacity: 0.7 }}>
+                {league.max === Infinity ? `${formatWithSpaces(league.min)}+` : `${formatWithSpaces(league.min)}–${formatWithSpaces(league.max)}`}
+              </span>
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setShowLeagueInfo(true)}
+          aria-label="What do leagues mean?"
+          style={{
+            width: 22, height: 22, borderRadius: "50%", border: "1.5px solid var(--color-border)",
+            background: "var(--color-surface)", cursor: "pointer",
+            fontSize: 11, fontWeight: 800, color: "var(--color-text-secondary)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}
+        >?</button>
+      </div>
+
+      {/* League info modal */}
+      {showLeagueInfo && (
+        <div
+          onClick={() => setShowLeagueInfo(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: 20, padding: "24px", width: "100%", maxWidth: 360 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4, color: "var(--color-text-primary)" }}>What are leagues?</div>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+              Leagues show your overall Fundi Finance level based on your <strong>total XP earned all time</strong>. They don&apos;t reset — keep earning XP to move up permanently.
+            </p>
+            {LEAGUES.map((league) => (
+              <div key={league.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
+                <span style={{ fontSize: 22 }}>{league.emoji}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: league.color }}>{league.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                    {league.max === Infinity
+                      ? `${formatWithSpaces(league.min)} XP and above`
+                      : `${formatWithSpaces(league.min)} – ${formatWithSpaces(league.max)} total XP`}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 12, marginTop: 14, lineHeight: 1.5 }}>
+              The weekly leaderboard ranks everyone by XP earned <strong>this week only</strong>. Every Sunday it resets to zero so everyone gets a fresh start.
+            </p>
+            <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} onClick={() => setShowLeagueInfo(false)}>Got it</button>
+          </div>
+        </div>
+      )}
 
       {/* Your rank summary card */}
       {myRank && !loading && (
@@ -4196,8 +5235,16 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                 #{myRank.rank}
               </div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "var(--color-primary)", marginTop: 4 }}>
-                {formatWithSpaces(myRank.xp)} XP
+                {formatWithSpaces(myRank.xp)} XP this week
               </div>
+              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                {formatWithSpaces(myRank.totalXp)} total XP
+              </div>
+              {myLeague && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6, padding: "3px 10px", borderRadius: 20, background: myLeague.color + "22", border: `1px solid ${myLeague.color}`, fontSize: 12, fontWeight: 700, color: myLeague.color }}>
+                  {myLeague.emoji} {myLeague.name} League
+                </div>
+              )}
             </div>
             {xpToNext !== null && xpToNext > 0 && aheadOfMe && (
               <div style={{
@@ -4301,24 +5348,37 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
             background: "var(--color-surface)", color: "var(--color-text-primary)",
             border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
           }}>
+            {/* Demotion zone divider — shown when ≥6 users, marks bottom 3 */}
+            {leaders.length >= 6 && (
+              <div style={{
+                background: "rgba(220,38,38,0.06)", borderBottom: "1.5px solid rgba(220,38,38,0.25)",
+                padding: "6px 16px", display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  ⚠️ Demotion Zone — bottom {Math.min(3, restLeaders.length)} this week
+                </span>
+              </div>
+            )}
             {restLeaders.map((leader) => {
               const prevLeader = leaders[leader.rank - 2]; // person above
+              const inDemotionZone = leaders.length >= 6 && leader.rank > leaders.length - 3;
               return (
                 <div
                   key={leader.id}
                   className="leaderboard-row"
                   style={{
                     ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
+                    ...(inDemotionZone && !leader.isYou ? { background: "rgba(220,38,38,0.04)" } : {}),
                     display: "flex", alignItems: "center", padding: "12px 16px",
                     borderBottom: "1px solid var(--color-border)",
                   }}
                 >
                   <div style={{
                     width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
-                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    color: inDemotionZone ? "#dc2626" : leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
                     flexShrink: 0,
                   }}>
-                    {leader.rank}
+                    {inDemotionZone ? "⚠️" : leader.rank}
                   </div>
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
@@ -4345,11 +5405,21 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
                       )}
                     </div>
                   </div>
-                  <div style={{
-                    fontWeight: 800, fontSize: 14, flexShrink: 0,
-                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
-                  }}>
-                    {formatWithSpaces(leader.xp)} XP
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
+                    <div style={{
+                      fontWeight: 800, fontSize: 14,
+                      color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    }}>
+                      {formatWithSpaces(leader.xp)} XP
+                    </div>
+                    {(() => {
+                      const lg = getLeague(leader.totalXp);
+                      return (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: lg.color }}>
+                          {lg.emoji} {lg.name}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -4357,7 +5427,189 @@ function LeaderboardView({ xp, currentUserId }: { xp: number; currentUserId?: st
           </div>
         </>
       )}
+      </div>
     </main>
+  );
+}
+
+// ─── Shareable Results Card ──────────────────────────────────────────────────
+
+type ShareCardData =
+  | { type: "lesson"; lessonTitle: string; xpEarned: number; isPerfect: boolean; courseName: string }
+  | { type: "calculator"; headline: string; sub: string };
+
+function generateShareCard(data: ShareCardData): Promise<string> {
+  return new Promise((resolve) => {
+    const W = 1080, H = 1920;
+    const canvas = document.createElement("canvas");
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext("2d")!;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0, 0, W, H);
+    bg.addColorStop(0, "#0a1e12");
+    bg.addColorStop(0.6, "#0d2318");
+    bg.addColorStop(1, "#061009");
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, W, H);
+
+    // Radial glow centre
+    const glow = ctx.createRadialGradient(W / 2, H * 0.42, 0, W / 2, H * 0.42, 480);
+    glow.addColorStop(0, "rgba(34,197,94,0.22)");
+    glow.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle grid lines
+    ctx.strokeStyle = "rgba(34,197,94,0.06)";
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 60) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke(); }
+
+    // Top brand strip
+    ctx.fillStyle = "rgba(0,122,60,0.18)";
+    ctx.beginPath(); ctx.roundRect(60, 100, W - 120, 90, 18); ctx.fill();
+    ctx.fillStyle = "#22c55e";
+    ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText("FUNDI FINANCE", W / 2, 156);
+
+    if (data.type === "lesson") {
+      // Big trophy icon area
+      ctx.fillStyle = "rgba(255,182,18,0.12)";
+      ctx.beginPath(); ctx.arc(W / 2, H * 0.35, 140, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#FFB612";
+      ctx.font = "140px serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🏆", W / 2, H * 0.35 + 52);
+
+      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.beginPath(); ctx.roundRect(60, H * 0.52, W - 120, 260, 24); ctx.fill();
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold 58px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.textAlign = "center";
+      // wrap long titles
+      const words = data.lessonTitle.split(" ");
+      let line = ""; const lines: string[] = [];
+      for (const w of words) {
+        const test = line + (line ? " " : "") + w;
+        if (ctx.measureText(test).width > W - 160) { lines.push(line); line = w; }
+        else line = test;
+      }
+      lines.push(line);
+      lines.forEach((l, i) => ctx.fillText(l, W / 2, H * 0.54 + i * 70));
+
+      ctx.fillStyle = "#22c55e";
+      ctx.font = `bold 48px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.fillText(`+${data.xpEarned} XP earned`, W / 2, H * 0.54 + lines.length * 70 + 60);
+
+      if (data.isPerfect) {
+        ctx.fillStyle = "#FFB612";
+        ctx.font = `bold 38px -apple-system, BlinkMacSystemFont, sans-serif`;
+        ctx.fillText("⭐ Perfect Score!", W / 2, H * 0.54 + lines.length * 70 + 120);
+      }
+
+      ctx.fillStyle = "rgba(255,255,255,0.45)";
+      ctx.font = `500 34px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.fillText(`${data.courseName} course`, W / 2, H * 0.82);
+    } else {
+      // Calculator card
+      ctx.fillStyle = "rgba(34,197,94,0.1)";
+      ctx.beginPath(); ctx.roundRect(60, H * 0.28, W - 120, 500, 28); ctx.fill();
+      ctx.strokeStyle = "rgba(34,197,94,0.3)";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.roundRect(60, H * 0.28, W - 120, 500, 28); ctx.stroke();
+
+      ctx.fillStyle = "#22c55e";
+      ctx.font = `bold 42px -apple-system, BlinkMacSystemFont, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.fillText("I just discovered…", W / 2, H * 0.31);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = `bold 68px -apple-system, BlinkMacSystemFont, sans-serif`;
+      // wrap headline
+      const words2 = data.headline.split(" ");
+      let line2 = ""; const lines2: string[] = [];
+      for (const w of words2) {
+        const test = line2 + (line2 ? " " : "") + w;
+        if (ctx.measureText(test).width > W - 180) { lines2.push(line2); line2 = w; }
+        else line2 = test;
+      }
+      lines2.push(line2);
+      lines2.forEach((l, i) => ctx.fillText(l, W / 2, H * 0.37 + i * 80));
+
+      ctx.fillStyle = "rgba(255,255,255,0.55)";
+      ctx.font = `500 38px -apple-system, BlinkMacSystemFont, sans-serif`;
+      const subWords = data.sub.split(" ");
+      let subLine = ""; const subLines: string[] = [];
+      for (const w of subWords) {
+        const test = subLine + (subLine ? " " : "") + w;
+        if (ctx.measureText(test).width > W - 200) { subLines.push(subLine); subLine = w; }
+        else subLine = test;
+      }
+      subLines.push(subLine);
+      subLines.forEach((l, i) => ctx.fillText(l, W / 2, H * 0.37 + lines2.length * 80 + 60 + i * 52));
+    }
+
+    // Bottom CTA
+    ctx.fillStyle = "#22c55e";
+    ctx.beginPath(); ctx.roundRect(120, H - 220, W - 240, 80, 40); ctx.fill();
+    ctx.fillStyle = "#000000";
+    ctx.font = `bold 34px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.fillText("Try it FREE → fundiapp.co.za", W / 2, H - 170);
+
+    ctx.fillStyle = "rgba(255,255,255,0.25)";
+    ctx.font = `500 28px -apple-system, BlinkMacSystemFont, sans-serif`;
+    ctx.fillText("Your financial journey starts here", W / 2, H - 110);
+
+    resolve(canvas.toDataURL("image/png"));
+  });
+}
+
+function ShareResultButton({ data, label = "Share" }: { data: ShareCardData; label?: string }) {
+  const [sharing, setSharing] = useState(false);
+
+  const handleShare = async () => {
+    setSharing(true);
+    try {
+      const dataUrl = await generateShareCard(data);
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], "fundi-result.png", { type: "image/png" });
+
+      const text = data.type === "calculator"
+        ? `${data.headline} — calculated on Fundi Finance 📊 Try it free at fundiapp.co.za`
+        : `I just completed "${data.lessonTitle}" (+${data.xpEarned} XP) on Fundi Finance 🎓 fundiapp.co.za`;
+
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "Fundi Finance", text });
+        analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
+      } else {
+        // Fallback: download the image
+        const a = document.createElement("a");
+        a.href = dataUrl;
+        a.download = "fundi-result.png";
+        a.click();
+      }
+    } catch { /* user cancelled or unsupported */ }
+    setSharing(false);
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleShare}
+      disabled={sharing}
+      style={{
+        display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
+        padding: "12px 20px", borderRadius: 12, cursor: sharing ? "default" : "pointer",
+        border: "1.5px solid rgba(34,197,94,0.4)", background: "rgba(34,197,94,0.08)",
+        color: "#22c55e", fontWeight: 700, fontSize: 14, width: "100%",
+      }}
+    >
+      <Share2 size={16} />
+      {sharing ? "Generating…" : label}
+    </button>
   );
 }
 
@@ -4372,17 +5624,65 @@ type BudgetEntry = {
   entry_date: string;
 };
 
+type CustomBudgetCat = {
+  id: string;
+  name: string;
+  color: string;
+  icon_name: string;
+  type: "expense" | "income";
+};
+
+// Curated icon palette for the custom category picker
+const ICON_PICKER_OPTIONS: { name: string; Icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
+  { name: "ShoppingCart",  Icon: ShoppingCart },
+  { name: "Car",           Icon: Car },
+  { name: "Home",          Icon: HomeIcon },
+  { name: "CreditCard",    Icon: CreditCard },
+  { name: "PiggyBank",     Icon: PiggyBank },
+  { name: "Tv",            Icon: Tv },
+  { name: "Smartphone",    Icon: Smartphone },
+  { name: "Heart",         Icon: Heart },
+  { name: "GraduationCap", Icon: GraduationCap },
+  { name: "Briefcase",     Icon: Briefcase },
+  { name: "Building2",     Icon: Building2 },
+  { name: "Wallet",        Icon: Wallet },
+  { name: "Zap",           Icon: Zap },
+  { name: "Target",        Icon: Target },
+  { name: "TrendingUp",    Icon: TrendingUp },
+  { name: "BarChart2",     Icon: BarChart2 },
+  { name: "Flame",         Icon: Flame },
+  { name: "Award",         Icon: Award },
+  { name: "Flag",          Icon: Flag },
+  { name: "Landmark",      Icon: Landmark },
+  { name: "Lock",          Icon: Lock },
+  { name: "Umbrella",      Icon: Umbrella },
+  { name: "Shield",        Icon: Shield },
+  { name: "Brain",         Icon: Brain },
+  { name: "Lightbulb",     Icon: Lightbulb },
+  { name: "MoreHorizontal",Icon: MoreHorizontal },
+];
+
+function getIconByName(name: string): React.ComponentType<{ size?: number; style?: React.CSSProperties }> {
+  return ICON_PICKER_OPTIONS.find((o) => o.name === name)?.Icon ?? MoreHorizontal;
+}
+
+const CAT_COLOR_SWATCHES = [
+  "#007A4D","#FFB612","#3B7DD8","#E03C31","#00BFA5",
+  "#7C4DFF","#F57C00","#C2185B","#1976D2","#9E9E9E",
+  "#00897B","#D81B60","#F4511E","#8E24AA","#43A047",
+];
+
 const BUDGET_EXPENSE_CATS = [
   { id: "food",          label: "Food & Groceries", color: "#007A4D", tag: "needs",   Icon: ShoppingCart },
-  { id: "transport",     label: "Transport",         color: "#FFB612", tag: "needs",   Icon: Zap },
+  { id: "transport",     label: "Transport",         color: "#FFB612", tag: "needs",   Icon: Car },
   { id: "housing",       label: "Housing/Rent",      color: "#3B7DD8", tag: "needs",   Icon: HomeIcon },
   { id: "debt",          label: "Debt Repayments",   color: "#E03C31", tag: "debt",    Icon: CreditCard },
-  { id: "savings",       label: "Savings",           color: "#00BFA5", tag: "savings", Icon: Shield },
-  { id: "entertainment", label: "Entertainment",     color: "#7C4DFF", tag: "wants",   Icon: Play },
-  { id: "airtime",       label: "Airtime & Data",    color: "#F57C00", tag: "needs",   Icon: Zap },
-  { id: "healthcare",    label: "Healthcare",        color: "#C2185B", tag: "needs",   Icon: Umbrella },
+  { id: "savings",       label: "Savings",           color: "#00BFA5", tag: "savings", Icon: PiggyBank },
+  { id: "entertainment", label: "Entertainment",     color: "#7C4DFF", tag: "wants",   Icon: Tv },
+  { id: "airtime",       label: "Airtime & Data",    color: "#F57C00", tag: "needs",   Icon: Smartphone },
+  { id: "healthcare",    label: "Healthcare",        color: "#C2185B", tag: "needs",   Icon: Heart },
   { id: "education",     label: "Education",         color: "#1976D2", tag: "needs",   Icon: GraduationCap },
-  { id: "other",         label: "Other",             color: "#9E9E9E", tag: "other",   Icon: Hash },
+  { id: "other",         label: "Other",             color: "#9E9E9E", tag: "other",   Icon: MoreHorizontal },
 ] as const;
 
 const BUDGET_INCOME_CATS = [
@@ -4392,9 +5692,251 @@ const BUDGET_INCOME_CATS = [
   { id: "other-income", label: "Other Income",      Icon: Wallet },
 ] as const;
 
+// ─── Feedback Modal ──────────────────────────────────────────────────────────
+
+function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [subject, setSubject] = useState("");
+  const [description, setDescription] = useState("");
+  const [issueType, setIssueType] = useState("");
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  if (!open) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSending(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error } = await supabase.from("feedback").insert({
+        user_id: user?.id ?? null,
+        subject,
+        description,
+        issue_type: issueType,
+      });
+      if (!error) setSent(true);
+    } catch { /* ignore */ }
+    setSending(false);
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 500, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 480, maxHeight: "90vh", overflowY: "auto" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+          <div style={{ fontWeight: 800, fontSize: 18 }}>Send Feedback</div>
+          <button type="button" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}>
+            <X size={22} />
+          </button>
+        </div>
+
+        {sent ? (
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <CheckCircle2 size={48} style={{ color: "var(--color-primary)", margin: "0 auto 12px" }} />
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Thank you!</div>
+            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginBottom: 20 }}>Your feedback helps us improve Fundi Finance.</p>
+            <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={onClose}>Close</button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", display: "block", marginBottom: 6 }}>Subject *</label>
+              <input
+                required value={subject} onChange={(e) => setSubject(e.target.value)}
+                placeholder="Brief summary of your feedback"
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", display: "block", marginBottom: 6 }}>Description *</label>
+              <textarea
+                required value={description} onChange={(e) => setDescription(e.target.value)}
+                placeholder="Describe your issue or suggestion in detail…"
+                rows={4}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", resize: "none", boxSizing: "border-box" as const }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", display: "block", marginBottom: 6 }}>Type of feedback *</label>
+              <select
+                required value={issueType} onChange={(e) => setIssueType(e.target.value)}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1.5px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: issueType ? "var(--color-text-primary)" : "var(--color-text-secondary)" }}
+              >
+                <option value="">Please select one…</option>
+                <option value="bug">Bug report</option>
+                <option value="feature">Feature request</option>
+                <option value="lesson-content">Lesson content issue</option>
+                <option value="account">Account issue</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <button type="submit" className="btn btn-primary" style={{ width: "100%", marginTop: 4 }} disabled={sending}>
+              {sending ? "Sending…" : "Send Feedback"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Legal Page ───────────────────────────────────────────────────────────────
+
+const FUNDI_FAQ = [
+  {
+    section: "Using Fundi Finance",
+    items: [
+      { q: "What is a streak?", a: "A streak counts how many days in a row you've completed at least one lesson. Streaks help build a daily learning habit — miss a day and your streak resets to zero." },
+      { q: "How does the XP system work?", a: "You earn XP (experience points) by completing lessons, getting correct answers, and claiming daily challenges. XP increases your level and your position on the leaderboard." },
+      { q: "What are Daily Challenges?", a: "Every day, three challenges appear on your home screen. Complete the required action first (e.g. finish a lesson, log an expense), then tap Claim to receive bonus XP. Challenges reset at midnight." },
+      { q: "What are Leaderboards?", a: "Leaderboards rank all Fundi users by XP. Your position updates in real time as you and others complete lessons. Use it to track your progress relative to other learners." },
+    ],
+  },
+  {
+    section: "Account & Data",
+    items: [
+      { q: "How do I change my name?", a: "Go to Profile → Edit Profile, update your first and last name, then tap Save." },
+      { q: "How do I delete my account?", a: "Email us at privacy@fundiapp.co.za with subject 'Account Deletion Request'. We'll process it within 7 working days and permanently delete all your data." },
+      { q: "What data does Fundi collect?", a: "We collect the email address you register with, your learning progress (lessons completed, XP, streaks), and anonymised budget data for benchmarking. See our Privacy Policy for full details." },
+      { q: "Is my budget data shared?", a: "Budget data is aggregated and anonymised before being used for the community benchmarking feature. Individual entries are never shared with other users. We require at least 3 users in a category before showing any comparison." },
+    ],
+  },
+  {
+    section: "Still unsure?",
+    items: [
+      { q: "How do I contact support?", a: "Use the Send Feedback button at the bottom of your Profile. We'll get back to you within 2 business days." },
+    ],
+  },
+];
+
+function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "terms" | "faq"; onBack: () => void; onFeedback: () => void }) {
+  const [openFaq, setOpenFaq] = useState<string | null>(null);
+
+  const titles = { privacy: "Privacy Policy", terms: "Terms of Service", faq: "FAQ & Help" };
+
+  return (
+    <main className="main-content" style={{ paddingBottom: 80 }}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0 20px" }}>
+        <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-primary)", display: "flex" }}>
+          <ArrowLeft size={22} />
+        </button>
+        <div style={{ fontSize: 18, fontWeight: 800 }}>{titles[page]}</div>
+      </div>
+
+      {page === "faq" && (
+        <div>
+          {FUNDI_FAQ.map((section) => (
+            <div key={section.section} style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", marginBottom: 10 }}>{section.section}</div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
+                {section.items.map((item, i) => {
+                  const key = section.section + i;
+                  const isOpen = openFaq === key;
+                  return (
+                    <div key={key} style={{ borderBottom: i < section.items.length - 1 ? "1px solid var(--color-border)" : "none" }}>
+                      <button
+                        type="button"
+                        onClick={() => setOpenFaq(isOpen ? null : key)}
+                        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left", gap: 12 }}
+                      >
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>{item.q}</span>
+                        <ChevronRight size={16} style={{ color: "var(--color-text-secondary)", flexShrink: 0, transform: isOpen ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+                      </button>
+                      {isOpen && (
+                        <div style={{ padding: "0 16px 14px", fontSize: 14, color: "var(--color-text-secondary)", lineHeight: 1.6 }}>{item.a}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Send Feedback CTA */}
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 20, marginTop: 8, textAlign: "center" }}>
+            <div style={{ fontWeight: 700, fontSize: 15, marginBottom: 6 }}>Still unsure about something?</div>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>Our team is happy to help. Send us a message and we'll respond within 2 business days.</p>
+            <button
+              type="button"
+              onClick={onFeedback}
+              className="btn btn-primary"
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "14px 20px", fontSize: 15, fontWeight: 700 }}
+            >
+              <MessageSquare size={18} />
+              Send Feedback
+            </button>
+          </div>
+        </div>
+      )}
+
+      {page === "privacy" && (
+        <div style={{ fontSize: 14, lineHeight: 1.7, color: "var(--color-text-primary)" }}>
+          <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 20 }}>Last revised: 5 April 2026</p>
+
+          {[
+            { title: "1. General", body: "Fundi Finance (\"we\", \"us\") cares about your personal information. This Privacy Policy explains how we collect, use, and protect it when you use the Fundi Finance app and related services. By using the service, you agree to the practices described here." },
+            { title: "2. Information We Collect", body: "We collect: (a) your email address and display name when you register; (b) your learning progress including lessons completed, XP earned, and streaks; (c) budget entries you create — these are stored securely and only accessible to you; (d) anonymised, aggregated budget data for the community benchmarking feature; (e) app usage data such as which lessons you viewed and how long you spent." },
+            { title: "3. How We Use Your Information", body: "We use your information to provide and improve the service, personalise your learning experience, display your progress on the leaderboard (which you can disable by not setting a public display name), detect and fix bugs, and send you progress-related reminders (which you can opt out of in your device notification settings)." },
+            { title: "4. Sharing Your Information", body: "We do not sell your personal information. We may share it with trusted service providers (Supabase for database hosting, PostHog for anonymised analytics) who are contractually bound to protect it. Budget data is only used in aggregate form with a minimum of 3 users before any comparison is shown." },
+            { title: "5. Your Rights", body: "You have the right to: access the personal data we hold about you; correct inaccurate information; request deletion of your account and associated data; object to certain processing; export your data. To exercise any of these rights, email privacy@fundiapp.co.za." },
+            { title: "6. Data Retention", body: "We retain your data for as long as your account is active. When you delete your account, we delete your personal data within 30 days, except where retention is required by law." },
+            { title: "7. Children", body: "Fundi Finance is not directed at children under the age of 13. We do not knowingly collect data from children. If we become aware that a child has provided personal information, we will delete it promptly." },
+            { title: "8. Cookies & Analytics", body: "We use analytics tools (PostHog) to understand how users engage with the app. Data collected is anonymised and used only to improve the product. We do not use third-party advertising cookies." },
+            { title: "9. Contact", body: "For all privacy enquiries, contact our team at privacy@fundiapp.co.za." },
+          ].map((s) => (
+            <div key={s.title} style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 800, marginBottom: 6 }}>{s.title}</div>
+              <p style={{ color: "var(--color-text-secondary)" }}>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {page === "terms" && (
+        <div style={{ fontSize: 14, lineHeight: 1.7, color: "var(--color-text-primary)" }}>
+          <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 20 }}>Last revised: 5 April 2026</p>
+
+          {[
+            { title: "1. Acceptance of Terms", body: "By accessing or using Fundi Finance (\"Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service. We may update these terms and will notify you of material changes via the app." },
+            { title: "2. Description of Service", body: "Fundi Finance is a financial literacy app that provides educational content, budgeting tools, and gamified learning experiences. It is designed for general financial education purposes only and does not constitute financial advice." },
+            { title: "3. Not Financial Advice", body: "Nothing in the Fundi Finance app, including lessons, calculator results, or investment projections, constitutes personalised financial, investment, tax, or legal advice. Always consult a qualified financial advisor before making financial decisions." },
+            { title: "4. Acceptable Use", body: "You may use the Service only for lawful purposes. You agree not to: share your account credentials; attempt to reverse-engineer or scrape the app; upload harmful or offensive content; impersonate other users or misrepresent your identity on the leaderboard." },
+            { title: "5. Intellectual Property", body: "All content in the app — including lessons, graphics, and the Fundi Finance name and logo — is owned by or licensed to Fundi Finance. You may not reproduce, distribute, or create derivative works from any app content without our written permission." },
+            { title: "6. User-Generated Content", body: "Any display names, profile information, or content you submit to the Service grants us a licence to display it within the app. You retain ownership of your content but are responsible for ensuring it does not violate these terms." },
+            { title: "7. Account Termination", body: "We reserve the right to suspend or terminate your account for violations of these terms, fraudulent activity, or any other reason at our discretion. You may delete your account at any time by contacting privacy@fundiapp.co.za." },
+            { title: "8. Limitation of Liability", body: "To the fullest extent permitted by law, Fundi Finance and its team shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability for any claim shall not exceed any amount you have paid to us in the preceding 12 months." },
+            { title: "9. Governing Law", body: "These Terms are governed by the laws of the Republic of South Africa. Any disputes shall be subject to the jurisdiction of the South African courts." },
+            { title: "10. Contact", body: "For any questions about these Terms, contact us at legal@fundiapp.co.za." },
+          ].map((s) => (
+            <div key={s.title} style={{ marginBottom: 20 }}>
+              <div style={{ fontWeight: 800, marginBottom: 6 }}>{s.title}</div>
+              <p style={{ color: "var(--color-text-secondary)" }}>{s.body}</p>
+            </div>
+          ))}
+
+          {/* Feedback CTA */}
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 20, marginTop: 16, textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 14 }}>Questions about these terms? We're happy to help.</p>
+            <button type="button" className="btn btn-secondary" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={onFeedback}>
+              <MessageSquare size={16} /> Contact Us
+            </button>
+          </div>
+        </div>
+      )}
+    </main>
+  );
+}
+
 function BudgetView() {
   const now = new Date();
-  const [monthOffset, setMonthOffset] = useState(0); // 0 = current month
+  const [viewMode, setViewMode] = useState<"month" | "year">("month");
+  const [monthOffset, setMonthOffset] = useState(0);
   const [entries, setEntries] = useState<BudgetEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
@@ -4405,6 +5947,31 @@ function BudgetView() {
   const [addDate, setAddDate] = useState(() => now.toISOString().slice(0, 10));
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  // Edit state
+  const [editEntry, setEditEntry] = useState<BudgetEntry | null>(null);
+  const [editType, setEditType] = useState<"income" | "expense">("expense");
+  const [editCategory, setEditCategory] = useState("");
+  const [editAmount, setEditAmount] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  // Year view
+  const [yearEntries, setYearEntries] = useState<BudgetEntry[]>([]);
+  // Budget targets
+  const [budgetTargets, setBudgetTargets] = useState<Record<string, number>>({});
+  const [showSetBudget, setShowSetBudget] = useState(false);
+  const [budgetDraft, setBudgetDraft] = useState<Record<string, string>>({});
+  const [budgetSaving, setBudgetSaving] = useState(false);
+  // Custom categories
+  const [customCats, setCustomCats] = useState<CustomBudgetCat[]>([]);
+  const [showAddCustomCat, setShowAddCustomCat] = useState(false);
+  const [newCatType, setNewCatType] = useState<"expense" | "income">("expense");
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatColor, setNewCatColor] = useState("#007A4D");
+  const [newCatIcon, setNewCatIcon] = useState("MoreHorizontal");
+  const [savingCustomCat, setSavingCustomCat] = useState(false);
+  // Budget benchmarks
+  const [benchmarks, setBenchmarks] = useState<Record<string, number>>({});
 
   const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
   const year = targetDate.getFullYear();
@@ -4434,6 +6001,131 @@ function BudgetView() {
 
   useEffect(() => { loadEntries(); }, [loadEntries]);
 
+  // Track "budget visited today" for daily challenges
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isoDay = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(`fundi-budget-visited-${isoDay}`, "1");
+    }
+  }, []);
+
+  // Budget targets
+  const monthYear = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+  const loadBudgetTargets = React.useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("budget_targets")
+      .select("category, monthly_limit")
+      .eq("user_id", user.id)
+      .eq("month_year", monthYear);
+    const map: Record<string, number> = {};
+    (data ?? []).forEach((r: { category: string; monthly_limit: number }) => { map[r.category] = Number(r.monthly_limit); });
+    setBudgetTargets(map);
+  }, [monthYear]);
+
+  useEffect(() => { loadBudgetTargets(); }, [loadBudgetTargets]);
+
+  // Custom categories
+  const loadCustomCats = React.useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("custom_budget_categories")
+      .select("id, name, color, icon_name, type")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+    setCustomCats((data ?? []) as CustomBudgetCat[]);
+  }, []);
+
+  useEffect(() => { loadCustomCats(); }, [loadCustomCats]);
+
+  // Budget benchmarks: load anonymized category averages from all users
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("budget_benchmarks")
+        .select("category, avg_pct, user_count");
+      if (data) {
+        const map: Record<string, number> = {};
+        (data as { category: string; avg_pct: number }[]).forEach((r) => { map[r.category] = Number(r.avg_pct); });
+        setBenchmarks(map);
+      }
+    })();
+  }, []);
+
+  const handleSaveCustomCat = async () => {
+    if (!newCatName.trim()) return;
+    setSavingCustomCat(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSavingCustomCat(false); return; }
+    await supabase.from("custom_budget_categories").insert({
+      user_id: user.id,
+      name: newCatName.trim(),
+      color: newCatColor,
+      icon_name: newCatIcon,
+      type: newCatType,
+    });
+    setSavingCustomCat(false);
+    setShowAddCustomCat(false);
+    setNewCatName("");
+    setNewCatColor("#007A4D");
+    setNewCatIcon("MoreHorizontal");
+    loadCustomCats();
+  };
+
+  const handleDeleteCustomCat = async (id: string) => {
+    await supabase.from("custom_budget_categories").delete().eq("id", id);
+    setCustomCats((prev) => prev.filter((c) => c.id !== id));
+  };
+
+  const openSetBudget = () => {
+    const draft: Record<string, string> = {};
+    allExpCats.forEach((c) => { draft[c.id] = budgetTargets[c.id] ? String(budgetTargets[c.id]) : ""; });
+    setBudgetDraft(draft);
+    setShowSetBudget(true);
+  };
+
+  const handleSaveBudgetTargets = async () => {
+    setBudgetSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setBudgetSaving(false); return; }
+    // Upsert each category that has a value
+    for (const cat of allExpCats) {
+      const val = Number(budgetDraft[cat.id]);
+      if (val > 0) {
+        await supabase.from("budget_targets").upsert(
+          { user_id: user.id, category: cat.id, monthly_limit: val, month_year: monthYear },
+          { onConflict: "user_id,category,month_year" }
+        );
+      } else {
+        // Remove target if cleared
+        await supabase.from("budget_targets").delete()
+          .eq("user_id", user.id).eq("category", cat.id).eq("month_year", monthYear);
+      }
+    }
+    setBudgetSaving(false);
+    setShowSetBudget(false);
+    loadBudgetTargets();
+  };
+
+  // Load full year data for the year view
+  const loadYearEntries = React.useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const yr = now.getFullYear();
+    const { data } = await supabase
+      .from("budget_entries")
+      .select("id, type, category, amount, description, entry_date")
+      .eq("user_id", user.id)
+      .gte("entry_date", `${yr}-01-01`)
+      .lte("entry_date", `${yr}-12-31`);
+    setYearEntries((data ?? []) as BudgetEntry[]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => { if (viewMode === "year") loadYearEntries(); }, [viewMode, loadYearEntries]);
+
   const handleAdd = async () => {
     if (!addCategory || !addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) return;
     setSaving(true);
@@ -4447,6 +6139,29 @@ function BudgetView() {
       description: addDesc.trim() || null,
       entry_date: addDate,
     });
+    // Check budget alert after adding expense
+    if (addType === "expense" && budgetTargets[addCategory]) {
+      const catSpent = entries.filter(e => e.type === "expense" && e.category === addCategory).reduce((s, e) => s + e.amount, 0) + Number(addAmount);
+      const limit = budgetTargets[addCategory];
+      const pct = (catSpent / limit) * 100;
+      if (pct >= 80) {
+        // Fire-and-forget budget alert push
+        const catLabel = BUDGET_EXPENSE_CATS.find(c => c.id === addCategory)?.label ?? addCategory;
+        fetch(`${window.location.origin}/api/budget-alert`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user.id, category: catLabel, pct }),
+        }).catch(() => {});
+      }
+    }
+    // Analytics: budget category distribution
+    analytics.budgetEntryAdded(addCategory, addType);
+    // Track daily challenge: expense logged today
+    if (addType === "expense" && typeof window !== "undefined") {
+      const isoDay = new Date().toISOString().slice(0, 10);
+      const expKey = `fundi-expense-today-${isoDay}`;
+      localStorage.setItem(expKey, String((parseInt(localStorage.getItem(expKey) ?? "0", 10)) + 1));
+    }
     setSaving(false);
     setShowAdd(false);
     setAddCategory("");
@@ -4463,11 +6178,61 @@ function BudgetView() {
     setDeleting(null);
   };
 
+  const openEdit = (e: BudgetEntry) => {
+    setEditEntry(e);
+    setEditType(e.type);
+    setEditCategory(e.category);
+    setEditAmount(String(e.amount));
+    setEditDesc(e.description ?? "");
+    setEditDate(e.entry_date);
+  };
+
+  const handleEditSave = async () => {
+    if (!editEntry || !editCategory || !editAmount || Number(editAmount) <= 0) return;
+    setEditSaving(true);
+    await supabase.from("budget_entries").update({
+      type: editType,
+      category: editCategory,
+      amount: Number(editAmount),
+      description: editDesc.trim() || null,
+      entry_date: editDate,
+    }).eq("id", editEntry.id);
+    setEntries((prev) => prev.map((e) => e.id === editEntry.id ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate } : e));
+    setEditSaving(false);
+    setEditEntry(null);
+  };
+
+  const handleEditDelete = async () => {
+    if (!editEntry) return;
+    setEditSaving(true);
+    await supabase.from("budget_entries").delete().eq("id", editEntry.id);
+    setEntries((prev) => prev.filter((e) => e.id !== editEntry.id));
+    setEditSaving(false);
+    setEditEntry(null);
+  };
+
   const income = entries.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
   const expenses = entries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
   const surplus = income - expenses;
 
-  const catTotals = BUDGET_EXPENSE_CATS.map((c) => ({
+  // Merged expense/income category lists (static + custom, "other" always last)
+  const allExpCats = useMemo(() => {
+    const statics = BUDGET_EXPENSE_CATS.filter(c => c.id !== "other");
+    const custom = customCats.filter(c => c.type === "expense").map(c => ({
+      id: c.id, label: c.name, color: c.color, tag: "custom" as const, Icon: getIconByName(c.icon_name),
+    }));
+    const other = BUDGET_EXPENSE_CATS.find(c => c.id === "other")!;
+    return [...statics, ...custom, other];
+  }, [customCats]);
+
+  const allIncCats = useMemo(() => {
+    const custom = customCats.filter(c => c.type === "income").map(c => ({
+      id: c.id, label: c.name, Icon: getIconByName(c.icon_name),
+    }));
+    return [...BUDGET_INCOME_CATS, ...custom];
+  }, [customCats]);
+
+  const catTotals = allExpCats.map((c) => ({
     ...c,
     total: entries.filter((e) => e.type === "expense" && e.category === c.id).reduce((s, e) => s + e.amount, 0),
   })).filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
@@ -4480,30 +6245,129 @@ function BudgetView() {
   const debtRate = income > 0 ? Math.round((debtTotal / income) * 100) : 0;
 
   const getCatLabel = (type: string, cat: string) => {
-    if (type === "income") return BUDGET_INCOME_CATS.find((c) => c.id === cat)?.label ?? cat;
-    return BUDGET_EXPENSE_CATS.find((c) => c.id === cat)?.label ?? cat;
+    if (type === "income") return allIncCats.find((c) => c.id === cat)?.label ?? cat;
+    return allExpCats.find((c) => c.id === cat)?.label ?? cat;
   };
 
-  const getCatColor = (cat: string) => BUDGET_EXPENSE_CATS.find((c) => c.id === cat)?.color ?? "#9E9E9E";
+  const getCatColor = (cat: string) => allExpCats.find((c) => c.id === cat)?.color ?? "#9E9E9E";
 
   const formatEntry = (date: string) => {
     const d = new Date(date + "T00:00:00");
     return d.toLocaleDateString("en-ZA", { day: "numeric", month: "short" });
   };
 
+  // Year view data
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const yearMonthData = monthNames.map((name, mi) => {
+    const monthEntries = yearEntries.filter((e) => {
+      const d = new Date(e.entry_date + "T00:00:00");
+      return d.getMonth() === mi;
+    });
+    const inc = monthEntries.filter(e => e.type === "income").reduce((s, e) => s + e.amount, 0);
+    const exp = monthEntries.filter(e => e.type === "expense").reduce((s, e) => s + e.amount, 0);
+    return { name, income: inc, expenses: exp, surplus: inc - exp };
+  });
+
   return (
-    <main className="main-content main-with-stats">
+    <main className="main-content main-with-stats budget-page">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
-        <button
-          type="button"
-          onClick={() => { setAddType("expense"); setAddCategory(""); setAddAmount(""); setAddDesc(""); setAddDate(now.toISOString().slice(0, 10)); setShowAdd(true); }}
-          style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--color-primary)", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}
-        >
-          <Plus size={16} aria-hidden /> Add
-        </button>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Month / Year toggle */}
+          <div style={{ display: "flex", borderRadius: 10, border: "1px solid var(--color-border)", overflow: "hidden" }}>
+            {(["month", "year"] as const).map((v) => (
+              <button key={v} type="button" onClick={() => setViewMode(v)}
+                style={{ padding: "7px 14px", fontSize: 13, fontWeight: 700, border: "none", cursor: "pointer", background: viewMode === v ? "var(--color-primary)" : "var(--color-surface)", color: viewMode === v ? "white" : "var(--color-text-secondary)" }}>
+                {v.charAt(0).toUpperCase() + v.slice(1)}
+              </button>
+            ))}
+          </div>
+          <button type="button" onClick={() => { setAddType("expense"); setAddCategory(""); setAddAmount(""); setAddDesc(""); setAddDate(now.toISOString().slice(0, 10)); setShowAdd(true); }}
+            style={{ display: "flex", alignItems: "center", gap: 6, background: "var(--color-primary)", color: "white", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 14, cursor: "pointer" }}>
+            <Plus size={16} aria-hidden /> Add
+          </button>
+        </div>
       </div>
+
+      {/* ── YEAR VIEW ── */}
+      {viewMode === "year" && (
+        <div>
+          <div style={{ fontSize: 16, fontWeight: 800, marginBottom: 14 }}>{now.getFullYear()} Overview</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 10, marginBottom: 24 }}>
+            {yearMonthData.map((m) => (
+              <div key={m.name} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: 14 }}>
+                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 10, color: "var(--color-text-primary)" }}>{m.name}</div>
+                {m.income === 0 && m.expenses === 0 ? (
+                  <div style={{ fontSize: 11, color: "var(--color-text-secondary)", fontStyle: "italic" }}>No entries</div>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Income</span>
+                      <span style={{ fontWeight: 700, color: "#007A4D" }}>{formatRand(m.income)}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Expenses</span>
+                      <span style={{ fontWeight: 700, color: "#E03C31" }}>{formatRand(m.expenses)}</span>
+                    </div>
+                    <div style={{ height: 3, borderRadius: 2, background: "var(--color-border)", overflow: "hidden", marginBottom: 4 }}>
+                      <div style={{ height: "100%", background: m.surplus >= 0 ? "#007A4D" : "#E03C31", width: `${m.income > 0 ? Math.min(100, (m.expenses / m.income) * 100) : 100}%` }} />
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: m.surplus >= 0 ? "#007A4D" : "#E03C31", textAlign: "right" }}>
+                      {m.surplus >= 0 ? "+" : ""}{formatRand(m.surplus)}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+          {/* Year totals */}
+          {(() => {
+            const totInc = yearMonthData.reduce((s, m) => s + m.income, 0);
+            const totExp = yearMonthData.reduce((s, m) => s + m.expenses, 0);
+            const totSur = totInc - totExp;
+            return (
+              <>
+                {/* ── Income vs Expenses Line Graph ── */}
+                {yearMonthData.some(m => m.income > 0 || m.expenses > 0) && (
+                  <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14 }}>Income vs Expenses — {now.getFullYear()}</div>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={yearMonthData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `R${(v/1000).toFixed(0)}k`} />
+                        <Tooltip
+                          formatter={((value: unknown, name: unknown) => [formatRand(Number(value)), name === "income" ? "Income" : name === "expenses" ? "Expenses" : "Surplus"]) as never}
+                          contentStyle={{ borderRadius: 10, fontSize: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
+                        />
+                        <Legend iconType="circle" iconSize={8} formatter={(v: string) => v === "income" ? "Income" : v === "expenses" ? "Expenses" : "Surplus"} wrapperStyle={{ fontSize: 12 }} />
+                        <Line type="monotone" dataKey="income" stroke="#007A4D" strokeWidth={2.5} dot={{ r: 3, fill: "#007A4D" }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="expenses" stroke="#E03C31" strokeWidth={2.5} dot={{ r: 3, fill: "#E03C31" }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="surplus" stroke="#FFB612" strokeWidth={2} dot={{ r: 2, fill: "#FFB612" }} strokeDasharray="4 3" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
+                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>Year Totals</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+                    {[{ label: "Total Income", value: totInc, color: "#007A4D" }, { label: "Total Expenses", value: totExp, color: "#E03C31" }, { label: totSur >= 0 ? "Net Surplus" : "Net Deficit", value: Math.abs(totSur), color: totSur >= 0 ? "#007A4D" : "#E03C31" }].map((c) => (
+                      <div key={c.label} style={{ textAlign: "center" }}>
+                        <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{c.label}</div>
+                        <div style={{ fontSize: 16, fontWeight: 900, color: c.color }}>{formatRand(c.value)}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      )}
+
+      {/* ── MONTH VIEW ── */}
+      {viewMode === "month" && (<>
 
       {/* Month selector */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "10px 14px", marginBottom: 20 }}>
@@ -4515,6 +6379,43 @@ function BudgetView() {
           <ChevronRight size={20} />
         </button>
       </div>
+
+      {/* Apply to all months button */}
+      {Object.keys(budgetTargets).length > 0 && (
+        <button
+          type="button"
+          onClick={() => {
+            if (window.confirm("Apply this month's budget to all 12 months? Individual months can still be edited afterwards.")) {
+              const months = ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"];
+              const y = year;
+              const applyToAll = async () => {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+                for (const m of months) {
+                  const targetMonthYear = `${y}-${m}`;
+                  for (const [cat, limit] of Object.entries(budgetTargets)) {
+                    await supabase.from("budget_targets").upsert(
+                      { user_id: user.id, category: cat, monthly_limit: limit, month_year: targetMonthYear },
+                      { onConflict: "user_id,category,month_year" }
+                    );
+                  }
+                }
+                loadBudgetTargets();
+              };
+              applyToAll();
+            }
+          }}
+          style={{
+            width: "100%", marginBottom: 12, padding: "10px", borderRadius: 10,
+            border: "1.5px solid var(--color-border)", background: "var(--color-surface)",
+            color: "var(--color-text-secondary)", fontWeight: 600, fontSize: 13, cursor: "pointer",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+          }}
+        >
+          <Copy size={14} />
+          Apply this budget to all months
+        </button>
+      )}
 
       {loading ? (
         <div style={{ textAlign: "center", padding: 40, color: "var(--color-text-secondary)" }}>Loading...</div>
@@ -4571,37 +6472,188 @@ function BudgetView() {
                 </div>
               )}
 
-              {/* Category breakdown */}
-              {catTotals.length > 0 && (
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
-                  <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 14 }}>Expense breakdown</div>
-                  {catTotals.map((c) => (
-                    <div key={c.id} style={{ marginBottom: 12 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13 }}>
-                        <span style={{ fontWeight: 600 }}>{c.label}</span>
-                        <span style={{ fontWeight: 700, color: "var(--color-text-primary)" }}>{formatRand(c.total)}</span>
+              {/* Budget vs Actual summary card */}
+              {Object.keys(budgetTargets).length > 0 && catTotals.length > 0 && (() => {
+                const totalBudget = Object.values(budgetTargets).reduce((s, v) => s + v, 0);
+                const totalActual = BUDGET_EXPENSE_CATS.reduce((s, c) => s + (budgetTargets[c.id] ? entries.filter(e => e.type === "expense" && e.category === c.id).reduce((a, e) => a + e.amount, 0) : 0), 0);
+                const delta = totalBudget - totalActual;
+                const isOver = delta < 0;
+                return (
+                  <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,77,0.08)", border: `1px solid ${isOver ? "rgba(224,60,49,0.3)" : "rgba(0,122,77,0.3)"}`, borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: isOver ? "rgba(224,60,49,0.15)" : "rgba(0,122,77,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Target size={22} style={{ color: isOver ? "#E03C31" : "#007A4D" }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: isOver ? "#E03C31" : "#007A4D" }}>
+                        {isOver ? "Over Budget" : "Under Budget"}
                       </div>
-                      <div style={{ height: 6, borderRadius: 3, background: "var(--color-border)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", borderRadius: 3, background: c.color, width: `${Math.min(100, expenses > 0 ? (c.total / expenses) * 100 : 0)}%`, transition: "width 0.4s ease" }} />
+                      <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        {isOver ? `${formatRand(Math.abs(delta))} over` : `${formatRand(delta)} remaining`} of {formatRand(totalBudget)} budgeted
                       </div>
                     </div>
-                  ))}
+                  </div>
+                );
+              })()}
+
+              {/* Donut chart + Category breakdown with % */}
+              {catTotals.length > 0 && (
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>Expense breakdown</div>
+                    <button type="button" onClick={openSetBudget} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A4D", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Target size={13} /> Set Budget
+                    </button>
+                  </div>
+
+                  {/* Interactive Donut Chart */}
+                  <div style={{ position: "relative", width: "100%", maxWidth: 260, margin: "0 auto 20px" }}>
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart>
+                        <Pie
+                          data={catTotals.map((c) => ({ name: c.label, value: c.total, color: c.color }))}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={90}
+                          paddingAngle={2}
+                          dataKey="value"
+                          stroke="none"
+                        >
+                          {catTotals.map((c, i) => (
+                            <Cell key={`cell-${i}`} fill={c.color} style={{ cursor: "pointer", outline: "none" }} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          formatter={(value: any) => formatRand(Number(value))}
+                          contentStyle={{ borderRadius: 10, fontSize: 13, fontWeight: 600, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
+                          itemStyle={{ color: "var(--color-text-primary)" }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    {/* Center label: total expenses */}
+                    <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", textAlign: "center", pointerEvents: "none" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 2 }}>Total</div>
+                      <div style={{ fontSize: 18, fontWeight: 900, color: "var(--color-text-primary)" }}>{formatRand(expenses)}</div>
+                    </div>
+                  </div>
+
+                  {/* Bar breakdown per category — with budget vs actual */}
+                  {catTotals.map((c) => {
+                    const pct = expenses > 0 ? (c.total / expenses) * 100 : 0;
+                    const limit = budgetTargets[c.id];
+                    const usagePct = limit ? (c.total / limit) * 100 : 0;
+                    const isAmber = limit && usagePct >= 80 && usagePct < 100;
+                    const isOver = limit && usagePct >= 100;
+                    return (
+                      <div key={c.id} style={{ marginBottom: 14 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5, fontSize: 13 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                            <span style={{ fontWeight: 600 }}>{c.label}</span>
+                            {isOver && <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(224,60,49,0.15)", color: "#E03C31", borderRadius: 4, padding: "1px 5px" }}>OVER</span>}
+                            {isAmber && !isOver && <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(255,152,0,0.15)", color: "#F57C00", borderRadius: 4, padding: "1px 5px" }}>80%+</span>}
+                          </div>
+                          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                            <span style={{ fontSize: 11, fontWeight: 700, background: "var(--color-bg)", borderRadius: 6, padding: "2px 6px", color: "var(--color-text-secondary)" }}>{pct.toFixed(1)}%</span>
+                            <span style={{ fontWeight: 800, color: isOver ? "#E03C31" : "var(--color-text-primary)" }}>{formatRand(c.total)}</span>
+                          </div>
+                        </div>
+                        {limit ? (
+                          /* Two-tone budget bar: spent portion + remaining */
+                          <div>
+                            <div style={{ height: 10, borderRadius: 5, background: "var(--color-border)", overflow: "hidden", position: "relative" }}>
+                              <div style={{ height: "100%", borderRadius: 5, background: isOver ? "#E03C31" : isAmber ? "#F57C00" : c.color, width: `${Math.min(100, usagePct)}%`, transition: "width 0.4s ease" }} />
+                            </div>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3, fontSize: 11, color: "var(--color-text-secondary)" }}>
+                              <span>{formatRand(c.total)} of {formatRand(limit)}</span>
+                              <span style={{ color: isOver ? "#E03C31" : isAmber ? "#F57C00" : "#007A4D", fontWeight: 700 }}>
+                                {isOver ? `${formatRand(c.total - limit)} over` : `${formatRand(limit - c.total)} left`}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div style={{ height: 8, borderRadius: 4, background: "var(--color-border)", overflow: "hidden" }}>
+                            <div style={{ height: "100%", borderRadius: 4, background: c.color, width: `${Math.min(100, pct)}%`, transition: "width 0.4s ease" }} />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {/* Legend summary */}
+                  <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--color-border)", display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {catTotals.map((c) => (
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--color-text-secondary)" }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color }} />
+                        <span>{c.label}: {expenses > 0 ? ((c.total / expenses) * 100).toFixed(0) : 0}%</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Entry list */}
+              {/* Budget Benchmarking card */}
+              {income > 0 && Object.keys(benchmarks).length > 0 && (
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                    <BarChart2 size={15} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                    <div style={{ fontWeight: 800, fontSize: 14 }}>How you compare</div>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", marginLeft: "auto", background: "rgba(0,122,77,0.08)", padding: "2px 8px", borderRadius: 20 }}>Community avg</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                    {catTotals.filter((c) => benchmarks[c.id] !== undefined).slice(0, 5).map((c) => {
+                      const userPct = income > 0 ? Math.round((c.total / income) * 100) : 0;
+                      const avgPct = benchmarks[c.id];
+                      const diff = userPct - avgPct;
+                      const isOver = diff > 2;
+                      const isUnder = diff < -2;
+                      return (
+                        <div key={c.id}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                              <span style={{ fontSize: 12, fontWeight: 600 }}>{c.label}</span>
+                            </div>
+                            <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                              <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>avg {avgPct}%</span>
+                              <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? "#E03C31" : isUnder ? "#007A4D" : "var(--color-text-primary)" }}>
+                                you {userPct}%
+                                {isOver ? " ▲" : isUnder ? " ▼" : ""}
+                              </span>
+                            </div>
+                          </div>
+                          <div style={{ height: 6, borderRadius: 3, background: "var(--color-border)", overflow: "visible", position: "relative" }}>
+                            {/* Community avg marker */}
+                            <div style={{ position: "absolute", top: -2, left: `${Math.min(avgPct, 95)}%`, width: 2, height: 10, background: "rgba(255,255,255,0.4)", borderRadius: 1, zIndex: 2 }} />
+                            {/* User bar */}
+                            <div style={{ height: "100%", borderRadius: 3, background: isOver ? "#E03C31" : isUnder ? "#007A4D" : c.color, width: `${Math.min(100, userPct)}%`, transition: "width 0.5s ease" }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 12, textAlign: "center" }}>
+                    Anonymized · community data · updated daily
+                  </div>
+                </div>
+              )}
+
+              {/* Entry list — tap to edit */}
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden", marginBottom: 24 }}>
-                <div style={{ fontWeight: 800, fontSize: 14, padding: "14px 16px", borderBottom: "1px solid var(--color-border)" }}>Transactions</div>
+                <div style={{ fontWeight: 800, fontSize: 14, padding: "14px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span>Transactions</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)" }}>Tap to edit</span>
+                </div>
                 {entries.map((e) => (
-                  <div key={e.id} style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--color-border)", gap: 12 }}>
+                  <button
+                    key={e.id} type="button" onClick={() => openEdit(e)}
+                    style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderTop: "none", borderLeft: "none", borderRight: "none", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: "none", cursor: "pointer", textAlign: "left" }}
+                  >
                     <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {e.type === "income"
-                        ? <TrendingUp size={16} style={{ color: "#007A4D" }} />
-                        : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />
-                      }
+                      {e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13 }}>{getCatLabel(e.type, e.category)}</div>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{getCatLabel(e.type, e.category)}</div>
                       <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1 }}>
                         {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
                       </div>
@@ -4609,21 +6661,123 @@ function BudgetView() {
                     <div style={{ fontWeight: 800, fontSize: 14, color: e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
                       {e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleDelete(e.id)}
-                      disabled={deleting === e.id}
-                      style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", padding: 4, flexShrink: 0, opacity: deleting === e.id ? 0.4 : 1 }}
-                      aria-label="Delete entry"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
+                    <ChevronRight size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                  </button>
                 ))}
               </div>
             </>
           )}
         </>
+      )}
+
+      </>)} {/* end month view */}
+
+      {/* Set Budget Targets Modal */}
+      {showSetBudget && (
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
+          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>Set Monthly Budget</h3>
+              <button type="button" onClick={() => setShowSetBudget(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X size={20} style={{ color: "var(--color-text-secondary)" }} />
+              </button>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
+              Set a spending limit for each category in {monthLabel}. Leave blank for no limit.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+              {allExpCats.map((c) => (
+                <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                  <span style={{ fontWeight: 600, fontSize: 13, flex: 1, minWidth: 0 }}>{c.label}</span>
+                  <div style={{ position: "relative", width: 120 }}>
+                    <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "var(--color-text-secondary)" }}>R</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      placeholder="0"
+                      value={budgetDraft[c.id] ?? ""}
+                      onChange={(e) => setBudgetDraft((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                      style={{ width: "100%", padding: "10px 10px 10px 26px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-bg)", fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ width: "100%", padding: 14, fontSize: 15 }}
+              disabled={budgetSaving}
+              onClick={handleSaveBudgetTargets}
+            >
+              {budgetSaving ? "Saving…" : "Save Budget Targets"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Entry Modal */}
+      {editEntry && (
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
+          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>Edit Entry</h3>
+              <button type="button" onClick={() => setEditEntry(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {(["expense", "income"] as const).map((t) => (
+                <button key={t} type="button" onClick={() => { setEditType(t); setEditCategory(""); }}
+                  style={{ padding: "10px", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${editType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: editType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
+                  {t === "income" ? "Income +" : "Expense −"}
+                </button>
+              ))}
+            </div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {(editType === "expense" ? allExpCats : allIncCats).map((c) => (
+                  <button key={c.id} type="button" onClick={() => setEditCategory(c.id)}
+                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${editCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                    <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                    <span>{c.label}</span>
+                  </button>
+                ))}
+                {editType === "expense" && (
+                  <button type="button" onClick={() => { setNewCatType("expense"); setShowAddCustomCat(true); }}
+                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px dashed var(--color-border)`, background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)" }}>
+                    <Plus size={14} style={{ flexShrink: 0 }} />
+                    <span>Add category</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Amount (R)</div>
+              <input type="number" inputMode="decimal" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} min="0.01" step="0.01"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 16, fontWeight: 700, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
+            </div>
+            <div style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Description</div>
+              <input type="text" value={editDesc} onChange={(e) => setEditDesc(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
+            </div>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Date</div>
+              <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)}
+                style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button type="button" onClick={handleEditDelete} disabled={editSaving}
+                style={{ padding: "13px 16px", borderRadius: 12, border: "1.5px solid #E03C31", background: "transparent", color: "#E03C31", fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+                <Trash2 size={15} /> Delete
+              </button>
+              <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 14, fontSize: 15 }} disabled={editSaving || !editCategory || !editAmount || Number(editAmount) <= 0} onClick={handleEditSave}>
+                {editSaving ? "Saving…" : "Save Changes"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Add Entry Modal */}
@@ -4649,13 +6803,18 @@ function BudgetView() {
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {(addType === "expense" ? BUDGET_EXPENSE_CATS : BUDGET_INCOME_CATS).map((c) => (
+                {(addType === "expense" ? allExpCats : allIncCats).map((c) => (
                   <button key={c.id} type="button" onClick={() => setAddCategory(c.id)}
                     style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
                     <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
                     <span>{c.label}</span>
                   </button>
                 ))}
+                <button type="button" onClick={() => { setNewCatType(addType); setShowAddCustomCat(true); }}
+                  style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px dashed var(--color-border)`, background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", textAlign: "left" }}>
+                  <Plus size={14} style={{ flexShrink: 0 }} aria-hidden />
+                  <span>Add category</span>
+                </button>
               </div>
             </div>
 
@@ -4693,6 +6852,107 @@ function BudgetView() {
               onClick={handleAdd}>
               {saving ? "Saving..." : "Save Entry"}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Custom Category Modal */}
+      {showAddCustomCat && (
+        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/70" role="dialog" aria-modal="true">
+          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 500, maxHeight: "92vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>New Category</h3>
+              <button type="button" onClick={() => setShowAddCustomCat(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
+            </div>
+
+            {/* Type toggle */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {(["expense", "income"] as const).map((t) => (
+                <button key={t} type="button" onClick={() => setNewCatType(t)}
+                  style={{ padding: 10, borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${newCatType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: newCatType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
+                  {t === "income" ? "Income" : "Expense"}
+                </button>
+              ))}
+            </div>
+
+            {/* Name */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Category Name</div>
+              <input
+                type="text" placeholder="e.g. Gym, Pets, Clothing" value={newCatName}
+                onChange={(e) => setNewCatName(e.target.value)}
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 15, fontWeight: 700, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+              />
+            </div>
+
+            {/* Color swatches */}
+            <div style={{ marginBottom: 18 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Colour</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {CAT_COLOR_SWATCHES.map((col) => (
+                  <button key={col} type="button" onClick={() => setNewCatColor(col)}
+                    style={{ width: 30, height: 30, borderRadius: "50%", background: col, border: `3px solid ${newCatColor === col ? "white" : "transparent"}`, outline: newCatColor === col ? `2px solid ${col}` : "none", cursor: "pointer", flexShrink: 0 }}
+                    aria-label={col}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Icon picker */}
+            <div style={{ marginBottom: 24 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Icon</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8 }}>
+                {ICON_PICKER_OPTIONS.map((opt) => (
+                  <button key={opt.name} type="button" onClick={() => setNewCatIcon(opt.name)}
+                    style={{ padding: 10, borderRadius: 10, cursor: "pointer", border: `2px solid ${newCatIcon === opt.name ? newCatColor : "var(--color-border)"}`, background: newCatIcon === opt.name ? `${newCatColor}18` : "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    aria-label={opt.name}
+                  >
+                    <opt.Icon size={18} style={{ color: newCatIcon === opt.name ? newCatColor : "var(--color-text-secondary)" }} />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Preview */}
+            <div style={{ marginBottom: 20, padding: "12px 14px", borderRadius: 12, border: "1px solid var(--color-border)", background: "var(--color-bg)", display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: `${newCatColor}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {(() => { const Ic = getIconByName(newCatIcon); return <Ic size={18} style={{ color: newCatColor }} />; })()}
+              </div>
+              <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)" }}>
+                {newCatName.trim() || "Category name"}
+              </span>
+              <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "capitalize" }}>{newCatType}</span>
+            </div>
+
+            <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }}
+              disabled={savingCustomCat || !newCatName.trim()}
+              onClick={handleSaveCustomCat}>
+              {savingCustomCat ? "Saving…" : "Create Category"}
+            </button>
+
+            {/* Existing custom cats with delete */}
+            {customCats.filter(c => c.type === newCatType).length > 0 && (
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 10 }}>Your custom {newCatType} categories</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {customCats.filter(c => c.type === newCatType).map((c) => {
+                    const CatIcon = getIconByName(c.icon_name);
+                    return (
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
+                        <CatIcon size={16} style={{ color: c.color, flexShrink: 0 }} />
+                        <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>{c.name}</span>
+                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                        <button type="button" onClick={() => handleDeleteCustomCat(c.id)}
+                          style={{ background: "none", border: "none", cursor: "pointer", color: "#E03C31", padding: 4, display: "flex", alignItems: "center" }}
+                          aria-label="Delete category">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -4771,6 +7031,17 @@ function SettingsAccountSection() {
   );
 }
 
+const VAPID_PUBLIC_KEY = "BFfb98U0f0zXJaGdF9Tx7Sm7WkgGztyMxM701qNeJyMbOKJiKfGiPYov0CLCiihusSIOtbSTs-h_Z5JdOrBXiF0";
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  const rawData = atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
 function SettingsView({
   userData,
   setDailyGoal,
@@ -4787,6 +7058,70 @@ function SettingsView({
     if (typeof window === "undefined") return 50;
     return parseInt(localStorage.getItem("fundi-daily-goal") ?? "50", 10);
   });
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  // Check current push subscription status on mount
+  useEffect(() => {
+    (async () => {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+      try {
+        const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+        if (reg) {
+          const sub = await reg.pushManager.getSubscription();
+          setPushEnabled(!!sub);
+        }
+      } catch { /* ignore */ }
+    })();
+  }, []);
+
+  const handlePushToggle = async () => {
+    setPushLoading(true);
+    try {
+      if (pushEnabled) {
+        // Unsubscribe
+        const reg = await navigator.serviceWorker.getRegistration("/sw.js");
+        if (reg) {
+          const sub = await reg.pushManager.getSubscription();
+          if (sub) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+              await supabase.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", sub.endpoint);
+            }
+            await sub.unsubscribe();
+          }
+        }
+        setPushEnabled(false);
+      } else {
+        // Subscribe
+        const reg = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") { setPushLoading(false); return; }
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+        });
+        const key = sub.getKey("p256dh");
+        const auth = sub.getKey("auth");
+        if (key && auth) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("push_subscriptions").upsert({
+              user_id: user.id,
+              endpoint: sub.endpoint,
+              p256dh: btoa(String.fromCharCode(...new Uint8Array(key))),
+              auth: btoa(String.fromCharCode(...new Uint8Array(auth))),
+            }, { onConflict: "user_id,endpoint" });
+          }
+        }
+        setPushEnabled(true);
+      }
+    } catch (err) {
+      console.error("Push toggle error:", err);
+    }
+    setPushLoading(false);
+  };
 
   const handleSoundToggle = () => {
     const next = !soundEnabled;
@@ -4843,6 +7178,30 @@ function SettingsView({
           }} />
         </button>
       </Row>
+
+      {/* Push notifications toggle */}
+      {"serviceWorker" in (typeof navigator !== "undefined" ? navigator : {}) && (
+        <Row icon={<Bell size={18} />} label="Push notifications" sub="Daily lesson reminders & budget alerts">
+          <button
+            role="switch"
+            aria-checked={pushEnabled}
+            onClick={handlePushToggle}
+            disabled={pushLoading}
+            style={{
+              width: 48, height: 28, borderRadius: 14,
+              background: pushEnabled ? "var(--color-primary)" : "var(--color-border)",
+              border: "none", cursor: pushLoading ? "wait" : "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0,
+              opacity: pushLoading ? 0.6 : 1,
+            }}
+          >
+            <span style={{
+              position: "absolute", top: 3, left: pushEnabled ? 23 : 3, width: 22, height: 22,
+              borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+              transition: "left 0.2s",
+            }} />
+          </button>
+        </Row>
+      )}
 
       {/* Dark mode toggle */}
       {/* dark mode now follows system preference automatically */}
@@ -4975,13 +7334,13 @@ function DarkModeToggle() {
   );
 }
 
-function StatsPanel({ userData }: { userData: UserData }) {
+function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBuyFreeze }: { userData: UserData; hearts?: number; maxHearts?: number; freezeCount?: number; onBuyFreeze?: () => void }) {
   const goalProgress = Math.min(
     (userData.dailyXP / userData.dailyGoal) * 100,
     100
   );
   return (
-    <aside className="stats-panel" id="statsPanel">
+    <aside className="stats-panel" id="statsPanel" style={{ display: "flex", flexDirection: "column" }}>
       <div className="stats-section">
         <h3>My Stats</h3>
         <div className="stat-item" style={{ position: "relative" }}>
@@ -5033,12 +7392,80 @@ function StatsPanel({ userData }: { userData: UserData }) {
         </div>
         <div className="stat-item">
           <div className="stat-icon">
+            <Heart size={28} className="text-current" style={{ color: "#E03C31" }} />
+          </div>
+          <div className="stat-content">
+            <div className="stat-label">Hearts</div>
+            <div className="stat-value" id="heartsValue">
+              {hearts}/{maxHearts}
+            </div>
+          </div>
+        </div>
+        {/* Streak Freeze */}
+        <div className="stat-item" style={{ alignItems: "flex-start" }}>
+          <div className="stat-icon" style={{ color: "#3B82F6" }}>
+            <Shield size={28} />
+          </div>
+          <div className="stat-content" style={{ flex: 1 }}>
+            <div className="stat-label">Streak Freezes</div>
+            <div className="stat-value" style={{ color: freezeCount > 0 ? "#3B82F6" : "var(--color-text-secondary)" }}>
+              {freezeCount} 🧊
+            </div>
+            {freezeCount === 0 && onBuyFreeze && (
+              <button
+                type="button"
+                onClick={onBuyFreeze}
+                style={{
+                  marginTop: 6,
+                  background: userData.xp >= 200 ? "#3B82F6" : "var(--color-border)",
+                  color: userData.xp >= 200 ? "#fff" : "var(--color-text-secondary)",
+                  border: "none",
+                  borderRadius: 8,
+                  padding: "5px 12px",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: userData.xp >= 200 ? "pointer" : "not-allowed",
+                  width: "100%",
+                }}
+                disabled={userData.xp < 200}
+                title={userData.xp >= 200 ? "Buy a streak freeze for 200 XP" : "Need 200 XP"}
+              >
+                Buy for 200 XP
+              </button>
+            )}
+            {freezeCount > 0 && (
+              <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                Auto-used if you miss a day
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="stat-item">
+          <div className="stat-icon">
             <Target size={28} className="text-current" />
           </div>
           <div className="stat-content">
             <div className="stat-label">Level</div>
             <div className="stat-value" id="levelValue">
               {userData.level}
+            </div>
+            <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
+              {(() => {
+                const levels = [
+                  { min: 0, max: 499 },
+                  { min: 500, max: 1499 },
+                  { min: 1500, max: 2999 },
+                  { min: 3000, max: 4999 },
+                  { min: 5000, max: Infinity }
+                ];
+                const currentLevel = userData.level - 1;
+                if (currentLevel < 0 || currentLevel >= levels.length) return null;
+                const nextLevel = currentLevel + 1;
+                if (nextLevel >= levels.length) return "Max level reached";
+                const nextThreshold = levels[nextLevel].min;
+                const xpNeeded = Math.max(0, nextThreshold - userData.xp);
+                return `${formatWithSpaces(xpNeeded)} XP to Level ${nextLevel + 1}`;
+              })()}
             </div>
           </div>
         </div>
@@ -5057,6 +7484,19 @@ function StatsPanel({ userData }: { userData: UserData }) {
             {userData.dailyXP} / {userData.dailyGoal} XP
           </div>
         </div>
+      </div>
+      {/* Legal disclaimer */}
+      <div style={{
+        marginTop: "auto",
+        paddingTop: 20,
+        borderTop: "1px solid var(--color-border)",
+        color: "var(--color-text-secondary)",
+        fontSize: 10,
+        lineHeight: 1.5,
+        opacity: 0.7,
+        textAlign: "center",
+      }}>
+        📚 Educational content only — not financial advice. Consult a licensed financial advisor before making any financial decisions.
       </div>
     </aside>
   );
@@ -5214,50 +7654,80 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <>
         <style>{`
-          @keyframes fundiFadeIn {
-            from { opacity: 0; transform: translateY(16px); }
+          @keyframes splashFadeUp {
+            from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
           }
-          @keyframes fundiBob {
+          @keyframes splashLogoReveal {
+            0%   { opacity: 0; transform: scale(0.85); filter: drop-shadow(0 0 0px rgba(34,197,94,0)); }
+            60%  { opacity: 1; transform: scale(1.04); filter: drop-shadow(0 0 32px rgba(34,197,94,0.7)); }
+            100% { opacity: 1; transform: scale(1);    filter: drop-shadow(0 0 18px rgba(34,197,94,0.4)); }
+          }
+          @keyframes splashLogoFloat {
             0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-10px); }
+            50%       { transform: translateY(-8px); }
           }
-          @keyframes fundiTextIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
+          @keyframes splashDividerIn {
+            from { opacity: 0; transform: scaleX(0); }
+            to   { opacity: 1; transform: scaleX(1); }
           }
-          .splash-logo {
-            animation: fundiFadeIn 0.6s ease-out forwards, fundiBob 2.4s 0.6s ease-in-out infinite;
+          @keyframes splashGlowPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50%       { opacity: 0.85; transform: scale(1.15); }
           }
-          .splash-title {
-            animation: fundiTextIn 0.5s 0.7s ease-out both;
+          .splash-logo-wrap {
+            animation: splashLogoReveal 0.9s cubic-bezier(0.22,1,0.36,1) both,
+                       splashLogoFloat 3.5s 1.1s ease-in-out infinite;
           }
-          .splash-tagline {
-            animation: fundiTextIn 0.5s 1s ease-out both;
-          }
+          .splash-title  { animation: splashFadeUp 0.5s 0.75s ease-out both; }
+          .splash-divider{ animation: splashDividerIn 0.45s 1.0s ease-out both; }
+          .splash-tagline{ animation: splashFadeUp 0.5s 1.1s ease-out both; }
+          .splash-bg-glow{ animation: splashGlowPulse 3s 0.5s ease-in-out infinite; }
         `}</style>
         <div style={{
           minHeight: "100dvh", display: "flex", flexDirection: "column",
           alignItems: "center", justifyContent: "center",
-          background: "radial-gradient(ellipse at 50% 40%, #163328 0%, #0d1f17 70%)",
+          background: "#ffffff",
           position: "relative", overflow: "hidden",
         }}>
-          {/* subtle glow ring behind logo */}
-          <div style={{
-            position: "absolute", width: 320, height: 320, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(34,197,94,0.13) 0%, transparent 70%)",
+          {/* Subtle ambient glow */}
+          <div className="splash-bg-glow" style={{
+            position: "absolute", width: 480, height: 480, borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(26,124,78,0.08) 0%, rgba(26,124,78,0.03) 50%, transparent 72%)",
             pointerEvents: "none",
           }} />
-          <img
-            src="/fundi-logo.png"
-            alt="Fundi Finance"
-            className="splash-logo"
-            style={{ width: 280, height: 280, objectFit: "contain", marginBottom: 20, position: "relative" }}
-          />
-          <div className="splash-title" style={{ color: "rgba(255,255,255,0.85)", fontSize: 18, fontWeight: 800, letterSpacing: 3, textTransform: "uppercase", marginBottom: 8 }}>
+
+          {/* Logo — large, fills most of space */}
+          <div className="splash-logo-wrap" style={{ position: "relative", zIndex: 1, marginBottom: 28 }}>
+            <img
+              src="/fundi-logo.png"
+              alt="Fundi Finance"
+              style={{ width: 260, height: 260, objectFit: "contain", display: "block" }}
+            />
+          </div>
+
+          {/* App name */}
+          <div className="splash-title" style={{
+            color: "#1A7C4E", fontSize: 24, fontWeight: 800,
+            letterSpacing: 5, textTransform: "uppercase",
+            marginBottom: 12, position: "relative", zIndex: 1,
+          }}>
             Fundi Finance
           </div>
-          <div className="splash-tagline" style={{ color: "rgba(255,255,255,0.38)", fontSize: 12, letterSpacing: 2, textTransform: "uppercase", fontWeight: 500 }}>
+
+          {/* Thin divider */}
+          <div className="splash-divider" style={{
+            width: 40, height: 2, borderRadius: 1,
+            background: "linear-gradient(90deg, transparent, rgba(26,124,78,0.6), transparent)",
+            marginBottom: 12, position: "relative", zIndex: 1,
+          }} />
+
+          {/* Tagline */}
+          <div className="splash-tagline" style={{
+            color: "rgba(30,30,30,0.45)", fontSize: 11,
+            letterSpacing: 2, textTransform: "uppercase", fontWeight: 500,
+            position: "relative", zIndex: 1,
+          }}>
             Your Financial Journey Starts Here
           </div>
         </div>
@@ -5533,6 +8003,7 @@ export default function Home() {
     route,
     setRoute,
     isLessonCompleted,
+    completedLessons,
     completeLesson,
     currentLessonState,
     setCurrentLessonState,
@@ -5562,17 +8033,66 @@ export default function Home() {
     setShowNoHearts,
     tryDeductXp,
     persistWeeklyChallengeCompletion,
+    freezeCount,
+    buyStreakFreeze,
+    weeklyXp,
+    lessonSummary,
+    setLessonSummary,
   } = useFundiState();
 
-  const streakFreezeActive: boolean =
-    typeof window !== "undefined" && localStorage.getItem("fundi-streak-freeze") === "true";
-  const buyStreakFreeze = () => {
-    if (typeof window === "undefined" || streakFreezeActive) return;
-    if (userData.xp < 50) return;
-    if (!tryDeductXp(50)) return;
-    localStorage.setItem("fundi-streak-freeze", "true");
-    window.location.reload();
+  // Streak freeze — count-based, powered by useProgress hook
+
+  // ── Register service worker for offline support ───────────────────────────
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js").catch(() => {/* silent — no SW support or HTTPS required */});
+  }, []);
+
+  // ── Offline detection ─────────────────────────────────────────────────────
+  const [isOffline, setIsOffline] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const goOnline = () => setIsOffline(false);
+    const goOffline = () => setIsOffline(true);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    setIsOffline(!navigator.onLine);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  // ── PWA Add to Home Screen prompt ─────────────────────────────────────
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    // Don't show if already installed as PWA
+    if (window.matchMedia("(display-mode: standalone)").matches) return;
+    // Don't show if dismissed before
+    if (localStorage.getItem("fundi-a2hs-dismissed") === "true") return;
+
+    const handler = (e: Event) => {
+      e.preventDefault();
+      setDeferredInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler as EventListener);
+    return () => window.removeEventListener("beforeinstallprompt", handler as EventListener);
+  }, []);
+
+  const handleInstallApp = async () => {
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === "accepted") {
+      setShowInstallBanner(false);
+      setDeferredInstallPrompt(null);
+    }
   };
+  // ────────────────────────────────────────────────────────────────────────
 
   const [showMilestoneCta, setShowMilestoneCta] = useState(false);
   const [milestoneCtaContent, setMilestoneCtaContent] = useState<{
@@ -5672,6 +8192,31 @@ export default function Home() {
     analytics.pageViewed(routePageLabel(route));
   }, [route]);
 
+  // Retention ping: fire once per cohort day after signup
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const signupStr = localStorage.getItem("fundi-signup-ts");
+    if (!signupStr) {
+      localStorage.setItem("fundi-signup-ts", String(Date.now()));
+      return;
+    }
+    const hoursSince = (Date.now() - parseInt(signupStr, 10)) / 3_600_000;
+    const fired = new Set((localStorage.getItem("fundi-retention-fired") ?? "").split(",").filter(Boolean));
+    if (hoursSince >= 1 && !fired.has("day1")) {
+      analytics.retentionPing(Math.floor(hoursSince / 24), "day1");
+      fired.add("day1");
+    }
+    if (hoursSince >= 168 && !fired.has("day7")) {
+      analytics.retentionPing(Math.floor(hoursSince / 24), "day7");
+      fired.add("day7");
+    }
+    if (hoursSince >= 720 && !fired.has("day30")) {
+      analytics.retentionPing(Math.floor(hoursSince / 24), "day30");
+      fired.add("day30");
+    }
+    localStorage.setItem("fundi-retention-fired", Array.from(fired).join(","));
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem("fundi-lesson-progress");
@@ -5720,43 +8265,31 @@ export default function Home() {
     currentLessonState.stepIndex,
   ]);
 
-  // Weekly leaderboard XP reset, resets every Sunday at midnight
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const now = new Date();
-    const weekKey = `fundi-week-${now.getFullYear()}-W${Math.floor(now.getTime() / (7 * 24 * 60 * 60 * 1000))}`;
-    const lastWeekKey = localStorage.getItem("fundi-last-week-key");
-    if (lastWeekKey && lastWeekKey !== weekKey) {
-      // New week, reset weekly XP tracking (but keep total XP and progress)
-      localStorage.setItem("fundi-weekly-xp", "0");
-      // Sync reset to Supabase for leaderboard
-      supabase.auth.getUser().then(async ({ data }) => {
-        if (data.user) {
-          const { error } = await supabase.from("user_progress").upsert(
-            {
-              user_id: data.user.id,
-              weekly_xp: 0,
-              week_key: weekKey,
-            },
-            { onConflict: "user_id" }
-          );
-          if (error) {
-            // silent fail, offline is fine
-          }
-        }
-      });
-    }
-    localStorage.setItem("fundi-last-week-key", weekKey);
-  }, []);
+  // Weekly XP tracking is now handled entirely by useProgress hook (fundi-week-key / fundi-weekly-xp)
 
   // Cross-device sync, fetch latest progress from Supabase and hydrate localStorage
   useEffect(() => {
     const syncFromSupabase = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
+      // Sync personal goal + description from profiles table
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("goal, goal_description, age_range")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (profileData?.goal) {
+        localStorage.setItem("fundi-user-goal", profileData.goal);
+        if (profileData.goal_description) localStorage.setItem("fundi-goal-description", profileData.goal_description);
+        if (profileData.age_range) localStorage.setItem("fundi-age-range", profileData.age_range);
+        // Dispatch storage event so userGoal state in Home component re-reads localStorage
+        window.dispatchEvent(new StorageEvent("storage", { key: "fundi-user-goal", newValue: profileData.goal }));
+      }
+
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -5769,12 +8302,19 @@ export default function Home() {
       if (data.streak > localStreak) {
         localStorage.setItem("fundi-streak", String(data.streak));
       }
+      // Restore today's XP from Supabase if localStorage was wiped
+      const todayIso = new Date().toISOString().slice(0, 10);
+      const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
+      if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
+        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
+      }
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
         const localSet: string[] = localRaw ? JSON.parse(localRaw) : [];
         const merged = Array.from(new Set([...localSet, ...data.completed_lessons]));
         localStorage.setItem("fundi-completed-lessons", JSON.stringify(merged));
       }
+      // Weekly XP is fully managed by useProgress hook — no cross-device sync needed here
     };
     syncFromSupabase().catch(() => {}); // silent fail, offline is fine
   }, []);
@@ -5872,11 +8412,15 @@ export default function Home() {
         /* ignore */
       }
     }
-    const today = new Date().toDateString();
+    const today = new Date().toISOString().slice(0, 10); // ISO format: YYYY-MM-DD
     const dailyKey = `fundi-daily-xp-${today}`;
     const dailyXpSoFar =
       parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
     localStorage.setItem(dailyKey, String(dailyXpSoFar));
+
+    const dailyLessonsKey = `fundi-daily-lessons-${today}`;
+    const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
+    localStorage.setItem(dailyLessonsKey, String(prevLessons + 1));
 
     state.lessonsCompleted += 1;
     state.xpEarned += payload.xpEarned;
@@ -5997,6 +8541,38 @@ export default function Home() {
       const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
       localStorage.setItem("fundi-perfect-lessons", String(prev + 1));
       if (hearts < maxHearts) gainHeart();
+    }
+    // Track daily challenge progress + first-lesson analytics
+    if (typeof window !== "undefined") {
+      const isoDay = new Date().toISOString().slice(0, 10);
+      const lessonsKey = `fundi-lessons-today-${isoDay}`;
+      const newLessonCount = (parseInt(localStorage.getItem(lessonsKey) ?? "0", 10)) + 1;
+      localStorage.setItem(lessonsKey, String(newLessonCount));
+      // Fire first-lesson-completed analytics event once
+      if (!localStorage.getItem("fundi-first-lesson-fired")) {
+        const signupTs = parseInt(localStorage.getItem("fundi-signup-ts") ?? String(Date.now()), 10);
+        const hoursSince = (Date.now() - signupTs) / 3_600_000;
+        analytics.firstLessonCompleted(Math.round(hoursSince * 10) / 10, currentLessonState.courseId);
+        localStorage.setItem("fundi-first-lesson-fired", "1");
+      }
+      if (isPerfect) {
+        const perfKey = `fundi-perfect-today-${isoDay}`;
+        localStorage.setItem(perfKey, String((parseInt(localStorage.getItem(perfKey) ?? "0", 10)) + 1));
+      }
+      // Also write ISO-keyed daily XP (for challenge condition checks)
+      const xpIsoKey = `fundi-daily-xp-${isoDay}`;
+      const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
+      const newDailyXp = prev + totalXP;
+      localStorage.setItem(xpIsoKey, String(newDailyXp));
+      // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
+      supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        await supabase.from("user_progress").upsert({
+          user_id: user.id,
+          daily_xp_today: newDailyXp,
+          daily_xp_date: isoDay,
+        } as any, { onConflict: "user_id" });
+      });
     }
     bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
 
@@ -6121,6 +8697,12 @@ export default function Home() {
       currentLessonState.lessonId
     );
 
+    // Schedule spaced-repetition reviews for concepts in this course
+    const conceptIds = getConceptIdsForCourse(currentLessonState.courseId ?? "");
+    if (conceptIds.length > 0) {
+      scheduleConceptsForCourse(conceptIds);
+    }
+
     if (justEarned.length > 0) {
       const merged = [...earned, ...justEarned];
       localStorage.setItem("fundi-earned-badges", JSON.stringify(merged));
@@ -6129,18 +8711,37 @@ export default function Home() {
       nextLessonRef.current = nextLesson;
       return;
     }
-    if (choice === "next" && nextLesson) {
-      startLesson(currentLessonState.courseId, nextLesson);
-    } else {
-      setRoute({ name: "course", courseId: currentLessonState.courseId });
-    }
+
+    // Show Duolingo-style lesson summary before navigating
+    const elapsedSeconds = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
+    const accuracy = totalQuestions > 0 ? Math.round((currentLessonState.correctCount / totalQuestions) * 100) : 100;
+    setLessonSummary({
+      xpEarned: totalXP,
+      timeSeconds: elapsedSeconds,
+      accuracy,
+      streak: str,
+      isPerfect,
+      choice,
+      nextLessonId: nextLesson?.id ?? null,
+      courseId: currentLessonState.courseId,
+    });
   };
 
   const nextStep = () => {
     if (currentLessonState.stepIndex < currentLessonState.steps.length - 1) {
+      const nextIdx = currentLessonState.stepIndex + 1;
+      const nextStepData = currentLessonState.steps[nextIdx];
+      // Track step view for abandonment analytics
+      analytics.lessonStepViewed(
+        currentLessonState.courseId ?? "",
+        currentLessonState.lessonId ?? "",
+        nextIdx,
+        nextStepData?.type ?? "unknown",
+        currentLessonState.steps.length
+      );
       setCurrentLessonState((prev) => ({
         ...prev,
-        stepIndex: prev.stepIndex + 1,
+        stepIndex: nextIdx,
       }));
     }
   };
@@ -6265,6 +8866,62 @@ export default function Home() {
     if (typeof window !== "undefined") {
       window.location.href = "/";
     }
+  };
+
+  const handleDownloadData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    // Collect localStorage data
+    const lsData: Record<string, string> = {};
+    if (typeof window !== "undefined") {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("fundi-")) lsData[k] = localStorage.getItem(k) ?? "";
+      }
+    }
+    // Collect Supabase data
+    let profileData: Record<string, unknown> = {};
+    let progressData: Record<string, unknown> = {};
+    if (user) {
+      const [{ data: p }, { data: pr }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("user_id", user.id).maybeSingle(),
+        supabase.from("user_progress").select("*").eq("user_id", user.id).maybeSingle(),
+      ]);
+      if (p) profileData = p as Record<string, unknown>;
+      if (pr) progressData = pr as Record<string, unknown>;
+    }
+    const exportPayload = {
+      exportDate: new Date().toISOString(),
+      exportNote: "Your Fundi Finance data export — requested under POPIA Section 23 (Right of Access)",
+      account: { email: user?.email ?? "guest" },
+      profile: profileData,
+      progress: progressData,
+      localStorageSnapshot: lsData,
+    };
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `fundi-finance-data-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDeleteAccount = async () => {
+    // Delete Supabase records
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from("user_progress").delete().eq("user_id", user.id);
+      await supabase.from("profiles").delete().eq("user_id", user.id);
+      // Delete auth user via admin API if available, otherwise sign out
+      await supabase.auth.signOut();
+    }
+    // Clear all localStorage
+    if (typeof window !== "undefined") {
+      window.localStorage.clear();
+    }
+    window.location.href = "/";
   };
 
   // Handle onboarding complete
@@ -6402,6 +9059,7 @@ export default function Home() {
             challengeComplete={challengeComplete}
             challengeRewardClaimed={challengeRewardClaimed}
             claimChallengeReward={claimChallengeReward}
+            streak={userData.streak}
           />
         )}
 
@@ -6494,6 +9152,8 @@ export default function Home() {
               return next?.title ?? undefined;
             })()}
             lessonTitle={getLessonTitle(currentLessonState.courseId, currentLessonState.lessonId)}
+            lessonStartTimeRef={lessonStartTimeRef}
+            totalQuestions={currentLessonState.steps.filter((s: any) => s.type === "question" || s.type === "true-false" || s.type === "action-check").length}
           />
         )}
 
@@ -6501,15 +9161,19 @@ export default function Home() {
           <ProfileView
             userData={userData}
             onSignOut={handleProfileSignOut}
+            onDeleteAccount={handleDeleteAccount}
+            onDownloadData={handleDownloadData}
             currentUser={null}
             dailyGoal={dailyGoal}
             setDailyGoal={setDailyGoal}
             courseBadgeIds={courseBadgeIds}
+            courses={CONTENT_DATA.courses}
+            completedLessons={completedLessons}
           />
         )}
 
         {route.name === "leaderboard" && (
-          <LeaderboardView xp={userData.xp} currentUserId={undefined} />
+          <LeaderboardView xp={userData.xp} weeklyXp={weeklyXp} currentUserId={undefined} />
         )}
 
         {route.name === "settings" && (
@@ -6523,6 +9187,101 @@ export default function Home() {
         {route.name === "calculator" && <CalculatorView />}
 
         {route.name === "budget" && <BudgetView />}
+
+        {/* ── Duolingo-style lesson summary overlay ───────────────────────── */}
+        {lessonSummary && (
+          <div style={{
+            position: "fixed", inset: 0, zIndex: 600,
+            background: "#ffffff",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            padding: "24px 20px",
+          }}>
+            {/* Celebration header */}
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ fontSize: 64, marginBottom: 8 }}>
+                {lessonSummary.isPerfect ? "🏆" : "🎉"}
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: "#1A7C4E", marginBottom: 4 }}>
+                {lessonSummary.isPerfect ? "Perfect Lesson!" : "Lesson Complete!"}
+              </div>
+              <div style={{ fontSize: 15, color: "#6b7280", fontWeight: 500 }}>
+                {lessonSummary.isPerfect ? "You got every question right!" : "Keep up the great work!"}
+              </div>
+            </div>
+
+            {/* Stats cards */}
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr",
+              gap: 12, width: "100%", maxWidth: 360, marginBottom: 32,
+            }}>
+              {/* XP Earned */}
+              <div style={{
+                background: "#FFF8E7", border: "2px solid #FFB612",
+                borderRadius: 16, padding: "18px 12px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 30, marginBottom: 4 }}>⭐</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: "#B8870F" }}>+{lessonSummary.xpEarned}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#B8870F", textTransform: "uppercase", letterSpacing: 1 }}>XP Earned</div>
+              </div>
+              {/* Time */}
+              <div style={{
+                background: "#E8F5FF", border: "2px solid #3B7DD8",
+                borderRadius: 16, padding: "18px 12px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 30, marginBottom: 4 }}>⏱️</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: "#2563EB" }}>
+                  {String(Math.floor(lessonSummary.timeSeconds / 60)).padStart(2, "0")}:{String(lessonSummary.timeSeconds % 60).padStart(2, "0")}
+                </div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: 1 }}>Time</div>
+              </div>
+              {/* Accuracy */}
+              <div style={{
+                background: "#F0FDF4", border: "2px solid #1A7C4E",
+                borderRadius: 16, padding: "18px 12px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 30, marginBottom: 4 }}>🎯</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: "#1A7C4E" }}>{lessonSummary.accuracy}%</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#1A7C4E", textTransform: "uppercase", letterSpacing: 1 }}>Accuracy</div>
+              </div>
+              {/* Streak */}
+              <div style={{
+                background: "#FFF3EE", border: "2px solid #F97316",
+                borderRadius: 16, padding: "18px 12px", textAlign: "center",
+              }}>
+                <div style={{ fontSize: 30, marginBottom: 4 }}>🔥</div>
+                <div style={{ fontSize: 26, fontWeight: 900, color: "#EA580C" }}>{lessonSummary.streak}</div>
+                <div style={{ fontSize: 11, fontWeight: 700, color: "#EA580C", textTransform: "uppercase", letterSpacing: 1 }}>Day Streak</div>
+              </div>
+            </div>
+
+            {/* Continue button */}
+            <button
+              type="button"
+              onClick={() => {
+                const summary = lessonSummary;
+                setLessonSummary(null);
+                if (summary.choice === "next" && summary.nextLessonId) {
+                  const nextCourse = CONTENT_DATA.courses.find((c) => c.id === summary.courseId);
+                  const nextLessonObj = nextCourse?.units.flatMap((u) => u.lessons).find((l) => l.id === summary.nextLessonId);
+                  if (nextLessonObj) startLesson(summary.courseId, nextLessonObj);
+                  else setRoute({ name: "course", courseId: summary.courseId });
+                } else {
+                  setRoute({ name: "course", courseId: summary.courseId });
+                }
+              }}
+              style={{
+                width: "100%", maxWidth: 360, padding: "16px",
+                borderRadius: 16, background: "#1A7C4E", color: "#ffffff",
+                fontSize: 17, fontWeight: 800, border: "none", cursor: "pointer",
+                boxShadow: "0 4px 14px rgba(26,124,78,0.35)",
+                letterSpacing: 0.5,
+              }}
+            >
+              Continue →
+            </button>
+          </div>
+        )}
 
         {showNoHearts && (
           <div className="fixed inset-0 z-[550] flex items-center justify-center bg-black/80 p-4">
@@ -6727,58 +9486,70 @@ export default function Home() {
               padding: "32px 24px", width: "100%", maxWidth: 360, textAlign: "center",
               boxShadow: "0 8px 40px rgba(0,0,0,0.2)",
             }}>
-              <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-                <Award size={52} style={{ color: "var(--color-primary)" }} aria-hidden />
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 6, color: "var(--color-primary)" }}>
-                Badge Earned!
-              </div>
-              {newlyEarnedBadges.map((id) => {
-                const NAMES: Record<string, string> = {
-                  "lesson-1-badge": "First Step", "lesson-5-badge": "Getting Going",
-                  "lesson-10-badge": "On a Roll", "lesson-25-badge": "Dedicated",
-                  "streak-3-badge": "3 Day Streak", "streak-7-badge": "Week Warrior",
-                  "xp-100-badge": "First 100", "xp-500-badge": "XP Builder",
-                  "perfect-1-badge": "Flawless",
+              {(() => {
+                const BADGE_META: Record<string, { name: string; emoji: string; desc: string }> = {
+                  "lesson-1-badge":  { name: "First Step",        emoji: "🎯", desc: "You completed your very first lesson!" },
+                  "lesson-5-badge":  { name: "Getting Going",     emoji: "🚀", desc: "You've completed 5 lessons. Keep it up!" },
+                  "lesson-10-badge": { name: "On a Roll",         emoji: "🔥", desc: "10 lessons done — you're building real momentum!" },
+                  "lesson-25-badge": { name: "Dedicated",         emoji: "💪", desc: "25 lessons completed. You're seriously committed!" },
+                  "streak-3-badge":  { name: "3 Day Streak",      emoji: "🗓️", desc: "You learned 3 days in a row!" },
+                  "streak-7-badge":  { name: "Week Warrior",      emoji: "🏆", desc: "7-day streak — a full week of learning!" },
+                  "xp-100-badge":    { name: "First 100",         emoji: "⚡", desc: "You've earned 100 XP total!" },
+                  "xp-500-badge":    { name: "XP Builder",        emoji: "💎", desc: "500 XP earned — you're levelling up fast!" },
+                  "perfect-1-badge": { name: "Flawless",          emoji: "✨", desc: "You got a perfect score on a lesson!" },
                 };
+                // Show only the most notable badge (or the first if multiple earned at once)
+                const primaryId = newlyEarnedBadges[0];
+                const meta = BADGE_META[primaryId] ?? { name: primaryId, emoji: "🏅", desc: "You unlocked a new badge!" };
                 return (
-                  <div key={id} style={{
-                    margin: "8px auto", background: "var(--color-bg)",
-                    borderRadius: 12, padding: "10px 16px", fontWeight: 700,
-                    color: "var(--color-text-primary)", fontSize: 15,
-                    border: "1.5px solid var(--color-border)",
-                  }}>
-                    {NAMES[id] ?? id}
-                  </div>
+                  <>
+                    <div style={{ fontSize: 64, marginBottom: 4, lineHeight: 1 }}>{meta.emoji}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--color-primary)", marginBottom: 6 }}>
+                      Badge Earned!
+                    </div>
+                    <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text-primary)", marginBottom: 8 }}>
+                      {meta.name}
+                    </div>
+                    <p style={{ color: "var(--color-text-secondary)", fontSize: 15, lineHeight: 1.5, margin: "0 0 20px" }}>
+                      {meta.desc}
+                    </p>
+                    {newlyEarnedBadges.length > 1 && (
+                      <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginBottom: 16 }}>
+                        {newlyEarnedBadges.slice(1).map((id) => {
+                          const m = BADGE_META[id] ?? { name: id, emoji: "🏅" };
+                          return (
+                            <span key={id} style={{
+                              fontSize: 12, padding: "4px 10px", borderRadius: 20,
+                              background: "var(--color-bg)", border: "1px solid var(--color-border)",
+                              color: "var(--color-text-secondary)", fontWeight: 700,
+                            }}>{m.emoji} {m.name}</span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
                 );
-              })}
-              <p style={{ color: "var(--color-text-secondary)", margin: "16px 0", fontSize: 14, lineHeight: 1.5 }}>
-                Keep learning to unlock more badges. Check them all in your profile!
-              </p>
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 8 }}>
+              })()}
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                 <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => {
-                  const next = nextLessonRef.current;
+                  // Respect the lesson summary choice — if user picked "Done", go to course
+                  const summary = lessonSummary;
                   nextLessonRef.current = null;
                   setNewlyEarnedBadges([]);
-                  if (next && currentLessonState.courseId) {
-                    startLesson(currentLessonState.courseId, next);
-                  } else {
-                    setRoute({ name: "course", courseId: currentLessonState.courseId! });
+                  setLessonSummary(null);
+                  if (summary && summary.choice === "next" && summary.nextLessonId) {
+                    const c = CONTENT_DATA.courses.find((c) => c.id === summary.courseId);
+                    const l = c?.units.flatMap((u) => u.lessons).find((ls) => ls.id === summary.nextLessonId);
+                    if (l) { startLesson(summary.courseId, l); return; }
                   }
+                  setRoute({ name: "course", courseId: currentLessonState.courseId ?? summary?.courseId ?? "" });
                 }}>Continue</button>
                 <button
                   className="btn btn-secondary"
                   style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6 }}
                   onClick={() => {
-                    const NAMES: Record<string, string> = {
-                      "lesson-1-badge": "First Step", "lesson-5-badge": "Getting Going",
-                      "lesson-10-badge": "On a Roll", "lesson-25-badge": "Dedicated",
-                      "streak-3-badge": "3 Day Streak", "streak-7-badge": "Week Warrior",
-                      "xp-100-badge": "First 100", "xp-500-badge": "XP Builder",
-                      "perfect-1-badge": "Flawless",
-                    };
-                    const badgeName = NAMES[newlyEarnedBadges[0]] ?? "a badge";
-                    const text = `I just earned the "${badgeName}" badge on Fundi Finance! Learning money skills one lesson at a time. fundi-finance.vercel.app`;
+                    const badgeName = (newlyEarnedBadges[0] ?? "").replace(/-badge$/, "").replace(/-/g, " ");
+                    const text = `I just earned the "${badgeName}" badge on Fundi Finance! Learning money skills one lesson at a time. fundiapp.co.za`;
                     if (navigator.share) {
                       navigator.share({ title: "Fundi Finance", text });
                     } else {
@@ -6791,6 +9562,56 @@ export default function Home() {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* PWA install banner */}
+        {showInstallBanner && (
+          <div style={{
+            position: "fixed", bottom: 80, left: "50%", transform: "translateX(-50%)",
+            background: "var(--color-surface)", border: "1.5px solid var(--color-primary)",
+            borderRadius: 16, padding: "14px 18px", zIndex: 400,
+            display: "flex", alignItems: "center", gap: 12,
+            boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
+            maxWidth: 360, width: "calc(100% - 32px)",
+          }}>
+            <img src="/fundi-logo.png" alt="Fundi" style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0 }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)", marginBottom: 2 }}>
+                Add to Home Screen
+              </div>
+              <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                Learn faster with the app installed
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleInstallApp}
+              style={{ background: "var(--color-primary)", color: "#fff", border: "none", borderRadius: 10, padding: "8px 14px", fontWeight: 700, fontSize: 13, cursor: "pointer", flexShrink: 0 }}
+            >
+              Install
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowInstallBanner(false); localStorage.setItem("fundi-a2hs-dismissed", "true"); }}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "var(--color-text-secondary)", flexShrink: 0 }}
+              aria-label="Dismiss"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* Offline banner */}
+        {isOffline && (
+          <div style={{
+            position: "fixed", top: 0, left: 0, right: 0, zIndex: 600,
+            background: "#1a1a1a", color: "#fff", textAlign: "center",
+            padding: "8px 16px", fontSize: 13, fontWeight: 600,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+          }}>
+            <WifiOff size={14} aria-hidden />
+            You&apos;re offline — lessons still available from cache
           </div>
         )}
 
@@ -6820,7 +9641,7 @@ export default function Home() {
           </div>
         )}
 
-        <StatsPanel userData={userData} />
+        <StatsPanel userData={userData} hearts={hearts} maxHearts={maxHearts} freezeCount={freezeCount} onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }} />
         </div>
       </div>
 

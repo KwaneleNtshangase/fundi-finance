@@ -173,7 +173,7 @@ export const INVESTOR_QUIZ_QUESTIONS = [
   },
   {
     id: 2,
-    question: "Your investment time horizon is:",
+    question: "How long do you wnt to invest for? (Your investment time horizon):",
     options: [
       { text: "Less than 1 year", score: 1 },
       { text: "1–3 years", score: 2 },
@@ -195,7 +195,7 @@ export const INVESTOR_QUIZ_QUESTIONS = [
   },
   {
     id: 4,
-    question: "You have R50,000 to invest. You choose:",
+    question: "You have R50 000 to invest. You choose:",
     options: [
       { text: "Fixed deposit at the bank", score: 1 },
       { text: "A low-risk unit trust (mostly bonds)", score: 2 },

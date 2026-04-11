@@ -76,4 +76,50 @@ export const analytics = {
   ) => track("share_triggered", { type, method }),
 
   pageViewed: (page: string) => track("page_viewed", { page }),
+
+  // ── Lesson abandonment: per-step tracking ────────────────────────────────
+  lessonStepViewed: (
+    courseId: string,
+    lessonId: string,
+    stepIndex: number,
+    stepType: string,
+    totalSteps: number
+  ) =>
+    track("lesson_step_viewed", {
+      courseId,
+      lessonId,
+      stepIndex,
+      stepType,
+      totalSteps,
+      progressPct: Math.round(((stepIndex + 1) / totalSteps) * 100),
+    }),
+
+  // ── Calculator: solve-mode usage ─────────────────────────────────────────
+  calculatorSolveModeUsed: (
+    solveMode: string,
+    inputs: { monthly: number; rate: number; years: number; principal: number }
+  ) => track("calculator_solve_mode_used", { solveMode, ...inputs }),
+
+  calculatorResultShared: (solveMode: string) =>
+    track("calculator_result_shared", { solveMode }),
+
+  // ── Budget: category distribution (anonymized) ────────────────────────────
+  budgetEntryAdded: (category: string, entryType: "income" | "expense") =>
+    track("budget_entry_added", { category, entryType }),
+
+  // ── Time-to-first-lesson (hours from signup) ──────────────────────────────
+  firstLessonCompleted: (hoursSinceSignup: number, courseId: string) =>
+    track("first_lesson_completed", { hoursSinceSignup, courseId }),
+
+  // ── Day 1 / 7 / 30 retention ping ─────────────────────────────────────────
+  retentionPing: (daysSinceSignup: number, cohort: "day1" | "day7" | "day30") =>
+    track("retention_ping", { daysSinceSignup, cohort }),
+
+  // ── Daily challenge claimed ────────────────────────────────────────────────
+  dailyChallengeClaimed: (challengeId: string, xp: number) =>
+    track("daily_challenge_claimed", { challengeId, xp }),
+
+  // ── Share card generated ──────────────────────────────────────────────────
+  shareCardGenerated: (cardType: "lesson" | "calculator") =>
+    track("share_card_generated", { cardType }),
 };

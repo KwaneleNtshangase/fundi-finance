@@ -1,0 +1,28 @@
+{
+  "name": "Fundi Finance",
+  "short_name": "Fundi",
+  "description": "Master your money the South African way — learn personal finance in 3-minute lessons.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#007A4D",
+  "orientation": "portrait",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/fundi-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/fundi-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "finance"],
+  "lang": "en-ZA",
+  "dir": "ltr"
+}
