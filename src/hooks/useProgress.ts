@@ -276,21 +276,15 @@ export function useProgress() {
           const merged = mergeProgress(serverState, guest);
           suppressNextPersistRef.current = true;
           setState(merged);
-          await supabase
-            .from("user_progress")
-            .upsert(
-              {
-                user_id: userId,
-                xp: merged.xp,
-                streak: merged.streak,
-                last_activity_date: merged.lastActivityDate
-                  ? localActivityToPgDate(merged.lastActivityDate)
-                  : null,
-                completed_lessons: merged.completedLessons,
-                updated_at: new Date().toISOString(),
-              },
-              { onConflict: "user_id" }
-            );
+          await supabase.rpc("merge_user_progress_max", {
+            p_user_id: userId,
+            p_xp: merged.xp,
+            p_streak: merged.streak,
+            p_last_activity_date: merged.lastActivityDate
+              ? localActivityToPgDate(merged.lastActivityDate)
+              : null,
+            p_completed_lessons: merged.completedLessons,
+          } as any);
         } else {
           suppressNextPersistRef.current = true;
           setState(serverState);
@@ -325,25 +319,23 @@ export function useProgress() {
       if (userId) {
         const currentKey = getCurrentWeekKey();
         const { weeklyXp: currentWeeklyXp } = getStoredWeeklyXp();
-        const { error } = await supabase
-          .from("user_progress")
-          .upsert(
-            {
-              user_id: userId,
-              xp: state.xp,
-              streak: state.streak,
-              last_activity_date: state.lastActivityDate
-                ? localActivityToPgDate(state.lastActivityDate)
-                : null,
-              completed_lessons: state.completedLessons,
-              weekly_xp: currentWeeklyXp,
-              week_key: currentKey,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "user_id" }
-          );
+        // Use the monotonic merge RPC so concurrent writes from multiple
+        // devices can never regress XP or drop completed lessons.
+        // streak and last_activity_date are passed through as direct
+        // overwrites (streak can legitimately reset after a missed day).
+        const { error } = await supabase.rpc("merge_user_progress_max", {
+          p_user_id: userId,
+          p_xp: state.xp,
+          p_streak: state.streak,
+          p_last_activity_date: state.lastActivityDate
+            ? localActivityToPgDate(state.lastActivityDate)
+            : null,
+          p_completed_lessons: state.completedLessons,
+          p_weekly_xp: currentWeeklyXp,
+          p_week_key: currentKey,
+        } as any);
 
-        if (error) console.warn("Failed to upsert user_progress:", error.message);
+        if (error) console.warn("Failed to merge user_progress:", error.message);
       } else {
         window.localStorage.setItem(LS_KEY, JSON.stringify(state));
       }

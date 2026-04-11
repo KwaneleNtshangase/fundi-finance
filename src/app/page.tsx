@@ -8301,7 +8301,7 @@ export default function Home() {
       // ── User progress table ─────────────────────────────────────────────────
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, longest_streak, completed_lessons, hearts, last_heart_lost_at, weekly_xp, week_key, daily_xp_today, daily_xp_date, perfect_lessons, freeze_count, daily_goal, earned_badges, badges")
+        .select("xp, streak, longest_streak, completed_lessons, hearts, last_heart_lost_at, weekly_xp, week_key, daily_xp_today, daily_xp_date, perfect_lessons, freeze_count, daily_goal, earned_badges, badges, daily_xp_history")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!data) return;
@@ -8343,6 +8343,44 @@ export default function Home() {
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
       if (localDailyXp === 0 && (data.daily_xp_today ?? 0) > 0 && data.daily_xp_date === todayIso) {
         localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(data.daily_xp_today));
+      }
+
+      // Hydrate the full daily-XP history so Best Day XP and the weekly chart
+      // survive device switches. Each key is "YYYY-MM-DD" → xp. Take the max
+      // of local and remote so we never regress a day's recorded XP.
+      const history = (data.daily_xp_history ?? {}) as Record<string, number>;
+      if (history && typeof history === "object") {
+        for (const [day, xpVal] of Object.entries(history)) {
+          const lsKey = `fundi-daily-xp-${day}`;
+          const existing = parseInt(localStorage.getItem(lsKey) ?? "0", 10);
+          const remote = Number(xpVal) || 0;
+          if (remote > existing) {
+            localStorage.setItem(lsKey, String(remote));
+          }
+        }
+      }
+      // Backfill Supabase's daily_xp_history from any local fundi-daily-xp-*
+      // keys this device has recorded locally but never synced. This only
+      // runs once per device after the upgrade, because subsequent calls will
+      // see Supabase already at parity.
+      const localHistoryEntry: Record<string, number> = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k || !k.startsWith("fundi-daily-xp-")) continue;
+        const day = k.slice("fundi-daily-xp-".length);
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(day)) continue;
+        const v = parseInt(localStorage.getItem(k) ?? "0", 10);
+        if (v <= 0) continue;
+        const remoteV = Number(history[day] ?? 0) || 0;
+        if (v > remoteV) localHistoryEntry[day] = v;
+      }
+      if (Object.keys(localHistoryEntry).length > 0) {
+        void supabase.rpc("merge_user_progress_max", {
+          p_user_id: user.id,
+          p_daily_xp_today: localDailyXp > 0 ? localDailyXp : undefined,
+          p_daily_xp_date: localDailyXp > 0 ? todayIso : undefined,
+          p_daily_xp_history_entry: localHistoryEntry as any,
+        } as any);
       }
 
       // Merge completed lessons (union of both sets)
@@ -8564,10 +8602,12 @@ export default function Home() {
     setCourseCompleteModal(badge);
     void supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) return;
-      void supabase.from("user_progress").upsert(
-        { user_id: user.id, badges: next as unknown as string[] },
-        { onConflict: "user_id" }
-      );
+      // Union the course badge into earned_badges via the monotonic RPC so the
+      // write can never clobber other badges on the row.
+      void supabase.rpc("merge_user_progress_max", {
+        p_user_id: user.id,
+        p_earned_badges: [badge.id],
+      } as any);
     });
   };
 
@@ -8643,18 +8683,25 @@ export default function Home() {
       const prevLongest = parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10);
       const newLongest = Math.max(prevLongest, currentStreakVal);
       if (newLongest > prevLongest) localStorage.setItem("fundi-longest-streak", String(newLongest));
-      // Persist all lesson-completion fields to Supabase
+      // Persist lesson-completion fields via the monotonic merge RPC so stale
+      // writes can never regress XP / lesson count / badges / streak records.
+      // - numeric fields use GREATEST server-side
+      // - completed_lessons and earned_badges are array-unioned server-side
+      // - daily_xp_history is merged key-by-key with GREATEST
+      // streak itself is handled by useProgress (which is already sync-guarded).
+      const lessonKey = `${currentLessonState.courseId}:${currentLessonState.lessonId}`;
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
-        await supabase.from("user_progress").upsert({
-          user_id: user.id,
-          daily_xp_today: newDailyXp,
-          daily_xp_date: isoDay,
-          streak: currentStreakVal,
-          longest_streak: newLongest,
-          perfect_lessons: newPerfectCount,
-          xp: userData.xp + totalXP,
-        } as any, { onConflict: "user_id" });
+        await supabase.rpc("merge_user_progress_max", {
+          p_user_id: user.id,
+          p_xp: userData.xp + totalXP,
+          p_longest_streak: newLongest,
+          p_perfect_lessons: newPerfectCount,
+          p_completed_lessons: [lessonKey],
+          p_daily_xp_today: newDailyXp,
+          p_daily_xp_date: isoDay,
+          p_daily_xp_history_entry: { [isoDay]: newDailyXp } as any,
+        } as any);
       });
     }
     bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
@@ -8792,6 +8839,16 @@ export default function Home() {
       setCourseBadgeIds(merged);
       setNewlyEarnedBadges(justEarned);
       nextLessonRef.current = nextLesson;
+      // Sync newly earned threshold badges to Supabase via the merge RPC so they
+      // survive device switches. The RPC unions earned_badges server-side, so
+      // stale reads can never cause a badge to be re-earned on another device.
+      void supabase.auth.getUser().then(({ data: { user } }) => {
+        if (!user) return;
+        void supabase.rpc("merge_user_progress_max", {
+          p_user_id: user.id,
+          p_earned_badges: justEarned,
+        } as any);
+      });
       return;
     }
 
