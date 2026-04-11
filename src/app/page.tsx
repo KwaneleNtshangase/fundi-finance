@@ -4394,6 +4394,11 @@ function ProfileView({
               const v = parseInt(e.target.value, 10);
               setDailyGoal(v);
               localStorage.setItem("fundi-daily-goal", String(v));
+              // Persist daily goal to Supabase for cross-device sync
+              supabase.auth.getUser().then(({ data: { user } }) => {
+                if (!user) return;
+                supabase.from("user_progress").upsert({ user_id: user.id, daily_goal: v }, { onConflict: "user_id" });
+              });
             }} style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }}>
               {[25, 50, 100, 150, 200].map((g) => (
                 <option key={g} value={g}>{g} XP / day</option>
@@ -7133,6 +7138,10 @@ function SettingsView({
     setSelectedGoal(g);
     setDailyGoal(g);
     localStorage.setItem("fundi-daily-goal", String(g));
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("user_progress").upsert({ user_id: user.id, daily_goal: g }, { onConflict: "user_id" });
+    });
   };
 
   const Row = ({ icon, label, sub, children }: { icon: React.ReactNode; label: string; sub?: string; children?: React.ReactNode }) => (
@@ -7340,7 +7349,7 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
     100
   );
   return (
-    <aside className="stats-panel" id="statsPanel" style={{ display: "flex", flexDirection: "column" }}>
+    <aside className="stats-panel" id="statsPanel">
       <div className="stats-section">
         <h3>My Stats</h3>
         <div className="stat-item" style={{ position: "relative" }}>
@@ -8267,54 +8276,118 @@ export default function Home() {
 
   // Weekly XP tracking is now handled entirely by useProgress hook (fundi-week-key / fundi-weekly-xp)
 
-  // Cross-device sync, fetch latest progress from Supabase and hydrate localStorage
+  // Cross-device sync — fetch latest progress from Supabase and hydrate localStorage
   useEffect(() => {
     const syncFromSupabase = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Sync personal goal + description from profiles table
+      // ── Profiles table ──────────────────────────────────────────────────────
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("goal, goal_description, age_range")
+        .select("goal, goal_description, age_range, investor_profile")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (profileData?.goal) {
-        localStorage.setItem("fundi-user-goal", profileData.goal);
+      if (profileData) {
+        if (profileData.goal) {
+          localStorage.setItem("fundi-user-goal", profileData.goal);
+          window.dispatchEvent(new StorageEvent("storage", { key: "fundi-user-goal", newValue: profileData.goal }));
+        }
         if (profileData.goal_description) localStorage.setItem("fundi-goal-description", profileData.goal_description);
         if (profileData.age_range) localStorage.setItem("fundi-age-range", profileData.age_range);
-        // Dispatch storage event so userGoal state in Home component re-reads localStorage
-        window.dispatchEvent(new StorageEvent("storage", { key: "fundi-user-goal", newValue: profileData.goal }));
+        if (profileData.investor_profile) localStorage.setItem("fundi-investor-profile", profileData.investor_profile);
       }
 
+      // ── User progress table ─────────────────────────────────────────────────
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key")
+        .select("xp, streak, longest_streak, completed_lessons, hearts, last_heart_lost_at, weekly_xp, week_key, daily_xp_today, daily_xp_date, perfect_lessons, freeze_count, daily_goal, earned_badges, badges")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       if (!data) return;
-      // Only overwrite localStorage if Supabase has more progress
-      const localXP = parseInt(localStorage.getItem("fundi-xp") ?? "0", 10);
-      if (data.xp > localXP) {
-        localStorage.setItem("fundi-xp", String(data.xp));
-      }
-      const localStreak = parseInt(localStorage.getItem("fundi-streak") ?? "0", 10);
-      if (data.streak > localStreak) {
-        localStorage.setItem("fundi-streak", String(data.streak));
-      }
-      // Restore today's XP from Supabase if localStorage was wiped
+
       const todayIso = new Date().toISOString().slice(0, 10);
-      const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
-      if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
-        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
+
+      // Take the highest value (Supabase wins if ahead, localStorage wins if ahead)
+      const takeMax = (localKey: string, remoteVal: number | null | undefined) => {
+        const local = parseInt(localStorage.getItem(localKey) ?? "0", 10);
+        const remote = remoteVal ?? 0;
+        if (remote > local) localStorage.setItem(localKey, String(remote));
+      };
+
+      takeMax("fundi-xp", data.xp);
+      takeMax("fundi-streak", data.streak);
+      takeMax("fundi-longest-streak", data.longest_streak);
+      takeMax("fundi-perfect-lessons", data.perfect_lessons);
+      takeMax("fundi-hearts", data.hearts ?? 5);
+
+      if ((data.freeze_count ?? 0) > 0) {
+        const localFreeze = parseInt(localStorage.getItem("fundi-freeze-count") ?? "0", 10);
+        if ((data.freeze_count ?? 0) > localFreeze) {
+          localStorage.setItem("fundi-freeze-count", String(data.freeze_count));
+        }
       }
+
+      if ((data.daily_goal ?? 0) > 0 && !localStorage.getItem("fundi-daily-goal")) {
+        localStorage.setItem("fundi-daily-goal", String(data.daily_goal ?? 50));
+      }
+
+      if (data.last_heart_lost_at) {
+        const local = parseInt(localStorage.getItem("fundi-last-heart-lost") ?? "0", 10);
+        if ((data.last_heart_lost_at as unknown as number) > local) {
+          localStorage.setItem("fundi-last-heart-lost", String(data.last_heart_lost_at));
+        }
+      }
+
+      // Restore today's XP from Supabase if localStorage was wiped
+      const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
+      if (localDailyXp === 0 && (data.daily_xp_today ?? 0) > 0 && data.daily_xp_date === todayIso) {
+        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(data.daily_xp_today));
+      }
+
+      // Merge completed lessons (union of both sets)
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
         const localSet: string[] = localRaw ? JSON.parse(localRaw) : [];
         const merged = Array.from(new Set([...localSet, ...data.completed_lessons]));
         localStorage.setItem("fundi-completed-lessons", JSON.stringify(merged));
       }
-      // Weekly XP is fully managed by useProgress hook — no cross-device sync needed here
+
+      // Merge earned badges (union)
+      const remoteBadges: string[] = [
+        ...(Array.isArray(data.earned_badges) ? data.earned_badges : []),
+        ...(Array.isArray(data.badges) ? data.badges : []),
+      ];
+      if (remoteBadges.length > 0) {
+        const localBadges: string[] = JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]");
+        const merged = Array.from(new Set([...localBadges, ...remoteBadges]));
+        localStorage.setItem("fundi-earned-badges", JSON.stringify(merged));
+      }
+
+      // ── Spaced repetition mastery ───────────────────────────────────────────
+      const { data: masteryRows } = await supabase
+        .from("concept_mastery")
+        .select("concept_id, interval_days, ease_factor, repetitions, next_review_date, last_reviewed_at")
+        .eq("user_id", user.id);
+      if (masteryRows && masteryRows.length > 0) {
+        const localMastery: Record<string, import("@/lib/spaced-repetition").MasteryRecord> =
+          JSON.parse(localStorage.getItem("fundi-mastery") ?? "{}");
+        for (const row of masteryRows) {
+          const local = localMastery[row.concept_id];
+          // Remote wins if it has more repetitions (more reviews done elsewhere)
+          if (!local || row.repetitions > local.repetitions) {
+            localMastery[row.concept_id] = {
+              concept_id: row.concept_id,
+              interval_days: row.interval_days,
+              ease_factor: parseFloat(String(row.ease_factor)),
+              repetitions: row.repetitions,
+              next_review_date: row.next_review_date,
+              last_reviewed_at: row.last_reviewed_at,
+            };
+          }
+        }
+        localStorage.setItem("fundi-mastery", JSON.stringify(localMastery));
+      }
     };
     syncFromSupabase().catch(() => {}); // silent fail, offline is fine
   }, []);
@@ -8537,9 +8610,10 @@ export default function Home() {
       localStorage.removeItem("fundi-lesson-progress");
     }
     setSavedProgress(null);
+    let newPerfectCount = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
     if (isPerfect) {
-      const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
-      localStorage.setItem("fundi-perfect-lessons", String(prev + 1));
+      newPerfectCount += 1;
+      localStorage.setItem("fundi-perfect-lessons", String(newPerfectCount));
       if (hearts < maxHearts) gainHeart();
     }
     // Track daily challenge progress + first-lesson analytics
@@ -8564,13 +8638,22 @@ export default function Home() {
       const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
       const newDailyXp = prev + totalXP;
       localStorage.setItem(xpIsoKey, String(newDailyXp));
-      // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
+      // Compute longest streak
+      const currentStreakVal = streakAfterLesson ?? userData.streak;
+      const prevLongest = parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10);
+      const newLongest = Math.max(prevLongest, currentStreakVal);
+      if (newLongest > prevLongest) localStorage.setItem("fundi-longest-streak", String(newLongest));
+      // Persist all lesson-completion fields to Supabase
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
         await supabase.from("user_progress").upsert({
           user_id: user.id,
           daily_xp_today: newDailyXp,
           daily_xp_date: isoDay,
+          streak: currentStreakVal,
+          longest_streak: newLongest,
+          perfect_lessons: newPerfectCount,
+          xp: userData.xp + totalXP,
         } as any, { onConflict: "user_id" });
       });
     }

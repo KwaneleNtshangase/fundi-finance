@@ -458,6 +458,14 @@ export function useProgress() {
     const next = getStoredFreezeCount() + 1;
     window.localStorage.setItem(FREEZE_LS_KEY, String(next));
     setFreezeCount(next);
+    // Sync freeze count to Supabase
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from("user_progress").upsert(
+        { user_id: user.id, freeze_count: next },
+        { onConflict: "user_id" }
+      );
+    });
     return true;
   };
 

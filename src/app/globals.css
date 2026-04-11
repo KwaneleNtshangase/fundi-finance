@@ -174,20 +174,30 @@ html.dark .nav-link.active {
   }
 }
 
+/* Stats panel — hidden by default (mobile-first) */
 .stats-panel {
-  position: fixed;
-  right: 0;
-  top: 0;
-  width: 320px;
-  height: 100vh;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  border-left: 2px solid var(--border-light);
-  padding: 32px 24px;
-  overflow-y: auto;
+  display: none;
 }
 
-/* Only push content left of stats panel when the panel is actually visible */
+/* Only show stats panel on large screens */
+@media (min-width: 1200px) {
+  .stats-panel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    border-left: 2px solid var(--border-light);
+    padding: 32px 24px;
+    overflow-y: auto;
+  }
+}
+
+/* Push main content left only when stats panel is visible */
 .main-with-stats {
   margin-right: 0;
 }
@@ -905,15 +915,7 @@ html.dark .nav-link.active {
   font-size: 16px;
 }
 
-@media (max-width: 1200px) {
-  .stats-panel {
-    display: none;
-  }
-
-  .main-with-stats {
-    margin-right: 0;
-  }
-}
+/* stats-panel is hidden by default (mobile-first) — no override needed here */
 
 @media (max-width: 768px) {
   .sidebar {

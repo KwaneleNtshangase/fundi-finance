@@ -125,7 +125,7 @@ export function loadMastery(): Record<string, MasteryRecord> {
   }
 }
 
-/** Save a single mastery record to localStorage */
+/** Save a single mastery record to localStorage AND sync to Supabase */
 export function saveMastery(record: MasteryRecord): void {
   if (typeof window === "undefined") return;
   try {
@@ -134,6 +134,39 @@ export function saveMastery(record: MasteryRecord): void {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
   } catch {
     // Storage quota exceeded — silently fail
+  }
+  // Async Supabase sync — fire-and-forget (no await, no blocking)
+  syncMasteryToSupabase(record);
+}
+
+/**
+ * Upsert a single mastery record to the concept_mastery table.
+ * Called from saveMastery — does not block the UI.
+ */
+async function syncMasteryToSupabase(record: MasteryRecord): Promise<void> {
+  try {
+    // Dynamic import to avoid circular deps and keep the lib lightweight
+    const { createClient } = await import("@supabase/supabase-js");
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) return;
+    const sb = createClient(url, key);
+    const { data: { user } } = await sb.auth.getUser();
+    if (!user) return;
+    await sb.from("concept_mastery").upsert(
+      {
+        user_id: user.id,
+        concept_id: record.concept_id,
+        interval_days: record.interval_days,
+        ease_factor: record.ease_factor,
+        repetitions: record.repetitions,
+        next_review_date: record.next_review_date,
+        last_reviewed_at: record.last_reviewed_at,
+      },
+      { onConflict: "user_id,concept_id" }
+    );
+  } catch {
+    // Silent fail — localStorage is the source of truth; Supabase is backup
   }
 }
 
@@ -144,19 +177,21 @@ export function saveMastery(record: MasteryRecord): void {
  */
 export function scheduleConceptsForCourse(conceptIds: string[]): void {
   const all = loadMastery();
-  let changed = false;
+  const newRecords: MasteryRecord[] = [];
   for (const id of conceptIds) {
     if (!all[id]) {
       all[id] = createMasteryRecord(id);
-      changed = true;
+      newRecords.push(all[id]);
     }
   }
-  if (changed && typeof window !== "undefined") {
+  if (newRecords.length > 0 && typeof window !== "undefined") {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
     } catch {
       // ignore
     }
+    // Sync all new records to Supabase
+    newRecords.forEach((r) => syncMasteryToSupabase(r));
   }
 }
 
