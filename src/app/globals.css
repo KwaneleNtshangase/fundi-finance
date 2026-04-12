@@ -1080,6 +1080,66 @@ html.dark body {
   box-shadow: 0 -6px 28px rgba(0, 0, 0, 0.13) !important;
 }
 
+/* ── Reduced motion / data-saver ────────────────────────────────────────── */
+/* Honors (a) the OS-level prefers-reduced-motion / prefers-reduced-data
+   media queries, and (b) a manual toggle set from Settings via
+   `body.fundi-reduced-motion` / `body.fundi-low-data`. We keep functional
+   transitions (focus rings) but kill decorative animation and expensive
+   background effects. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+body.fundi-reduced-motion *,
+body.fundi-reduced-motion *::before,
+body.fundi-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-data: reduce) {
+  /* Shrink decorative imagery and blur/shadow work that costs paint */
+  img, video {
+    image-rendering: -webkit-optimize-contrast;
+  }
+  .lesson-player,
+  .course-card,
+  .card {
+    box-shadow: none !important;
+  }
+}
+body.fundi-low-data img,
+body.fundi-low-data video {
+  image-rendering: -webkit-optimize-contrast;
+}
+body.fundi-low-data .lesson-player,
+body.fundi-low-data .course-card,
+body.fundi-low-data .card {
+  box-shadow: none !important;
+}
+body.fundi-low-data *,
+body.fundi-low-data *::before,
+body.fundi-low-data *::after {
+  /* No background gradients or fancy filters when data-saver is on */
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* ── Universal focus ring for keyboard users (accessibility) ───────────── */
+:where(button, a, input, select, textarea, [role="button"]):focus-visible {
+  outline: 3px solid var(--color-primary, #007A4D);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 /* ── Universal modal scroll lock ────────────────────────────────────────── */
 /* When any modal / notification is open, page content behind it must not
    scroll. The `.modal-open` class is toggled on <body> from page.tsx. */

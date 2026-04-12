@@ -339,6 +339,10 @@ function OnboardingView({
   const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
   const [ageConfirmed, setAgeConfirmed] = React.useState(false);
+  // POPIA Section 11 — explicit, voluntary, informed consent. This is NOT
+  // pre-ticked. Both boxes must be checked before the user can proceed.
+  const [consentPrivacy, setConsentPrivacy] = React.useState(false);
+  const [consentTerms, setConsentTerms] = React.useState(false);
 
   const screenCount = 4;
   const screensMeta = [
@@ -346,7 +350,25 @@ function OnboardingView({
       title: "Welcome to Fundi Finance",
       body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
       cta: "Let's go",
-      action: () => { if (ageConfirmed) setScreen(1); },
+      action: () => {
+        if (ageConfirmed && consentPrivacy && consentTerms) {
+          // Record the consent timestamp for audit trail
+          try {
+            localStorage.setItem(
+              "fundi-consent-accepted",
+              JSON.stringify({
+                at: new Date().toISOString(),
+                privacy: true,
+                terms: true,
+                age18: true,
+              })
+            );
+          } catch {
+            /* storage may be unavailable */
+          }
+          setScreen(1);
+        }
+      },
     },
     {
       title: "What's your money goal?",
@@ -441,25 +463,82 @@ function OnboardingView({
           {current.body}
         </p>
 
-        {/* Age confirmation — screen 0 only */}
+        {/* Age + POPIA consent — screen 0 only */}
         {screen === 0 && (
-          <label style={{
-            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24,
-            textAlign: "left", cursor: "pointer",
-            padding: "14px 16px", borderRadius: 12,
-            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
-            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
-          }}>
-            <input
-              type="checkbox"
-              checked={ageConfirmed}
-              onChange={(e) => setAgeConfirmed(e.target.checked)}
-              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
-            />
-            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-              I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
-            </span>
-          </label>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+            <label
+              style={{
+                display: "flex", alignItems: "flex-start", gap: 12,
+                textAlign: "left", cursor: "pointer",
+                padding: "14px 16px", borderRadius: 12,
+                background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+                border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={ageConfirmed}
+                onChange={(e) => setAgeConfirmed(e.target.checked)}
+                aria-label="Confirm I am 18 years or older"
+                style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+                I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: "flex", alignItems: "flex-start", gap: 12,
+                textAlign: "left", cursor: "pointer",
+                padding: "14px 16px", borderRadius: 12,
+                background: consentPrivacy ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+                border: `1.5px solid ${consentPrivacy ? "var(--color-primary)" : "var(--color-border)"}`,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={consentPrivacy}
+                onChange={(e) => setConsentPrivacy(e.target.checked)}
+                aria-label="I have read and agree to the Privacy Policy"
+                style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+                I have read and agree to the{" "}
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ color: "var(--color-primary)", textDecoration: "underline" }}
+                >
+                  Privacy Policy
+                </a>
+                . I understand Fundi Finance processes my personal information under POPIA to provide my learning experience.
+              </span>
+            </label>
+
+            <label
+              style={{
+                display: "flex", alignItems: "flex-start", gap: 12,
+                textAlign: "left", cursor: "pointer",
+                padding: "14px 16px", borderRadius: 12,
+                background: consentTerms ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+                border: `1.5px solid ${consentTerms ? "var(--color-primary)" : "var(--color-border)"}`,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={consentTerms}
+                onChange={(e) => setConsentTerms(e.target.checked)}
+                aria-label="I agree to the Terms of Service"
+                style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+              />
+              <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+                I agree to the Fundi Finance Terms of Service. I understand that lessons here are <strong>educational only</strong> and not personal financial advice.
+              </span>
+            </label>
+          </div>
         )}
 
         {screen === 1 && (
@@ -572,7 +651,7 @@ function OnboardingView({
           style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
           onClick={current.action}
           disabled={
-            (screen === 0 && !ageConfirmed) ||
+            (screen === 0 && (!ageConfirmed || !consentPrivacy || !consentTerms)) ||
             (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim())))
           }
         >
@@ -1459,6 +1538,25 @@ function CalculatorView() {
         >
           Get Your Free Investment Plan
         </button>
+      </div>
+
+      {/* Financial education disclaimer */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "12px 16px",
+          marginTop: 8,
+          marginBottom: 16,
+          color: "var(--color-text-secondary)",
+          fontSize: 11,
+          opacity: 0.75,
+          borderTop: "1px solid var(--color-border)",
+          lineHeight: 1.5,
+        }}
+      >
+        📚 For educational purposes only — not financial advice. Projections
+        assume constant returns and do not guarantee future performance.
+        Consult a licensed financial advisor before making financial decisions.
       </div>
     </main>
   );
@@ -5735,7 +5833,7 @@ function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div style={{ fontWeight: 800, fontSize: 18 }}>Send Feedback</div>
-          <button type="button" onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}>
+          <button type="button" onClick={onClose} aria-label="Close feedback dialog" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}>
             <X size={22} />
           </button>
         </div>
@@ -5828,7 +5926,7 @@ function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "terms" | "
     <main className="main-content" style={{ paddingBottom: 80 }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0 20px" }}>
-        <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-primary)", display: "flex" }}>
+        <button type="button" onClick={onBack} aria-label="Go back" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-primary)", display: "flex" }}>
           <ArrowLeft size={22} />
         </button>
         <div style={{ fontSize: 18, fontWeight: 800 }}>{titles[page]}</div>
@@ -6677,13 +6775,31 @@ function BudgetView() {
 
       </>)} {/* end month view */}
 
+      {/* Financial education disclaimer */}
+      <div
+        style={{
+          textAlign: "center",
+          padding: "12px 16px",
+          marginTop: 16,
+          color: "var(--color-text-secondary)",
+          fontSize: 11,
+          opacity: 0.75,
+          borderTop: "1px solid var(--color-border)",
+          lineHeight: 1.5,
+        }}
+      >
+        📚 For educational purposes only — not financial advice. Budgeting
+        guidance is general and may not suit every situation. Consult a
+        licensed financial advisor before making financial decisions.
+      </div>
+
       {/* Set Budget Targets Modal */}
       {showSetBudget && (
         <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
           <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>Set Monthly Budget</h3>
-              <button type="button" onClick={() => setShowSetBudget(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+              <button type="button" onClick={() => setShowSetBudget(false)} aria-label="Close set budget dialog" style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
                 <X size={20} style={{ color: "var(--color-text-secondary)" }} />
               </button>
             </div>
@@ -7065,6 +7181,31 @@ function SettingsView({
   });
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState<boolean>(() =>
+    typeof window === "undefined" ? false : localStorage.getItem("fundi-reduced-motion") === "1"
+  );
+  const [lowData, setLowData] = useState<boolean>(() =>
+    typeof window === "undefined" ? false : localStorage.getItem("fundi-low-data") === "1"
+  );
+
+  const handleReducedMotionToggle = () => {
+    const next = !reducedMotion;
+    setReducedMotion(next);
+    if (typeof window !== "undefined") {
+      if (next) localStorage.setItem("fundi-reduced-motion", "1");
+      else localStorage.removeItem("fundi-reduced-motion");
+      document.body.classList.toggle("fundi-reduced-motion", next);
+    }
+  };
+  const handleLowDataToggle = () => {
+    const next = !lowData;
+    setLowData(next);
+    if (typeof window !== "undefined") {
+      if (next) localStorage.setItem("fundi-low-data", "1");
+      else localStorage.removeItem("fundi-low-data");
+      document.body.classList.toggle("fundi-low-data", next);
+    }
+  };
 
   // Check current push subscription status on mount
   useEffect(() => {
@@ -7211,6 +7352,58 @@ function SettingsView({
           </button>
         </Row>
       )}
+
+      {/* Reduced motion toggle — respects accessibility + saves battery */}
+      <Row
+        icon={<Zap size={18} />}
+        label="Reduced motion"
+        sub="Turns off decorative animations and transitions"
+      >
+        <button
+          type="button"
+          role="switch"
+          aria-checked={reducedMotion}
+          aria-label={reducedMotion ? "Disable reduced motion" : "Enable reduced motion"}
+          onClick={handleReducedMotionToggle}
+          style={{
+            width: 48, height: 28, borderRadius: 14,
+            background: reducedMotion ? "var(--color-primary)" : "var(--color-border)",
+            border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0,
+          }}
+        >
+          <span style={{
+            position: "absolute", top: 3, left: reducedMotion ? 23 : 3, width: 22, height: 22,
+            borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+            transition: "left 0.2s",
+          }} />
+        </button>
+      </Row>
+
+      {/* Data saver toggle — SA-specific: loadshedding / capped data plans */}
+      <Row
+        icon={<Wallet size={18} />}
+        label="Data saver"
+        sub="Removes shadows and heavy visuals to save data"
+      >
+        <button
+          type="button"
+          role="switch"
+          aria-checked={lowData}
+          aria-label={lowData ? "Disable data saver" : "Enable data saver"}
+          onClick={handleLowDataToggle}
+          style={{
+            width: 48, height: 28, borderRadius: 14,
+            background: lowData ? "var(--color-primary)" : "var(--color-border)",
+            border: "none", cursor: "pointer", position: "relative", transition: "background 0.2s", flexShrink: 0,
+          }}
+        >
+          <span style={{
+            position: "absolute", top: 3, left: lowData ? 23 : 3, width: 22, height: 22,
+            borderRadius: "50%", background: "white", boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+            transition: "left 0.2s",
+          }} />
+        </button>
+      </Row>
 
       {/* Dark mode toggle */}
       {/* dark mode now follows system preference automatically */}
@@ -8057,6 +8250,86 @@ export default function Home() {
     navigator.serviceWorker.register("/sw.js").catch(() => {/* silent — no SW support or HTTPS required */});
   }, []);
 
+  // ── Reduced-motion + data-saver preferences ─────────────────────────────
+  // Applies the user's saved preference (Settings toggle) and also respects
+  // the OS-level media queries. Writing the body class is the single source
+  // of truth; the CSS in globals.css reacts to it.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const apply = () => {
+      const reduced =
+        localStorage.getItem("fundi-reduced-motion") === "1" ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const lowData =
+        localStorage.getItem("fundi-low-data") === "1" ||
+        window.matchMedia("(prefers-reduced-data: reduce)").matches;
+      document.body.classList.toggle("fundi-reduced-motion", reduced);
+      document.body.classList.toggle("fundi-low-data", lowData);
+    };
+    apply();
+    const motionMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const dataMq = window.matchMedia("(prefers-reduced-data: reduce)");
+    const onChange = () => apply();
+    motionMq.addEventListener?.("change", onChange);
+    dataMq.addEventListener?.("change", onChange);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "fundi-reduced-motion" || e.key === "fundi-low-data") {
+        apply();
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      motionMq.removeEventListener?.("change", onChange);
+      dataMq.removeEventListener?.("change", onChange);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  // ── Idle auto-logout ──────────────────────────────────────────────────────
+  // For a financial-education product we should not leave a session open on
+  // a shared device indefinitely. After 30 minutes with no user activity we
+  // sign the user out and reload to the auth screen. Any interaction resets
+  // the timer. This runs only in the browser.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const IDLE_MS = 30 * 60 * 1000;
+    let timer: number | undefined;
+    const doLogout = async () => {
+      try {
+        await supabase.auth.signOut();
+      } catch {
+        /* ignore — still redirect */
+      }
+      try {
+        sessionStorage.setItem("fundi-idle-logout", "1");
+      } catch {
+        /* storage may be unavailable */
+      }
+      window.location.reload();
+    };
+    const reset = () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      timer = window.setTimeout(doLogout, IDLE_MS);
+    };
+    const windowEvents: (keyof WindowEventMap)[] = [
+      "mousedown",
+      "keydown",
+      "touchstart",
+      "scroll",
+    ];
+    windowEvents.forEach((e) =>
+      window.addEventListener(e, reset, { passive: true }),
+    );
+    // visibilitychange is on document, not window
+    document.addEventListener("visibilitychange", reset);
+    reset();
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+      windowEvents.forEach((e) => window.removeEventListener(e, reset));
+      document.removeEventListener("visibilitychange", reset);
+    };
+  }, []);
+
   // ── Offline detection ─────────────────────────────────────────────────────
   const [isOffline, setIsOffline] = useState(false);
   useEffect(() => {
@@ -8657,9 +8930,34 @@ export default function Home() {
   };
 
   const finalizeCurrentLesson = (choice: "next" | "course") => {
-    const baseXP = 50;
-    const totalXP = baseXP + currentLessonState.correctCount * 10;
     if (!currentLessonState.courseId || !currentLessonState.lessonId) return;
+
+    // ── XP farming guard ──────────────────────────────────────────────────
+    // Full XP for the first completion of a lesson. Anything after that in
+    // the same day earns only a small practice bonus (10% of full XP,
+    // floored at 5). The next day the multiplier resets so spaced practice
+    // is still rewarded. This prevents users from farming the same lesson
+    // for unlimited XP and keeps the leaderboard honest.
+    const lessonKeyForXp = `${currentLessonState.courseId}:${currentLessonState.lessonId}`;
+    const isoDayForXp = new Date().toISOString().slice(0, 10);
+    const replayKey = `fundi-lesson-last-xp-day:${lessonKeyForXp}`;
+    const alreadyCompletedEver = completedLessons instanceof Set
+      ? completedLessons.has(lessonKeyForXp)
+      : false;
+    let lastXpDay: string | null = null;
+    if (typeof window !== "undefined") {
+      lastXpDay = localStorage.getItem(replayKey);
+    }
+    const isSameDayReplay = alreadyCompletedEver && lastXpDay === isoDayForXp;
+    const baseXP = isSameDayReplay ? 5 : 50;
+    const perCorrect = isSameDayReplay ? 1 : 10;
+    const totalXP = Math.max(
+      baseXP + currentLessonState.correctCount * perCorrect,
+      isSameDayReplay ? 5 : 50
+    );
+    if (typeof window !== "undefined") {
+      localStorage.setItem(replayKey, isoDayForXp);
+    }
 
     const totalQuestions = currentLessonState.steps.filter(
       (s) =>
@@ -9094,19 +9392,37 @@ export default function Home() {
   };
 
   const handleDeleteAccount = async () => {
-    // Delete Supabase records
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from("user_progress").delete().eq("user_id", user.id);
-      await supabase.from("profiles").delete().eq("user_id", user.id);
-      // Delete auth user via admin API if available, otherwise sign out
-      await supabase.auth.signOut();
+    // POPIA "right to erasure" — delete account via server-side edge function
+    // so we can remove the row from auth.users using the service-role key.
+    // Falls back to best-effort local cleanup on any failure so the user is
+    // never stuck with "Delete" that appears to do nothing.
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        const { error } = await supabase.functions.invoke("delete-account", {
+          body: {},
+        });
+        if (error) {
+          // Log for ops but do not surface stack to the user.
+          console.error("[delete-account] edge function error:", error);
+          // Best-effort fallback: clean up tables the user can delete from
+          // via RLS, then sign out. Auth row will remain until manual purge.
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            await supabase.from("user_progress").delete().eq("user_id", user.id);
+            await supabase.from("profiles").delete().eq("user_id", user.id);
+          }
+        }
+      }
+    } catch (err) {
+      console.error("[delete-account] unexpected error:", err);
+    } finally {
+      try { await supabase.auth.signOut(); } catch { /* ignore */ }
+      if (typeof window !== "undefined") {
+        try { window.localStorage.clear(); } catch { /* ignore */ }
+      }
+      window.location.href = "/";
     }
-    // Clear all localStorage
-    if (typeof window !== "undefined") {
-      window.localStorage.clear();
-    }
-    window.location.href = "/";
   };
 
   // Handle onboarding complete
