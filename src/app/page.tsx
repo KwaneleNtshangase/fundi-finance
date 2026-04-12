@@ -58,7 +58,9 @@ import {
   FileText,
   Flag,
   Flame,
+  Globe,
   GraduationCap,
+  Monitor,
   Hash,
   Heart,
   HeartOff,
@@ -1940,6 +1942,91 @@ const CourseCardSkeleton = () => (
   </div>
 );
 
+/**
+ * Streak reminder card — shown on the Learn tab when a user has an
+ * active streak (≥ 2 days) but has not yet completed any lesson today.
+ *
+ * The "yet" check reads `fundi-lessons-today-${isoDay}` which is written
+ * by `finalizeCurrentLesson`. Re-checks every 10 seconds so the card
+ * disappears the moment the user completes a lesson without requiring a
+ * parent re-render.
+ */
+function StreakReminderCard({ streak }: { streak: number }) {
+  const [lessonsToday, setLessonsToday] = useState<number>(() => {
+    if (typeof window === "undefined") return 0;
+    const key = `fundi-lessons-today-${new Date().toISOString().slice(0, 10)}`;
+    return parseInt(localStorage.getItem(key) ?? "0") || 0;
+  });
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const read = () => {
+      const key = `fundi-lessons-today-${new Date().toISOString().slice(0, 10)}`;
+      setLessonsToday(parseInt(localStorage.getItem(key) ?? "0") || 0);
+    };
+    read();
+    const id = window.setInterval(read, 10000);
+    const onStorage = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith("fundi-lessons-today-")) read();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.clearInterval(id);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  // Gate: need an actual streak to protect, and no lesson today yet.
+  if (streak < 2 || lessonsToday > 0) return null;
+
+  return (
+    <div
+      role="status"
+      style={{
+        background:
+          "linear-gradient(135deg, rgba(255,182,18,0.14) 0%, rgba(224,60,49,0.10) 100%)",
+        border: "1px solid rgba(255,182,18,0.45)",
+        borderRadius: 14,
+        padding: "14px 16px",
+        marginBottom: 16,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: "50%",
+          background: "rgba(255,182,18,0.22)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Flame size={22} style={{ color: "#E03C31" }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontWeight: 800, fontSize: 14, lineHeight: 1.3 }}>
+          Don&apos;t lose your {streak}-day streak
+        </div>
+        <div
+          style={{
+            fontSize: 12,
+            color: "var(--color-text-secondary)",
+            marginTop: 2,
+          }}
+        >
+          One lesson today keeps it alive.
+        </div>
+      </div>
+    </div>
+  );
+}
+
 type SavedLessonProgress = {
   courseId: string;
   lessonId: string;
@@ -2618,6 +2705,11 @@ function LearnView({
           )}
         </div>
       )}
+
+      {/* ── "Don't lose your streak" reminder ─────────────────────────────
+          Shows when the user has an active streak ≥ 2 and hasn't yet
+          completed a lesson today. Win-back nudge so the habit sticks. */}
+      <StreakReminderCard streak={streak} />
 
       {/* Daily Challenges */}
       <DailyChallenges streak={streak} />
@@ -6521,7 +6613,37 @@ function BudgetView() {
       )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: 40, color: "var(--color-text-secondary)" }}>Loading...</div>
+        <div aria-busy="true" aria-live="polite">
+          <span className="sr-only">Loading your budget…</span>
+          {/* Summary cards skeleton */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="skeleton"
+                style={{ height: 70, borderRadius: 12, border: "1px solid var(--color-border)" }}
+              />
+            ))}
+          </div>
+          {/* Chart skeleton */}
+          <div
+            className="skeleton"
+            style={{ height: 220, borderRadius: 14, marginBottom: 20, border: "1px solid var(--color-border)" }}
+          />
+          {/* Row skeletons */}
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{
+                height: 56,
+                borderRadius: 12,
+                marginBottom: 10,
+                border: "1px solid var(--color-border)",
+              }}
+            />
+          ))}
+        </div>
       ) : (
         <>
           {/* Summary cards */}
@@ -7083,6 +7205,147 @@ function BudgetView() {
 
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Active Session Panel — surfaces basic device/session details so the
+ * user can satisfy POPIA transparency ("what does this app know about
+ * my session?") and spot unfamiliar activity.
+ *
+ * We deliberately show ONLY client-visible data — Supabase doesn't
+ * expose IP or login history through the browser SDK, and we don't
+ * have a server endpoint for audit logs yet. Everything here is
+ * derivable from the current JWT + browser APIs, so there's no new
+ * PII exposure.
+ */
+function ActiveSessionPanel() {
+  const [sessionStart, setSessionStart] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | null>(null);
+  const [provider, setProvider] = useState<string | null>(null);
+  const [device, setDevice] = useState<string>("");
+
+  useEffect(() => {
+    // Detect device from user agent. No fingerprinting — just a
+    // friendly label like "iPhone" or "Chrome on Windows".
+    if (typeof navigator !== "undefined") {
+      const ua = navigator.userAgent;
+      let label = "Unknown device";
+      if (/iPhone/i.test(ua)) label = "iPhone";
+      else if (/iPad/i.test(ua)) label = "iPad";
+      else if (/Android/i.test(ua)) label = /Mobile/i.test(ua) ? "Android phone" : "Android tablet";
+      else if (/Mac OS X/i.test(ua)) label = "Mac";
+      else if (/Windows/i.test(ua)) label = "Windows PC";
+      else if (/Linux/i.test(ua)) label = "Linux";
+      setDevice(label);
+    }
+
+    supabase.auth.getSession().then(({ data }) => {
+      const s = data.session;
+      if (!s) return;
+      setEmail(s.user.email ?? null);
+      setProvider(s.user.app_metadata?.provider ?? "email");
+      if (s.expires_at) {
+        setExpiresAt(new Date(s.expires_at * 1000).toLocaleString("en-ZA"));
+      }
+      // issued-at is inside the JWT payload — decode just the first segment
+      try {
+        const payload = JSON.parse(atob(s.access_token.split(".")[1] ?? ""));
+        if (payload.iat) {
+          setSessionStart(new Date(payload.iat * 1000).toLocaleString("en-ZA"));
+        }
+      } catch {
+        /* ignore — older token shape */
+      }
+    });
+  }, []);
+
+  const signOutEverywhere = async () => {
+    const ok = confirm(
+      "Sign out this device and revoke all active sessions? You will need to log in again.",
+    );
+    if (!ok) return;
+    try {
+      await supabase.auth.signOut({ scope: "global" });
+    } catch {
+      await supabase.auth.signOut();
+    }
+    window.location.href = "/";
+  };
+
+  const rows: { icon: React.ReactNode; label: string; value: string | null }[] = [
+    { icon: <Monitor size={16} />, label: "Device", value: device || "Unknown" },
+    { icon: <UserIcon size={16} />, label: "Signed in as", value: email },
+    { icon: <KeyRound size={16} />, label: "Sign-in method", value: provider },
+    { icon: <Clock size={16} />, label: "Session started", value: sessionStart },
+    { icon: <Clock size={16} />, label: "Expires", value: expiresAt },
+  ];
+
+  return (
+    <div
+      style={{
+        background: "var(--color-surface)",
+        border: "1px solid var(--color-border)",
+        borderRadius: 12,
+        padding: "12px 0",
+        marginBottom: 8,
+      }}
+    >
+      {rows.map((r, i) => (
+        <div
+          key={r.label}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "10px 16px",
+            borderTop: i === 0 ? "none" : "1px solid var(--color-border)",
+          }}
+        >
+          <span style={{ color: "var(--color-text-secondary)", flexShrink: 0 }}>
+            {r.icon}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, color: "var(--color-text-secondary)", fontWeight: 600, textTransform: "uppercase", letterSpacing: 0.4 }}>
+              {r.label}
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                fontWeight: 600,
+                color: "var(--color-text-primary)",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {r.value ?? "—"}
+            </div>
+          </div>
+        </div>
+      ))}
+      <div style={{ padding: "10px 16px 4px", borderTop: "1px solid var(--color-border)" }}>
+        <button
+          type="button"
+          onClick={signOutEverywhere}
+          className="btn btn-secondary"
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            fontSize: 13,
+            fontWeight: 700,
+            padding: "10px 16px",
+            minHeight: 44,
+          }}
+        >
+          <LogOut size={15} /> Sign out everywhere
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function SettingsAccountSection() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -7449,6 +7712,88 @@ function SettingsView({
           <ArrowLeft size={16} style={{ transform: "rotate(180deg)", color: "var(--color-text-secondary)" }} />
         </Row>
       </a>
+
+      {/* ── Session / device visibility (POPIA transparency) ── */}
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Active session</div>
+      <ActiveSessionPanel />
+
+      {/* ── Trust signals ── */}
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Why you can trust Fundi</div>
+      <div
+        style={{
+          background: "var(--color-surface)",
+          border: "1px solid var(--color-border)",
+          borderRadius: 12,
+          padding: "14px 16px",
+          marginBottom: 8,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: 10,
+        }}
+      >
+        {[
+          { Icon: Shield, label: "POPIA-compliant", sub: "Your data, your rules" },
+          { Icon: Lock, label: "Encrypted", sub: "TLS in transit, AES at rest" },
+          { Icon: BookOpen, label: "Education only", sub: "Not financial advice" },
+          { Icon: Globe, label: "Built in 🇿🇦", sub: "Localised for SA" },
+        ].map((t) => (
+          <div
+            key={t.label}
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+              padding: 8,
+              borderRadius: 10,
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-border)",
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: "rgba(0,122,77,0.10)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <t.Icon size={16} style={{ color: "var(--color-primary)" }} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: 700, fontSize: 12 }}>{t.label}</div>
+              <div style={{ fontSize: 11, color: "var(--color-text-secondary)", lineHeight: 1.35 }}>
+                {t.sub}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── FSP / regulatory disclosure ── */}
+      <div
+        style={{
+          background: "rgba(255,182,18,0.08)",
+          border: "1px solid rgba(255,182,18,0.35)",
+          borderRadius: 12,
+          padding: "12px 14px",
+          marginBottom: 8,
+          display: "flex",
+          gap: 10,
+          alignItems: "flex-start",
+        }}
+      >
+        <AlertTriangle size={16} style={{ color: "#B88000", flexShrink: 0, marginTop: 1 }} aria-hidden />
+        <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", lineHeight: 1.55 }}>
+          <strong style={{ color: "var(--color-text-primary)" }}>Fundi Finance is a financial-literacy platform — not a licensed financial services provider (FSP).</strong>{" "}
+          Content on this app is for education only and does not constitute
+          financial, investment, tax or legal advice. For product-specific or
+          personal advice, consult an FSCA-registered adviser.
+        </div>
+      </div>
 
       {/* ── About ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>About</div>
@@ -8328,6 +8673,24 @@ export default function Home() {
       windowEvents.forEach((e) => window.removeEventListener(e, reset));
       document.removeEventListener("visibilitychange", reset);
     };
+  }, []);
+
+  // ── Idle-logout notice (consumed from sessionStorage flag set in the
+  //     idle-logout effect above; shown once after the forced reload) ────
+  const [idleSignedOut, setIdleSignedOut] = useState(false);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      if (sessionStorage.getItem("fundi-idle-logout") === "1") {
+        sessionStorage.removeItem("fundi-idle-logout");
+        setIdleSignedOut(true);
+        const t = window.setTimeout(() => setIdleSignedOut(false), 8000);
+        return () => window.clearTimeout(t);
+      }
+    } catch {
+      /* storage may be unavailable */
+    }
+    return;
   }, []);
 
   // ── Offline detection ─────────────────────────────────────────────────────
@@ -10109,6 +10472,52 @@ export default function Home() {
               aria-label="Dismiss"
             >
               <X size={18} />
+            </button>
+          </div>
+        )}
+
+        {/* Idle auto-logout toast */}
+        {idleSignedOut && (
+          <div
+            role="status"
+            aria-live="polite"
+            style={{
+              position: "fixed",
+              top: 64,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 650,
+              background: "#1f2937",
+              color: "#fff",
+              padding: "10px 18px",
+              borderRadius: 12,
+              fontSize: 13,
+              fontWeight: 600,
+              boxShadow: "0 6px 24px rgba(0,0,0,0.25)",
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              maxWidth: "calc(100% - 32px)",
+            }}
+          >
+            <Clock size={16} aria-hidden />
+            Signed out after 30 minutes of inactivity
+            <button
+              type="button"
+              onClick={() => setIdleSignedOut(false)}
+              aria-label="Dismiss signed-out notice"
+              style={{
+                background: "none",
+                border: "none",
+                color: "#fff",
+                cursor: "pointer",
+                padding: 2,
+                display: "flex",
+                alignItems: "center",
+                marginLeft: 4,
+              }}
+            >
+              <X size={14} />
             </button>
           </div>
         )}
