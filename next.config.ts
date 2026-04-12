@@ -21,13 +21,13 @@ const securityHeaders = [
       // Images: self + data URIs (emojis, canvas exports) + OAuth avatars
       "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.fbcdn.net https://platform-lookaside.fbsbx.com",
       // XHR / fetch / websocket
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://app.posthog.com https://wealthwithkwanele.co.za",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://app.posthog.com https://fundiapp.co.za https://wealthwithkwanele.co.za",
       // Service worker scope
       "worker-src 'self' blob:",
       // Frames: deny embedding us; allow YouTube for lessons if needed
       "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
       "frame-ancestors 'none'",
-      "form-action 'self' https://formspree.io https://wealthwithkwanele.co.za",
+      "form-action 'self' https://formspree.io https://fundiapp.co.za https://wealthwithkwanele.co.za",
       "base-uri 'self'",
       "object-src 'none'",
       "upgrade-insecure-requests",

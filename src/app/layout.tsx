@@ -25,8 +25,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Fundi Finance - Master Your Money",
-  description: "Interactive personal finance learning app.",
+  description: "Interactive personal finance learning app built for South Africa.",
   manifest: "/manifest.json",
+  metadataBase: new URL("https://fundiapp.co.za"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

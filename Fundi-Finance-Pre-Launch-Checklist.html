@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance — Pre-Launch Checklist</title>
+<style>
+  :root {
+    --green: #007A4D;
+    --green-light: #e6f4ed;
+    --amber: #D97706;
+    --amber-light: #fef3c7;
+    --red: #DC2626;
+    --red-light: #fee2e2;
+    --blue: #1D4ED8;
+    --blue-light: #dbeafe;
+    --gray: #6B7280;
+    --gray-light: #F9FAFB;
+    --border: #E5E7EB;
+    --text: #111827;
+    --text-sec: #4B5563;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #F3F4F6;
+    color: var(--text);
+    padding: 24px 16px;
+    min-height: 100vh;
+  }
+  .container { max-width: 860px; margin: 0 auto; }
+  header {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 24px;
+    border-left: 6px solid var(--green);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  header h1 { font-size: 26px; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+  header p { color: var(--text-sec); font-size: 14px; }
+  .progress-bar-wrap {
+    margin-top: 20px;
+    background: #E5E7EB;
+    border-radius: 100px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .progress-bar { height: 100%; background: var(--green); border-radius: 100px; transition: width 0.3s ease; }
+  .progress-label { font-size: 13px; color: var(--text-sec); margin-top: 6px; }
+
+  .section {
+    background: white;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-header:hover { background: var(--gray-light); }
+  .section-icon { font-size: 22px; flex-shrink: 0; }
+  .section-title { font-size: 16px; font-weight: 700; flex: 1; }
+  .section-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sec);
+    background: #F3F4F6;
+    padding: 3px 9px;
+    border-radius: 100px;
+  }
+  .section-count.done { background: var(--green-light); color: var(--green); }
+  .chevron { font-size: 12px; color: var(--gray); transition: transform 0.2s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  .items { padding: 8px 0; display: none; }
+  .items.open { display: block; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #F3F4F6;
+    transition: background 0.15s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: var(--gray-light); }
+  .item.checked { opacity: 0.65; }
+  .item.checked .item-title { text-decoration: line-through; color: var(--gray); }
+
+  input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    accent-color: var(--green);
+    cursor: pointer;
+    margin-top: 1px;
+    border-radius: 4px;
+  }
+
+  .item-content { flex: 1; }
+  .item-title { font-size: 14px; font-weight: 600; margin-bottom: 2px; line-height: 1.4; }
+  .item-detail { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+
+  .badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 100px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .badge.blocker { background: var(--red-light); color: var(--red); }
+  .badge.important { background: var(--amber-light); color: var(--amber); }
+  .badge.nice { background: var(--blue-light); color: var(--blue); }
+  .badge.done-tag { background: var(--green-light); color: var(--green); }
+
+  .legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-sec); }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 100px;
+  }
+  .dot-red { background: var(--red); }
+  .dot-amber { background: var(--amber); }
+  .dot-blue { background: var(--blue); }
+  .dot-green { background: var(--green); }
+
+  @media print {
+    body { background: white; }
+    .section-header { border-bottom: 1px solid #ddd; }
+    .items { display: block !important; }
+    .chevron { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>🚀 Fundi Finance — Pre-Launch Checklist</h1>
+    <p>fundiapp.co.za · Track every step before going fully public and submitting to app stores</p>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar" id="progressBar" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">0 of 0 items complete</div>
+  </header>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot dot-red"></div> Blocker — must fix before launch</div>
+    <div class="legend-item"><div class="legend-dot dot-amber"></div> Important — should fix</div>
+    <div class="legend-item"><div class="legend-dot dot-blue"></div> Nice-to-have</div>
+    <div class="legend-item"><div class="legend-dot dot-green"></div> Already done ✓</div>
+  </div>
+
+  <!-- 1. PWA / Installability -->
+  <div class="section" id="s1">
+    <div class="section-header" onclick="toggleSection('s1')">
+      <span class="section-icon">📱</span>
+      <span class="section-title">1. PWA & Installability</span>
+      <span class="section-count" id="s1-count">0/0</span>
+      <span class="chevron" id="s1-chevron">▼</span>
+    </div>
+    <div class="items open" id="s1-items">
+      <div class="item" id="i-pwa1">
+        <input type="checkbox" onchange="tick(this,'i-pwa1')">
+        <div class="item-content">
+          <div class="item-title">Manifest.json complete with correct icons</div>
+          <div class="item-detail">Must have 192×192 and 512×512 PNG icons. The current manifest uses fundi-logo.png for both sizes — ensure the image is actually 512px so it isn't upscaled.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-pwa2">
+        <input type="checkbox" onchange="tick(this,'i-pwa2')">
+        <div class="item-content">
+          <div class="item-title">Dedicated maskable icon (safe zone cropped)</div>
+          <div class="item-detail">Maskable icons need the logo within the inner 80% safe zone circle. On Android, adaptive icons crop the corners — a full-bleed logo looks bad. Export a separate maskable version.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-pwa3">
+        <input type="checkbox" onchange="tick(this,'i-pwa3')">
+        <div class="item-content">
+          <div class="item-title">Service worker registered and caches core assets</div>
+          <div class="item-detail">sw.js exists in /public. Verify it registers correctly in Chrome DevTools → Application → Service Workers. Confirm it handles offline fallback gracefully.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-pwa4">
+        <input type="checkbox" onchange="tick(this,'i-pwa4')">
+        <div class="item-content">
+          <div class="item-title">Lighthouse PWA score ≥ 90</div>
+          <div class="item-detail">Run Lighthouse in Chrome on fundiapp.co.za. PWA category should pass all criteria: installable, standalone display, themed splash, HTTPS.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-pwa5">
+        <input type="checkbox" onchange="tick(this,'i-pwa5')">
+        <div class="item-content">
+          <div class="item-title">Apple touch icons + apple-mobile-web-app-* meta tags</div>
+          <div class="item-detail">iOS doesn't use the manifest for home screen icons. Ensure apple-touch-icon (180×180), apple-mobile-web-app-capable, and apple-mobile-web-app-status-bar-style are set in layout.tsx. ✓ apple-mobile-web-app is already in layout — verify icon resolution.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-pwa6">
+        <input type="checkbox" onchange="tick(this,'i-pwa6')">
+        <div class="item-content">
+          <div class="item-title">Test "Add to Home Screen" on real iPhone and Android devices</div>
+          <div class="item-detail">Install from Safari on iOS and Chrome on Android. Confirm the icon, name, and splash screen look correct. The app should open in standalone mode (no browser chrome).</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-pwa7">
+        <input type="checkbox" onchange="tick(this,'i-pwa7')">
+        <div class="item-content">
+          <div class="item-title">HTTPS confirmed on fundiapp.co.za</div>
+          <div class="item-detail">PWA install requires HTTPS. Vercel provides SSL automatically — verify the certificate is active and there are no mixed-content warnings.</div>
+        </div>
+        <span class="badge done-tag">Done ✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Performance -->
+  <div class="section" id="s2">
+    <div class="section-header" onclick="toggleSection('s2')">
+      <span class="section-icon">⚡</span>
+      <span class="section-title">2. Performance</span>
+      <span class="section-count" id="s2-count">0/0</span>
+      <span class="chevron" id="s2-chevron">▼</span>
+    </div>
+    <div class="items" id="s2-items">
+      <div class="item" id="i-perf1">
+        <input type="checkbox" onchange="tick(this,'i-perf1')">
+        <div class="item-content">
+          <div class="item-title">Split page.tsx into multiple components / lazy-loaded routes</div>
+          <div class="item-detail">page.tsx is ~10 600 lines — this ships as one giant JS bundle. Before store submission, extract BudgetView, ProgressView, LearnView, etc. into separate files and use Next.js dynamic() imports. This dramatically improves First Contentful Paint.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-perf2">
+        <input type="checkbox" onchange="tick(this,'i-perf2')">
+        <div class="item-content">
+          <div class="item-title">Lighthouse Performance score ≥ 80 on mobile</div>
+          <div class="item-detail">Run Lighthouse with Mobile preset (throttled CPU/network). Target: LCP &lt; 2.5s, FID &lt; 100ms, CLS &lt; 0.1. Main culprits will be the large JS bundle and unoptimised images.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-perf3">
+        <input type="checkbox" onchange="tick(this,'i-perf3')">
+        <div class="item-content">
+          <div class="item-title">Optimise logo/icon images with next/image or WebP</div>
+          <div class="item-detail">fundi-logo.png is 258 KB. Convert to WebP and serve via Next.js Image component for automatic sizing and lazy loading.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-perf4">
+        <input type="checkbox" onchange="tick(this,'i-perf4')">
+        <div class="item-content">
+          <div class="item-title">Verify no memory leaks — unsubscribe Supabase realtime listeners</div>
+          <div class="item-detail">All supabase.channel().subscribe() calls must have a cleanup function in useEffect. Leaks cause the app to slow down after extended use on mobile.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-perf5">
+        <input type="checkbox" onchange="tick(this,'i-perf5')">
+        <div class="item-content">
+          <div class="item-title">Test on low-end Android (2 GB RAM) over 3G</div>
+          <div class="item-detail">South African users are disproportionately on budget Android devices and variable mobile data. Use Chrome DevTools to throttle CPU 4x and network to Slow 3G — the app must remain usable.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. App Store Submission -->
+  <div class="section" id="s3">
+    <div class="section-header" onclick="toggleSection('s3')">
+      <span class="section-icon">🏪</span>
+      <span class="section-title">3. App Store Submission</span>
+      <span class="section-count" id="s3-count">0/0</span>
+      <span class="chevron" id="s3-chevron">▼</span>
+    </div>
+    <div class="items" id="s3-items">
+      <div class="item" id="i-store1">
+        <input type="checkbox" onchange="tick(this,'i-store1')">
+        <div class="item-content">
+          <div class="item-title">Google Play: Build TWA (Trusted Web Activity) with Bubblewrap</div>
+          <div class="item-detail">Install Bubblewrap CLI, run bubblewrap init --manifest https://fundiapp.co.za/manifest.json, configure assetlinks.json on the domain. This wraps the PWA as a native Android app. No code rewrite needed.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store2">
+        <input type="checkbox" onchange="tick(this,'i-store2')">
+        <div class="item-content">
+          <div class="item-title">Google Play: assetlinks.json hosted at fundiapp.co.za/.well-known/assetlinks.json</div>
+          <div class="item-detail">This file links the Play Store app to your domain — without it, the TWA shows a browser address bar. Add a Next.js route that serves the JSON. You'll need the SHA-256 fingerprint of your signing key.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store3">
+        <input type="checkbox" onchange="tick(this,'i-store3')">
+        <div class="item-content">
+          <div class="item-title">Google Play: Register developer account ($25 once-off)</div>
+          <div class="item-detail">Go to play.google.com/console. You need a Google account and to pay the $25 registration fee. The account can be personal or business.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store4">
+        <input type="checkbox" onchange="tick(this,'i-store4')">
+        <div class="item-content">
+          <div class="item-title">Google Play: Store listing — screenshots, description, category</div>
+          <div class="item-detail">You need at least 2 phone screenshots (min 320px on short side), a 512×512 icon, a 1024×500 feature graphic, a short description (≤80 chars), a full description, and content rating form completion. Category: Education.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store5">
+        <input type="checkbox" onchange="tick(this,'i-store5')">
+        <div class="item-content">
+          <div class="item-title">Apple App Store: Evaluate PWA vs Capacitor approach</div>
+          <div class="item-detail">Apple's App Store has stricter PWA policies. Option A: Use Capacitor (ionic-team/capacitor) to wrap the web app as a native iOS app — easiest path. Option B: Submit as a web-based app using WKWebView. Decision needed before starting iOS work.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-store6">
+        <input type="checkbox" onchange="tick(this,'i-store6')">
+        <div class="item-content">
+          <div class="item-title">Apple App Store: Register Apple Developer account ($99/year)</div>
+          <div class="item-detail">Required to distribute on the App Store. Apply at developer.apple.com. Processing can take up to 48 hours for new accounts.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store7">
+        <input type="checkbox" onchange="tick(this,'i-store7')">
+        <div class="item-content">
+          <div class="item-title">Set app pricing — free, freemium, or paid?</div>
+          <div class="item-detail">Decide before submission. Both stores require you to set a price. If you plan a premium tier later, start with free and add in-app purchases (requires additional review on both stores).</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-store8">
+        <input type="checkbox" onchange="tick(this,'i-store8')">
+        <div class="item-content">
+          <div class="item-title">Content rating questionnaire completed (both stores)</div>
+          <div class="item-detail">Financial education content is typically rated Everyone / 4+. Answer questionnaires honestly — incorrect ratings can lead to app removal.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Legal & Compliance -->
+  <div class="section" id="s4">
+    <div class="section-header" onclick="toggleSection('s4')">
+      <span class="section-icon">⚖️</span>
+      <span class="section-title">4. Legal & POPIA Compliance</span>
+      <span class="section-count" id="s4-count">0/0</span>
+      <span class="chevron" id="s4-chevron">▼</span>
+    </div>
+    <div class="items" id="s4-items">
+      <div class="item" id="i-legal1">
+        <input type="checkbox" onchange="tick(this,'i-legal1')">
+        <div class="item-content">
+          <div class="item-title">Privacy Policy is live at fundiapp.co.za/privacy</div>
+          <div class="item-detail">✓ Privacy page exists in the code. Verify it's actually accessible on the live domain and covers: what data is collected, how it's used, third parties (Supabase, PostHog, Google/Facebook OAuth), and POPIA rights (access, correction, deletion).</div>
+        </div>
+        <span class="badge done-tag">Done ✓</span>
+      </div>
+      <div class="item" id="i-legal2">
+        <input type="checkbox" onchange="tick(this,'i-legal2')">
+        <div class="item-content">
+          <div class="item-title">Terms of Service document</div>
+          <div class="item-detail">Needed for both app stores and as legal protection. Must include: eligibility (18+?), acceptable use, disclaimer that Fundi is educational not financial advice, limitation of liability, dispute resolution.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-legal3">
+        <input type="checkbox" onchange="tick(this,'i-legal3')">
+        <div class="item-content">
+          <div class="item-title">POPIA consent on sign-up is explicit and recorded</div>
+          <div class="item-detail">✓ POPIA consent is implemented. Confirm the timestamp + consent version is stored in Supabase so you have an audit trail. Review the consent text with a lawyer familiar with SA data law.</div>
+        </div>
+        <span class="badge done-tag">Done ✓</span>
+      </div>
+      <div class="item" id="i-legal4">
+        <input type="checkbox" onchange="tick(this,'i-legal4')">
+        <div class="item-content">
+          <div class="item-title">Financial content disclaimer is prominent</div>
+          <div class="item-detail">Lessons that touch on investments, tax, or budgeting need a clear disclaimer: "This is educational content, not financial advice. Consult a registered financial advisor for personal advice." This is a FSCA requirement in South Africa.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-legal5">
+        <input type="checkbox" onchange="tick(this,'i-legal5')">
+        <div class="item-content">
+          <div class="item-title">Data deletion flow works end-to-end</div>
+          <div class="item-detail">✓ delete-account edge function exists. Test the complete flow: user requests deletion → all Supabase rows are deleted → auth account removed. POPIA gives users the right to erasure. Both app stores verify this works.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-legal6">
+        <input type="checkbox" onchange="tick(this,'i-legal6')">
+        <div class="item-content">
+          <div class="item-title">Cookie / tracking consent for analytics (PostHog)</div>
+          <div class="item-detail">If PostHog tracks users in the EU or if SA users are covered under your privacy policy, you need informed consent before firing analytics. Review PostHog's cookie-less mode as an alternative.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-legal7">
+        <input type="checkbox" onchange="tick(this,'i-legal7')">
+        <div class="item-content">
+          <div class="item-title">Google OAuth — verify app is not in "Testing" mode</div>
+          <div class="item-detail">Google OAuth apps in Testing mode only allow explicitly listed test users. Before public launch, submit for Google verification or publish to production in Google Cloud Console. Otherwise sign-in fails for new users.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-legal8">
+        <input type="checkbox" onchange="tick(this,'i-legal8')">
+        <div class="item-content">
+          <div class="item-title">Facebook OAuth app — submit for App Review</div>
+          <div class="item-detail">Facebook OAuth apps in development mode only work for listed test users. You must submit the app for Facebook App Review (requires privacy policy URL, demo video) before it works for the public.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Security -->
+  <div class="section" id="s5">
+    <div class="section-header" onclick="toggleSection('s5')">
+      <span class="section-icon">🔒</span>
+      <span class="section-title">5. Security</span>
+      <span class="section-count" id="s5-count">0/0</span>
+      <span class="chevron" id="s5-chevron">▼</span>
+    </div>
+    <div class="items" id="s5-items">
+      <div class="item" id="i-sec1">
+        <input type="checkbox" onchange="tick(this,'i-sec1')">
+        <div class="item-content">
+          <div class="item-title">Supabase Row Level Security (RLS) enabled on all tables</div>
+          <div class="item-detail">Verify RLS is ON for: user_progress, budget_entries, budget_targets, push_subscriptions, leaderboard. Check in Supabase Dashboard → Table Editor → RLS. Each table needs policies so users can only read/write their own data.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-sec2">
+        <input type="checkbox" onchange="tick(this,'i-sec2')">
+        <div class="item-content">
+          <div class="item-title">Environment variables not exposed to client bundle</div>
+          <div class="item-detail">Only NEXT_PUBLIC_* variables should be in the client bundle. SUPABASE_SERVICE_ROLE_KEY must NEVER be NEXT_PUBLIC. Audit .env files and Vercel environment config.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-sec3">
+        <input type="checkbox" onchange="tick(this,'i-sec3')">
+        <div class="item-content">
+          <div class="item-title">Client secret JSON file removed from repo</div>
+          <div class="item-detail">There is a client_secret_*.json file in the workspace. This must NOT be committed to GitHub. Add it to .gitignore immediately and rotate the OAuth secret if it was ever committed.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-sec4">
+        <input type="checkbox" onchange="tick(this,'i-sec4')">
+        <div class="item-content">
+          <div class="item-title">Push notification VAPID keys stored server-side only</div>
+          <div class="item-detail">The VAPID private key must only be in Supabase Edge Function secrets / Vercel env vars. The public key can be exposed to the client. Verify send-push-notifications edge function reads keys from env.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-sec5">
+        <input type="checkbox" onchange="tick(this,'i-sec5')">
+        <div class="item-content">
+          <div class="item-title">Rate limiting on API routes (budget-alert, etc.)</div>
+          <div class="item-detail">The /api/budget-alert route should be rate-limited to prevent abuse. Add middleware or Vercel Edge Rate Limiting. Unauthenticated requests should return 401.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-sec6">
+        <input type="checkbox" onchange="tick(this,'i-sec6')">
+        <div class="item-content">
+          <div class="item-title">Idle logout works and clears sensitive data</div>
+          <div class="item-detail">✓ Idle logout is implemented. Verify it clears localStorage/sessionStorage and kills the Supabase session so budget data isn't visible on a shared device.</div>
+        </div>
+        <span class="badge done-tag">Done ✓</span>
+      </div>
+      <div class="item" id="i-sec7">
+        <input type="checkbox" onchange="tick(this,'i-sec7')">
+        <div class="item-content">
+          <div class="item-title">Security headers passing on securityheaders.com</div>
+          <div class="item-detail">✓ CSP, X-Frame-Options, X-Content-Type-Options are configured. Check fundiapp.co.za on securityheaders.com — aim for A rating.</div>
+        </div>
+        <span class="badge done-tag">Done ✓</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Database & Backend -->
+  <div class="section" id="s6">
+    <div class="section-header" onclick="toggleSection('s6')">
+      <span class="section-icon">🗄️</span>
+      <span class="section-title">6. Database & Backend</span>
+      <span class="section-count" id="s6-count">0/0</span>
+      <span class="chevron" id="s6-chevron">▼</span>
+    </div>
+    <div class="items" id="s6-items">
+      <div class="item" id="i-db1">
+        <input type="checkbox" onchange="tick(this,'i-db1')">
+        <div class="item-content">
+          <div class="item-title">Run all pending Supabase migrations on production</div>
+          <div class="item-detail">The migrations for budget_targets and budget_benchmarks_view need to be applied to the production Supabase project (bcwoyhypupuezgcbwqfy). Run via Supabase CLI: supabase db push --project-id bcwoyhypupuezgcbwqfy.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-db2">
+        <input type="checkbox" onchange="tick(this,'i-db2')">
+        <div class="item-content">
+          <div class="item-title">Deploy send-push-notifications Edge Function</div>
+          <div class="item-detail">The edge function exists in supabase/functions/ but may not be deployed. Run: supabase functions deploy send-push-notifications --project-ref bcwoyhypupuezgcbwqfy. Set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT as secrets.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-db3">
+        <input type="checkbox" onchange="tick(this,'i-db3')">
+        <div class="item-content">
+          <div class="item-title">Supabase plan supports connection limits for scale</div>
+          <div class="item-detail">Free tier allows 500 concurrent connections and 500 MB database. Review usage and upgrade to Pro ($25/mo) before public launch to avoid outages.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-db4">
+        <input type="checkbox" onchange="tick(this,'i-db4')">
+        <div class="item-content">
+          <div class="item-title">Database backups enabled</div>
+          <div class="item-detail">Supabase Pro tier includes daily backups (7 days retention). Free tier has none. Enable point-in-time recovery before user data grows.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-db5">
+        <input type="checkbox" onchange="tick(this,'i-db5')">
+        <div class="item-content">
+          <div class="item-title">CRON job for daily push notifications configured</div>
+          <div class="item-detail">Set a pg_cron or Supabase CRON trigger in Dashboard → Database → Cron Jobs to call the send-push-notifications edge function at e.g. 08:00 SAST (06:00 UTC). Verify timezone handling.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-db6">
+        <input type="checkbox" onchange="tick(this,'i-db6')">
+        <div class="item-content">
+          <div class="item-title">daily_challenges columns added to user_progress table</div>
+          <div class="item-detail">daily_challenges_date and daily_challenges_claimed columns are used in the code. Confirm these exist in the production table schema. If not, create a migration to add them.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. UX & Accessibility -->
+  <div class="section" id="s7">
+    <div class="section-header" onclick="toggleSection('s7')">
+      <span class="section-icon">♿</span>
+      <span class="section-title">7. UX & Accessibility</span>
+      <span class="section-count" id="s7-count">0/0</span>
+      <span class="chevron" id="s7-chevron">▼</span>
+    </div>
+    <div class="items" id="s7-items">
+      <div class="item" id="i-ux1">
+        <input type="checkbox" onchange="tick(this,'i-ux1')">
+        <div class="item-content">
+          <div class="item-title">Dark mode tested thoroughly on all 5 tabs</div>
+          <div class="item-detail">Walk through every screen in dark mode and check for unreadable text, missing dark variants, or white boxes. Pay attention to the donut chart labels, budget bars, and progress charts which use custom colors.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-ux2">
+        <input type="checkbox" onchange="tick(this,'i-ux2')">
+        <div class="item-content">
+          <div class="item-title">No text smaller than 12px / contrast ratio ≥ 4.5:1</div>
+          <div class="item-detail">Run Lighthouse Accessibility audit. Use Chrome's colour picker to check contrast on small grey text — especially secondary labels and badge text on coloured backgrounds.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-ux3">
+        <input type="checkbox" onchange="tick(this,'i-ux3')">
+        <div class="item-content">
+          <div class="item-title">All interactive elements have focus states</div>
+          <div class="item-detail">Tab through the app with a keyboard. Every button, input, and link must show a visible focus ring. Needed for WCAG compliance and App Store accessibility guidelines.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-ux4">
+        <input type="checkbox" onchange="tick(this,'i-ux4')">
+        <div class="item-content">
+          <div class="item-title">Error states for all forms (login, budget entry, set goal)</div>
+          <div class="item-detail">Test what happens with: no network, wrong password, duplicate budget entry, invalid amount. Every error should show a clear, actionable message — not a console error or silent failure.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-ux5">
+        <input type="checkbox" onchange="tick(this,'i-ux5')">
+        <div class="item-content">
+          <div class="item-title">Empty states for new users (no lessons done, no budget entries)</div>
+          <div class="item-detail">A brand new user should see helpful onboarding prompts, not blank charts or empty lists. Check the Budget tab, Progress tab, and Leaderboard with a fresh account.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-ux6">
+        <input type="checkbox" onchange="tick(this,'i-ux6')">
+        <div class="item-content">
+          <div class="item-title">Push notification opt-in prompt is clear and not premature</div>
+          <div class="item-detail">The browser push permission prompt is one-shot — if dismissed, re-prompting requires going to browser settings. Show the opt-in only after the user has completed at least one lesson or confirmed they want reminders. Pre-permission screens help.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Content & Lessons -->
+  <div class="section" id="s8">
+    <div class="section-header" onclick="toggleSection('s8')">
+      <span class="section-icon">📚</span>
+      <span class="section-title">8. Content & Lessons</span>
+      <span class="section-count" id="s8-count">0/0</span>
+      <span class="chevron" id="s8-chevron">▼</span>
+    </div>
+    <div class="items" id="s8-items">
+      <div class="item" id="i-con1">
+        <input type="checkbox" onchange="tick(this,'i-con1')">
+        <div class="item-content">
+          <div class="item-title">All lesson content fact-checked for accuracy</div>
+          <div class="item-detail">Tax brackets, interest rates, and financial figures must be current (2025/2026 South African tax year). Outdated percentages or R-values will hurt credibility.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-con2">
+        <input type="checkbox" onchange="tick(this,'i-con2')">
+        <div class="item-content">
+          <div class="item-title">Every lesson has an associated quiz / completion check</div>
+          <div class="item-detail">Walk through all lesson nodes and confirm none are stuck in an uncompletable state. Action-step lessons need a clear "I've done this" flow that triggers XP.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-con3">
+        <input type="checkbox" onchange="tick(this,'i-con3')">
+        <div class="item-content">
+          <div class="item-title">No typos or broken formatting in lessons</div>
+          <div class="item-detail">Read through content-extra.ts and content.ts. Emoji rendering, Rand amounts (R 1 000 format), and bullet points should display correctly across iOS and Android.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-con4">
+        <input type="checkbox" onchange="tick(this,'i-con4')">
+        <div class="item-content">
+          <div class="item-title">Calculator edge cases handled (divide by zero, negative results)</div>
+          <div class="item-detail">Test the investment calculator with extreme values: 0% rate, 100-year time horizon, goal less than initial investment. The bisection solver should fail gracefully with a user message, not crash.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Monitoring & Analytics -->
+  <div class="section" id="s9">
+    <div class="section-header" onclick="toggleSection('s9')">
+      <span class="section-icon">📊</span>
+      <span class="section-title">9. Monitoring & Analytics</span>
+      <span class="section-count" id="s9-count">0/0</span>
+      <span class="chevron" id="s9-chevron">▼</span>
+    </div>
+    <div class="items" id="s9-items">
+      <div class="item" id="i-mon1">
+        <input type="checkbox" onchange="tick(this,'i-mon1')">
+        <div class="item-content">
+          <div class="item-title">Error tracking set up (Sentry or similar)</div>
+          <div class="item-detail">PostHog tracks events but not unhandled JS errors. Add Sentry (free tier is generous) so you get email alerts when users hit runtime crashes in production. ErrorBoundary is ✓ already in place — wire it to Sentry.captureException.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-mon2">
+        <input type="checkbox" onchange="tick(this,'i-mon2')">
+        <div class="item-content">
+          <div class="item-title">Uptime monitoring configured for fundiapp.co.za</div>
+          <div class="item-detail">Use BetterUptime, UptimeRobot (free), or Vercel's built-in monitoring. Set up SMS/email alerts if the site goes down. Especially important once you have paying users.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-mon3">
+        <input type="checkbox" onchange="tick(this,'i-mon3')">
+        <div class="item-content">
+          <div class="item-title">Key events are firing in PostHog (lesson complete, XP gained, budget logged)</div>
+          <div class="item-detail">Open PostHog Live Events while completing a lesson and logging a budget entry. Confirm events arrive with correct properties (user_id, lesson_id, category, amount). Bad analytics = blind product decisions.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-mon4">
+        <input type="checkbox" onchange="tick(this,'i-mon4')">
+        <div class="item-content">
+          <div class="item-title">Set up a PostHog dashboard for Day-1 metrics</div>
+          <div class="item-detail">Create funnels for: Sign-up → First lesson → Course complete. Track DAU, lesson completion rate, and push notification opt-in rate from day 1 so you have baseline data from early adopters.</div>
+        </div>
+        <span class="badge nice">Nice</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 10. Testing -->
+  <div class="section" id="s10">
+    <div class="section-header" onclick="toggleSection('s10')">
+      <span class="section-icon">🧪</span>
+      <span class="section-title">10. Testing</span>
+      <span class="section-count" id="s10-count">0/0</span>
+      <span class="chevron" id="s10-chevron">▼</span>
+    </div>
+    <div class="items" id="s10-items">
+      <div class="item" id="i-test1">
+        <input type="checkbox" onchange="tick(this,'i-test1')">
+        <div class="item-content">
+          <div class="item-title">E2E tests pass on production URL</div>
+          <div class="item-detail">Run: BASE_URL=https://fundiapp.co.za TEST_EMAIL=... TEST_PASSWORD=... npx playwright test. All tests in /e2e should pass. Fix any failures before app store submission.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-test2">
+        <input type="checkbox" onchange="tick(this,'i-test2')">
+        <div class="item-content">
+          <div class="item-title">Health check script passes on production</div>
+          <div class="item-detail">Run: node scripts/health-check.js. Should complete all checks in &lt; 8 seconds with no failures.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-test3">
+        <input type="checkbox" onchange="tick(this,'i-test3')">
+        <div class="item-content">
+          <div class="item-title">User acceptance testing with 5–10 real users from target audience</div>
+          <div class="item-detail">Give access to friends/family who are representative of your target user (young South Africans, first-time budgeters). Collect feedback on: confusing flows, missing features, and content that doesn't resonate.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-test4">
+        <input type="checkbox" onchange="tick(this,'i-test4')">
+        <div class="item-content">
+          <div class="item-title">Test on physical devices: iPhone (Safari), Pixel (Chrome), budget Android</div>
+          <div class="item-detail">Simulators lie. Real device testing on Safari iOS is the only way to catch WebKit-specific bugs. Test the bottom nav safe area, modal scroll lock, and push notification permission on each device.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-test5">
+        <input type="checkbox" onchange="tick(this,'i-test5')">
+        <div class="item-content">
+          <div class="item-title">Offline / no-connection state handled gracefully</div>
+          <div class="item-detail">Disable WiFi while using the app. User should see a meaningful message (not a white screen). Cached lessons should still be readable. Budget entries attempted offline should queue or show an error.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 11. Go-to-Market -->
+  <div class="section" id="s11">
+    <div class="section-header" onclick="toggleSection('s11')">
+      <span class="section-icon">📣</span>
+      <span class="section-title">11. Go-to-Market</span>
+      <span class="section-count" id="s11-count">0/0</span>
+      <span class="chevron" id="s11-chevron">▼</span>
+    </div>
+    <div class="items" id="s11-items">
+      <div class="item" id="i-gtm1">
+        <input type="checkbox" onchange="tick(this,'i-gtm1')">
+        <div class="item-content">
+          <div class="item-title">Support contact set up (email or WhatsApp)</div>
+          <div class="item-detail">Both app stores require a working support email on the listing. Set up support@fundiapp.co.za or link your existing email. Consider a simple WhatsApp Business number for SA users who prefer chat.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-gtm2">
+        <input type="checkbox" onchange="tick(this,'i-gtm2')">
+        <div class="item-content">
+          <div class="item-title">In-app feedback / bug report mechanism</div>
+          <div class="item-detail">Add a "Send Feedback" button in Settings that opens an email or links to a Typeform/Google Form. Early adopter bugs reported via this channel are gold.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-gtm3">
+        <input type="checkbox" onchange="tick(this,'i-gtm3')">
+        <div class="item-content">
+          <div class="item-title">App store screenshots and feature graphic ready</div>
+          <div class="item-detail">Prepare 5–8 screenshots showing: home screen, a lesson, budget donut chart, progress tab, leaderboard. Use a tool like Rottengrapes or AppMockUp for store-quality framing. Feature graphic: 1024×500px.</div>
+        </div>
+        <span class="badge blocker">Blocker</span>
+      </div>
+      <div class="item" id="i-gtm4">
+        <input type="checkbox" onchange="tick(this,'i-gtm4')">
+        <div class="item-content">
+          <div class="item-title">Landing page or wealthwithkwanele.co.za updated to link to fundiapp.co.za</div>
+          <div class="item-detail">Make sure any existing traffic to your personal site is directed to the new app domain. Add a prominent download / "try the app" CTA.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+      <div class="item" id="i-gtm5">
+        <input type="checkbox" onchange="tick(this,'i-gtm5')">
+        <div class="item-content">
+          <div class="item-title">Social media accounts with consistent branding (@fundiapp)</div>
+          <div class="item-detail">Register handles on Instagram, TikTok, and X (Twitter) as @fundiapp or @fundifinancea if taken. SA personal finance content on TikTok performs very well — start creating short clips before launch.</div>
+        </div>
+        <span class="badge nice">Nice</span>
+      </div>
+      <div class="item" id="i-gtm6">
+        <input type="checkbox" onchange="tick(this,'i-gtm6')">
+        <div class="item-content">
+          <div class="item-title">OG / social sharing meta tags tested</div>
+          <div class="item-detail">Paste https://fundiapp.co.za into the Open Graph debugger (developers.facebook.com/tools/debug) and Twitter Card Validator. Confirm the preview image, title, and description look sharp when shared.</div>
+        </div>
+        <span class="badge important">Important</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const STORAGE_KEY = 'fundi-checklist-v1';
+  let checked = {};
+
+  function load() {
+    try { checked = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch(e) { checked = {}; }
+    document.querySelectorAll('.item').forEach(item => {
+      const id = item.id;
+      const cb = item.querySelector('input[type="checkbox"]');
+      if (checked[id]) { cb.checked = true; item.classList.add('checked'); }
+    });
+    updateAll();
+  }
+
+  function tick(cb, id) {
+    if (cb.checked) {
+      checked[id] = true;
+      document.getElementById(id).classList.add('checked');
+    } else {
+      delete checked[id];
+      document.getElementById(id).classList.remove('checked');
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(checked)); } catch(e) {}
+    updateAll();
+  }
+
+  function updateAll() {
+    let total = 0, done = 0;
+    document.querySelectorAll('.section').forEach(sec => {
+      const id = sec.id;
+      const items = sec.querySelectorAll('.item');
+      const secDone = sec.querySelectorAll('input:checked').length;
+      total += items.length; done += secDone;
+      const countEl = document.getElementById(id + '-count');
+      countEl.textContent = secDone + '/' + items.length;
+      countEl.className = 'section-count' + (secDone === items.length ? ' done' : '');
+    });
+    const pct = total ? Math.round((done/total)*100) : 0;
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressLabel').textContent = done + ' of ' + total + ' items complete (' + pct + '%)';
+  }
+
+  function toggleSection(id) {
+    const items = document.getElementById(id + '-items');
+    const chevron = document.getElementById(id + '-chevron');
+    items.classList.toggle('open');
+    chevron.classList.toggle('open');
+  }
+
+  load();
+</script>
+</body>
+</html>
