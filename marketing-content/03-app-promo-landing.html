@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance - App Promo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #F0F7F4;
+    color: #111827;
+    overflow-x: hidden;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #007A4D 0%, #005a38 40%, #003d26 100%);
+    position: relative;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 20% 50%, rgba(255,182,18,0.15) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 80%, rgba(255,182,18,0.08) 0%, transparent 50%);
+  }
+
+  .hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 40px;
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    width: 100%;
+  }
+
+  .hero-left { flex: 1; color: white; }
+
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,182,18,0.2);
+    border: 1px solid rgba(255,182,18,0.3);
+    color: #FFB612;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 20px;
+    border-radius: 50px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    animation: fade-down 0.8s ease-out forwards;
+  }
+
+  .hero-title {
+    font-size: 56px;
+    font-weight: 900;
+    line-height: 1.08;
+    margin-bottom: 20px;
+    animation: fade-up 0.8s ease-out 0.2s forwards;
+    opacity: 0;
+  }
+  .hero-title .gold { color: #FFB612; }
+
+  .hero-desc {
+    font-size: 18px;
+    line-height: 1.7;
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 36px;
+    max-width: 480px;
+    animation: fade-up 0.8s ease-out 0.4s forwards;
+    opacity: 0;
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: 16px;
+    animation: fade-up 0.8s ease-out 0.6s forwards;
+    opacity: 0;
+  }
+
+  .btn-primary {
+    background: #FFB612;
+    color: #111;
+    font-weight: 800;
+    font-size: 16px;
+    padding: 16px 36px;
+    border-radius: 60px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(255,182,18,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(255,182,18,0.4);
+  }
+
+  .btn-outline {
+    border: 2px solid rgba(255,255,255,0.3);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    padding: 14px 32px;
+    border-radius: 60px;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .btn-outline:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.5);
+  }
+
+  /* Phone mockup */
+  .hero-right {
+    flex-shrink: 0;
+    animation: float-phone 0.8s ease-out 0.4s forwards, phone-bob 4s ease-in-out 1.2s infinite;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+
+  @keyframes float-phone {
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes phone-bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .phone {
+    width: 280px;
+    height: 560px;
+    background: #111;
+    border-radius: 40px;
+    border: 4px solid #333;
+    padding: 16px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .phone-notch {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 24px;
+    background: #111;
+    border-radius: 0 0 16px 16px;
+    z-index: 10;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #007A4D 0%, #005a38 100%);
+    border-radius: 28px;
+    padding: 50px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .screen-header {
+    text-align: center;
+    color: white;
+  }
+  .screen-header h3 {
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .screen-header p {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  .screen-card {
+    background: rgba(255,255,255,0.12);
+    border-radius: 14px;
+    padding: 14px;
+    color: white;
+    backdrop-filter: blur(10px);
+  }
+
+  .xp-bar {
+    height: 8px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .xp-fill {
+    height: 100%;
+    background: #FFB612;
+    border-radius: 4px;
+    width: 0%;
+    animation: fill-xp 2s ease-out 1.5s forwards;
+  }
+  @keyframes fill-xp { to { width: 72%; } }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .lesson-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .lesson-icon.green { background: rgba(0,122,77,0.5); }
+  .lesson-icon.gold { background: rgba(255,182,18,0.3); }
+  .lesson-icon.red { background: rgba(224,60,49,0.3); }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(255,182,18,0.2);
+    border: 1px solid rgba(255,182,18,0.3);
+    border-radius: 20px;
+    padding: 8px 16px;
+    color: #FFB612;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+
+  /* ===== FEATURES SECTION ===== */
+  .features {
+    padding: 100px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    text-align: center;
+    color: #007A4D;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: 40px;
+    font-weight: 900;
+    margin-bottom: 60px;
+    line-height: 1.2;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+  }
+
+  .feature-card {
+    background: white;
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid rgba(0,122,77,0.08);
+  }
+  .feature-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 40px rgba(0,122,77,0.12);
+  }
+
+  .feature-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 20px;
+  }
+  .feature-icon.green { background: #E6F4EF; }
+  .feature-icon.gold { background: #FFF6DC; }
+  .feature-icon.red { background: #FDECEA; }
+
+  .feature-card h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  .feature-card p {
+    font-size: 14px;
+    color: #6B7280;
+    line-height: 1.6;
+  }
+
+  /* ===== SOCIAL PROOF ===== */
+  .social-proof {
+    background: linear-gradient(135deg, #007A4D, #005a38);
+    padding: 80px 40px;
+    color: white;
+    text-align: center;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: center;
+    gap: 80px;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-size: 48px;
+    font-weight: 900;
+    color: #FFB612;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 8px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== CTA ===== */
+  .final-cta {
+    padding: 100px 40px;
+    text-align: center;
+  }
+
+  .cta-card {
+    max-width: 700px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 28px;
+    padding: 60px 40px;
+    box-shadow: 0 20px 60px rgba(0,122,77,0.1);
+    border: 2px solid #E6F4EF;
+  }
+
+  .cta-card h2 {
+    font-size: 36px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .cta-card p {
+    color: #6B7280;
+    font-size: 16px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+
+  .store-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+  }
+
+  .store-btn {
+    background: #111;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+  .store-btn:hover { transform: scale(1.03); }
+  .store-btn .icon { font-size: 28px; }
+  .store-btn .text { text-align: left; }
+  .store-btn .text .small { font-size: 10px; color: #999; }
+  .store-btn .text .big { font-size: 16px; font-weight: 700; }
+
+  /* Animations */
+  @keyframes fade-down {
+    from { opacity: 0; transform: translateY(-15px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Floating coins */
+  .float-coin {
+    position: absolute;
+    font-size: 24px;
+    opacity: 0.15;
+    animation: drift 8s ease-in-out infinite;
+  }
+  .float-coin:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+  .float-coin:nth-child(2) { top: 60%; right: 8%; animation-delay: 2s; }
+  .float-coin:nth-child(3) { bottom: 15%; left: 12%; animation-delay: 4s; }
+  .float-coin:nth-child(4) { top: 30%; right: 15%; animation-delay: 1s; font-size: 18px; }
+
+  @keyframes drift {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(10deg); }
+  }
+</style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid"></div>
+    <div class="float-coin">🪙</div>
+    <div class="float-coin">💰</div>
+    <div class="float-coin">🪙</div>
+    <div class="float-coin">💰</div>
+
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-badge">🇿🇦 Made in South Africa</div>
+        <h1 class="hero-title">
+          Learn Money.<br>
+          Master <span class="gold">Life.</span>
+        </h1>
+        <p class="hero-desc">
+          Fundi Finance makes financial literacy fun, gamified, and accessible.
+          Bite-sized lessons, real-world scenarios, and rewards that keep you coming back.
+        </p>
+        <div class="hero-ctas">
+          <a href="#" class="btn-primary">Download Free →</a>
+          <a href="#features" class="btn-outline">See Features</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="phone">
+          <div class="phone-notch"></div>
+          <div class="phone-screen">
+            <div class="screen-header">
+              <h3>Welcome Back! 👋</h3>
+              <p>Keep your streak alive</p>
+            </div>
+            <div class="screen-card">
+              <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px;">
+                <span style="font-weight:700;">Level 5</span>
+                <span style="color:#FFB612; font-weight:700;">720 XP</span>
+              </div>
+              <div class="xp-bar"><div class="xp-fill"></div></div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-icon green">📊</div>
+              <div>
+                <div>Budgeting Basics</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:400;">5 min · Beginner</div>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-icon gold">💳</div>
+              <div>
+                <div>Credit Score 101</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:400;">8 min · Intermediate</div>
+              </div>
+            </div>
+            <div class="lesson-item">
+              <div class="lesson-icon red">📈</div>
+              <div>
+                <div>Investing Intro</div>
+                <div style="font-size:10px; color:rgba(255,255,255,0.5); font-weight:400;">10 min · Advanced</div>
+              </div>
+            </div>
+            <div class="streak-badge">🔥 7-Day Streak!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <div class="section-label">Why Fundi?</div>
+    <h2 class="section-title">Everything you need to<br>master your money</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon green">🎮</div>
+        <h3>Gamified Learning</h3>
+        <p>Earn XP, maintain streaks, and climb leaderboards as you learn. Financial education has never been this addictive.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon gold">🌍</div>
+        <h3>Real-World Scenarios</h3>
+        <p>Every lesson uses real South African contexts. From stokvels to side hustles — content that speaks your language.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon red">📱</div>
+        <h3>Bite-Sized Lessons</h3>
+        <p>5-10 minute lessons that fit into your taxi ride, lunch break, or study session. No textbooks needed.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon gold">🏆</div>
+        <h3>Compete & Earn</h3>
+        <p>Challenge friends, top the leaderboard, and unlock achievements. Your financial glow-up starts here.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon green">🧠</div>
+        <h3>Decision Simulations</h3>
+        <p>Make real financial choices in safe simulations. See the consequences before they hit your wallet.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon red">📊</div>
+        <h3>Track Progress</h3>
+        <p>Watch your financial IQ grow with detailed progress tracking and personalized learning paths.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <section class="social-proof">
+    <div class="section-label" style="color:#FFB612;">The Numbers</div>
+    <h2 style="font-size:36px; font-weight:900; margin-bottom:50px;">Growing fast, learning faster</h2>
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-num">50+</div>
+        <div class="stat-label">Lessons Available</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">5min</div>
+        <div class="stat-label">Average Lesson</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Free to Start</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="cta-card">
+      <h2>Ready to level up<br>your finances?</h2>
+      <p>Join Fundi Finance today. It's free, it's fun, and your future self will thank you.</p>
+      <div class="store-buttons">
+        <a href="#" class="store-btn">
+          <span class="icon">🍎</span>
+          <span class="text">
+            <span class="small">Download on the</span><br>
+            <span class="big">App Store</span>
+          </span>
+        </a>
+        <a href="#" class="store-btn">
+          <span class="icon">▶️</span>
+          <span class="text">
+            <span class="small">Get it on</span><br>
+            <span class="big">Google Play</span>
+          </span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

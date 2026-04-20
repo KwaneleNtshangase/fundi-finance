@@ -21,7 +21,7 @@
   border: 0;
 }
 
-/* Skeleton loader — shimmer placeholder while data loads.
+/* Skeleton loader - shimmer placeholder while data loads.
    Disabled entirely for reduced-motion users (they just see a flat block). */
 @keyframes skeleton-shimmer {
   0%   { background-position: -400px 0; }
@@ -210,7 +210,7 @@ html.dark .nav-link.active {
   }
 }
 
-/* Stats panel — hidden by default (mobile-first) */
+/* Stats panel - hidden by default (mobile-first) */
 .stats-panel {
   display: none;
 }
@@ -240,6 +240,17 @@ html.dark .nav-link.active {
 @media (min-width: 1200px) {
   .main-with-stats {
     margin-right: 320px;
+  }
+}
+
+/* Mobile-only daily goal card inside LearnView. Hidden on large screens
+   where the right-hand StatsPanel already shows the same information. */
+.mobile-daily-goal-card {
+  display: flex;
+}
+@media (min-width: 1200px) {
+  .mobile-daily-goal-card {
+    display: none;
   }
 }
 
@@ -969,7 +980,7 @@ html.dark .nav-link.active {
   font-size: 16px;
 }
 
-/* stats-panel is hidden by default (mobile-first) — no override needed here */
+/* stats-panel is hidden by default (mobile-first) - no override needed here */
 
 @media (max-width: 768px) {
   .sidebar {
@@ -1052,7 +1063,7 @@ html.dark .nav-link.active {
   80% { transform: rotate(5deg); }
 }
 
-/* ── Playable lesson node — pulse ring to show it's clickable ── */
+/* ── Playable lesson node - pulse ring to show it's clickable ── */
 .lesson-node.playable {
   position: relative;
   border: 2.5px solid var(--color-primary, #007A4D);
@@ -1099,7 +1110,7 @@ html.dark {
   --border-light: #30363D;
   --text-light: #8B949E;
   --text-dark: #E6EDF3;
-  /* Bottom nav — ensure strong contrast in dark mode */
+  /* Bottom nav - ensure strong contrast in dark mode */
   --color-nav-bg: #111827;
   --color-nav-active: #4ade80;
 }
@@ -1109,7 +1120,7 @@ html.dark body {
   color: #E6EDF3;
 }
 
-/* ── Bottom nav — always clearly visible ────────────────────────────────── */
+/* ── Bottom nav - always clearly visible ────────────────────────────────── */
 .bottom-nav {
   background: #ffffff !important;
   border-top: 2.5px solid #b3d9c8 !important;
@@ -1191,7 +1202,7 @@ body.modal-open .bottom-nav {
   display: none !important;
 }
 
-/* ── Bottom nav icon + label — strong visibility ─────────────────────────── */
+/* ── Bottom nav icon + label - strong visibility ─────────────────────────── */
 .bottom-nav button {
   color: #4a6a5c !important;
   font-weight: 700 !important;
@@ -1201,7 +1212,7 @@ body.modal-open .bottom-nav {
   color: var(--color-nav-active) !important;
 }
 
-/* ── Dark mode bottom nav — strong contrast ─────────────────────────────── */
+/* ── Dark mode bottom nav - strong contrast ─────────────────────────────── */
 html.dark .bottom-nav {
   background: #0f1923 !important;
   border-top: 2.5px solid #1e3448 !important;
@@ -1239,7 +1250,7 @@ html.dark .course-card {
   background: #161B22 !important;
 }
 
-/* ── Dark mode: course map header uses hardcoded light inline bg — override ── */
+/* ── Dark mode: course map header uses hardcoded light inline bg - override ── */
 html.dark .course-map-header {
   background: #1a2332 !important;
 }
@@ -1411,7 +1422,7 @@ html.dark .option-button:hover:not(:disabled) {
   }
 }
 
-/* patch-13: system dark mode — comprehensive text fix */
+/* patch-13: system dark mode - comprehensive text fix */
 @media (prefers-color-scheme: dark) {
   :root {
     --color-bg: #0f0f0f;

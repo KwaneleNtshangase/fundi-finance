@@ -1,5 +1,5 @@
 /**
- * Fundi Finance — SM-2 Spaced Repetition Engine
+ * Fundi Finance - SM-2 Spaced Repetition Engine
  *
  * Based on the SuperMemo SM-2 algorithm (Anki-style).
  *
@@ -31,6 +31,7 @@ export type MasteryRecord = {
  * In Fundi we map: correct answer → 4, wrong answer → 1
  */
 export type ReviewQuality = 0 | 1 | 2 | 3 | 4 | 5;
+import { supabase } from "@/lib/supabaseClient";
 
 const MIN_EASE = 1.3;
 
@@ -54,7 +55,7 @@ export function applyReview(
   let newRepetitions: number;
 
   if (quality < 3) {
-    // Incorrect — reset repetitions, short interval
+    // Incorrect - reset repetitions, short interval
     newRepetitions = 0;
     newInterval = 1;
   } else {
@@ -107,53 +108,49 @@ export function isDue(record: MasteryRecord): boolean {
 
 /** Format a Date as YYYY-MM-DD */
 export function toDateString(date: Date): string {
-  return date.toISOString().split("T")[0];
+  // Use local date parts to avoid UTC rollbacks that can keep cards "due" too long.
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
-// ── localStorage persistence ──────────────────────────────────────────────────
-
-const STORAGE_KEY = "fundi-mastery";
-
-/** Load all mastery records from localStorage */
-export function loadMastery(): Record<string, MasteryRecord> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch {
-    return {};
+/** Load all mastery records from Supabase */
+export async function loadMastery(): Promise<Record<string, MasteryRecord>> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return {};
+  const { data } = await supabase
+    .from("concept_mastery")
+    .select("concept_id,interval_days,ease_factor,repetitions,next_review_date,last_reviewed_at")
+    .eq("user_id", user.id);
+  const out: Record<string, MasteryRecord> = {};
+  for (const row of (data ?? []) as any[]) {
+    out[row.concept_id] = {
+      concept_id: row.concept_id,
+      interval_days: row.interval_days,
+      ease_factor: row.ease_factor,
+      repetitions: row.repetitions,
+      next_review_date: row.next_review_date,
+      last_reviewed_at: row.last_reviewed_at,
+    };
   }
+  return out;
 }
 
-/** Save a single mastery record to localStorage AND sync to Supabase */
-export function saveMastery(record: MasteryRecord): void {
-  if (typeof window === "undefined") return;
-  try {
-    const all = loadMastery();
-    all[record.concept_id] = record;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-  } catch {
-    // Storage quota exceeded — silently fail
-  }
-  // Async Supabase sync — fire-and-forget (no await, no blocking)
-  syncMasteryToSupabase(record);
+/** Save a single mastery record to Supabase */
+export async function saveMastery(record: MasteryRecord): Promise<void> {
+  await syncMasteryToSupabase(record);
 }
 
 /**
  * Upsert a single mastery record to the concept_mastery table.
- * Called from saveMastery — does not block the UI.
+ * Called from saveMastery - does not block the UI.
  */
 async function syncMasteryToSupabase(record: MasteryRecord): Promise<void> {
   try {
-    // Dynamic import to avoid circular deps and keep the lib lightweight
-    const { createClient } = await import("@supabase/supabase-js");
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    if (!url || !key) return;
-    const sb = createClient(url, key);
-    const { data: { user } } = await sb.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await sb.from("concept_mastery").upsert(
+    await supabase.from("concept_mastery").upsert(
       {
         user_id: user.id,
         concept_id: record.concept_id,
@@ -166,7 +163,7 @@ async function syncMasteryToSupabase(record: MasteryRecord): Promise<void> {
       { onConflict: "user_id,concept_id" }
     );
   } catch {
-    // Silent fail — localStorage is the source of truth; Supabase is backup
+    // Silent fail
   }
 }
 
@@ -175,8 +172,8 @@ async function syncMasteryToSupabase(record: MasteryRecord): Promise<void> {
  * - Creates a new record for concepts not yet seen (due tomorrow)
  * - Leaves existing records untouched (don't reset progress)
  */
-export function scheduleConceptsForCourse(conceptIds: string[]): void {
-  const all = loadMastery();
+export async function scheduleConceptsForCourse(conceptIds: string[]): Promise<void> {
+  const all = await loadMastery();
   const newRecords: MasteryRecord[] = [];
   for (const id of conceptIds) {
     if (!all[id]) {
@@ -184,27 +181,28 @@ export function scheduleConceptsForCourse(conceptIds: string[]): void {
       newRecords.push(all[id]);
     }
   }
-  if (newRecords.length > 0 && typeof window !== "undefined") {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-    } catch {
-      // ignore
-    }
-    // Sync all new records to Supabase
-    newRecords.forEach((r) => syncMasteryToSupabase(r));
+  if (newRecords.length > 0) {
+    await Promise.all(newRecords.map((r) => syncMasteryToSupabase(r)));
   }
 }
 
 /** Get all due cards (today or overdue), sorted oldest-due first */
-export function getDueCards(): MasteryRecord[] {
-  const all = loadMastery();
+export async function getDueCards(): Promise<MasteryRecord[]> {
+  const all = await loadMastery();
   const today = toDateString(new Date());
   return Object.values(all)
     .filter((r) => r.next_review_date <= today)
-    .sort((a, b) => a.next_review_date.localeCompare(b.next_review_date));
+    .sort((a, b) => {
+      const dueDateCmp = a.next_review_date.localeCompare(b.next_review_date);
+      if (dueDateCmp !== 0) return dueDateCmp;
+      const lastReviewedCmp = a.last_reviewed_at.localeCompare(b.last_reviewed_at);
+      if (lastReviewedCmp !== 0) return lastReviewedCmp;
+      return a.concept_id.localeCompare(b.concept_id);
+    });
 }
 
 /** Count of due cards */
-export function getDueCount(): number {
-  return getDueCards().length;
+export async function getDueCount(): Promise<number> {
+  const due = await getDueCards();
+  return due.length;
 }

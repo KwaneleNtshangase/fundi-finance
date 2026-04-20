@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Fundi Finance",
-  description: "Privacy Policy for Fundi Finance — how we collect, use, and protect your data.",
+  description: "Privacy Policy for Fundi Finance - how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPage() {
@@ -54,11 +54,11 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p style={{ color: "#a0a0a0", fontSize: "15px", margin: 0 }}>
-            Last updated: April 2026 &nbsp;·&nbsp; Fundi Finance (Pty) Ltd
+            Last updated: April 2026 &nbsp;·&nbsp; The Solution Org (Pty) Ltd
           </p>
         </div>
 
-        {/* Non-FSP / "not financial advice" disclosure — surfaced at the
+        {/* Non-FSP / "not financial advice" disclosure - surfaced at the
             top so users see it before any other legal content. */}
         <div
           style={{
@@ -127,19 +127,19 @@ export default function PrivacyPage() {
           <p>We collect the following categories of information:</p>
           <ul style={{ paddingLeft: "20px", lineHeight: 1.8 }}>
             <li>
-              <strong>Account information</strong> — your name, email address,
+              <strong>Account information</strong> - your name, email address,
               and profile photo if you sign in with Google or Facebook.
             </li>
             <li>
-              <strong>Learning progress</strong> — lessons completed, XP
+              <strong>Learning progress</strong> - lessons completed, XP
               earned, streaks, quiz answers, and in-app challenge data.
             </li>
             <li>
-              <strong>Financial inputs</strong> — expense logs, budget figures,
+              <strong>Financial inputs</strong> - expense logs, budget figures,
               and financial goals you enter voluntarily within the app.
             </li>
             <li>
-              <strong>Usage data</strong> — features you interact with,
+              <strong>Usage data</strong> - features you interact with,
               session timestamps, and device/browser type, collected for
               analytics and app improvement.
             </li>
@@ -172,16 +172,16 @@ export default function PrivacyPage() {
           </p>
           <ul style={{ paddingLeft: "20px", lineHeight: 1.8 }}>
             <li>
-              <strong>Supabase</strong> — our database and authentication
+              <strong>Supabase</strong> - our database and authentication
               provider, hosting data on servers in the European Union under
               GDPR-compliant terms.
             </li>
             <li>
-              <strong>Vercel</strong> — our web-hosting provider, for
+              <strong>Vercel</strong> - our web-hosting provider, for
               serving the app.
             </li>
             <li>
-              <strong>Google &amp; Meta (Facebook)</strong> — solely for
+              <strong>Google &amp; Meta (Facebook)</strong> - solely for
               OAuth sign-in; we receive only the account profile data you
               authorise during the login flow.
             </li>
@@ -207,17 +207,31 @@ export default function PrivacyPage() {
           </p>
         </Section>
 
-        <Section title="6. Cookies and Local Storage">
+        <Section title="6. Cookies, sessions, and where your data lives">
           <p>
-            Fundi Finance uses browser <strong>localStorage</strong> to save
-            your learning progress, streak, and preferences on your device.
-            This data stays on your device and is not transmitted to our
-            servers unless you are signed in, in which case it is synced
-            to your Supabase account.
+            Your <strong>learning progress</strong> (lessons completed, XP,
+            streaks, quiz results, challenges, and budget entries you save) is
+            stored securely in our database and linked to your account when you
+            are signed in, so it can sync across devices.
           </p>
           <p>
-            We use session cookies required for authentication. We do not use
-            advertising or tracking cookies.
+            We place a few small <strong>first-party cookies</strong> on your
+            device for non-sensitive preferences only - for example dark mode,
+            whether you have finished the first-time onboarding flow, and
+            whether you dismissed the &ldquo;add to home screen&rdquo; prompt. These
+            values are not used to identify you beyond the app experience.
+          </p>
+          <p>
+            Some in-app toggles (such as sound effects) apply for your current
+            browser session only and are not written to persistent storage on
+            your device.
+          </p>
+          <p>
+            We do <strong>not</strong> store your account progress, scores, or
+            other sensitive personal data in your browser&apos;s{" "}
+            <strong>local storage</strong> or <strong>session storage</strong>{" "}
+            APIs. Session cookies are used where needed for authentication. We
+            do not use advertising or tracking cookies.
           </p>
         </Section>
 
@@ -227,24 +241,24 @@ export default function PrivacyPage() {
           </p>
           <ul style={{ paddingLeft: "20px", lineHeight: 1.8 }}>
             <li>
-              <strong>Access</strong> — request a copy of the personal
+              <strong>Access</strong> - request a copy of the personal
               information we hold about you.
             </li>
             <li>
-              <strong>Correct</strong> — ask us to fix inaccurate or
+              <strong>Correct</strong> - ask us to fix inaccurate or
               incomplete information.
             </li>
             <li>
-              <strong>Delete</strong> — request that we delete your personal
+              <strong>Delete</strong> - request that we delete your personal
               information (see Section 8 below for Facebook data-deletion
               instructions).
             </li>
             <li>
-              <strong>Object</strong> — object to the processing of your
+              <strong>Object</strong> - object to the processing of your
               data in certain circumstances.
             </li>
             <li>
-              <strong>Portability</strong> — receive your data in a
+              <strong>Portability</strong> - receive your data in a
               machine-readable format.
             </li>
           </ul>
@@ -318,7 +332,7 @@ export default function PrivacyPage() {
               color: "#c0c0c0",
             }}
           >
-            Fundi Finance (Pty) Ltd
+            The Solution Org (Pty) Ltd
             <br />
             South Africa
             <br />
@@ -358,7 +372,7 @@ export default function PrivacyPage() {
             fontSize: "13px",
           }}
         >
-          &copy; {new Date().getFullYear()} Fundi Finance (Pty) Ltd. All rights reserved.
+          &copy; {new Date().getFullYear()} The Solution Org (Pty) Ltd. All rights reserved.
         </div>
       </div>
     </main>

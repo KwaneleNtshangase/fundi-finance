@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { AlertCircle } from "lucide-react";
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error: Error | null };
@@ -10,7 +11,7 @@ type State = { hasError: boolean; error: Error | null };
  * friendly fallback instead of Next.js's default crash screen. Users can
  * retry without losing their session or local progress.
  *
- * This is intentionally a class component — React's error boundary API
+ * This is intentionally a class component - React's error boundary API
  * still only works with componentDidCatch / getDerivedStateFromError.
  */
 export class ErrorBoundary extends React.Component<Props, State> {
@@ -24,7 +25,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
-    // Fire-and-forget — analytics is optional and must never throw.
+    // Fire-and-forget - analytics is optional and must never throw.
     try {
       if (typeof window !== "undefined") {
         const w = window as unknown as {
@@ -80,16 +81,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
             boxShadow: "0 8px 32px rgba(0,0,0,0.08)",
           }}
         >
-          <div
+          <AlertCircle
+            size={48}
             aria-hidden
-            style={{
-              fontSize: 48,
-              marginBottom: 12,
-              lineHeight: 1,
-            }}
-          >
-            😕
-          </div>
+            style={{ color: "#6B7280", marginBottom: 12, display: "block", margin: "0 auto 12px" }}
+          />
           <h1
             style={{
               fontSize: 20,

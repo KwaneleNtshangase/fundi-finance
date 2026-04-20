@@ -102,7 +102,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Money is More Than Cash",
-                  content: "<p>Most people spend 40+ years working and retire with almost nothing. Not because they earned too little — because they never understood the system their money lives in.</p><p>Money has three jobs: <strong>Spend</strong> (survive today), <strong>Save</strong> (protect yourself), <strong>Invest</strong> (build your future). Most South Africans only do the first one — and that's why 77% can't replace a single month's income from savings.</p>",
+                  content: "<p>Most people spend 40+ years working and retire with almost nothing. Not because they earned too little - because they never understood the system their money lives in.</p><p>Money has three jobs: <strong>Spend</strong> (survive today), <strong>Save</strong> (protect yourself), <strong>Invest</strong> (build your future). Most South Africans only do the first one - and that's why 77% can't replace a single month's income from savings.</p>",
                 },
                 {
                   type: "info",
@@ -156,14 +156,14 @@ const RAW_COURSES: Course[] = [
                     escalation: 0,
                     frequency: "once-off",
                   },
-                  insight: "Even a single lump sum grows dramatically when invested. R10 000 doing nothing loses value every year to inflation — but invested at 10%, it more than doubles.",
+                  insight: "Even a single lump sum grows dramatically when invested. R10 000 doing nothing loses value every year to inflation - but invested at 10%, it more than doubles.",
                 },
                 {
                   type: "action-check",
                   title: "Real-World Action",
                   challenge: "Check your bank app right now: how much cash is sitting in your main account earning 0% interest?",
                   successMessage: "Great start! Awareness is the first step. Next lesson we'll talk about what to do with that money.",
-                  skipMessage: "No worries — try this before your next lesson. Small actions build big habits.",
+                  skipMessage: "No worries - try this before your next lesson. Small actions build big habits.",
                 },
               ] satisfies LessonStep[],
             },
@@ -174,7 +174,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Most Important Distinction",
-                  content: "<p>If you treat wants like needs, you will feel broke no matter how much you earn. This is not about income — it's about priority.</p><p><strong>Needs</strong> are non-negotiable survival: food, shelter, transport to earn income. <strong>Wants</strong> are everything else. The line between them is where most South African household budgets collapse.</p>",
+                  content: "<p>If you treat wants like needs, you will feel broke no matter how much you earn. This is not about income - it's about priority.</p><p><strong>Needs</strong> are non-negotiable survival: food, shelter, transport to earn income. <strong>Wants</strong> are everything else. The line between them is where most South African household budgets collapse.</p>",
                 },
                 {
                   type: "mcq",
@@ -215,7 +215,7 @@ const RAW_COURSES: Course[] = [
                   title: "Real-World Action",
                   challenge: "Look at your last 5 transactions on your bank app. Label each one as a NEED or a WANT.",
                   successMessage: "Well done! You're already thinking differently about your spending. That awareness changes everything.",
-                  skipMessage: "Try this when you get a chance — most people are shocked at how many 'needs' are actually wants.",
+                  skipMessage: "Try this when you get a chance - most people are shocked at how many 'needs' are actually wants.",
                 },
               ] satisfies LessonStep[],
             },
@@ -226,7 +226,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why a Budget Changes Everything",
-                  content: "<p>Without a budget, money disappears and you never know where it went. With one, every rand has a job — and you stop wondering why you're always short before month-end.</p><p>A budget is not restriction. It's control. Step 1: write your monthly net income. Step 2: list all fixed expenses. Step 3: list variable expenses. Step 4: whatever's left is discretionary — spend it guilt-free because everything important is already covered.</p>",
+                  content: "<p>Without a budget, money disappears and you never know where it went. With one, every rand has a job - and you stop wondering why you're always short before month-end.</p><p>A budget is not restriction. It's control. Step 1: write your monthly net income. Step 2: list all fixed expenses. Step 3: list variable expenses. Step 4: whatever's left is discretionary - spend it guilt-free because everything important is already covered.</p>",
                 },
                 {
                   type: "mcq",
@@ -251,8 +251,8 @@ const RAW_COURSES: Course[] = [
                   type: "action-check",
                   title: "Real-World Action",
                   challenge: "Open the Budget section of this app, enter your monthly take-home income, and add your 3 biggest fixed expenses as budget items.",
-                  successMessage: "You've started your real budget — right here in the app. Most people never take this step. You just did.",
-                  skipMessage: "Come back to this — knowing your fixed costs is the foundation of every budget.",
+                  successMessage: "You've started your real budget - right here in the app. Most people never take this step. You just did.",
+                  skipMessage: "Come back to this - knowing your fixed costs is the foundation of every budget.",
                 },
               ] satisfies LessonStep[],
             },
@@ -502,7 +502,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Two Deductions That Protect You",
-                  content: "<p>Every South African payslip shows two deductions most people ignore: <strong>UIF</strong> and <strong>SDL</strong>.</p><p><strong>UIF (Unemployment Insurance Fund):</strong> You pay 1% of your salary, your employer pays another 1%. If you lose your job, get retrenched, or go on maternity leave, you can claim up to 60% of your income for up to 365 days.</p><p><strong>SDL (Skills Development Levy):</strong> Your employer pays 1% of your total payroll to SETA (Sector Education and Training Authority). You do not pay this — your employer does. It funds workplace training and learnerships.</p><p>Scenario: Thabo earns R15 000/month. His UIF deduction is R150. His employer also puts in R150. If Thabo is retrenched, he can claim approximately R9 000/month while job hunting.</p>",
+                  content: "<p>Every South African payslip shows two deductions most people ignore: <strong>UIF</strong> and <strong>SDL</strong>.</p><p><strong>UIF (Unemployment Insurance Fund):</strong> You pay 1% of your salary, your employer pays another 1%. If you lose your job, get retrenched, or go on maternity leave, you can claim up to 60% of your income for up to 365 days.</p><p><strong>SDL (Skills Development Levy):</strong> Your employer pays 1% of your total payroll to SETA (Sector Education and Training Authority). You do not pay this - your employer does. It funds workplace training and learnerships.</p><p>Scenario: Thabo earns R15 000/month. His UIF deduction is R150. His employer also puts in R150. If Thabo is retrenched, he can claim approximately R9 000/month while job hunting.</p>",
                 },
                 {
                   type: "mcq",
@@ -519,7 +519,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You can claim UIF if you resign voluntarily from your job.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. UIF claims are for retrenchment, dismissal, maternity, illness, or adoption — not voluntary resignation.",
+                    correct: "Correct. UIF claims are for retrenchment, dismissal, maternity, illness, or adoption - not voluntary resignation.",
                     incorrect: "Voluntary resignation does not qualify for UIF. You must have been retrenched, dismissed, or qualify on other grounds.",
                   },
                 },
@@ -529,7 +529,7 @@ const RAW_COURSES: Course[] = [
                   options: ["The employee only", "The employer only", "Both employee and employer equally", "SARS deducts it automatically"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. SDL is purely an employer cost — 1% of total payroll. It does not appear as a deduction on your payslip.",
+                    correct: "Correct. SDL is purely an employer cost - 1% of total payroll. It does not appear as a deduction on your payslip.",
                     incorrect: "SDL is paid entirely by the employer at 1% of total payroll. It does not come out of your take-home pay.",
                   },
                 },
@@ -542,7 +542,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Build Wealth and Pay Less Tax",
-                  content: "<p>South Africa gives you a powerful incentive to save for retirement: <strong>tax deductions up to 27.5% of taxable income</strong> (capped at R350 000/year) on approved retirement fund contributions.</p><p><strong>Three main vehicles:</strong></p><ul><li><strong>Pension Fund:</strong> Provided by your employer. You contribute a set percentage, employer often matches.</li><li><strong>Provident Fund:</strong> Similar to pension but previously allowed a full lump sum at retirement. Now aligned to pension rules under the two-pot system.</li><li><strong>Retirement Annuity (RA):</strong> A private retirement fund you open yourself — ideal for self-employed people or those who want to save beyond their employer fund.</li></ul><p><strong>Two-Pot System (from 1 September 2024):</strong> Your retirement savings are now split into a Savings Pot (1/3, accessible once per year from age 55) and a Retirement Pot (2/3, locked until retirement). This prevents raiding your retirement savings while giving emergency access.</p><p>Example: If you earn R30 000/month (R360 000/year) and contribute R3 000/month to an RA, you save approximately R990/month in tax (assuming 33% marginal rate).</p>",
+                  content: "<p>South Africa gives you a powerful incentive to save for retirement: <strong>tax deductions up to 27.5% of taxable income</strong> (capped at R350 000/year) on approved retirement fund contributions.</p><p><strong>Three main vehicles:</strong></p><ul><li><strong>Pension Fund:</strong> Provided by your employer. You contribute a set percentage, employer often matches.</li><li><strong>Provident Fund:</strong> Similar to pension but previously allowed a full lump sum at retirement. Now aligned to pension rules under the two-pot system.</li><li><strong>Retirement Annuity (RA):</strong> A private retirement fund you open yourself - ideal for self-employed people or those who want to save beyond their employer fund.</li></ul><p><strong>Two-Pot System (from 1 September 2024):</strong> Your retirement savings are now split into a Savings Pot (1/3, accessible once per year from age 55) and a Retirement Pot (2/3, locked until retirement). This prevents raiding your retirement savings while giving emergency access.</p><p>Example: If you earn R30 000/month (R360 000/year) and contribute R3 000/month to an RA, you save approximately R990/month in tax (assuming 33% marginal rate).</p>",
                 },
                 {
                   type: "mcq",
@@ -560,7 +560,7 @@ const RAW_COURSES: Course[] = [
                   correct: false,
                   feedback: {
                     correct: "Correct. Only 1/3 of new contributions go to the Savings Pot. The Retirement Pot (2/3) is locked until retirement.",
-                    incorrect: "Only the Savings Pot (1/3 of contributions) is accessible — once per tax year, minimum R2 000 withdrawal, subject to tax.",
+                    incorrect: "Only the Savings Pot (1/3 of contributions) is accessible - once per tax year, minimum R2 000 withdrawal, subject to tax.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -642,7 +642,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Banking With Zero Monthly Fees",
-                  content: "<p>Millions of South Africans pay R100–R200/month in bank fees they don't need to. Digital-first banks have changed the game.</p><p><strong>Zero or near-zero fee options:</strong></p><ul><li><strong>Capitec Global One:</strong> R7/month admin fee, low transaction costs, 9.5% interest on positive balance (2024 rate).</li><li><strong>TymeBank:</strong> R0 monthly fee, free swipes at PicknPay and Boxer, R0 balance notifications.</li><li><strong>FNB Easy Account:</strong> R0 monthly fee option with app-only banking.</li><li><strong>Discovery Bank:</strong> Fee-free if you hit Vitality Money milestones.</li></ul><p><strong>What to look for:</strong> Monthly fee, cost per ATM withdrawal, cost per online transfer, interest on positive balance, app functionality, customer support quality.</p><p>Scenario: Lungile switched from a traditional bank (R160/month fees) to TymeBank (R0 fees). Over 5 years she saved R9 600 — nearly a full month's salary in fees alone.</p>",
+                  content: "<p>Millions of South Africans pay R100–R200/month in bank fees they don't need to. Digital-first banks have changed the game.</p><p><strong>Zero or near-zero fee options:</strong></p><ul><li><strong>Capitec Global One:</strong> R7/month admin fee, low transaction costs, 9.5% interest on positive balance (2024 rate).</li><li><strong>TymeBank:</strong> R0 monthly fee, free swipes at PicknPay and Boxer, R0 balance notifications.</li><li><strong>FNB Easy Account:</strong> R0 monthly fee option with app-only banking.</li><li><strong>Discovery Bank:</strong> Fee-free if you hit Vitality Money milestones.</li></ul><p><strong>What to look for:</strong> Monthly fee, cost per ATM withdrawal, cost per online transfer, interest on positive balance, app functionality, customer support quality.</p><p>Scenario: Lungile switched from a traditional bank (R160/month fees) to TymeBank (R0 fees). Over 5 years she saved R9 600 - nearly a full month's salary in fees alone.</p>",
                 },
                 {
                   type: "mcq",
@@ -699,7 +699,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "You Have the Power to Stop Debit Orders",
-                  content: "<p>Many people don't know they can stop debit orders themselves — they think only the company collecting the money can cancel it. That is not true.</p><p><strong>How to stop a debit order in SA:</strong></p><ul><li>Log into your banking app and find the Debit Orders or Mandates section.</li><li>Select the debit order you want to cancel and follow the prompts — most banks allow this free of charge.</li><li>For <strong>DebiCheck mandates</strong> (the newer system), you cancel via the app and the bank sends a cancellation to the originator.</li><li>For old-style <strong>NAEDO/early debit orders</strong>, your bank can block future collections on your instruction.</li></ul><p><strong>Important:</strong> Cancelling a debit order at the bank does NOT cancel your underlying contract (e.g. gym membership or insurance policy). You still owe the money. If you cancel a payment without settling a valid debt, the company can list you with a credit bureau.</p><p>Scenario: Priya noticed a gym she hasn't visited in 6 months was still deducting R699/month. She stopped the debit order via her banking app, then formally cancelled her gym contract in writing. Both steps were needed.</p>",
+                  content: "<p>Many people don't know they can stop debit orders themselves - they think only the company collecting the money can cancel it. That is not true.</p><p><strong>How to stop a debit order in SA:</strong></p><ul><li>Log into your banking app and find the Debit Orders or Mandates section.</li><li>Select the debit order you want to cancel and follow the prompts - most banks allow this free of charge.</li><li>For <strong>DebiCheck mandates</strong> (the newer system), you cancel via the app and the bank sends a cancellation to the originator.</li><li>For old-style <strong>NAEDO/early debit orders</strong>, your bank can block future collections on your instruction.</li></ul><p><strong>Important:</strong> Cancelling a debit order at the bank does NOT cancel your underlying contract (e.g. gym membership or insurance policy). You still owe the money. If you cancel a payment without settling a valid debt, the company can list you with a credit bureau.</p><p>Scenario: Priya noticed a gym she hasn't visited in 6 months was still deducting R699/month. She stopped the debit order via her banking app, then formally cancelled her gym contract in writing. Both steps were needed.</p>",
                 },
                 {
                   type: "mcq",
@@ -707,7 +707,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Get a lawyer to send a letter", "Cancel your bank account", "Cancel the underlying contract or debt with the company", "Wait 40 days for it to expire automatically"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists — cancel it separately.",
+                    correct: "Correct. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists - cancel it separately.",
                     incorrect: "Stopping a debit order without cancelling the contract means you'll still legally owe the money. Always settle or cancel the underlying agreement first.",
                   },
                 },
@@ -716,7 +716,7 @@ const RAW_COURSES: Course[] = [
                   statement: "DebiCheck debit orders require your upfront digital approval before they can collect from your account.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. DebiCheck is SA's mandated authentication system — you must approve the mandate on your banking app before any deductions can begin.",
+                    correct: "Correct. DebiCheck is SA's mandated authentication system - you must approve the mandate on your banking app before any deductions can begin.",
                     incorrect: "DebiCheck requires your explicit digital consent before any collection. This is a major consumer protection improvement over old debit order systems.",
                   },
                 },
@@ -729,7 +729,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Unauthorized Debits Can Be Reversed",
-                  content: "<p>If you see a debit order on your statement that you did not authorize, South African banking rules entitle you to a <strong>reversal</strong>.</p><p><strong>The reversal process:</strong></p><ul><li>You have <strong>40 days</strong> from the date of the debit to dispute it with your bank as unauthorized.</li><li>Contact your bank (in branch, via app, or call centre) and formally dispute the debit as unauthorized.</li><li>The bank must reverse the unauthorized debit — no questions asked for DebiCheck mandates you never approved.</li><li>For disputed legitimate debit orders, the bank investigates and may take up to 10 business days.</li></ul><p><strong>Keep records:</strong> Take screenshots of unauthorized debits immediately. Keep reference numbers for all disputes. If a company continues to debit you after a reversal, escalate to the <strong>Banking Ombudsman</strong> (0860 800 900) at no cost.</p><p><strong>Warning signs:</strong> Small recurring amounts (R19, R49, R99) you don't recognize — these are common with subscription scams. Check every line of your bank statement monthly.</p>",
+                  content: "<p>If you see a debit order on your statement that you did not authorize, South African banking rules entitle you to a <strong>reversal</strong>.</p><p><strong>The reversal process:</strong></p><ul><li>You have <strong>40 days</strong> from the date of the debit to dispute it with your bank as unauthorized.</li><li>Contact your bank (in branch, via app, or call centre) and formally dispute the debit as unauthorized.</li><li>The bank must reverse the unauthorized debit - no questions asked for DebiCheck mandates you never approved.</li><li>For disputed legitimate debit orders, the bank investigates and may take up to 10 business days.</li></ul><p><strong>Keep records:</strong> Take screenshots of unauthorized debits immediately. Keep reference numbers for all disputes. If a company continues to debit you after a reversal, escalate to the <strong>Banking Ombudsman</strong> (0860 800 900) at no cost.</p><p><strong>Warning signs:</strong> Small recurring amounts (R19, R49, R99) you don't recognize - these are common with subscription scams. Check every line of your bank statement monthly.</p>",
                 },
                 {
                   type: "mcq",
@@ -778,7 +778,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Your Financial Report Card",
-                  content: "<p>A bad credit score costs you money every single month — through higher interest rates on every loan you ever take. A good score is worth tens of thousands of rands in interest savings over a lifetime.</p><p>Your credit score (300–850 in SA) tells lenders how likely you are to repay. It's calculated by TransUnion, Experian, and Compuscan based on your payment history, credit utilisation, length of history, and number of recent applications.</p>",
+                  content: "<p>A bad credit score costs you money every single month - through higher interest rates on every loan you ever take. A good score is worth tens of thousands of rands in interest savings over a lifetime.</p><p>Your credit score (300–850 in SA) tells lenders how likely you are to repay. It's calculated by TransUnion, Experian, and Compuscan based on your payment history, credit utilisation, length of history, and number of recent applications.</p>",
                 },
                 {
                   type: "mcq",
@@ -808,7 +808,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Price of Borrowed Money",
-                  content: "<p>Interest is the tax you pay for spending money you don't have. At 20% per year, a R10 000 credit card balance you never pay off costs you R2 000 every year — for nothing. Just for existing.</p><p>Interest is the price of borrowed money, expressed as an annual percentage rate (APR). The minimum payment trap: paying only the minimum means you pay back far more than you borrowed, over far more years than you planned.</p>",
+                  content: "<p>Interest is the tax you pay for spending money you don't have. At 20% per year, a R10 000 credit card balance you never pay off costs you R2 000 every year - for nothing. Just for existing.</p><p>Interest is the price of borrowed money, expressed as an annual percentage rate (APR). The minimum payment trap: paying only the minimum means you pay back far more than you borrowed, over far more years than you planned.</p>",
                 },
                 {
                   type: "mcq",
@@ -830,7 +830,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Not All Debt Is the Same",
                   content:
-                    "<p>Good debt can be an affordable home loan on a stable income with emergency savings, where the asset may appreciate and your rate is competitive. Bad debt is high-interest revolving credit for things that lose value fast—clothes on budget, nights out rolled month to month—especially when you only pay minimums.</p><p>In South Africa, store cards near 20%+ and short-term loans can turn a R3 000 lounge suite into R7 000 paid over years. Before you sign, annualise the cost and ask if the purchase still feels worth it.</p>",
+                    "<p>Good debt can be an affordable home loan on a stable income with emergency savings, where the asset may appreciate and your rate is competitive. Bad debt is high-interest revolving credit for things that lose value fast-clothes on budget, nights out rolled month to month-especially when you only pay minimums.</p><p>In South Africa, store cards near 20%+ and short-term loans can turn a R3 000 lounge suite into R7 000 paid over years. Before you sign, annualise the cost and ask if the purchase still feels worth it.</p>",
                 },
                 {
                   type: "mcq",
@@ -889,7 +889,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Swipe Now, Pay Far More",
                   content:
-                    "<p>Retail cards tempt you with instant approval and birthdays discounts. Credit cards can help cash flow if you clear the full balance each month and the rewards exceed fees you truly use. Problems start when revolving balances meet 20%+ yearly rates—then a R2 500 splurge lingers for years.</p><p>Set a hard rule: never autopay only the minimum unless you are in a structured emergency plan. Move subscriptions off high-rate cards when possible and unlink tap-to-pay from accounts you cannot track weekly.</p>",
+                    "<p>Retail cards tempt you with instant approval and birthdays discounts. Credit cards can help cash flow if you clear the full balance each month and the rewards exceed fees you truly use. Problems start when revolving balances meet 20%+ yearly rates-then a R2 500 splurge lingers for years.</p><p>Set a hard rule: never autopay only the minimum unless you are in a structured emergency plan. Move subscriptions off high-rate cards when possible and unlink tap-to-pay from accounts you cannot track weekly.</p>",
                 },
                 {
                   type: "true-false",
@@ -897,7 +897,7 @@ const RAW_COURSES: Course[] = [
                   correct: true,
                   feedback: {
                     correct: "Grace periods reward discipline; check your specific card terms.",
-                    incorrect: "Revolving balances lose grace benefits—read your monthly mail.",
+                    incorrect: "Revolving balances lose grace benefits-read your monthly mail.",
                   },
                 },
                 {
@@ -970,7 +970,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Combining Debts Can Save or Sink You",
-                  content: "<p>Debt consolidation means taking out a single new loan to pay off multiple smaller debts — credit cards, store accounts, personal loans — so you make one monthly payment instead of many.</p><p><strong>When it helps:</strong> Lower interest rate on the new loan, lower total monthly payment, simplified management of one account.</p><p><strong>When it hurts:</strong> Extending repayment period means paying more interest overall even at a lower rate. Many people clear credit cards via consolidation then run them up again, doubling their debt.</p><p><strong>Debt Counselling (NCR-registered):</strong> If you are over-indebted, applying through an NCR-registered debt counsellor is the legal route. The counsellor negotiates with all creditors on your behalf, courts grant a repayment order, and a flag is placed on your credit record. Creditors cannot take legal action while under debt review. Cost: regulated by the National Credit Regulator.</p><p><strong>Warning:</strong> Avoid any company offering debt consolidation without NCR registration, or charging large upfront fees. Check NCR registration at ncr.org.za.</p>",
+                  content: "<p>Debt consolidation means taking out a single new loan to pay off multiple smaller debts - credit cards, store accounts, personal loans - so you make one monthly payment instead of many.</p><p><strong>When it helps:</strong> Lower interest rate on the new loan, lower total monthly payment, simplified management of one account.</p><p><strong>When it hurts:</strong> Extending repayment period means paying more interest overall even at a lower rate. Many people clear credit cards via consolidation then run them up again, doubling their debt.</p><p><strong>Debt Counselling (NCR-registered):</strong> If you are over-indebted, applying through an NCR-registered debt counsellor is the legal route. The counsellor negotiates with all creditors on your behalf, courts grant a repayment order, and a flag is placed on your credit record. Creditors cannot take legal action while under debt review. Cost: regulated by the National Credit Regulator.</p><p><strong>Warning:</strong> Avoid any company offering debt consolidation without NCR registration, or charging large upfront fees. Check NCR registration at ncr.org.za.</p>",
                 },
                 {
                   type: "mcq",
@@ -978,7 +978,7 @@ const RAW_COURSES: Course[] = [
                   options: ["The new loan always has a higher interest rate", "Paying off credit cards with the loan then running them up again", "Debt consolidation is illegal in South Africa", "Banks always refuse consolidation applications"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. The most common trap is clearing revolving credit (credit cards, store accounts) via consolidation and then accumulating new balances — ending up with double the debt.",
+                    correct: "Correct. The most common trap is clearing revolving credit (credit cards, store accounts) via consolidation and then accumulating new balances - ending up with double the debt.",
                     incorrect: "The biggest risk is clearing revolving credit then re-spending. Many people end up in more debt than before because their cards are now empty again.",
                   },
                 },
@@ -987,7 +987,7 @@ const RAW_COURSES: Course[] = [
                   statement: "A debt counsellor registered with the NCR can protect you from legal action by creditors while your debts are being restructured.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Formal debt review under the NCA creates a legal shield — creditors cannot sue or repossess assets while you are under debt review and making payments.",
+                    correct: "Correct. Formal debt review under the NCA creates a legal shield - creditors cannot sue or repossess assets while you are under debt review and making payments.",
                     incorrect: "NCR-registered debt counselling does provide this protection under the National Credit Act. This is one of its key benefits.",
                   },
                 },
@@ -1019,7 +1019,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Your Financial Airbag",
-                  content: "<p>One unexpected expense — a R8 000 car repair, a R15 000 medical bill, two weeks without income — is all it takes to destroy a budget that has no safety net. This is how debt spirals start.</p><p>An emergency fund is 3–6 months of essential living expenses in cash, accessible within 24 hours. If your essential monthly expenses are R12 000, your target is R36 000–R72 000. Start with a mini-goal of R5 000 — it protects you from small emergencies immediately.</p>",
+                  content: "<p>One unexpected expense - a R8 000 car repair, a R15 000 medical bill, two weeks without income - is all it takes to destroy a budget that has no safety net. This is how debt spirals start.</p><p>An emergency fund is 3–6 months of essential living expenses in cash, accessible within 24 hours. If your essential monthly expenses are R12 000, your target is R36 000–R72 000. Start with a mini-goal of R5 000 - it protects you from small emergencies immediately.</p>",
                 },
                 {
                   type: "mcq",
@@ -1058,7 +1058,7 @@ const RAW_COURSES: Course[] = [
                   type: "action-check",
                   title: "Real-World Action",
                   challenge: "Calculate your monthly essential expenses right now (rent + food + transport + utilities). Write down the total.",
-                  successMessage: "Now multiply that by 3 — that's your emergency fund target. You've just set your first real financial goal.",
+                  successMessage: "Now multiply that by 3 - that's your emergency fund target. You've just set your first real financial goal.",
                   skipMessage: "This is one of the most important numbers in personal finance. Come back to it when you can.",
                 },
               ] satisfies LessonStep[],
@@ -1294,7 +1294,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "What Happens When You're Gone?",
-                  content: "<p>Every week in South Africa, families lose their homes and children drop out of school because the breadwinner died without life cover. This is not a rare tragedy — it's the predictable outcome of skipping one product.</p><p>Life insurance pays a lump sum to your family if you die. If you have dependants, a spouse, children, or parents who rely on your income — you need it. The rule of thumb: 10× your annual salary. Earning R300 000/year means R3 million in cover.</p>",
+                  content: "<p>Every week in South Africa, families lose their homes and children drop out of school because the breadwinner died without life cover. This is not a rare tragedy - it's the predictable outcome of skipping one product.</p><p>Life insurance pays a lump sum to your family if you die. If you have dependants, a spouse, children, or parents who rely on your income - you need it. The rule of thumb: 10× your annual salary. Earning R300 000/year means R3 million in cover.</p>",
                 },
                 {
                   type: "mcq",
@@ -1345,7 +1345,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "A Lump Sum When You Need It Most",
-                  content: "<p>Dread Disease cover (also called Critical Illness cover) pays you a tax-free lump sum if you are diagnosed with a serious illness — even if you survive and recover.</p><p><strong>Conditions typically covered:</strong> Cancer, heart attack, stroke, coronary artery bypass, kidney failure, major organ transplant. Some policies cover 30+ conditions.</p><p><strong>Why it matters in South Africa:</strong> Cancer treatment at a private hospital can cost R500 000 to over R2 million. Even with medical aid, the shortfall and lost income can wipe out savings built over decades.</p><p><strong>Lump sum vs monthly benefit:</strong> Dread disease pays a once-off lump sum — you decide how to use it (pay medical bills, settle debt, replace income, modify your home). This is different from income protection which replaces monthly salary.</p><p>Scenario: Nomsa is diagnosed with breast cancer at 38. Her dread disease policy pays out R1 500 000 tax-free. She uses it to pay her oncologist gap cover, take unpaid leave for 6 months, and clear her home loan. Without it, she would have had to sell her car and empty her retirement savings.</p>",
+                  content: "<p>Dread Disease cover (also called Critical Illness cover) pays you a tax-free lump sum if you are diagnosed with a serious illness - even if you survive and recover.</p><p><strong>Conditions typically covered:</strong> Cancer, heart attack, stroke, coronary artery bypass, kidney failure, major organ transplant. Some policies cover 30+ conditions.</p><p><strong>Why it matters in South Africa:</strong> Cancer treatment at a private hospital can cost R500 000 to over R2 million. Even with medical aid, the shortfall and lost income can wipe out savings built over decades.</p><p><strong>Lump sum vs monthly benefit:</strong> Dread disease pays a once-off lump sum - you decide how to use it (pay medical bills, settle debt, replace income, modify your home). This is different from income protection which replaces monthly salary.</p><p>Scenario: Nomsa is diagnosed with breast cancer at 38. Her dread disease policy pays out R1 500 000 tax-free. She uses it to pay her oncologist gap cover, take unpaid leave for 6 months, and clear her home loan. Without it, she would have had to sell her car and empty her retirement savings.</p>",
                 },
                 {
                   type: "mcq",
@@ -1353,8 +1353,8 @@ const RAW_COURSES: Course[] = [
                   options: ["Only when you die from the illness", "When you are diagnosed with a covered condition, whether you survive or not", "Only if you are permanently disabled", "At retirement age regardless of illness"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Dread disease pays upon diagnosis — not death. You can use the money while you are alive and fighting the illness.",
-                    incorrect: "Dread disease cover pays upon diagnosis of a covered condition. You do not need to die — the payout is designed to help you live through the illness.",
+                    correct: "Correct. Dread disease pays upon diagnosis - not death. You can use the money while you are alive and fighting the illness.",
+                    incorrect: "Dread disease cover pays upon diagnosis of a covered condition. You do not need to die - the payout is designed to help you live through the illness.",
                   },
                 },
                 {
@@ -1362,7 +1362,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The lump sum payout from a dread disease policy is subject to income tax in South Africa.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Proceeds from a life or dread disease policy are generally not subject to income tax — they are capital in nature.",
+                    correct: "Correct. Proceeds from a life or dread disease policy are generally not subject to income tax - they are capital in nature.",
                     incorrect: "Dread disease payouts are tax-free in SA. This is one reason they are so valuable compared to accessing savings or investments that may have tax implications.",
                   },
                 },
@@ -1375,7 +1375,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Calculating Your Cover Gap",
-                  content: "<p>Most South Africans are underinsured. The question is not whether to have life cover, but <strong>how much</strong>.</p><p><strong>The 10x Rule:</strong> A common starting point is 10 times your annual salary. If you earn R30 000/month (R360 000/year), you need approximately R3 600 000 in life cover. This replaces your income for 10 years while your family adjusts.</p><p><strong>More precise approach — add up your needs:</strong></p><ul><li>Outstanding debt (home loan, car, credit cards)</li><li>Education costs for children until age 22</li><li>Monthly income to replace x number of years</li><li>Funeral and estate admin costs</li></ul><p><strong>Income replacement ratio:</strong> Aim to replace at least 75% of your net income. If your take-home is R25 000, your family needs R18 750/month from investments or insurance.</p><p><strong>Review annually:</strong> As your salary grows, debt changes, or family expands, your cover needs change. A policy taken out at 25 is usually insufficient at 35.</p>",
+                  content: "<p>Most South Africans are underinsured. The question is not whether to have life cover, but <strong>how much</strong>.</p><p><strong>The 10x Rule:</strong> A common starting point is 10 times your annual salary. If you earn R30 000/month (R360 000/year), you need approximately R3 600 000 in life cover. This replaces your income for 10 years while your family adjusts.</p><p><strong>More precise approach - add up your needs:</strong></p><ul><li>Outstanding debt (home loan, car, credit cards)</li><li>Education costs for children until age 22</li><li>Monthly income to replace x number of years</li><li>Funeral and estate admin costs</li></ul><p><strong>Income replacement ratio:</strong> Aim to replace at least 75% of your net income. If your take-home is R25 000, your family needs R18 750/month from investments or insurance.</p><p><strong>Review annually:</strong> As your salary grows, debt changes, or family expands, your cover needs change. A policy taken out at 25 is usually insufficient at 35.</p>",
                 },
                 {
                   type: "mcq",
@@ -1433,12 +1433,12 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Protecting Your Biggest Asset",
-                  content: "<p>Your home is likely the most expensive thing you will ever own. Two types of insurance protect it:</p><p><strong>1. Buildings Insurance:</strong> Covers the physical structure — walls, roof, floors, fitted kitchen, plumbing, windows. Pays to rebuild or repair after fire, flood, storm, burst geyser, or subsidence. If you have a bond, your bank usually requires this.</p><p><strong>2. Contents Insurance:</strong> Covers your furniture, appliances, electronics, clothing, and valuables inside the home. Covers theft, fire, and accidental damage depending on the policy.</p><p><strong>Sectional Title vs Freehold:</strong> If you own a sectional title property (flat or townhouse), the body corporate's insurance usually covers the building structure. You still need contents insurance and must check exactly what the body corporate policy covers vs what you need to top up.</p><p><strong>Geyser cover:</strong> A major claim driver in SA. Most building policies cover geyser bursting or leaking but not rust damage caused by aging. A 10-year-old geyser may be excluded — check your policy wording.</p><p><strong>Common exclusions:</strong> Gradual wear and tear, maintenance failures, subsidence from mining (important in parts of Gauteng), and damage from floods if not specified.</p>",
+                  content: "<p>Your home is likely the most expensive thing you will ever own. Two types of insurance protect it:</p><p><strong>1. Buildings Insurance:</strong> Covers the physical structure - walls, roof, floors, fitted kitchen, plumbing, windows. Pays to rebuild or repair after fire, flood, storm, burst geyser, or subsidence. If you have a bond, your bank usually requires this.</p><p><strong>2. Contents Insurance:</strong> Covers your furniture, appliances, electronics, clothing, and valuables inside the home. Covers theft, fire, and accidental damage depending on the policy.</p><p><strong>Sectional Title vs Freehold:</strong> If you own a sectional title property (flat or townhouse), the body corporate's insurance usually covers the building structure. You still need contents insurance and must check exactly what the body corporate policy covers vs what you need to top up.</p><p><strong>Geyser cover:</strong> A major claim driver in SA. Most building policies cover geyser bursting or leaking but not rust damage caused by aging. A 10-year-old geyser may be excluded - check your policy wording.</p><p><strong>Common exclusions:</strong> Gradual wear and tear, maintenance failures, subsidence from mining (important in parts of Gauteng), and damage from floods if not specified.</p>",
                 },
                 {
                   type: "mcq",
                   question: "If you own a sectional title apartment, which insurance does the body corporate typically provide?",
-                  options: ["Contents insurance for all residents", "Buildings insurance for the structure only", "Both buildings and contents for all owners", "No insurance — each owner is fully responsible"],
+                  options: ["Contents insurance for all residents", "Buildings insurance for the structure only", "Both buildings and contents for all owners", "No insurance - each owner is fully responsible"],
                   correct: 1,
                   feedback: {
                     correct: "Correct. The body corporate insures the building structure. You are responsible for insuring your own contents and any personal liability.",
@@ -1450,8 +1450,8 @@ const RAW_COURSES: Course[] = [
                   statement: "A home insurance policy typically covers damage from gradual wear and tear over time.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Insurance covers sudden, unexpected events — not gradual deterioration. Leaking pipes that develop slowly over months are typically excluded.",
-                    incorrect: "Wear and tear is almost universally excluded from home insurance. Insurance is for sudden, unexpected events — not aging or maintenance failures.",
+                    correct: "Correct. Insurance covers sudden, unexpected events - not gradual deterioration. Leaking pipes that develop slowly over months are typically excluded.",
+                    incorrect: "Wear and tear is almost universally excluded from home insurance. Insurance is for sudden, unexpected events - not aging or maintenance failures.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -1482,7 +1482,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Golden Rule of Investing",
-                  content: "<p>Every year you leave R100 000 in cash instead of investing it, you silently lose R6 000 in purchasing power to inflation. After 10 years, your R100 000 buys what R55 000 used to. Doing nothing is not safe — it's slow financial destruction.</p><p>Higher potential return always comes with higher risk. There is no high return with zero risk — that's the definition of a scam. The risk spectrum: low risk/low return (savings account, money market) → medium (bonds, balanced funds) → high (shares, ETFs, property).</p>",
+                  content: "<p>Every year you leave R100 000 in cash instead of investing it, you silently lose R6 000 in purchasing power to inflation. After 10 years, your R100 000 buys what R55 000 used to. Doing nothing is not safe - it's slow financial destruction.</p><p>Higher potential return always comes with higher risk. There is no high return with zero risk - that's the definition of a scam. The risk spectrum: low risk/low return (savings account, money market) → medium (bonds, balanced funds) → high (shares, ETFs, property).</p>",
                 },
                 {
                   type: "mcq",
@@ -1536,14 +1536,14 @@ const RAW_COURSES: Course[] = [
                     escalation: 5,
                     frequency: "monthly",
                   },
-                  insight: "R500/month turns into over R400 000 in 20 years — and you only contributed about R200 000 of that. The rest is compound interest doing the work. Now imagine starting 10 years earlier.",
+                  insight: "R500/month turns into over R400 000 in 20 years - and you only contributed about R200 000 of that. The rest is compound interest doing the work. Now imagine starting 10 years earlier.",
                 },
                 {
                   type: "action-check",
                   title: "Real-World Action",
                   challenge: "Google 'TFSA South Africa' and find out the annual contribution limit. Write it down.",
                   successMessage: "Now you know about one of SA's best tax-free tools. We'll cover TFSAs in detail soon.",
-                  skipMessage: "TFSAs are one of SA's best-kept secrets. Look it up when you can — it could save you thousands in tax.",
+                  skipMessage: "TFSAs are one of SA's best-kept secrets. Look it up when you can - it could save you thousands in tax.",
                 },
               ] satisfies LessonStep[],
             },
@@ -1771,7 +1771,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Best Legal Tax Break You're Probably Not Using",
-                  content: "<p>Every year you don't use your TFSA allowance is R36 000 of tax-free growth you lose permanently — it doesn't roll over. Over 30 years, the difference between using your TFSA and not is often over R1 million in tax saved.</p><p>A Tax-Free Savings Account lets you invest R36 000 per year (R500 000 lifetime limit) and pay zero tax on interest, dividends, or capital gains — ever. Available at Sygnia, Satrix, EasyEquities, Capitec, and most major platforms.</p>",
+                  content: "<p>Every year you don't use your TFSA allowance is R36 000 of tax-free growth you lose permanently - it doesn't roll over. Over 30 years, the difference between using your TFSA and not is often over R1 million in tax saved.</p><p>A Tax-Free Savings Account lets you invest R36 000 per year (R500 000 lifetime limit) and pay zero tax on interest, dividends, or capital gains - ever. Available at Sygnia, Satrix, EasyEquities, Capitec, and most major platforms.</p>",
                 },
                 {
                   type: "mcq",
@@ -1849,7 +1849,7 @@ const RAW_COURSES: Course[] = [
                   title: "Add up your TFSA deposits this year",
                   instruction:
                     "Log every TFSA deposit you made since 1 March (or your platform’s tax year start). Total them and compare to the current annual limit from a trusted SARS or provider page. Write the remaining room if any.",
-                  tip: "If you use more than one bank or broker, add them all—limits are per person, not per brand.",
+                  tip: "If you use more than one bank or broker, add them all-limits are per person, not per brand.",
                 },
               ] satisfies LessonStep[],
             },
@@ -1861,7 +1861,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Start With Licensed Players",
                   content:
-                    "<p>Most major banks, LISPs, and platforms offer TFSA wrappers. You will complete FICA with ID and proof of address, sign risk disclosures, and choose underlying funds or ETFs that fit your timeline. Online onboarding often takes under an hour if documents are ready.</p><p>Check platform fees, whether you want ad hoc or debit orders, and how you will track contributions across apps. Opening is not the finish line—low recurring fees and steady contributions matter more than a flashy advert on social media.</p>",
+                    "<p>Most major banks, LISPs, and platforms offer TFSA wrappers. You will complete FICA with ID and proof of address, sign risk disclosures, and choose underlying funds or ETFs that fit your timeline. Online onboarding often takes under an hour if documents are ready.</p><p>Check platform fees, whether you want ad hoc or debit orders, and how you will track contributions across apps. Opening is not the finish line-low recurring fees and steady contributions matter more than a flashy advert on social media.</p>",
                 },
                 {
                   type: "true-false",
@@ -1943,7 +1943,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Deductions Now, Discipline Later",
                   content:
-                    "<p>Priya contributes R4 000 monthly to an RA while earning R42 000 taxable income. SARS may let her deduct those contributions up to the legal percentage and cap, lowering income tax today while locking money for retirement. Exact savings depend on your bracket and updates to law.</p><p>You still follow product rules: penalties if you cash out early outside allowed events, and you must use approved funds. Treat the deduction as a nudge to save, not ‘free money'—plan cash flow so living costs stay covered after the debit order.</p>",
+                    "<p>Priya contributes R4 000 monthly to an RA while earning R42 000 taxable income. SARS may let her deduct those contributions up to the legal percentage and cap, lowering income tax today while locking money for retirement. Exact savings depend on your bracket and updates to law.</p><p>You still follow product rules: penalties if you cash out early outside allowed events, and you must use approved funds. Treat the deduction as a nudge to save, not ‘free money'-plan cash flow so living costs stay covered after the debit order.</p>",
                 },
                 {
                   type: "mcq",
@@ -2002,7 +2002,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Pooled Investing",
                   content:
-                    "<p>A unit trust pools money from many investors into a basket chosen by a manager and mandates. An ETF typically tracks an index and trades like a share. Both can sit in TFSAs or other wrappers when rules allow, but fees and trading differ.</p><p>Read Total Expense Ratio, transaction costs, and how often you may switch. In South Africa, flashy past performance charts ignore tax you would pay outside shelters and your personal timing—focus on fit, fees, and whether you understand what you hold.</p>",
+                    "<p>A unit trust pools money from many investors into a basket chosen by a manager and mandates. An ETF typically tracks an index and trades like a share. Both can sit in TFSAs or other wrappers when rules allow, but fees and trading differ.</p><p>Read Total Expense Ratio, transaction costs, and how often you may switch. In South Africa, flashy past performance charts ignore tax you would pay outside shelters and your personal timing-focus on fit, fees, and whether you understand what you hold.</p>",
                 },
                 {
                   type: "mcq",
@@ -2043,7 +2043,7 @@ const RAW_COURSES: Course[] = [
                   type: "action",
                   title: "Save two screenshot-free notes",
                   instruction:
-                    "Pick one unit trust and one ETF factsheet. Write by hand: benchmark name, TER or cost line, and minimum suggested investment period. No trade yet—just understanding.",
+                    "Pick one unit trust and one ETF factsheet. Write by hand: benchmark name, TER or cost line, and minimum suggested investment period. No trade yet-just understanding.",
                   tip: "If TER is missing, email the provider’s compliance address before proceeding.",
                 },
               ] satisfies LessonStep[],
@@ -2104,7 +2104,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "How a Bond Really Works",
-                  content: "<p>A home loan (called a <strong>bond</strong> in SA) is a secured loan where the property is the collateral. If you stop paying, the bank can repossess and sell the property to recover the debt.</p><p><strong>Key terms:</strong></p><ul><li><strong>LTV (Loan-to-Value):</strong> The ratio of the loan to the property value. A R900 000 loan on a R1 000 000 property = 90% LTV. Lower LTV means less risk for the bank, often a better rate.</li><li><strong>Prime Rate:</strong> Set by the SARB Monetary Policy Committee. Banks lend at prime minus or plus a spread. In 2024, prime was 11.25%.</li><li><strong>Spread:</strong> Your personal premium above or below prime based on your credit risk. A good profile earns prime minus 0.5%, a poor profile might be prime plus 1%.</li><li><strong>FLISP:</strong> Finance Linked Individual Subsidy Programme — a government grant for first-time buyers earning R3 501 to R22 000/month. The subsidy (R30 000–R130 000 depending on income) reduces your bond amount.</li></ul><p>Example: On a R1 000 000 bond at 11.5% over 20 years, you pay approximately R10 800/month. Over 20 years you pay back R2 600 000 — R1 600 000 in interest alone.</p>",
+                  content: "<p>A home loan (called a <strong>bond</strong> in SA) is a secured loan where the property is the collateral. If you stop paying, the bank can repossess and sell the property to recover the debt.</p><p><strong>Key terms:</strong></p><ul><li><strong>LTV (Loan-to-Value):</strong> The ratio of the loan to the property value. A R900 000 loan on a R1 000 000 property = 90% LTV. Lower LTV means less risk for the bank, often a better rate.</li><li><strong>Prime Rate:</strong> Set by the SARB Monetary Policy Committee. Banks lend at prime minus or plus a spread. In 2024, prime was 11.25%.</li><li><strong>Spread:</strong> Your personal premium above or below prime based on your credit risk. A good profile earns prime minus 0.5%, a poor profile might be prime plus 1%.</li><li><strong>FLISP:</strong> Finance Linked Individual Subsidy Programme - a government grant for first-time buyers earning R3 501 to R22 000/month. The subsidy (R30 000–R130 000 depending on income) reduces your bond amount.</li></ul><p>Example: On a R1 000 000 bond at 11.5% over 20 years, you pay approximately R10 800/month. Over 20 years you pay back R2 600 000 - R1 600 000 in interest alone.</p>",
                 },
                 {
                   type: "mcq",
@@ -2122,7 +2122,7 @@ const RAW_COURSES: Course[] = [
                   correct: false,
                   feedback: {
                     correct: "Correct. FLISP is specifically for first-time buyers earning between R3 501 and R22 000/month. It is income-tested and cannot be used if you have previously owned property.",
-                    incorrect: "FLISP is means-tested — only for first-time buyers earning between R3 501 and R22 000/month who meet other qualifying criteria.",
+                    incorrect: "FLISP is means-tested - only for first-time buyers earning between R3 501 and R22 000/month who meet other qualifying criteria.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2134,7 +2134,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Your Deposit Changes Everything",
-                  content: "<p>Most banks in SA require a deposit of <strong>10–20% of the purchase price</strong>, although 100% bonds exist for strong credit profiles.</p><p><strong>Why a bigger deposit helps:</strong></p><ul><li>Lower monthly repayment (smaller loan)</li><li>Better interest rate (lower LTV = less bank risk)</li><li>Avoids Lenders Mortgage Insurance in some structures</li><li>Immediate equity in the property</li></ul><p><strong>Saving for a deposit:</strong> Open a separate savings account (32-day notice or money market) immediately. Automate a debit order on payday. At 10%, a R1 500 000 property needs R150 000 in cash plus transfer costs.</p><p><strong>AIP (Approval in Principle):</strong> Before making an offer, get an AIP from a bank or bond originator (ooba, BetterBond, MortgageSA). This tells you exactly what you can afford and makes your offer more credible to sellers.</p><p><strong>Guarantor option:</strong> A parent or family member can stand surety on your bond. This helps if your credit profile is limited but increases risk for the guarantor — they are liable if you default.</p>",
+                  content: "<p>Most banks in SA require a deposit of <strong>10–20% of the purchase price</strong>, although 100% bonds exist for strong credit profiles.</p><p><strong>Why a bigger deposit helps:</strong></p><ul><li>Lower monthly repayment (smaller loan)</li><li>Better interest rate (lower LTV = less bank risk)</li><li>Avoids Lenders Mortgage Insurance in some structures</li><li>Immediate equity in the property</li></ul><p><strong>Saving for a deposit:</strong> Open a separate savings account (32-day notice or money market) immediately. Automate a debit order on payday. At 10%, a R1 500 000 property needs R150 000 in cash plus transfer costs.</p><p><strong>AIP (Approval in Principle):</strong> Before making an offer, get an AIP from a bank or bond originator (ooba, BetterBond, MortgageSA). This tells you exactly what you can afford and makes your offer more credible to sellers.</p><p><strong>Guarantor option:</strong> A parent or family member can stand surety on your bond. This helps if your credit profile is limited but increases risk for the guarantor - they are liable if you default.</p>",
                 },
                 {
                   type: "mcq",
@@ -2142,7 +2142,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R12 000", "R120 000", "R200 000", "R300 000"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. 10% of R1 200 000 = R120 000. Note this is just the deposit — you also need transfer duty and bond registration costs on top of this.",
+                    correct: "Correct. 10% of R1 200 000 = R120 000. Note this is just the deposit - you also need transfer duty and bond registration costs on top of this.",
                     incorrect: "10% of R1 200 000 = R120 000. Remember you also need separate cash for transfer duty and bond registration fees.",
                   },
                 },
@@ -2152,7 +2152,7 @@ const RAW_COURSES: Course[] = [
                   correct: false,
                   feedback: {
                     correct: "Correct. An AIP is a preliminary assessment based on your declared income and credit profile. Full approval depends on the specific property valuation and verified documentation.",
-                    incorrect: "An AIP is an indication only — not a guarantee. The bank still does a full assessment once you make an offer on a specific property.",
+                    incorrect: "An AIP is an indication only - not a guarantee. The bank still does a full assessment once you make an offer on a specific property.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2164,7 +2164,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Costs Nobody Tells You About",
-                  content: "<p>The purchase price is just the beginning. Budget for these once-off and ongoing costs:</p><p><strong>Once-off costs (when buying):</strong></p><ul><li><strong>Transfer Duty:</strong> Government tax on properties above R1 100 000 (2024). On R1 500 000 you pay R40 500.</li><li><strong>Bond Registration Costs:</strong> Attorney fees to register the bond — roughly R30 000–R50 000 depending on bond size.</li><li><strong>Transfer Costs:</strong> Attorney fees to transfer ownership — similar range.</li><li><strong>Moving costs, connection fees:</strong> Budget R5 000–R15 000.</li></ul><p><strong>Ongoing costs:</strong></p><ul><li><strong>Municipal rates and taxes:</strong> Based on property value, typically R500–R2 500/month.</li><li><strong>Levies (sectional title):</strong> R500–R3 000+/month for maintenance, security, garden.</li><li><strong>Home insurance:</strong> R500–R1 500/month for buildings and contents.</li><li><strong>Maintenance reserve:</strong> Budget 1% of property value per year (R15 000/year on a R1 500 000 home) for repairs and upgrades.</li></ul><p>Total hidden costs can add R80 000–R150 000 to the purchase price upfront, and R2 000–R6 000/month ongoing.</p>",
+                  content: "<p>The purchase price is just the beginning. Budget for these once-off and ongoing costs:</p><p><strong>Once-off costs (when buying):</strong></p><ul><li><strong>Transfer Duty:</strong> Government tax on properties above R1 100 000 (2024). On R1 500 000 you pay R40 500.</li><li><strong>Bond Registration Costs:</strong> Attorney fees to register the bond - roughly R30 000–R50 000 depending on bond size.</li><li><strong>Transfer Costs:</strong> Attorney fees to transfer ownership - similar range.</li><li><strong>Moving costs, connection fees:</strong> Budget R5 000–R15 000.</li></ul><p><strong>Ongoing costs:</strong></p><ul><li><strong>Municipal rates and taxes:</strong> Based on property value, typically R500–R2 500/month.</li><li><strong>Levies (sectional title):</strong> R500–R3 000+/month for maintenance, security, garden.</li><li><strong>Home insurance:</strong> R500–R1 500/month for buildings and contents.</li><li><strong>Maintenance reserve:</strong> Budget 1% of property value per year (R15 000/year on a R1 500 000 home) for repairs and upgrades.</li></ul><p>Total hidden costs can add R80 000–R150 000 to the purchase price upfront, and R2 000–R6 000/month ongoing.</p>",
                 },
                 {
                   type: "mcq",
@@ -2182,7 +2182,7 @@ const RAW_COURSES: Course[] = [
                   correct: false,
                   feedback: {
                     correct: "Correct. Properties up to R1 100 000 (as of 2024) are exempt from transfer duty. Only the amount above this threshold attracts the tax.",
-                    incorrect: "Transfer duty has a threshold — in 2024 properties up to R1 100 000 are exempt. The tax applies on a sliding scale above that.",
+                    incorrect: "Transfer duty has a threshold - in 2024 properties up to R1 100 000 are exempt. The tax applies on a sliding scale above that.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2201,7 +2201,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Renting Is Not Wasted Money",
-                  content: "<p>The idea that renting is \"throwing money away\" is one of the most damaging myths in personal finance. Renting is often the smarter financial choice depending on your circumstances.</p><p><strong>Renting makes sense when:</strong></p><ul><li>You plan to move within 3–5 years (transaction costs of buying take years to break even)</li><li>Your deposit money is better invested elsewhere (equity at 12% vs property at 6–8% per year)</li><li>You are in a city with a high price-to-rent ratio (buying is expensive relative to renting)</li><li>You value flexibility — for career opportunities, relationship changes, or lifestyle</li><li>You cannot yet afford a property without stretching yourself dangerously thin</li></ul><p><strong>Opportunity cost of your deposit:</strong> R200 000 in a deposit reduces your loan and interest. But R200 000 invested in a diversified equity fund at 12%/year grows to R620 000 in 10 years. The question is always: which use of that capital creates more wealth?</p><p><strong>Rental yield perspective:</strong> If annual rent is R84 000 (R7 000/month) on a property worth R1 500 000, the yield is 5.6%. Investors who buy to let often earn less than 6% yield — sometimes less than you would in a money market account.</p>",
+                  content: "<p>The idea that renting is \"throwing money away\" is one of the most damaging myths in personal finance. Renting is often the smarter financial choice depending on your circumstances.</p><p><strong>Renting makes sense when:</strong></p><ul><li>You plan to move within 3–5 years (transaction costs of buying take years to break even)</li><li>Your deposit money is better invested elsewhere (equity at 12% vs property at 6–8% per year)</li><li>You are in a city with a high price-to-rent ratio (buying is expensive relative to renting)</li><li>You value flexibility - for career opportunities, relationship changes, or lifestyle</li><li>You cannot yet afford a property without stretching yourself dangerously thin</li></ul><p><strong>Opportunity cost of your deposit:</strong> R200 000 in a deposit reduces your loan and interest. But R200 000 invested in a diversified equity fund at 12%/year grows to R620 000 in 10 years. The question is always: which use of that capital creates more wealth?</p><p><strong>Rental yield perspective:</strong> If annual rent is R84 000 (R7 000/month) on a property worth R1 500 000, the yield is 5.6%. Investors who buy to let often earn less than 6% yield - sometimes less than you would in a money market account.</p>",
                 },
                 {
                   type: "mcq",
@@ -2218,7 +2218,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Paying rent every month means you have nothing to show for it financially.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Rent buys you housing, flexibility, and the ability to invest your deposit capital elsewhere — potentially earning more than property appreciation.",
+                    correct: "Correct. Rent buys you housing, flexibility, and the ability to invest your deposit capital elsewhere - potentially earning more than property appreciation.",
                     incorrect: "Renting provides real value: housing, location flexibility, no maintenance costs, and the freedom to invest capital in higher-returning assets.",
                   },
                 },
@@ -2231,7 +2231,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The 20-Year Numbers Tell the Real Story",
-                  content: "<p>Let's compare renting vs buying the same R1 500 000 property in South Africa over 20 years.</p><p><strong>Buying scenario:</strong></p><ul><li>Deposit: R150 000 (10%)</li><li>Bond: R1 350 000 at 11.5% over 20 years = R14 560/month</li><li>Rates + insurance + maintenance: R3 500/month</li><li>Total monthly cost: R18 060</li><li>Upfront transaction costs: R120 000 (transfer + bond registration)</li><li>Total paid over 20 years: R4 454 400 + R270 000 upfront = R4 724 400</li><li>Property value at 6% growth: R4 813 000</li><li>Net asset gain: approximately R358 000 after repaying the bond</li></ul><p><strong>Renting and investing scenario:</strong></p><ul><li>Rent for similar property: R9 500/month (current rental yield)</li><li>Monthly saving vs buying: R8 560 — invest this at 10%/year</li><li>Also invest the R270 000 transaction costs at 10%/year</li><li>Total investment portfolio after 20 years: approximately R2 200 000</li></ul><p><strong>The result:</strong> In many SA markets, the renter who invests the difference ends up with comparable or greater wealth. The buyer has an asset but has paid far more out of pocket. Neither answer is universally right — it depends on your city, rate of return, and discipline to actually invest the savings.</p>",
+                  content: "<p>Let's compare renting vs buying the same R1 500 000 property in South Africa over 20 years.</p><p><strong>Buying scenario:</strong></p><ul><li>Deposit: R150 000 (10%)</li><li>Bond: R1 350 000 at 11.5% over 20 years = R14 560/month</li><li>Rates + insurance + maintenance: R3 500/month</li><li>Total monthly cost: R18 060</li><li>Upfront transaction costs: R120 000 (transfer + bond registration)</li><li>Total paid over 20 years: R4 454 400 + R270 000 upfront = R4 724 400</li><li>Property value at 6% growth: R4 813 000</li><li>Net asset gain: approximately R358 000 after repaying the bond</li></ul><p><strong>Renting and investing scenario:</strong></p><ul><li>Rent for similar property: R9 500/month (current rental yield)</li><li>Monthly saving vs buying: R8 560 - invest this at 10%/year</li><li>Also invest the R270 000 transaction costs at 10%/year</li><li>Total investment portfolio after 20 years: approximately R2 200 000</li></ul><p><strong>The result:</strong> In many SA markets, the renter who invests the difference ends up with comparable or greater wealth. The buyer has an asset but has paid far more out of pocket. Neither answer is universally right - it depends on your city, rate of return, and discipline to actually invest the savings.</p>",
                 },
                 {
                   type: "mcq",
@@ -2249,7 +2249,7 @@ const RAW_COURSES: Course[] = [
                   correct: false,
                   feedback: {
                     correct: "Correct. The JSE All Share Index has historically returned 12–14% per year over 20-year periods, significantly outperforming residential property's 6–8% average appreciation.",
-                    incorrect: "The JSE has historically outperformed residential property. Property's appeal is leverage, lifestyle, and tangibility — not raw investment return.",
+                    incorrect: "The JSE has historically outperformed residential property. Property's appeal is leverage, lifestyle, and tangibility - not raw investment return.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2280,7 +2280,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "How SARS Taxes Your Income",
-                  content: "<p>SARS will take exactly what you owe — but they won't tell you about the legal ways to pay less. Employees who don't know about RA deductions, travel allowances, and home office deductions overpay by thousands of rands every year.</p><p>South Africa uses marginal tax brackets. You only pay the higher rate on income above each threshold — never on your entire salary. Common myth: a raise pushes you into a higher bracket and you take home less. This is impossible. You always keep more by earning more.</p>",
+                  content: "<p>SARS will take exactly what you owe - but they won't tell you about the legal ways to pay less. Employees who don't know about RA deductions, travel allowances, and home office deductions overpay by thousands of rands every year.</p><p>South Africa uses marginal tax brackets. You only pay the higher rate on income above each threshold - never on your entire salary. Common myth: a raise pushes you into a higher bracket and you take home less. This is impossible. You always keep more by earning more.</p>",
                 },
                 {
                   type: "true-false",
@@ -2310,11 +2310,11 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "SARS eFiling: Who Has to Submit",
-                  content: "<p>Most salaried employees in SA don't need to file a tax return — PAYE handles it. But you <strong>must</strong> file if any of these apply:</p><ul><li>Your annual income exceeds R500 000 and you have more than one income source</li><li>You have a car allowance, travel allowance, or other taxable benefits not fully taxed via PAYE</li><li>You have investment income (interest, rental, dividends) not already taxed at source</li><li>You are self-employed or have freelance income</li><li>You want to claim deductions (retirement annuity, medical aid, home office)</li><li>SARS sends you an SMS or letter requesting a return</li></ul><p><strong>Provisional Tax:</strong> If you earn more than R30 000 per year from sources other than employment (side income, rental, freelance), you must register as a provisional taxpayer and submit estimates twice a year (August and February).</p><p><strong>Penalties:</strong> Late submission carries an administrative penalty of R250–R16 000/month depending on income. Filing correctly on time is always better than ignoring it.</p>",
+                  content: "<p>Most salaried employees in SA don't need to file a tax return - PAYE handles it. But you <strong>must</strong> file if any of these apply:</p><ul><li>Your annual income exceeds R500 000 and you have more than one income source</li><li>You have a car allowance, travel allowance, or other taxable benefits not fully taxed via PAYE</li><li>You have investment income (interest, rental, dividends) not already taxed at source</li><li>You are self-employed or have freelance income</li><li>You want to claim deductions (retirement annuity, medical aid, home office)</li><li>SARS sends you an SMS or letter requesting a return</li></ul><p><strong>Provisional Tax:</strong> If you earn more than R30 000 per year from sources other than employment (side income, rental, freelance), you must register as a provisional taxpayer and submit estimates twice a year (August and February).</p><p><strong>Penalties:</strong> Late submission carries an administrative penalty of R250–R16 000/month depending on income. Filing correctly on time is always better than ignoring it.</p>",
                 },
                 {
                   type: "mcq",
-                  question: "A salaried employee who earns R450 000/year from one employer and has no other income — must they file a tax return?",
+                  question: "A salaried employee who earns R450 000/year from one employer and has no other income - must they file a tax return?",
                   options: ["Yes, all South Africans must file annually", "No, if SARS does not request it they are auto-assessed or exempt", "Only if they earn over R1 million", "Yes, but only every second year"],
                   correct: 1,
                   feedback: {
@@ -2340,7 +2340,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Legal Ways to Pay Less Tax",
-                  content: "<p>South Africans who know the rules can significantly reduce their tax bill legally. Key deductions:</p><p><strong>1. Retirement Annuity contributions:</strong> Up to 27.5% of taxable income (max R350 000/year). This is the single biggest legal tax reduction available to most people.</p><p><strong>2. Medical Aid credits:</strong> Not a deduction — a rand-for-rand credit off your tax. Main member: R364/month (2024). First dependant: R364/month. Each additional: R246/month. Out-of-pocket medical expenses above 7.5% of taxable income (after subtracting credits) can be added.</p><p><strong>3. Home office deduction:</strong> If you work from home and have a dedicated room used exclusively for work, you may deduct a proportion of your home costs (bond interest or rent, electricity, rates). The room must be specifically equipped for work and used regularly.</p><p><strong>4. Donations to PBOs:</strong> Donations to SARS-approved Public Benefit Organisations (Section 18A) are deductible up to 10% of your taxable income. Get a Section 18A certificate from the charity.</p>",
+                  content: "<p>South Africans who know the rules can significantly reduce their tax bill legally. Key deductions:</p><p><strong>1. Retirement Annuity contributions:</strong> Up to 27.5% of taxable income (max R350 000/year). This is the single biggest legal tax reduction available to most people.</p><p><strong>2. Medical Aid credits:</strong> Not a deduction - a rand-for-rand credit off your tax. Main member: R364/month (2024). First dependant: R364/month. Each additional: R246/month. Out-of-pocket medical expenses above 7.5% of taxable income (after subtracting credits) can be added.</p><p><strong>3. Home office deduction:</strong> If you work from home and have a dedicated room used exclusively for work, you may deduct a proportion of your home costs (bond interest or rent, electricity, rates). The room must be specifically equipped for work and used regularly.</p><p><strong>4. Donations to PBOs:</strong> Donations to SARS-approved Public Benefit Organisations (Section 18A) are deductible up to 10% of your taxable income. Get a Section 18A certificate from the charity.</p>",
                 },
                 {
                   type: "mcq",
@@ -2348,7 +2348,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R930", "R310", "R3 000", "R150"],
                   correct: 0,
                   feedback: {
-                    correct: "Correct. R3 000 x 31% = R930/month in tax saved. Over a year that is R11 160 — money that compounds in your RA instead of going to SARS.",
+                    correct: "Correct. R3 000 x 31% = R930/month in tax saved. Over a year that is R11 160 - money that compounds in your RA instead of going to SARS.",
                     incorrect: "Tax saving = contribution x marginal rate. R3 000 x 31% = R930/month. This is essentially the government co-contributing to your retirement.",
                   },
                 },
@@ -2357,7 +2357,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Medical aid credits in South Africa reduce your taxable income by the credit amount.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Medical aid credits are deducted directly from your tax liability — not from your taxable income. This makes them more valuable than a deduction.",
+                    correct: "Correct. Medical aid credits are deducted directly from your tax liability - not from your taxable income. This makes them more valuable than a deduction.",
                     incorrect: "Medical credits reduce your tax bill directly (rand for rand), not your taxable income. This is actually more beneficial than a deduction.",
                   },
                 },
@@ -2370,7 +2370,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Documents That Prove Your Tax Story",
-                  content: "<p>SARS requires you to import all your tax certificates into your eFiling return. Here are the key ones:</p><p><strong>IRP5 / IT3(a):</strong> Your employer issues this at tax year end (28 February). It shows your salary, all deductions, and exactly how much PAYE was deducted. Every employer must provide one — follow up with HR if you don't receive it by April.</p><p><strong>IT3(b):</strong> Issued by your bank or investment account for interest earned. If you earned more than R23 800 in interest (under age 65), the amount above that is taxable. Your bank or stockbroker sends this to both you and SARS.</p><p><strong>IT3(c):</strong> Shows capital gains from investments — unit trusts, shares, ETFs. Issued by your investment platform (Easy Equities, Allan Gray, Ninety One, etc.).</p><p><strong>How to import:</strong> On SARS eFiling, click 'Import Certificate' and the system automatically populates your return from certificates submitted by employers and institutions. Check that what imported matches what you physically received.</p><p><strong>Missing certificate?</strong> Contact your employer or institution directly. SARS can also show you what was submitted on your behalf.</p>",
+                  content: "<p>SARS requires you to import all your tax certificates into your eFiling return. Here are the key ones:</p><p><strong>IRP5 / IT3(a):</strong> Your employer issues this at tax year end (28 February). It shows your salary, all deductions, and exactly how much PAYE was deducted. Every employer must provide one - follow up with HR if you don't receive it by April.</p><p><strong>IT3(b):</strong> Issued by your bank or investment account for interest earned. If you earned more than R23 800 in interest (under age 65), the amount above that is taxable. Your bank or stockbroker sends this to both you and SARS.</p><p><strong>IT3(c):</strong> Shows capital gains from investments - unit trusts, shares, ETFs. Issued by your investment platform (Easy Equities, Allan Gray, Ninety One, etc.).</p><p><strong>How to import:</strong> On SARS eFiling, click 'Import Certificate' and the system automatically populates your return from certificates submitted by employers and institutions. Check that what imported matches what you physically received.</p><p><strong>Missing certificate?</strong> Contact your employer or institution directly. SARS can also show you what was submitted on your behalf.</p>",
                 },
                 {
                   type: "mcq",
@@ -2437,7 +2437,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Profit on Investments Is Not Tax-Free",
-                  content: "<p>When you sell an investment (shares, property, unit trusts, crypto) for more than you paid, the profit is called a <strong>capital gain</strong>. SARS taxes this via Capital Gains Tax (CGT).</p><p><strong>How CGT works for individuals:</strong></p><ul><li><strong>Annual exclusion:</strong> R40 000 of capital gains per year is excluded — you only pay tax above this.</li><li><strong>Inclusion rate:</strong> 40% of the net capital gain (above the exclusion) is included in your taxable income.</li><li><strong>Effective maximum rate:</strong> At the highest marginal rate (45%), CGT is 45% x 40% = 18% effective tax rate on the gain.</li></ul><p><strong>Primary residence exclusion:</strong> When selling your main home, the first R2 000 000 of capital gain is excluded from CGT. This is why most homeowners pay no CGT when they sell their house.</p><p><strong>Example:</strong> You bought shares for R50 000 and sold them for R120 000 — a R70 000 gain. Less the R40 000 annual exclusion = R30 000 net. 40% inclusion = R12 000 added to your income. At 31% marginal rate, you pay R3 720 in additional tax.</p>",
+                  content: "<p>When you sell an investment (shares, property, unit trusts, crypto) for more than you paid, the profit is called a <strong>capital gain</strong>. SARS taxes this via Capital Gains Tax (CGT).</p><p><strong>How CGT works for individuals:</strong></p><ul><li><strong>Annual exclusion:</strong> R40 000 of capital gains per year is excluded - you only pay tax above this.</li><li><strong>Inclusion rate:</strong> 40% of the net capital gain (above the exclusion) is included in your taxable income.</li><li><strong>Effective maximum rate:</strong> At the highest marginal rate (45%), CGT is 45% x 40% = 18% effective tax rate on the gain.</li></ul><p><strong>Primary residence exclusion:</strong> When selling your main home, the first R2 000 000 of capital gain is excluded from CGT. This is why most homeowners pay no CGT when they sell their house.</p><p><strong>Example:</strong> You bought shares for R50 000 and sold them for R120 000 - a R70 000 gain. Less the R40 000 annual exclusion = R30 000 net. 40% inclusion = R12 000 added to your income. At 31% marginal rate, you pay R3 720 in additional tax.</p>",
                 },
                 {
                   type: "mcq",
@@ -2454,7 +2454,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You must pay Capital Gains Tax when you sell your primary residence if the gain exceeds R2 million.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. The first R2 000 000 of gain on your primary residence is excluded. Only gains above R2 000 000 are subject to CGT — and even then, only 40% of that excess is included.",
+                    correct: "Correct. The first R2 000 000 of gain on your primary residence is excluded. Only gains above R2 000 000 are subject to CGT - and even then, only 40% of that excess is included.",
                     incorrect: "The primary residence exclusion is R2 000 000. Only gains above R2 million on your main home attract CGT.",
                   },
                 },
@@ -2538,7 +2538,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Promises That Do Not Add Up",
                   content:
-                    "<p>Elite traders on WhatsApp groups post screenshots of R10 000 turning into R250 000 in weeks. They urge you to ‘top up' before the window closes. Legitimate growth takes time, regulation, and visible paperwork; it is boring compared to the story.</p><p>In South Africa check FSCA warnings, ask for FSP numbers, call the institution on its official switchboard—not the number the salesperson gives—and never move money to random personal accounts. If recruitment pays more than investing returns, you are likely looking at something closer to a pyramid than an asset.</p>",
+                    "<p>Elite traders on WhatsApp groups post screenshots of R10 000 turning into R250 000 in weeks. They urge you to ‘top up' before the window closes. Legitimate growth takes time, regulation, and visible paperwork; it is boring compared to the story.</p><p>In South Africa check FSCA warnings, ask for FSP numbers, call the institution on its official switchboard-not the number the salesperson gives-and never move money to random personal accounts. If recruitment pays more than investing returns, you are likely looking at something closer to a pyramid than an asset.</p>",
                 },
                 {
                   type: "mcq",
@@ -2560,7 +2560,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You can check whether a South African financial services provider is registered before you invest.",
                   correct: true,
                   feedback: {
-                    correct: "Regulators publish lists and warnings—use them.",
+                    correct: "Regulators publish lists and warnings-use them.",
                     incorrect: "If you skip verification, you carry extra avoidable risk.",
                   },
                 },
@@ -2584,7 +2584,7 @@ const RAW_COURSES: Course[] = [
                   type: "action",
                   title: "Save one hotline",
                   instruction:
-                    "Look up the SA Police Service or banking fraud number you would dial if cash left your account suspiciously. Store it as a contact labelled Fraud—do not wait until panic strikes.",
+                    "Look up the SA Police Service or banking fraud number you would dial if cash left your account suspiciously. Store it as a contact labelled Fraud-do not wait until panic strikes.",
                   tip: "Screenshot official pages sparingly; prefer typing numbers yourself from .gov.za or your bank’s PDF.",
                 },
               ] satisfies LessonStep[],
@@ -2597,7 +2597,7 @@ const RAW_COURSES: Course[] = [
                   type: "info",
                   title: "Love Bombs and Empty Wallets",
                   content:
-                    "<p>Fraudsters build trust over weeks—compliments, voice notes, shared playlists—then an ‘emergency': customs holding a gift, a sick relative in a private hospital, crypto software that only needs a small activation fee. Victims in South Africa have lost cars, stokvel savings, and study money.</p><p>Cut contact if anyone you have never met in person asks for e-wallet sends, airtime ladders, or remote access to your banking app. Real partners do not acceleration-test your overdraft on week three.</p>",
+                    "<p>Fraudsters build trust over weeks-compliments, voice notes, shared playlists-then an ‘emergency': customs holding a gift, a sick relative in a private hospital, crypto software that only needs a small activation fee. Victims in South Africa have lost cars, stokvel savings, and study money.</p><p>Cut contact if anyone you have never met in person asks for e-wallet sends, airtime ladders, or remote access to your banking app. Real partners do not acceleration-test your overdraft on week three.</p>",
                 },
                 {
                   type: "true-false",
@@ -2638,7 +2638,7 @@ const RAW_COURSES: Course[] = [
                   type: "action",
                   title: "Tell one ally",
                   instruction:
-                    "Choose one person who will hear you say ‘I met someone online' before you send funds or share ID copies. Message them today with that agreement—no judgement, just a pause partner.",
+                    "Choose one person who will hear you say ‘I met someone online' before you send funds or share ID copies. Message them today with that agreement-no judgement, just a pause partner.",
                   tip: "Scammers isolate you; allies break the trance.",
                 },
               ] satisfies LessonStep[],
@@ -2657,7 +2657,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "No Investment Can Guarantee a Fixed Return",
-                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is one of the most reliable indicators of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk — which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
+                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is one of the most reliable indicators of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk - which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
                 },
                 {
                   type: "mcq",
@@ -2665,8 +2665,8 @@ const RAW_COURSES: Course[] = [
                   options: ["Invest quickly before spots run out", "Invest a small amount to test it first", "Report it to the FSCA and do not invest", "Ask friends for their opinion before investing"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. 15% monthly = 180% annually — physically impossible legitimately. Report it to the FSCA (0800 110 443) and walk away.",
-                    incorrect: "This is a classic Ponzi scheme description. No legitimate investment offers these returns. Report to the FSCA — investing even a small amount funds the scam and you will lose it.",
+                    correct: "Correct. 15% monthly = 180% annually - physically impossible legitimately. Report it to the FSCA (0800 110 443) and walk away.",
+                    incorrect: "This is a classic Ponzi scheme description. No legitimate investment offers these returns. Report to the FSCA - investing even a small amount funds the scam and you will lose it.",
                   },
                 },
                 {
@@ -2977,7 +2977,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Everyone Else Buying Makes You Want to Buy",
-                  content: "<p><strong>Herd mentality</strong> is the tendency to follow what everyone else is doing, particularly in financial markets. When a large group moves in one direction, our brains interpret this as social proof that the direction is correct.</p><p><strong>FOMO (Fear of Missing Out)</strong> is its emotional engine. When Bitcoin was climbing to R1 000 000 in 2021, millions of South Africans bought at or near the top — not because they understood the asset, but because others seemed to be getting rich.</p><p><strong>SA examples of herd-driven losses:</strong></p><ul><li>Crypto speculation 2021: Many South Africans bought when prices peaked, then held through an 80% drawdown</li><li>Property pyramid schemes: Groups of friends buying into syndicates because everyone else was doing it</li><li>Steinhoff shares: Many individual investors held as insiders sold, following analyst upgrades rather than evaluating the fundamentals</li></ul><p><strong>How to think independently:</strong></p><ul><li>Ask: do I understand what I am buying?</li><li>Ask: would I buy this if no one was talking about it?</li><li>Ask: can I explain clearly how this generates a return?</li><li>Delay — make a rule: any investment decision requires a 48-hour wait before acting</li></ul>",
+                  content: "<p><strong>Herd mentality</strong> is the tendency to follow what everyone else is doing, particularly in financial markets. When a large group moves in one direction, our brains interpret this as social proof that the direction is correct.</p><p><strong>FOMO (Fear of Missing Out)</strong> is its emotional engine. When Bitcoin was climbing to R1 000 000 in 2021, millions of South Africans bought at or near the top - not because they understood the asset, but because others seemed to be getting rich.</p><p><strong>SA examples of herd-driven losses:</strong></p><ul><li>Crypto speculation 2021: Many South Africans bought when prices peaked, then held through an 80% drawdown</li><li>Property pyramid schemes: Groups of friends buying into syndicates because everyone else was doing it</li><li>Steinhoff shares: Many individual investors held as insiders sold, following analyst upgrades rather than evaluating the fundamentals</li></ul><p><strong>How to think independently:</strong></p><ul><li>Ask: do I understand what I am buying?</li><li>Ask: would I buy this if no one was talking about it?</li><li>Ask: can I explain clearly how this generates a return?</li><li>Delay - make a rule: any investment decision requires a 48-hour wait before acting</li></ul>",
                 },
                 {
                   type: "mcq",
@@ -2985,7 +2985,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Buy immediately so you don't miss the gains", "Check how many people have bought before deciding", "Research the asset independently and understand how it works before investing", "Ask your friends how much they made"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Independent research — understanding what you are buying and why it should increase in value — is the only sound basis for an investment decision.",
+                    correct: "Correct. Independent research - understanding what you are buying and why it should increase in value - is the only sound basis for an investment decision.",
                     incorrect: "The number of buyers is irrelevant to whether an investment is sound. Doing your own research and understanding the asset is the only protection against herd-driven losses.",
                   },
                 },
@@ -3007,7 +3007,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Losing Hurts Twice as Much as Winning Feels Good",
-                  content: "<p>Behavioural economists Daniel Kahneman and Amos Tversky proved that humans feel the pain of a loss approximately <strong>twice as intensely</strong> as the pleasure of an equivalent gain. Losing R1 000 hurts about twice as much as gaining R1 000 feels good.</p><p><strong>How loss aversion destroys investment returns:</strong></p><ul><li><strong>Holding losing investments too long:</strong> Selling a share at a loss feels devastating, so people hold losers indefinitely hoping to break even — even when the investment case is broken.</li><li><strong>Panic selling at market lows:</strong> When markets fall 20–30%, the emotional pain is so intense that people sell at the bottom to stop the psychological pain — crystallising losses at exactly the wrong moment.</li><li><strong>Avoiding investing altogether:</strong> The fear of potential losses keeps some people in cash forever, earning 8% while inflation erodes their purchasing power.</li></ul><p><strong>The rational response:</strong> Evaluate investments based on future prospects, not what you paid. If you would not buy the investment today at the current price, consider selling — regardless of whether it is above or below your purchase price. Past price is irrelevant to future performance.</p>",
+                  content: "<p>Behavioural economists Daniel Kahneman and Amos Tversky proved that humans feel the pain of a loss approximately <strong>twice as intensely</strong> as the pleasure of an equivalent gain. Losing R1 000 hurts about twice as much as gaining R1 000 feels good.</p><p><strong>How loss aversion destroys investment returns:</strong></p><ul><li><strong>Holding losing investments too long:</strong> Selling a share at a loss feels devastating, so people hold losers indefinitely hoping to break even - even when the investment case is broken.</li><li><strong>Panic selling at market lows:</strong> When markets fall 20–30%, the emotional pain is so intense that people sell at the bottom to stop the psychological pain - crystallising losses at exactly the wrong moment.</li><li><strong>Avoiding investing altogether:</strong> The fear of potential losses keeps some people in cash forever, earning 8% while inflation erodes their purchasing power.</li></ul><p><strong>The rational response:</strong> Evaluate investments based on future prospects, not what you paid. If you would not buy the investment today at the current price, consider selling - regardless of whether it is above or below your purchase price. Past price is irrelevant to future performance.</p>",
                 },
                 {
                   type: "mcq",
@@ -3016,7 +3016,7 @@ const RAW_COURSES: Course[] = [
                   correct: 1,
                   feedback: {
                     correct: "Correct. Loss aversion causes investors to hold losing positions far too long, anchored to the original price rather than evaluating the investment on its current merits.",
-                    incorrect: "Loss aversion causes holding — the pain of selling at a loss feels worse than the pain of continuing to hold. The rational approach is to evaluate whether you would buy the shares today at R4 000.",
+                    incorrect: "Loss aversion causes holding - the pain of selling at a loss feels worse than the pain of continuing to hold. The rational approach is to evaluate whether you would buy the shares today at R4 000.",
                   },
                 },
                 {
@@ -3064,7 +3064,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Instagram Shows You the Highlight Reel, Not the Balance Sheet",
-                  content: "<p>Social media has amplified one of the oldest financial traps: comparing your spending and lifestyle to others. The problem has intensified because you are now comparing yourself to thousands of curated personas simultaneously.</p><p><strong>What you don't see:</strong> The person posting a luxury holiday may be R200 000 in personal loan debt. The influencer showing designer clothes may be getting them for free or on credit. The car parked in front of the house may be on a 72-month finance agreement that consumes 30% of their income.</p><p><strong>Lifestyle inflation in the social media era:</strong> You see a product, feel you need it to maintain your status or belong to a group, buy it on credit or at the cost of saving. This cycle — consume, post, compare, consume more — is the engine of financial vulnerability in the smartphone generation.</p><p><strong>Practical boundaries:</strong></p><ul><li>Unfollow or mute accounts that trigger spending impulses</li><li>Use the 72-hour rule: wait 3 days before any non-essential purchase over R500</li><li>Distinguish between inspiration (I want to build toward that) and comparison (I must have that now)</li><li>Track your actual net worth monthly — this grounds you in reality when social feeds distort your perception</li></ul>",
+                  content: "<p>Social media has amplified one of the oldest financial traps: comparing your spending and lifestyle to others. The problem has intensified because you are now comparing yourself to thousands of curated personas simultaneously.</p><p><strong>What you don't see:</strong> The person posting a luxury holiday may be R200 000 in personal loan debt. The influencer showing designer clothes may be getting them for free or on credit. The car parked in front of the house may be on a 72-month finance agreement that consumes 30% of their income.</p><p><strong>Lifestyle inflation in the social media era:</strong> You see a product, feel you need it to maintain your status or belong to a group, buy it on credit or at the cost of saving. This cycle - consume, post, compare, consume more - is the engine of financial vulnerability in the smartphone generation.</p><p><strong>Practical boundaries:</strong></p><ul><li>Unfollow or mute accounts that trigger spending impulses</li><li>Use the 72-hour rule: wait 3 days before any non-essential purchase over R500</li><li>Distinguish between inspiration (I want to build toward that) and comparison (I must have that now)</li><li>Track your actual net worth monthly - this grounds you in reality when social feeds distort your perception</li></ul>",
                 },
                 {
                   type: "mcq",
@@ -3072,7 +3072,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Finance a similar car so you don't fall behind", "Assume they are in debt and feel better about yourself", "Focus on your own financial goals and net worth progress", "Ask them how they can afford it and try to match their strategy"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Your financial trajectory is measured against your own goals — not against what others display publicly. Their visible consumption tells you nothing about their financial health.",
+                    correct: "Correct. Your financial trajectory is measured against your own goals - not against what others display publicly. Their visible consumption tells you nothing about their financial health.",
                     incorrect: "Focusing on your own goals and tracking your own net worth is the only comparison that is financially meaningful. What others display publicly reveals nothing about their financial health.",
                   },
                 },
@@ -3160,7 +3160,7 @@ const RAW_COURSES: Course[] = [
                 { type: "mcq", question: "The US Federal Reserve raises interest rates sharply. What typically happens to the rand?", options: ["Rand strengthens, US growth is good for trade", "Rand weakens, capital flows to USD for better yields", "No effect, markets are independent", "Rand strengthens, investors seek diversification"], correct: 1, feedback: { correct: "Rising US rates pull global capital toward USD. Money exits SA, rand demand drops, and the rand weakens, this is called capital flight.", incorrect: "Rising US rates make USD assets more attractive. Capital leaves SA, reducing rand demand. The rand weakens." } },
                 { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20–R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },
                 { type: "true-false", statement: "A weaker rand is always bad for all South Africans.", correct: false, feedback: { correct: "A weaker rand benefits exporters, SA's mining sector earns dollars and pays costs in rand. A weaker rand increases their rand revenue and employment in mining communities.", incorrect: "A weaker rand hurts importers and consumers but benefits exporters (mining, agriculture, tourism) who earn foreign currency." } },
-                { type: "scenario", question: "You invested R100 000 in a Satrix S&P 500 ETF when the rand was R17/$. The rand weakens to R20/$, but US shares didn't move. Your investment is now worth approximately:", options: ["R100 000", "R117,647", "R85 000", "R70 000"], correct: 1, feedback: { correct: "R100 000 ÷ R17 = $5,882. At R20/$: $5,882 × R20 = R117,647. Rand weakness created a 17.6% gain from currency alone, this is why offshore investments hedge against rand depreciation.", incorrect: "R100 000 at R17/$ = $5,882. At R20/$: $5,882 × R20 = R117,647. The rand's weakness boosted rand returns by 17.6% even without any share price movement." } },
+                { type: "scenario", question: "You invested R100 000 in a Satrix S&P 500 ETF when the rand was R17/$. The rand weakens to R20/$, but US shares didn't move. Your investment is now worth approximately:", options: ["R100 000", "R117,647", "R85 000", "R70 000"], correct: 1, feedback: { correct: "R100 000 ÷ R17 = $5 882. At R20/$: $5 882 × R20 = R117,647. Rand weakness created a 17.6% gain from currency alone, this is why offshore investments hedge against rand depreciation.", incorrect: "R100 000 at R17/$ = $5 882. At R20/$: $5 882 × R20 = R117,647. The rand's weakness boosted rand returns by 17.6% even without any share price movement." } },
                 { type: "mcq", question: "Which SA investment provides the best protection against rand depreciation?", options: ["SA government bonds (RSA Retail Bonds)", "A Satrix MSCI World ETF (global equities)", "A fixed deposit at a SA bank", "SA listed property"], correct: 1, feedback: { correct: "Global ETFs give you exposure to foreign currencies. When the rand weakens, your ETF gains in rand terms even if underlying shares haven't moved. This is the most accessible rand hedge for ordinary investors.", incorrect: "Global ETFs provide currency exposure. When rand weakens, foreign-denominated assets gain in rand value. SA bonds, fixed deposits, and local property are fully rand-denominated with no currency protection." } },
               ] satisfies LessonStep[],
             },

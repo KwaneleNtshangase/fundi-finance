@@ -1,5 +1,5 @@
 /**
- * Fundi Finance — Spaced Repetition Concepts
+ * Fundi Finance - Spaced Repetition Concepts
  *
  * Each concept has:
  *  - id: unique slug
@@ -35,7 +35,7 @@ export const CONCEPTS: Concept[] = [
       question: "Inflation is 6% per year. You leave R1 000 under your mattress. After one year, what happens to its buying power?",
       options: ["It grows to R1 060", "It stays exactly R1 000", "It can buy roughly R943 worth of goods", "Nothing changes"],
       correct: 2,
-      explanation: "Inflation erodes purchasing power. At 6%, R1 000 buys only ~R943 worth of goods a year later — cash loses value when it earns no interest.",
+      explanation: "Inflation erodes purchasing power. At 6%, R1 000 buys only ~R943 worth of goods a year later - cash loses value when it earns no interest.",
     },
     courses: ["money-basics", "rand-economy"],
   },
@@ -47,7 +47,7 @@ export const CONCEPTS: Concept[] = [
       question: "You invest R10 000 at 10% per year, compounded annually. After 2 years, how much do you have?",
       options: ["R12 000", "R12 100", "R11 000", "R20 000"],
       correct: 1,
-      explanation: "Year 1: R10 000 × 1.10 = R11 000. Year 2: R11 000 × 1.10 = R12 100. You earn interest on your interest — that's compound growth.",
+      explanation: "Year 1: R10 000 × 1.10 = R11 000. Year 2: R11 000 × 1.10 = R12 100. You earn interest on your interest - that's compound growth.",
     },
     courses: ["money-basics", "investing-basics"],
   },
@@ -56,7 +56,7 @@ export const CONCEPTS: Concept[] = [
     name: "Time Value of Money",
     category: "Money & Economics",
     reviewCard: {
-      question: "Which is worth more — R1 000 today or R1 000 in 5 years?",
+      question: "Which is worth more - R1 000 today or R1 000 in 5 years?",
       options: [
         "R1 000 in 5 years",
         "They are equal",
@@ -106,10 +106,10 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "What does PAYE stand for and who collects it?",
       options: [
-        "Pay As You Earn — collected by your employer and paid to SARS",
-        "Pay After Year End — you pay it yourself in February",
-        "Personal Annual Yearly Expense — kept by your employer",
-        "Pension And Year-end Earnings — paid to your retirement fund",
+        "Pay As You Earn - collected by your employer and paid to SARS",
+        "Pay After Year End - you pay it yourself in February",
+        "Personal Annual Yearly Expense - kept by your employer",
+        "Pension And Year-end Earnings - paid to your retirement fund",
       ],
       correct: 0,
       explanation: "PAYE (Pay As You Earn) is income tax deducted from your salary by your employer every month and sent directly to SARS on your behalf.",
@@ -315,13 +315,13 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "What is an ETF and why is it good for beginner investors?",
       options: [
-        "A single company share — high risk, high reward",
+        "A single company share - high risk, high reward",
         "A basket of many shares that tracks an index, offering instant diversification at low cost",
         "A bank savings product guaranteed by government",
         "A loan product for investing in property",
       ],
       correct: 1,
-      explanation: "An ETF tracks an index (e.g. Top 40 JSE companies) and holds many shares at once. Buying one ETF instantly diversifies your portfolio at very low fees — ideal for beginners.",
+      explanation: "An ETF tracks an index (e.g. Top 40 JSE companies) and holds many shares at once. Buying one ETF instantly diversifies your portfolio at very low fees - ideal for beginners.",
     },
     courses: ["sa-investing", "investing-basics"],
   },
@@ -332,9 +332,9 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "An investment promises a guaranteed 40% return per year with zero risk. What should you think?",
       options: [
-        "Invest immediately — this is a great opportunity",
+        "Invest immediately - this is a great opportunity",
         "Ask your bank for the same deal",
-        "This is almost certainly a scam — high return always comes with high risk",
+        "This is almost certainly a scam - high return always comes with high risk",
         "It must be a government bond",
       ],
       correct: 2,
@@ -353,7 +353,7 @@ export const CONCEPTS: Concept[] = [
       options: [
         "Sipho, because he earns more by then",
         "They end up with the same amount",
-        "Themba, by a huge margin — compound interest rewards starting early",
+        "Themba, by a huge margin - compound interest rewards starting early",
         "It depends entirely on the market",
       ],
       correct: 2,
@@ -369,12 +369,12 @@ export const CONCEPTS: Concept[] = [
       question: "Under SA's Two-Pot system (from 2024), which pot can you access once per year before retirement?",
       options: [
         "The Retirement Pot (2/3 of contributions)",
-        "Neither pot — all funds are locked until retirement",
+        "Neither pot - all funds are locked until retirement",
         "The Savings Pot (1/3 of contributions)",
         "Both pots equally",
       ],
       correct: 2,
-      explanation: "The Savings Pot (1/3 of contributions) can be accessed once per year for emergencies — taxed as income. The Retirement Pot (2/3) stays locked until retirement. This prevents raiding your entire pension while still allowing emergency access.",
+      explanation: "The Savings Pot (1/3 of contributions) can be accessed once per year for emergencies - taxed as income. The Retirement Pot (2/3) stays locked until retirement. This prevents raiding your entire pension while still allowing emergency access.",
     },
     courses: ["two-pot-basics", "retirement"],
   },
@@ -388,7 +388,7 @@ export const CONCEPTS: Concept[] = [
         "Your contributions are exempt from VAT",
         "Contributions up to 27.5% of income are tax-deductible (reducing your tax bill now)",
         "All returns inside an RA are taxed at 0%",
-        "There is no tax benefit — RAs are purely for safety",
+        "There is no tax benefit - RAs are purely for safety",
       ],
       correct: 1,
       explanation: "SARS allows you to deduct RA contributions (up to 27.5% of taxable income, max R350k/year) from your taxable income. This reduces your tax bill now while building your retirement nest egg.",
@@ -446,7 +446,7 @@ export const CONCEPTS: Concept[] = [
         "Groceries and clothing",
       ],
       correct: 2,
-      explanation: "50% covers needs (rent, food, transport), 30% covers wants (entertainment, eating out), and 20% goes to savings, investing, and paying off debt. Adjust the percentages to your situation — the key is intentionality.",
+      explanation: "50% covers needs (rent, food, transport), 30% covers wants (entertainment, eating out), and 20% goes to savings, investing, and paying off debt. Adjust the percentages to your situation - the key is intentionality.",
     },
     courses: ["money-basics", "emergency-fund"],
   },
@@ -511,12 +511,12 @@ export const CONCEPTS: Concept[] = [
       question: "What makes cryptocurrency fundamentally different from the rand?",
       options: [
         "Crypto earns guaranteed interest",
-        "Crypto is decentralised — no government or central bank controls it",
+        "Crypto is decentralised - no government or central bank controls it",
         "Crypto is backed by gold",
         "Crypto is only used in South Africa",
       ],
       correct: 1,
-      explanation: "Crypto runs on decentralised blockchain networks with no central authority. This means no government can print more of it, but also means there is no safety net — prices can fall 80%+ in a matter of months.",
+      explanation: "Crypto runs on decentralised blockchain networks with no central authority. This means no government can print more of it, but also means there is no safety net - prices can fall 80%+ in a matter of months.",
     },
     courses: ["crypto-basics", "what-is-crypto"],
   },

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance - Poster Designs</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #111;
+    color: white;
+    padding: 40px;
+  }
+  h1 { text-align: center; font-size: 28px; color: #FFB612; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 50px; }
+  .poster-row { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-bottom: 60px; }
+  .poster-wrapper { text-align: center; }
+  .poster-label { color: #555; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+
+  /* ===== POSTER 1: Launch Day ===== */
+  .poster-launch {
+    width: 400px;
+    height: 566px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: linear-gradient(160deg, #007A4D 0%, #003d26 60%, #001a10 100%);
+    box-shadow: 0 20px 60px rgba(0,122,77,0.3);
+  }
+
+  .poster-launch .bg-circles {
+    position: absolute;
+    inset: 0;
+  }
+  .poster-launch .bg-circles .c {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255,182,18,0.08);
+  }
+  .poster-launch .bg-circles .c:nth-child(1) { width: 500px; height: 500px; top: -100px; right: -150px; }
+  .poster-launch .bg-circles .c:nth-child(2) { width: 350px; height: 350px; top: -25px; right: -75px; }
+  .poster-launch .bg-circles .c:nth-child(3) { width: 200px; height: 200px; top: 50px; right: 0; }
+  .poster-launch .bg-circles .c:nth-child(4) { width: 600px; height: 600px; bottom: -300px; left: -200px; border-color: rgba(255,255,255,0.03); }
+
+  .poster-launch .content {
+    position: relative;
+    z-index: 2;
+    padding: 40px 30px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .poster-launch .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .poster-launch .logo-text {
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 3px;
+  }
+  .poster-launch .logo-text span { color: #FFB612; }
+
+  .poster-launch .date-badge {
+    background: rgba(255,182,18,0.15);
+    border: 1px solid rgba(255,182,18,0.3);
+    color: #FFB612;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  .poster-launch .hero-text {
+    margin: 30px 0;
+  }
+  .poster-launch .hero-text .pre {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .poster-launch .hero-text h2 {
+    font-size: 44px;
+    font-weight: 900;
+    line-height: 1.05;
+  }
+  .poster-launch .hero-text h2 .gold { color: #FFB612; }
+  .poster-launch .hero-text .desc {
+    margin-top: 16px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.6;
+  }
+
+  .poster-launch .features-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .poster-launch .feat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .poster-launch .feat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .poster-launch .feat-icon.g { background: rgba(0,122,77,0.3); }
+  .poster-launch .feat-icon.y { background: rgba(255,182,18,0.2); }
+  .poster-launch .feat-icon.r { background: rgba(224,60,49,0.2); }
+
+  .poster-launch .bottom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .poster-launch .qr-box {
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #111;
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.2;
+  }
+  .poster-launch .store-icons {
+    text-align: right;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+  }
+  .poster-launch .store-icons .platforms {
+    font-size: 20px;
+    margin-top: 4px;
+  }
+
+  /* ===== POSTER 2: Feature Highlight ===== */
+  .poster-feature {
+    width: 400px;
+    height: 566px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #FFB612;
+    box-shadow: 0 20px 60px rgba(255,182,18,0.3);
+  }
+
+  .poster-feature .top-half {
+    height: 50%;
+    background: linear-gradient(180deg, #007A4D, #005a38);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .poster-feature .top-half::after {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #FFB612;
+    border-radius: 50% 50% 0 0;
+  }
+
+  .poster-feature .top-half .logo-text {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: white;
+  }
+  .poster-feature .top-half .logo-text span { color: #FFB612; }
+
+  .poster-feature .phone-mini {
+    width: 160px;
+    height: 200px;
+    margin: 0 auto;
+    background: #1a1a1a;
+    border-radius: 20px;
+    border: 3px solid #333;
+    padding: 12px;
+    position: relative;
+    z-index: 2;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+  }
+  .phone-mini .screen {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, #007A4D 0%, #005a38 100%);
+    border-radius: 12px;
+    padding: 20px 10px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .phone-mini .screen .bar {
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.15);
+  }
+  .phone-mini .screen .bar.active { background: #FFB612; width: 70%; }
+  .phone-mini .screen .bar.half { width: 50%; }
+  .phone-mini .screen .card-m {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 4px;
+    flex: 1;
+  }
+
+  .poster-feature .bottom-half {
+    height: 50%;
+    padding: 40px 30px 30px;
+    color: #111;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .poster-feature .bottom-half h2 {
+    font-size: 28px;
+    font-weight: 900;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .poster-feature .bottom-half h2 .green { color: #007A4D; }
+
+  .poster-feature .bottom-half p {
+    font-size: 13px;
+    color: rgba(0,0,0,0.6);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+
+  .poster-feature .cta-pill {
+    display: inline-block;
+    background: #007A4D;
+    color: white;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+  }
+
+  /* ===== POSTER 3: Testimonial / Social Proof ===== */
+  .poster-testimonial {
+    width: 400px;
+    height: 566px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #F0F7F4;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    color: #111;
+  }
+
+  .poster-testimonial .accent-bar {
+    height: 6px;
+    background: linear-gradient(90deg, #007A4D, #FFB612, #E03C31);
+  }
+
+  .poster-testimonial .content {
+    padding: 36px 30px;
+    height: calc(100% - 6px);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .poster-testimonial .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .poster-testimonial .logo-text {
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    color: #007A4D;
+  }
+  .poster-testimonial .logo-text span { color: #FFB612; }
+  .poster-testimonial .sa-flag { font-size: 24px; }
+
+  .poster-testimonial .quote-section {
+    text-align: center;
+    padding: 10px 0;
+  }
+  .poster-testimonial .big-quote {
+    font-size: 80px;
+    color: #007A4D;
+    opacity: 0.15;
+    line-height: 0.5;
+    margin-bottom: 20px;
+  }
+  .poster-testimonial .quote-text {
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.4;
+    color: #111827;
+    margin-bottom: 24px;
+  }
+  .poster-testimonial .quote-text .highlight {
+    color: #007A4D;
+    text-decoration: underline;
+    text-decoration-color: #FFB612;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 3px;
+  }
+
+  .poster-testimonial .author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: center;
+  }
+  .poster-testimonial .avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #007A4D, #FFB612);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+  }
+  .poster-testimonial .author-info { text-align: left; }
+  .poster-testimonial .author-name { font-size: 14px; font-weight: 700; }
+  .poster-testimonial .author-role { font-size: 12px; color: #6B7280; }
+
+  .poster-testimonial .stats-row {
+    display: flex;
+    gap: 12px;
+  }
+  .poster-testimonial .stat-card {
+    flex: 1;
+    background: white;
+    border-radius: 14px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .poster-testimonial .stat-num {
+    font-size: 26px;
+    font-weight: 900;
+    color: #007A4D;
+  }
+  .poster-testimonial .stat-label {
+    font-size: 10px;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  .poster-testimonial .bottom-cta {
+    text-align: center;
+  }
+  .poster-testimonial .cta-btn {
+    display: inline-block;
+    background: #007A4D;
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+  }
+  .poster-testimonial .cta-sub {
+    font-size: 11px;
+    color: #9CA3AF;
+    margin-top: 8px;
+  }
+
+  /* ===== POSTER 4: Bold Motivational ===== */
+  .poster-bold {
+    width: 400px;
+    height: 566px;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    background: #111;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  .poster-bold .diagonal {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60%;
+    height: 100%;
+    background: #007A4D;
+    clip-path: polygon(30% 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .poster-bold .content {
+    position: relative;
+    z-index: 2;
+    padding: 40px 30px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .poster-bold .logo-text {
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: white;
+  }
+  .poster-bold .logo-text span { color: #FFB612; }
+
+  .poster-bold .bold-text {
+    text-align: center;
+  }
+  .poster-bold .bold-text h2 {
+    font-size: 52px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+    color: white;
+  }
+  .poster-bold .bold-text h2 .gold { color: #FFB612; }
+  .poster-bold .bold-text .sub {
+    font-size: 16px;
+    color: rgba(255,255,255,0.6);
+    font-weight: 600;
+  }
+
+  .poster-bold .coin-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 20px 0;
+  }
+  .poster-bold .gold-coin {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFB612, #e6a00f);
+    border: 3px solid #d4990d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: 900;
+    color: #111;
+    box-shadow: 0 4px 15px rgba(255,182,18,0.4);
+  }
+
+  .poster-bold .bottom-info {
+    text-align: center;
+  }
+  .poster-bold .bottom-info p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .poster-bold .cta-btn {
+    display: inline-block;
+    background: #FFB612;
+    color: #111;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 14px 32px;
+    border-radius: 50px;
+    letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+  <h1>Fundi Finance Poster Collection</h1>
+  <p class="subtitle">Print-ready marketing posters — A3 / A4 format</p>
+
+  <div class="poster-row">
+    <!-- POSTER 1: Launch Day -->
+    <div class="poster-wrapper">
+      <div class="poster-label">Launch Day Poster</div>
+      <div class="poster-launch">
+        <div class="bg-circles">
+          <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+        </div>
+        <div class="content">
+          <div class="top-row">
+            <div class="logo-text">FUNDI <span>FINANCE</span></div>
+            <div class="date-badge">2026</div>
+          </div>
+          <div class="hero-text">
+            <div class="pre">Introducing</div>
+            <h2>Learn Money.<br>Master <span class="gold">Life.</span></h2>
+            <p class="desc">South Africa's first gamified financial literacy app. Free to download, fun to master.</p>
+          </div>
+          <div class="features-list">
+            <div class="feat-item">
+              <div class="feat-icon g">🎮</div>
+              <span>Gamified bite-sized lessons</span>
+            </div>
+            <div class="feat-item">
+              <div class="feat-icon y">🏆</div>
+              <span>Leaderboards & streaks</span>
+            </div>
+            <div class="feat-item">
+              <div class="feat-icon r">🧠</div>
+              <span>Real-world financial decisions</span>
+            </div>
+          </div>
+          <div class="bottom-bar">
+            <div class="qr-box">SCAN TO<br>DOWNLOAD</div>
+            <div class="store-icons">
+              Available on<br>
+              <div class="platforms">🍎 ▶️</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTER 2: Feature Highlight -->
+    <div class="poster-wrapper">
+      <div class="poster-label">Feature Highlight Poster</div>
+      <div class="poster-feature">
+        <div class="top-half">
+          <div class="logo-text">FUNDI <span>FINANCE</span></div>
+          <div class="phone-mini">
+            <div class="screen">
+              <div class="bar active"></div>
+              <div class="bar half"></div>
+              <div class="bar"></div>
+              <div class="card-m"></div>
+              <div class="bar active"></div>
+              <div class="bar half"></div>
+            </div>
+          </div>
+        </div>
+        <div class="bottom-half">
+          <h2>Your <span class="green">Financial<br>Glow-Up</span> Starts Here</h2>
+          <p>5-minute lessons that fit your schedule. Learn budgeting, credit, investing, and more — the fun way.</p>
+          <div><span class="cta-pill">DOWNLOAD FREE</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="poster-row">
+    <!-- POSTER 3: Testimonial -->
+    <div class="poster-wrapper">
+      <div class="poster-label">Social Proof Poster</div>
+      <div class="poster-testimonial">
+        <div class="accent-bar"></div>
+        <div class="content">
+          <div class="top-row">
+            <div class="logo-text">FUNDI <span>FINANCE</span></div>
+            <div class="sa-flag">🇿🇦</div>
+          </div>
+          <div class="quote-section">
+            <div class="big-quote">"</div>
+            <div class="quote-text">
+              I finally understand <span class="highlight">how credit works</span> and started saving R500 a month. This app changed my life.
+            </div>
+            <div class="author">
+              <div class="avatar">TN</div>
+              <div class="author-info">
+                <div class="author-name">Thabo N.</div>
+                <div class="author-role">University Student, Johannesburg</div>
+              </div>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card">
+              <div class="stat-num">50+</div>
+              <div class="stat-label">Lessons</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">4.9</div>
+              <div class="stat-label">Rating</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">FREE</div>
+              <div class="stat-label">To Start</div>
+            </div>
+          </div>
+          <div class="bottom-cta">
+            <div class="cta-btn">START LEARNING TODAY</div>
+            <div class="cta-sub">Available on App Store & Google Play</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- POSTER 4: Bold Motivational -->
+    <div class="poster-wrapper">
+      <div class="poster-label">Motivational Poster</div>
+      <div class="poster-bold">
+        <div class="diagonal"></div>
+        <div class="content">
+          <div class="logo-text">FUNDI <span>FINANCE</span></div>
+          <div class="bold-text">
+            <h2>BROKE<br>IS A<br><span class="gold">MINDSET</span></h2>
+            <div class="sub">Fix it. For free.</div>
+          </div>
+          <div class="coin-row">
+            <div class="gold-coin">R</div>
+            <div class="gold-coin">R</div>
+            <div class="gold-coin">R</div>
+            <div class="gold-coin">R</div>
+            <div class="gold-coin">R</div>
+          </div>
+          <div class="bottom-info">
+            <p>50+ gamified lessons on budgeting, saving, credit, investing & more.</p>
+            <div class="cta-btn">DOWNLOAD NOW</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

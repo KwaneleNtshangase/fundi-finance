@@ -208,7 +208,7 @@ export const INVESTOR_QUIZ_QUESTIONS = [
     id: 5,
     question: "How stable is your monthly income?",
     options: [
-      { text: "Very unstable — irregular freelance or seasonal", score: 1 },
+      { text: "Very unstable - irregular freelance or seasonal", score: 1 },
       { text: "Somewhat variable with a commission component", score: 2 },
       { text: "Mostly stable with occasional variation", score: 3 },
       { text: "Stable salaried employment", score: 4 },
@@ -219,11 +219,11 @@ export const INVESTOR_QUIZ_QUESTIONS = [
     id: 6,
     question: "When you think about risk, you feel:",
     options: [
-      { text: "Very anxious — I avoid risk at all costs", score: 1 },
-      { text: "Somewhat anxious — I prefer caution", score: 2 },
-      { text: "Neutral — I accept some risk for some reward", score: 3 },
-      { text: "Comfortable — risk is part of building wealth", score: 4 },
-      { text: "Excited — higher risk means higher potential returns", score: 5 },
+      { text: "Very anxious - I avoid risk at all costs", score: 1 },
+      { text: "Somewhat anxious - I prefer caution", score: 2 },
+      { text: "Neutral - I accept some risk for some reward", score: 3 },
+      { text: "Comfortable - risk is part of building wealth", score: 4 },
+      { text: "Excited - higher risk means higher potential returns", score: 5 },
     ],
   },
   {
@@ -299,7 +299,7 @@ export function getInvestorProfile(totalScore: number) {
       emoji: "",
       color: "#F59E0B",
       description:
-        "You are comfortable with a balanced approach — accepting some volatility in exchange for meaningful long-term growth. A blend of local and global assets in a balanced fund is ideal.",
+        "You are comfortable with a balanced approach - accepting some volatility in exchange for meaningful long-term growth. A blend of local and global assets in a balanced fund is ideal.",
       allocation: "20% Cash • 30% Bonds • 50% Equities",
       products: ["Satrix Balanced Index Fund", "Allan Gray Balanced Fund", "Coronation Balanced Plus", "Sygnia Skeleton Balanced 70"],
     };
