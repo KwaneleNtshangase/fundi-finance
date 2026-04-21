@@ -1,0 +1,61 @@
+name: Health Check — Fundi Finance
+
+on:
+  # After every Vercel deployment (push to main)
+  push:
+    branches: [main]
+  # Every 6 hours around the clock
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  health:
+    name: Site health check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Playwright (Chromium only)
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run health-check script
+        run: node scripts/health-check.js
+        env:
+          BASE_URL: ${{ secrets.BASE_URL || 'https://fundiapp.co.za' }}
+
+      - name: Notify on failure (GitHub issue)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Health Check Failed — ${new Date().toISOString().slice(0,10)}`;
+            const body = `The automated health check detected a problem with the Fundi Finance app.\n\nSee the [failed workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details and screenshots.`;
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'health-check-failure'
+            });
+            // Avoid duplicates — only open one issue per day
+            const today = new Date().toISOString().slice(0,10);
+            const existing = issues.data.find(i => i.title.includes(today));
+            if (!existing) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['health-check-failure', 'bug']
+              });
+            }

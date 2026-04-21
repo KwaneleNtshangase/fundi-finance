@@ -1,0 +1,69 @@
+name: E2E Tests — Fundi Finance
+
+on:
+  # Run on every push to main (i.e. every Vercel deployment)
+  push:
+    branches: [main]
+  # Run daily at 7:00 AM South Africa time (05:00 UTC)
+  schedule:
+    - cron: "0 5 * * *"
+  # Allow manual trigger from GitHub Actions tab
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    name: Playwright E2E (${{ matrix.project }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - "Desktop Chrome"
+          - "Mobile Safari (iPhone 14)"
+          - "Mobile Chrome (Pixel 7)"
+
+    steps:
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ── Node & dependencies ──────────────────────────────────────────────────
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      # ── Playwright ──────────────────────────────────────────────────────────
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      # ── Run tests ───────────────────────────────────────────────────────────
+      - name: Run Playwright tests (${{ matrix.project }})
+        run: npx playwright test --project="${{ matrix.project }}"
+        env:
+          BASE_URL: ${{ secrets.BASE_URL || 'https://fundiapp.co.za' }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
+      # ── Upload report ───────────────────────────────────────────────────────
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload test videos (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-videos-${{ matrix.project }}
+          path: test-results/
+          retention-days: 7
