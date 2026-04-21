@@ -2765,7 +2765,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "You Are a Manager, Not an Owner",
-                  content: "<p>Psalm 24:1, <em>The earth is the Lord's, and everything in it.</em> Biblical finance starts here: everything belongs to God. We are managers of His resources, not the owners.</p><p>This shifts the question from 'What do I want to do with my money?' to 'What does God want me to do with what He has entrusted to me?'</p>",
+                  content: "<p>Psalm 24:1 (NLT), <em>The earth is the Lord's, and everything in it.</em> Biblical finance starts here: everything belongs to God. We are managers of His resources, not the owners.</p><p>This shifts the question from 'What do I want to do with my money?' to 'What does God want me to do with what He has entrusted to me?'</p>",
                 },
                 {
                   type: "mcq",
@@ -2780,7 +2780,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Faithful with Little",
-                  content: "<p>Luke 16:10, <em>Whoever can be trusted with very little can also be trusted with much.</em></p><p>Biblical stewardship isn't just for the wealthy. How you handle R500 reveals what you'd do with R5 million. Faithfulness with money starts with the small decisions you make today.</p>",
+                  content: "<p>Luke 16:10 (NLT), <em>Whoever can be trusted with very little can also be trusted with much.</em></p><p>Biblical stewardship isn't just for the wealthy. How you handle R500 reveals what you'd do with R5 million. Faithfulness with money starts with the small decisions you make today.</p>",
                 },
                 {
                   type: "true-false",
@@ -2800,7 +2800,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Ancient Wisdom, Modern Application",
-                  content: "<p>Proverbs 21:20, <em>The wise store up choice food and olive oil, but fools gulp theirs down.</em></p><p>In modern terms: save before you spend. Build reserves. The fool consumes everything immediately; the wise person plans ahead.</p>",
+                  content: "<p>Proverbs 21:20 (NLT), <em>The wise store up choice food and olive oil, but fools gulp theirs down.</em></p><p>In modern terms: save before you spend. Build reserves. The fool consumes everything immediately; the wise person plans ahead.</p>",
                 },
                 {
                   type: "mcq",
@@ -2815,7 +2815,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Ant Principle",
-                  content: "<p>Proverbs 6:6-8, <em>Go to the ant, you sluggard; consider its ways and be wise! It has no commander, no overseer or ruler, yet it stores its provisions in summer and gathers its food at harvest.</em></p><p>The ant saves without being told to. It prepares for seasons ahead. This is the spirit of an emergency fund, retirement savings, and consistent investing.</p>",
+                  content: "<p>Proverbs 6:6-8 (NLT), <em>Go to the ant, you sluggard; consider its ways and be wise! It has no commander, no overseer or ruler, yet it stores its provisions in summer and gathers its food at harvest.</em></p><p>The ant saves without being told to. It prepares for seasons ahead. This is the spirit of an emergency fund, retirement savings, and consistent investing.</p>",
                 },
                 {
                   type: "true-false",
@@ -2842,7 +2842,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Honour God with Your Wealth",
-                  content: "<p>Proverbs 3:9, <em>Honour the Lord with your wealth, with the firstfruits of all your crops.</em></p><p>Giving first is an act of faith and financial discipline. 'Firstfruits' means off the top, not what's left over after everything else.</p>",
+                  content: "<p>Proverbs 3:9 (NLT), <em>Honour the Lord with your wealth, with the firstfruits of all your crops.</em></p><p>Giving first is an act of faith and financial discipline. 'Firstfruits' means off the top, not what's left over after everything else.</p>",
                 },
                 {
                   type: "true-false",

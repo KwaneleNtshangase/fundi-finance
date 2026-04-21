@@ -52,7 +52,7 @@ export function MobileBottomNav({
             >
               {item.icon}
             </span>
-            <span className="leading-none">{item.label}</span>
+            <span className="leading-none">{item.label === "Quests" ? "Goals" : item.label}</span>
           </button>
         ))}
       </div>
