@@ -109,6 +109,30 @@ const FUNDI_FAQ = [
   },
 ];
 
+function normalizeUsername(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+}
+
+function validateUsername(value: string): string | null {
+  if (!value) return "Username is required.";
+  if (value.length < 3) return "Username must be at least 3 characters.";
+  if (value.length > 20) return "Username must be 20 characters or less.";
+  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
+  return null;
+}
+
+async function isUsernameAvailable(username: string, excludeUserId?: string): Promise<boolean> {
+  const normalized = normalizeUsername(username);
+  if (!normalized) return false;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("username", normalized);
+  if (error) return false;
+  const rows = (data as { user_id: string }[] | null) ?? [];
+  return rows.every((row) => row.user_id === excludeUserId);
+}
+
 // ─── FeedbackModal ────────────────────────────────────────────────────────────
 
 function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -350,6 +374,7 @@ export function ProfileView({
   const [needsProfileUpdate, setNeedsProfileUpdate] = useState(false);
   const [editFirstName, setEditFirstName] = useState("");
   const [editLastName, setEditLastName] = useState("");
+  const [editUsername, setEditUsername] = useState("");
   const [editAge, setEditAge] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -392,12 +417,13 @@ export function ProfileView({
       const fullName = meta?.full_name ?? "";
       const { data: prof } = await supabase
         .from("profiles")
-        .select("full_name, age, investor_profile")
+        .select("full_name, age, investor_profile, username")
         .eq("user_id", user.id)
         .maybeSingle();
-      const row = prof as { full_name?: string; age?: number | null; investor_profile?: string | null } | null;
+      const row = prof as { full_name?: string; age?: number | null; investor_profile?: string | null; username?: string | null } | null;
       if (row?.age != null) setEditAge(String(row.age));
       if (row?.investor_profile) setInvestorProfileLabel(row.investor_profile);
+      if (row?.username) setEditUsername(String(row.username));
       const nameFromProfile = row?.full_name?.trim();
       const display = nameFromProfile || fullName;
       const isMissing =
@@ -434,10 +460,13 @@ export function ProfileView({
   const handleSaveProfile = async () => {
     const firstName = editFirstName.trim();
     const lastName = editLastName.trim();
+    const username = normalizeUsername(editUsername);
     const ageTrim = editAge.trim();
     const ageNum = ageTrim === "" ? null : parseInt(ageTrim, 10);
     if (!firstName) { setSaveError("Please enter your first name."); return; }
     if (!lastName) { setSaveError("Please enter your last name."); return; }
+    const usernameFormatError = validateUsername(username);
+    if (usernameFormatError) { setSaveError(usernameFormatError); return; }
     if (ageTrim !== "" && (ageNum === null || Number.isNaN(ageNum) || ageNum < 13 || ageNum > 120)) {
       setSaveError("Please enter a valid age (13-120) or leave blank.");
       return;
@@ -448,13 +477,16 @@ export function ProfileView({
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       if (userError || !user) throw new Error("Not signed in");
+      const available = await isUsernameAvailable(username, user.id);
+      if (!available) throw new Error("That username is already taken.");
       const metaPayload: Record<string, unknown> = { full_name: fullName };
       if (ageNum != null) metaPayload.age = ageNum;
       const { error: updateError } = await supabase.auth.updateUser({ data: metaPayload });
       if (updateError) throw updateError;
-      await supabase.from("profiles").upsert({ user_id: user.id, full_name: fullName, age: ageNum }, { onConflict: "user_id" });
-      await supabase.from("user_progress").upsert({ user_id: user.id, display_name: fullName }, { onConflict: "user_id" });
+      await supabase.from("profiles").upsert({ user_id: user.id, full_name: fullName, age: ageNum, username }, { onConflict: "user_id" });
+      await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
       setProfileName(fullName);
+      setEditUsername(username);
       setNeedsProfileUpdate(false);
       setEditingProfile(false);
       setSaveToast("Profile saved.");
@@ -711,9 +743,22 @@ export function ProfileView({
               }}
             />
           </div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-            <input type="text" placeholder="First name" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }} />
-            <input type="text" placeholder="Last name" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }} />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 8, marginBottom: 8 }}>
+            <input type="text" placeholder="First name" value={editFirstName} onChange={(e) => setEditFirstName(e.target.value)} style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" }} />
+            <input type="text" placeholder="Last name" value={editLastName} onChange={(e) => setEditLastName(e.target.value)} style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" }} />
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>Username (leaderboard name)</label>
+            <input
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="username"
+              value={editUsername}
+              onChange={(e) => setEditUsername(normalizeUsername(e.target.value))}
+              style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" as const }}
+            />
           </div>
           <input type="number" placeholder="Age (optional)" value={editAge} min={13} max={120} onChange={(e) => setEditAge(e.target.value.replace(/\D/g, ""))}
             style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, marginBottom: 8, boxSizing: "border-box" as const }} />

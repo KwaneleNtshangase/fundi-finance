@@ -319,6 +319,30 @@ async function persistUserGoalToStorageAndSupabase(goalId: string, goalDescripti
   }
 }
 
+function normalizeUsername(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+}
+
+function validateUsername(value: string): string | null {
+  if (!value) return "Username is required.";
+  if (value.length < 3) return "Username must be at least 3 characters.";
+  if (value.length > 20) return "Username must be 20 characters or less.";
+  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
+  return null;
+}
+
+async function isUsernameAvailable(username: string, excludeUserId?: string): Promise<boolean> {
+  const normalized = normalizeUsername(username);
+  if (!normalized) return false;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id")
+    .eq("username", normalized);
+  if (error) return false;
+  const rows = (data as { user_id: string }[] | null) ?? [];
+  return rows.every((row) => row.user_id === excludeUserId);
+}
+
 function getLessonTitle(
   courseId: string | null | undefined,
   lessonId: string | null | undefined
@@ -336,15 +360,53 @@ function getLessonTitle(
 function OnboardingView({
   onComplete,
 }: {
-  onComplete: (payload: { goal?: string; ageRange?: string; goalDescription?: string }) => void;
+  onComplete: (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => void;
 }) {
   const [screen, setScreen] = React.useState(0);
   const [selectedGoal, setSelectedGoal] = React.useState("");
   const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
   const [ageConfirmed, setAgeConfirmed] = React.useState(false);
+  const [username, setUsername] = React.useState("");
+  const [usernameError, setUsernameError] = React.useState<string | null>(null);
+  const [usernameChecking, setUsernameChecking] = React.useState(false);
+  const [usernameAvailable, setUsernameAvailable] = React.useState(false);
 
-  const screenCount = 4;
+  React.useEffect(() => {
+    if (screen !== 3) return;
+    const normalized = normalizeUsername(username);
+    if (!normalized) {
+      setUsernameError("Username is required.");
+      setUsernameAvailable(false);
+      return;
+    }
+    const formatError = validateUsername(normalized);
+    if (formatError) {
+      setUsernameError(formatError);
+      setUsernameAvailable(false);
+      return;
+    }
+    let active = true;
+    setUsernameChecking(true);
+    const timer = setTimeout(() => {
+      isUsernameAvailable(normalized)
+        .then((available) => {
+          if (!active) return;
+          setUsernameAvailable(available);
+          setUsernameError(available ? null : "That username is already taken.");
+        })
+        .finally(() => {
+          if (!active) return;
+          setUsernameChecking(false);
+        });
+    }, 250);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [screen, username]);
+
+  const screenCount = 5;
   const screensMeta = [
     {
       title: "Welcome to Fundi Finance",
@@ -369,6 +431,14 @@ function OnboardingView({
       },
     },
     {
+      title: "Choose your leaderboard username",
+      body: "This is your public name on the leaderboard. It must be unique.",
+      cta: "Next",
+      action: () => {
+        if (usernameAvailable) setScreen(4);
+      },
+    },
+    {
       title: "How it works",
       body: "Earn XP for every lesson. Build streaks. Unlock badges. Compete on the leaderboard. Every lesson takes less than 3 minutes.",
       cta: "Start learning",
@@ -377,6 +447,7 @@ function OnboardingView({
           goal: selectedGoal || undefined,
           ageRange: selectedAgeRange || undefined,
           goalDescription: goalDescription.trim() || undefined,
+          username: normalizeUsername(username),
         }),
     },
   ];
@@ -416,7 +487,7 @@ function OnboardingView({
             <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
           </div>
         )}
-        {screen === 3 && (
+        {screen === 4 && (
           <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
             {[Target, Zap, Trophy].map((IconComp, i) => (
               <div
@@ -571,13 +642,50 @@ function OnboardingView({
           </div>
         )}
 
+        {screen === 3 && (
+          <div style={{ marginBottom: 16, textAlign: "left" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+              Username
+            </label>
+            <input
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="e.g. fundi_learner"
+              value={username}
+              onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `2px solid ${usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-border)"}`,
+                fontSize: 14,
+                boxSizing: "border-box",
+                background: "var(--color-surface)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+            <div style={{ minHeight: 20, marginTop: 6, fontSize: 12, color: usernameError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
+              {usernameChecking
+                ? "Checking availability..."
+                : usernameError
+                  ? usernameError
+                  : usernameAvailable
+                    ? "Username is available."
+                    : "3-20 chars: lowercase letters, numbers, underscores."}
+            </div>
+          </div>
+        )}
+
         <button
           className="btn btn-primary"
           style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
           onClick={current.action}
           disabled={
             (screen === 0 && !ageConfirmed) ||
-            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim())))
+            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))) ||
+            (screen === 3 && (!usernameAvailable || usernameChecking))
           }
         >
           {current.cta}
@@ -1697,9 +1805,40 @@ function useFundiState() {
     correctCount: 0,
   });
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncDailyXpFromStorage = () => {
+      const today = new Date().toISOString().slice(0, 10);
+      const key = `fundi-daily-xp-${today}`;
+      const val = parseInt(localStorage.getItem(key) ?? "0", 10);
+      setDailyXP(Number.isNaN(val) ? 0 : val);
+    };
+    syncDailyXpFromStorage();
+    const onFocus = () => syncDailyXpFromStorage();
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key) return;
+      if (e.key.startsWith("fundi-daily-xp-")) syncDailyXpFromStorage();
+    };
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
   const addXP = (amount: number) => {
     progress.addXP(amount);
-    setDailyXP((v) => v + amount);
+    if (typeof window !== "undefined") {
+      const today = new Date().toISOString().slice(0, 10);
+      const key = `fundi-daily-xp-${today}`;
+      const prev = parseInt(localStorage.getItem(key) ?? "0", 10);
+      const next = (Number.isNaN(prev) ? 0 : prev) + amount;
+      localStorage.setItem(key, String(next));
+      setDailyXP(next);
+    } else {
+      setDailyXP((v) => v + amount);
+    }
     setXpToast({ amount, id: Date.now() });
     setTimeout(() => setXpToast(null), 2000);
   };
@@ -1776,6 +1915,7 @@ function useFundiState() {
   }, [progress.userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const value = {
+    userId: progress.userId,
     progressReady: progress.ready,
     hearts,
     maxHearts: MAX_HEARTS,
@@ -4063,7 +4203,7 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
         // 1. Fetch ALL profiles (every registered user, even brand-new ones)
         const { data: profileRows, error: profileError } = await supabase
           .from("profiles")
-          .select("user_id, full_name, age_range")
+          .select("user_id, username, full_name, age_range")
           .limit(200);
 
         if (profileError) {
@@ -4081,8 +4221,10 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
         // Build lookup maps
         const profileMap: Record<string, { name: string; ageRange?: string }> = {};
         (profileRows ?? []).forEach((p: any) => {
+          const username = p.username ? String(p.username).trim() : "";
+          const fullName = p.full_name ? String(p.full_name).trim() : "";
           profileMap[p.user_id] = {
-            name: p.full_name ? p.full_name.split(" ")[0] : "",
+            name: username || (fullName ? fullName.split(" ")[0] : ""),
             ageRange: p.age_range ?? undefined,
           };
         });
@@ -5357,9 +5499,8 @@ function AuthGate({ children }: { children: React.ReactNode }) {
             animation: splashLogoReveal 0.9s cubic-bezier(0.22,1,0.36,1) both,
                        splashLogoFloat 3.5s 1.1s ease-in-out infinite;
           }
-          .splash-title  { animation: splashFadeUp 0.5s 0.75s ease-out both; }
-          .splash-divider{ animation: splashDividerIn 0.45s 1.0s ease-out both; }
-          .splash-tagline{ animation: splashFadeUp 0.5s 1.1s ease-out both; }
+          .splash-divider{ animation: splashDividerIn 0.45s 0.95s ease-out both; }
+          .splash-tagline{ animation: splashFadeUp 0.5s 1.05s ease-out both; }
           .splash-bg-glow{ animation: splashGlowPulse 3s 0.5s ease-in-out infinite; }
         `}</style>
         <div style={{
@@ -5384,25 +5525,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
             />
           </div>
 
-          {/* App name */}
-          <div className="splash-title" style={{
-            color: "#1A7C4E", fontSize: 24, fontWeight: 800,
-            letterSpacing: 5, textTransform: "uppercase",
-            marginBottom: 12, position: "relative", zIndex: 1,
-          }}>
-            Fundi Finance
-          </div>
-
           {/* Thin divider */}
           <div className="splash-divider" style={{
             width: 40, height: 2, borderRadius: 1,
             background: "linear-gradient(90deg, transparent, rgba(26,124,78,0.6), transparent)",
-            marginBottom: 12, position: "relative", zIndex: 1,
+            marginBottom: 14, position: "relative", zIndex: 1,
           }} />
 
           {/* Tagline */}
           <div className="splash-tagline" style={{
-            color: "rgba(30,30,30,0.45)", fontSize: 11,
+            color: "var(--color-text-secondary)", fontSize: 11,
             letterSpacing: 2, textTransform: "uppercase", fontWeight: 500,
             position: "relative", zIndex: 1,
           }}>
@@ -5674,6 +5806,7 @@ function routePageLabel(route: Route): string {
 
 export default function Home() {
   const {
+    userId,
     progressReady,
     userData,
     dailyXP,
@@ -6005,7 +6138,7 @@ export default function Home() {
       // Sync personal goal + description from profiles table
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("goal, goal_description, age_range")
+        .select("goal, goal_description, age_range, username")
         .eq("user_id", user.id)
         .maybeSingle();
       if (profileData?.goal) {
@@ -6014,6 +6147,9 @@ export default function Home() {
         if (profileData.age_range) localStorage.setItem("fundi-age-range", profileData.age_range);
         // Dispatch storage event so userGoal state in Home component re-reads localStorage
         window.dispatchEvent(new StorageEvent("storage", { key: "fundi-user-goal", newValue: profileData.goal }));
+      }
+      if (profileData?.username) {
+        localStorage.setItem("fundi-username", profileData.username);
       }
 
       const { data } = await supabase
@@ -6036,6 +6172,9 @@ export default function Home() {
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
       if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
         localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
+        setDailyXP((data as any).daily_xp_today);
+      } else {
+        setDailyXP(Number.isNaN(localDailyXp) ? 0 : localDailyXp);
       }
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
@@ -6699,22 +6838,79 @@ export default function Home() {
   };
 
   // Handle onboarding complete
-  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string }) => {
+  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => {
     localStorage.setItem("fundi-onboarded", "true");
     if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
     if (payload.goalDescription) localStorage.setItem("fundi-goal-description", payload.goalDescription);
     if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
+    localStorage.setItem("fundi-username", payload.username);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
+      const username = normalizeUsername(payload.username);
+      const available = await isUsernameAvailable(username, user.id);
+      if (!available) return;
       const row: Record<string, unknown> = { user_id: user.id };
       if (payload.goal) row.goal = payload.goal;
       if (payload.goalDescription) row.goal_description = payload.goalDescription;
       if (payload.ageRange) row.age_range = payload.ageRange;
-      if (row.goal ?? row.age_range ?? row.goal_description) {
+      row.username = username;
+      if (row.goal ?? row.age_range ?? row.goal_description ?? row.username) {
         await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
       }
+      await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
     }
     setRoute({ name: "learn" } as Route);
+  };
+
+  const [needsUsernamePrompt, setNeedsUsernamePrompt] = useState(false);
+  const [usernameDraft, setUsernameDraft] = useState("");
+  const [usernamePromptError, setUsernamePromptError] = useState<string | null>(null);
+  const [usernamePromptChecking, setUsernamePromptChecking] = useState(false);
+  const [usernamePromptSaving, setUsernamePromptSaving] = useState(false);
+
+  useEffect(() => {
+    if (!progressReady || !userId || route.name === "onboarding") return;
+    void (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("user_id", userId)
+        .maybeSingle();
+      const username = data?.username ? String(data.username).trim() : "";
+      if (!username) {
+        setNeedsUsernamePrompt(true);
+      } else {
+        setNeedsUsernamePrompt(false);
+      }
+    })().catch(() => {});
+  }, [progressReady, userId, route.name]);
+
+  const saveUsernameFromPrompt = async () => {
+    if (!userId) return;
+    const normalized = normalizeUsername(usernameDraft);
+    const formatError = validateUsername(normalized);
+    if (formatError) {
+      setUsernamePromptError(formatError);
+      return;
+    }
+    setUsernamePromptError(null);
+    setUsernamePromptChecking(true);
+    const available = await isUsernameAvailable(normalized, userId);
+    setUsernamePromptChecking(false);
+    if (!available) {
+      setUsernamePromptError("That username is already taken.");
+      return;
+    }
+    setUsernamePromptSaving(true);
+    await supabase
+      .from("profiles")
+      .upsert({ user_id: userId, username: normalized }, { onConflict: "user_id" });
+    await supabase
+      .from("user_progress")
+      .upsert({ user_id: userId, display_name: normalized }, { onConflict: "user_id" });
+    localStorage.setItem("fundi-username", normalized);
+    setNeedsUsernamePrompt(false);
+    setUsernamePromptSaving(false);
   };
 
   if (route.name === "onboarding") {
@@ -7455,6 +7651,40 @@ export default function Home() {
 
         {isDesktop && (
           <StatsPanel userData={userData} hearts={hearts} maxHearts={maxHearts} freezeCount={freezeCount} onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }} />
+        )}
+        {needsUsernamePrompt && (
+          <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+            <div style={{ width: "100%", maxWidth: 420, background: "var(--color-surface)", borderRadius: 16, border: "1px solid var(--color-border)", padding: 20 }}>
+              <h3 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "var(--color-text-primary)" }}>Choose your username</h3>
+              <p style={{ marginTop: 8, marginBottom: 14, fontSize: 14, color: "var(--color-text-secondary)" }}>
+                You need a unique username before continuing. This is what appears on the leaderboard.
+              </p>
+              <input
+                type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={usernameDraft}
+                onChange={(e) => setUsernameDraft(normalizeUsername(e.target.value))}
+                placeholder="username"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `2px solid ${usernamePromptError ? "var(--color-danger)" : "var(--color-border)"}`, boxSizing: "border-box", marginBottom: 8, fontSize: 14 }}
+              />
+              <div style={{ minHeight: 18, fontSize: 12, color: usernamePromptError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
+                {usernamePromptChecking
+                  ? "Checking availability..."
+                  : usernamePromptError ?? "3-20 chars: lowercase letters, numbers, underscores."}
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={usernamePromptSaving || usernamePromptChecking}
+                onClick={saveUsernameFromPrompt}
+                style={{ width: "100%", marginTop: 10 }}
+              >
+                {usernamePromptSaving ? "Saving..." : "Save Username"}
+              </button>
+            </div>
+          </div>
         )}
         </div>
       </div>

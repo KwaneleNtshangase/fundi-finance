@@ -87,7 +87,8 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
           const totalXp = r.xp ?? 0;
           const isYou = uid === myId;
           const displayWeeklyXp = isYou ? Math.max(thisWeekXp, weeklyXp ?? 0) : thisWeekXp;
-          const rawName = r.full_name ? String(r.full_name).split(" ")[0] : "";
+          const username = r.username ? String(r.username).trim() : "";
+          const rawName = username || (r.full_name ? String(r.full_name).split(" ")[0] : "");
           const name = isYou ? "You" : (rawName || "Learner " + uid.slice(0, 4).toUpperCase());
 
           rows.push({
