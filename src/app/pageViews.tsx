@@ -1323,7 +1323,7 @@ export function CalculatorView() {
                 headline: `${solveResult.value} - ${solveResult.label.toLowerCase()}`,
                 sub: solveResult.sub ?? `Saving R${formatWithSpaces(inputsA.monthly)}/month at ${inputsA.rate}% p.a. - calculated on Fundi Finance`,
               }}
-              label="Share this result 📲"
+              label="Share this result"
             />
           </div>
         </>
@@ -1343,7 +1343,7 @@ export function CalculatorView() {
                 headline: `My R${formatWithSpaces(inputsA.monthly)}/month investment could be worth ${formatZAR(finalA.value)} in ${inputsA.years} years`,
                 sub: `At ${inputsA.rate}% p.a. · R${formatWithSpaces(finalA.interest)} in interest earned · Calculated on Fundi Finance`,
               }}
-              label="Share this calculation 📲"
+              label="Share this calculation"
             />
           </div>
         </>
@@ -1521,6 +1521,16 @@ function useFundiState() {
     return v ? parseInt(v, 10) : null;
   });
   const [showNoHearts, setShowNoHearts] = useState(false);
+  const syncHeartsToSupabase = React.useCallback(
+    async (nextHearts: number) => {
+      if (!progress.userId) return;
+      await supabase
+        .from("user_progress")
+        .update({ hearts: Math.max(0, Math.min(MAX_HEARTS, nextHearts)) })
+        .eq("user_id", progress.userId);
+    },
+    [progress.userId]
+  );
 
   // Persist hearts to localStorage
   useEffect(() => {
@@ -1532,6 +1542,32 @@ function useFundiState() {
     }
   }, [lastHeartLostAt]);
 
+  useEffect(() => {
+    if (!progress.userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("user_progress")
+        .select("hearts")
+        .eq("user_id", progress.userId)
+        .maybeSingle();
+      const HEARTS_CAP = 5;
+      const localHearts = Math.max(0, Math.min(HEARTS_CAP, parseInt(localStorage.getItem("fundi-hearts") ?? String(HEARTS_CAP), 10) || HEARTS_CAP));
+      const remoteHeartsRaw = Number((data as any)?.hearts);
+      const remoteHearts = Number.isFinite(remoteHeartsRaw)
+        ? Math.max(0, Math.min(HEARTS_CAP, remoteHeartsRaw))
+        : HEARTS_CAP;
+      const mergedHearts = Math.min(localHearts, remoteHearts);
+      setHearts(mergedHearts);
+      localStorage.setItem("fundi-hearts", String(mergedHearts));
+      if (mergedHearts !== remoteHearts) {
+        await supabase
+          .from("user_progress")
+          .update({ hearts: mergedHearts })
+          .eq("user_id", progress.userId);
+      }
+    })().catch(() => {});
+  }, [progress.userId]);
+
   // Auto-regen: 1 heart per hour
   useEffect(() => {
     if (hearts >= MAX_HEARTS || !lastHeartLostAt) return;
@@ -1539,12 +1575,18 @@ function useFundiState() {
       const elapsed = Date.now() - lastHeartLostAt;
       const toAdd = Math.floor(elapsed / HEART_REGEN_MS);
       if (toAdd > 0) {
-        setHearts((h) => Math.min(h + toAdd, MAX_HEARTS));
+        setHearts((h) => {
+          const next = Math.min(h + toAdd, MAX_HEARTS);
+          if (next !== h) {
+            void syncHeartsToSupabase(next);
+          }
+          return next;
+        });
         setLastHeartLostAt(Date.now() - (elapsed % HEART_REGEN_MS));
       }
     }, 30000);
     return () => clearInterval(interval);
-  }, [hearts, lastHeartLostAt]);
+  }, [hearts, lastHeartLostAt, syncHeartsToSupabase]);
 
   const loseHeart = () => {
     setHearts((h) => {
@@ -1552,6 +1594,7 @@ function useFundiState() {
       const next = h - 1;
       localStorage.setItem("fundi-hearts", String(next));
       localStorage.setItem("fundi-last-heart-lost", String(Date.now()));
+      void syncHeartsToSupabase(next);
       if (next === 0) {
         queueMicrotask(() => setShowNoHearts(true));
       }
@@ -1561,7 +1604,13 @@ function useFundiState() {
   };
 
   const gainHeart = () => {
-    setHearts((h) => Math.min(h + 1, MAX_HEARTS));
+    setHearts((h) => {
+      const next = Math.min(h + 1, MAX_HEARTS);
+      if (next !== h) {
+        void syncHeartsToSupabase(next);
+      }
+      return next;
+    });
   };
 
   const heartsRegenInfo = (): { nextHeartIn: string; minutesLeft: number } | null => {
@@ -3135,9 +3184,6 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                 <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
                 <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                 <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
-                <div style={{ color: "var(--color-text-secondary)", marginBottom: 16 }}>
-                  +{50 + correctCount * 10} XP earned
-                </div>
                 {finalizeLesson ? (
                   <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
                     {nextLessonTitle ? (
@@ -3174,7 +3220,7 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                     {lessonTitle ? (
                       <ShareResultButton
                         data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
-                        label="Share your result 📲"
+                        label="Share your result"
                       />
                     ) : null}
                   </div>
@@ -3444,24 +3490,6 @@ export function LessonView({
                   <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
                   <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                   <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
-                  <div style={{ marginBottom: 16, fontSize: 14 }}>
-                    <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>
-                      {totalQuestions > 0 ? Math.round(correctCount / totalQuestions * 100) : 100}% accuracy
-                    </div>
-                    {lessonStartTimeRef && (
-                      <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>
-                        {(() => {
-                          const elapsed = Math.round((Date.now() - (lessonStartTimeRef.current || 0)) / 1000);
-                          const mins = Math.floor(elapsed / 60);
-                          const secs = elapsed % 60;
-                          return `${mins}m ${secs}s`;
-                        })()}
-                      </div>
-                    )}
-                    <div style={{ fontWeight: 700, fontSize: 16, color: "var(--color-primary)" }}>
-                      +{50 + correctCount * 10} XP earned
-                    </div>
-                  </div>
                   {finalizeLesson ? (
                     <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
                       {nextLessonTitle ? (
@@ -3485,7 +3513,7 @@ export function LessonView({
                       {lessonTitle && (
                         <ShareResultButton
                           data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
-                          label="Share your result 📲"
+                          label="Share your result"
                         />
                       )}
                     </div>
@@ -3685,14 +3713,6 @@ export function LessonView({
                     >
                       Lesson Complete!
                     </div>
-                    <div
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        marginBottom: 4,
-                      }}
-                    >
-                      +{50 + correctCount * 10} XP earned
-                    </div>
                     {finalizeLesson ? (
                       <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
                         {nextLessonTitle ? (
@@ -3821,14 +3841,6 @@ export function LessonView({
                       }}
                     >
                       Lesson Complete!
-                    </div>
-                    <div
-                      style={{
-                        color: "var(--color-text-secondary)",
-                        marginBottom: 16,
-                      }}
-                    >
-                      +{50 + correctCount * 10} XP earned
                     </div>
                     {finalizeLesson ? (
                       <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
@@ -5006,7 +5018,7 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
     100
   );
   return (
-    <aside className="stats-panel" id="statsPanel" style={{ display: "flex", flexDirection: "column" }}>
+    <aside className="stats-panel" id="statsPanel">
       <div className="stats-section">
         <h3>My Stats</h3>
         <div className="stat-item" style={{ position: "relative" }}>
@@ -5707,6 +5719,14 @@ export default function Home() {
     lessonSummary,
     setLessonSummary,
   } = useFundiState();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsDesktop(window.innerWidth >= 1200);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
 
   // Streak freeze - count-based, powered by useProgress hook
 
@@ -5998,7 +6018,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -6022,6 +6042,16 @@ export default function Home() {
         const localSet: string[] = localRaw ? JSON.parse(localRaw) : [];
         const merged = Array.from(new Set([...localSet, ...data.completed_lessons]));
         localStorage.setItem("fundi-completed-lessons", JSON.stringify(merged));
+      }
+      const remoteEarnedBadges = [
+        ...(((data as any).earned_badges as string[] | null) ?? []),
+        ...(((data as any).badges as string[] | null) ?? []),
+      ];
+      if (remoteEarnedBadges.length > 0) {
+        const localBadgeIds = JSON.parse(localStorage.getItem("fundi-earned-badges") ?? "[]") as string[];
+        const mergedBadges = Array.from(new Set([...localBadgeIds, ...remoteEarnedBadges]));
+        localStorage.setItem("fundi-earned-badges", JSON.stringify(mergedBadges));
+        setCourseBadgeIds(mergedBadges);
       }
       // Weekly XP is fully managed by useProgress hook - no cross-device sync needed here
     };
@@ -6187,10 +6217,13 @@ export default function Home() {
       if (!user) return awarded;
       const { data } = await supabase
         .from("user_progress")
-        .select("badges")
+        .select("earned_badges,badges")
         .eq("user_id", user.id)
         .maybeSingle();
-      const dbBadges = Array.isArray((data as any)?.badges) ? ((data as any).badges as string[]) : [];
+      const dbBadges = [
+        ...(((data as any)?.earned_badges as string[] | null) ?? []),
+        ...(((data as any)?.badges as string[] | null) ?? []),
+      ];
       dbBadges.forEach((badgeId) => awarded.add(badgeId));
       if (dbBadges.length > localBadges.length) {
         localStorage.setItem("fundi-earned-badges", JSON.stringify(Array.from(awarded)));
@@ -6199,6 +6232,18 @@ export default function Home() {
       // Ignore network/auth issues and rely on local cache.
     }
     return awarded;
+  };
+
+  const persistEarnedBadges = async (badges: string[]) => {
+    const uniqueBadges = Array.from(new Set(badges));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase
+      .from("user_progress")
+      .upsert(
+        { user_id: user.id, earned_badges: uniqueBadges as unknown as string[], badges: uniqueBadges as unknown as string[] },
+        { onConflict: "user_id" }
+      );
   };
 
   const checkCourseBadgeEarned = async (courseId: string, lessonId: string) => {
@@ -6220,14 +6265,10 @@ export default function Home() {
     const next = [...awardedBadges, badge.id];
     localStorage.setItem("fundi-earned-badges", JSON.stringify(next));
     setCourseBadgeIds(next);
+    await persistEarnedBadges(next);
+    const refreshed = await getAwardedBadgeIds();
+    if (!refreshed.has(badge.id)) return;
     setCourseCompleteModal(badge);
-    void supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      void supabase.from("user_progress").upsert(
-        { user_id: user.id, badges: next as unknown as string[] },
-        { onConflict: "user_id" }
-      );
-    });
   };
 
   const finalizeCurrentLesson = async (choice: "next" | "course") => {
@@ -6439,6 +6480,7 @@ export default function Home() {
       const merged = Array.from(new Set([...awardedBadges, ...justEarned]));
       localStorage.setItem("fundi-earned-badges", JSON.stringify(merged));
       setCourseBadgeIds(merged);
+      await persistEarnedBadges(merged);
       setNewlyEarnedBadges(justEarned);
       nextLessonRef.current = nextLesson;
       return;
@@ -6446,7 +6488,7 @@ export default function Home() {
 
     // Show Duolingo-style lesson summary before navigating
     const elapsedSeconds = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
-    const accuracy = totalQuestions > 0 ? Math.round((currentLessonState.correctCount / totalQuestions) * 100) : 100;
+    const accuracy = totalQuestions > 0 ? Math.min(100, Math.round((currentLessonState.correctCount / totalQuestions) * 100)) : 0;
     setLessonSummary({
       xpEarned: totalXP,
       timeSeconds: elapsedSeconds,
@@ -7411,7 +7453,9 @@ export default function Home() {
           </div>
         )}
 
-        <StatsPanel userData={userData} hearts={hearts} maxHearts={maxHearts} freezeCount={freezeCount} onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }} />
+        {isDesktop && (
+          <StatsPanel userData={userData} hearts={hearts} maxHearts={maxHearts} freezeCount={freezeCount} onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }} />
+        )}
         </div>
       </div>
 

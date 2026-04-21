@@ -453,7 +453,7 @@ export function CalculatorView() {
                 headline: `${solveResult.value} - ${solveResult.label.toLowerCase()}`,
                 sub: solveResult.sub ?? `Saving R${formatWithSpaces(inputsA.monthly)}/month at ${inputsA.rate}% p.a. - calculated on Fundi Finance`,
               }}
-              label="Share this result 📲"
+              label="Share this result"
             />
           </div>
         </>
@@ -473,7 +473,7 @@ export function CalculatorView() {
                 headline: `My R${formatWithSpaces(inputsA.monthly)}/month investment could be worth ${formatZAR(finalA.value)} in ${inputsA.years} years`,
                 sub: `At ${inputsA.rate}% p.a. · R${formatWithSpaces(finalA.interest)} in interest earned · Calculated on Fundi Finance`,
               }}
-              label="Share this calculation 📲"
+              label="Share this calculation"
             />
           </div>
         </>

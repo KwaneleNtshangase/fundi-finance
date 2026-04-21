@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance – Email Sequence</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #007A4D; --green-dark: #005A38; --green-light: #E6F4EF;
+    --gold: #FFB612; --gold-light: #FFF6DC;
+    --red: #E03C31;
+    --bg: #F0F7F4; --surface: #fff; --text: #111827; --muted: #6B7280; --border: #D1E8DF;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #0d1117;
+    color: white;
+    padding: 60px 40px;
+  }
+  .page-title {
+    text-align: center;
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #007A4D 60%, #FFB612 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    margin-bottom: 8px;
+  }
+  .page-sub {
+    text-align: center;
+    color: #444;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+  }
+
+  /* ─── SEQUENCE MAP ─── */
+  .seq-map {
+    max-width: 900px;
+    margin: 0 auto 70px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .seq-node {
+    flex: 1;
+    text-align: center;
+  }
+  .seq-dot {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 900;
+    color: white;
+  }
+  .seq-connector {
+    flex: 0.4;
+    height: 2px;
+    background: linear-gradient(90deg, #1a3a2a, #007A4D44, #1a3a2a);
+    margin-top: -28px;
+    position: relative;
+  }
+  .seq-connector::after {
+    content: '→';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #1e4a35;
+    font-size: 16px;
+  }
+  .seq-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.7);
+  }
+  .seq-timing {
+    font-size: 9px;
+    color: #444;
+    margin-top: 3px;
+    letter-spacing: 1px;
+  }
+
+  /* ─── EMAIL WRAPPER ─── */
+  .email-section {
+    margin-bottom: 70px;
+  }
+  .email-meta {
+    max-width: 640px;
+    margin: 0 auto 16px;
+    padding: 0 4px;
+  }
+  .email-num {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .email-subject-line {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 4px;
+  }
+  .email-meta-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .meta-chip {
+    font-size: 11px;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* The email preview frame */
+  .email-frame {
+    max-width: 640px;
+    margin: 0 auto;
+    background: #f9fafb;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border: 1px solid #1a2030;
+  }
+
+  /* ─── EMAIL STYLES (inside frame) ─── */
+  .email-body { font-family: 'Inter', Arial, sans-serif; background: #F0F7F4; padding: 0; }
+
+  /* header */
+  .e-header {
+    background: linear-gradient(135deg, #007A4D 0%, #005A38 100%);
+    padding: 32px 40px;
+    text-align: center;
+  }
+  .e-logo {
+    font-size: 22px;
+    font-weight: 900;
+    color: white;
+    letter-spacing: -0.5px;
+    margin-bottom: 4px;
+  }
+  .e-logo span { color: #FFB612; }
+  .e-logo-sub { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+
+  /* hero band */
+  .e-hero {
+    background: white;
+    padding: 40px 40px 32px;
+    text-align: center;
+  }
+  .e-hero-emoji { font-size: 52px; margin-bottom: 16px; }
+  .e-hero-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: #111827;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .e-hero-sub {
+    font-size: 15px;
+    color: #6B7280;
+    line-height: 1.6;
+    max-width: 440px;
+    margin: 0 auto 24px;
+  }
+  .e-btn {
+    display: inline-block;
+    background: #007A4D;
+    color: white !important;
+    text-decoration: none;
+    font-size: 15px;
+    font-weight: 700;
+    padding: 14px 32px;
+    border-radius: 12px;
+    letter-spacing: 0.3px;
+  }
+  .e-btn-gold {
+    background: #FFB612;
+    color: #111827 !important;
+  }
+
+  /* content block */
+  .e-content {
+    background: white;
+    padding: 32px 40px;
+    margin-top: 2px;
+  }
+  .e-content + .e-content { margin-top: 2px; }
+  .e-h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .e-p {
+    font-size: 15px;
+    color: #374151;
+    line-height: 1.7;
+    margin-bottom: 14px;
+  }
+  .e-highlight {
+    background: #E6F4EF;
+    border-left: 4px solid #007A4D;
+    border-radius: 0 10px 10px 0;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .e-highlight p {
+    font-size: 14px;
+    color: #111827;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  /* stat row */
+  .e-stats {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .e-stat-box {
+    flex: 1;
+    text-align: center;
+    background: #F0F7F4;
+    border-radius: 12px;
+    padding: 16px 12px;
+    border: 1px solid #D1E8DF;
+  }
+  .e-stat-val {
+    font-size: 24px;
+    font-weight: 900;
+    color: #007A4D;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .e-stat-lbl {
+    font-size: 11px;
+    color: #6B7280;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* course card in email */
+  .e-course-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .e-course-card {
+    flex: 1;
+    min-width: 120px;
+    background: white;
+    border: 1px solid #D1E8DF;
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .e-course-icon { font-size: 28px; margin-bottom: 8px; }
+  .e-course-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.3;
+  }
+
+  /* step list */
+  .e-steps { list-style: none; }
+  .e-step {
+    display: flex;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+  }
+  .e-step:last-child { border-bottom: none; }
+  .e-step-num {
+    width: 28px;
+    height: 28px;
+    background: #007A4D;
+    border-radius: 50%;
+    color: white;
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .e-step-body { }
+  .e-step-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 3px;
+  }
+  .e-step-desc { font-size: 13px; color: #6B7280; line-height: 1.5; }
+
+  /* footer */
+  .e-footer {
+    background: #F9FAFB;
+    padding: 24px 40px;
+    text-align: center;
+    border-top: 1px solid #E5E7EB;
+  }
+  .e-footer p {
+    font-size: 11px;
+    color: #9CA3AF;
+    line-height: 1.8;
+  }
+  .e-footer a { color: #007A4D; text-decoration: none; }
+
+  /* streak badge */
+  .streak-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #FFF6DC;
+    border: 1px solid #FFD566;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400E;
+    margin: 8px 0;
+  }
+
+  /* ─── EMAIL NOTES ─── */
+  .email-notes {
+    max-width: 640px;
+    margin: 16px auto 0;
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 10px;
+    padding: 20px 24px;
+  }
+  .email-notes h4 {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .notes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px 20px;
+  }
+  .note-item {
+    font-size: 12px;
+    color: #555;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.5;
+  }
+  .note-item::before { content: '→'; color: var(--green); font-weight: 700; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="page-title">Email Sequence</div>
+<div class="page-sub">5-Part Onboarding & Nurture Series · HTML Production Templates</div>
+
+<!-- ─── SEQUENCE MAP ─── -->
+<div class="seq-map">
+  <div class="seq-node">
+    <div class="seq-dot" style="background:#007A4D">1</div>
+    <div class="seq-label">Welcome</div>
+    <div class="seq-timing">Instant</div>
+  </div>
+  <div class="seq-connector"></div>
+  <div class="seq-node">
+    <div class="seq-dot" style="background:#006640">2</div>
+    <div class="seq-label">Day 2</div>
+    <div class="seq-timing">Activate</div>
+  </div>
+  <div class="seq-connector"></div>
+  <div class="seq-node">
+    <div class="seq-dot" style="background:#FFB612">3</div>
+    <div class="seq-label">Day 5</div>
+    <div class="seq-timing">Value</div>
+  </div>
+  <div class="seq-connector"></div>
+  <div class="seq-node">
+    <div class="seq-dot" style="background:#E03C31">4</div>
+    <div class="seq-label">Day 10</div>
+    <div class="seq-timing">Re-engage</div>
+  </div>
+  <div class="seq-connector"></div>
+  <div class="seq-node">
+    <div class="seq-dot" style="background:#111827">5</div>
+    <div class="seq-label">Day 14</div>
+    <div class="seq-timing">Convert</div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- EMAIL 1: WELCOME (Instant) -->
+<!-- ══════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-meta">
+    <div class="email-num">Email 01 · Sent Immediately After Signup</div>
+    <div class="email-subject-line">🎓 Welcome to Fundi Finance, {{first_name}}</div>
+    <div class="email-meta-row">
+      <span class="meta-chip">📊 Goal: First lesson completion</span>
+      <span class="meta-chip">⏱ Send: Instant trigger</span>
+      <span class="meta-chip">🎯 Segment: All new users</span>
+    </div>
+  </div>
+
+  <div class="email-frame">
+    <div class="email-body">
+
+      <div class="e-header">
+        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
+      </div>
+
+      <div class="e-hero">
+        <div class="e-hero-emoji">🎉</div>
+        <h1 class="e-hero-title">You just made the move<br>most South Africans never do.</h1>
+        <p class="e-hero-sub">
+          Most people spend 40 years working and retire with almost nothing — not because they earned too little, but because no one taught them the system. You just changed that.
+        </p>
+        <a href="https://fundiapp.co.za" class="e-btn">Start Your First Lesson →</a>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">📚 Your learning path is ready</div>
+        <p class="e-p">Based on your goal, we've built a personalised course path just for you. Here's what's waiting:</p>
+        <div class="e-course-row">
+          <div class="e-course-card">
+            <div class="e-course-icon">💰</div>
+            <div class="e-course-name">Money Basics</div>
+          </div>
+          <div class="e-course-card">
+            <div class="e-course-icon">📈</div>
+            <div class="e-course-name">Investing Basics</div>
+          </div>
+          <div class="e-course-card">
+            <div class="e-course-icon">💳</div>
+            <div class="e-course-name">Credit &amp; Debt</div>
+          </div>
+          <div class="e-course-card">
+            <div class="e-course-icon">🏠</div>
+            <div class="e-course-name">Property</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">⚡ How Fundi Finance works</div>
+        <ul class="e-steps">
+          <li class="e-step">
+            <div class="e-step-num">1</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Do one lesson per day (just 5 mins)</div>
+              <div class="e-step-desc">Each lesson has real SA scenarios, quizzes, and a built-in calculator — no jargon, no fluff.</div>
+            </div>
+          </li>
+          <li class="e-step">
+            <div class="e-step-num">2</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Earn XP and build your streak 🔥</div>
+              <div class="e-step-desc">Every correct answer earns XP. Hit a 7-day streak and unlock the "On Fire" badge.</div>
+            </div>
+          </li>
+          <li class="e-step">
+            <div class="e-step-num">3</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Climb the leaderboard</div>
+              <div class="e-step-desc">See how you rank against other South Africans learning alongside you.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="e-content" style="text-align:center;padding:32px 40px 36px">
+        <p class="e-p" style="margin-bottom:20px;font-size:16px">Your first lesson takes less than 5 minutes.<br><strong>The knowledge lasts a lifetime.</strong></p>
+        <a href="https://fundiapp.co.za" class="e-btn e-btn-gold">Begin: What is Money? →</a>
+      </div>
+
+      <div class="e-footer">
+        <p>
+          You're receiving this because you signed up at <a href="https://fundiapp.co.za">fundiapp.co.za</a><br>
+          <a href="#">Unsubscribe</a> · <a href="#">Privacy Policy</a> · Fundi Finance, South Africa<br>
+          © 2025 Fundi Finance. Built with 🇿🇦 for South Africans.
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="email-notes">
+    <h4>Send Notes</h4>
+    <div class="notes-grid">
+      <div class="note-item">Trigger: Supabase auth.users insert event</div>
+      <div class="note-item">Subject line A/B: "🎓 You're in" vs the current version</div>
+      <div class="note-item">Personalise hero text with {{goal}} from onboarding</div>
+      <div class="note-item">Track: open rate target &gt;55%, CTA click target &gt;30%</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- EMAIL 2: ACTIVATE (Day 2) -->
+<!-- ══════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-meta">
+    <div class="email-num">Email 02 · Sent Day 2 (if no lesson completed)</div>
+    <div class="email-subject-line">⚡ {{first_name}}, your streak starts today</div>
+    <div class="email-meta-row">
+      <span class="meta-chip">📊 Goal: First lesson completion</span>
+      <span class="meta-chip">⏱ Send: 24h after signup, if 0 lessons done</span>
+      <span class="meta-chip">🎯 Segment: No lesson completed users</span>
+    </div>
+  </div>
+
+  <div class="email-frame">
+    <div class="email-body">
+
+      <div class="e-header">
+        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
+      </div>
+
+      <div class="e-hero" style="background:linear-gradient(135deg,#FFF6DC,white)">
+        <div class="e-hero-emoji">🔥</div>
+        <h1 class="e-hero-title">Don't let Day 1 be your last day.</h1>
+        <p class="e-hero-sub">
+          People who complete their first lesson within 48 hours are <strong>5× more likely</strong> to hit a 7-day streak. You're still in the window, {{first_name}}.
+        </p>
+        <a href="https://fundiapp.co.za" class="e-btn">Do 1 Lesson Now →</a>
+      </div>
+
+      <div class="e-content">
+        <div class="e-highlight">
+          <p>💡 <strong>Today's Money Fact:</strong> South Africa's national savings rate is one of the lowest in the world. Most households spend more than 95% of what they earn. Fundi Finance was built to change that — one lesson at a time.</p>
+        </div>
+        <p class="e-p">Your lesson takes 5 minutes. The fastest lesson in the app is <strong>"What is Money?"</strong> — it's where every Fundi Finance journey starts. Today's a great day.</p>
+      </div>
+
+      <div class="e-content" style="background:#F0F7F4">
+        <div class="e-stats">
+          <div class="e-stat-box">
+            <div class="e-stat-val">5 min</div>
+            <div class="e-stat-lbl">Per Lesson</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">+20 XP</div>
+            <div class="e-stat-lbl">First Lesson</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">🏅</div>
+            <div class="e-stat-lbl">Badge Unlocked</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="e-content" style="text-align:center;padding:28px 40px 32px">
+        <a href="https://fundiapp.co.za" class="e-btn">Start Lesson 1 →</a>
+        <p style="font-size:12px;color:#9CA3AF;margin-top:16px">Takes 5 minutes. No payment needed. Ever.</p>
+      </div>
+
+      <div class="e-footer">
+        <p>
+          <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
+          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="email-notes">
+    <h4>Send Notes</h4>
+    <div class="notes-grid">
+      <div class="note-item">Only send if lessons_completed === 0 at time of send</div>
+      <div class="note-item">If lesson was done, skip to Email 3 at Day 5</div>
+      <div class="note-item">Subject A/B: "⚡ {{first_name}}, your streak…" vs "Come back — your path is waiting"</div>
+      <div class="note-item">Track: open rate target &gt;45%, CTA click target &gt;25%</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- EMAIL 3: VALUE DROP (Day 5) -->
+<!-- ══════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-meta">
+    <div class="email-num">Email 03 · Sent Day 5 — The Value Drop</div>
+    <div class="email-subject-line">🧮 The R500/month trick that saves R380 000</div>
+    <div class="email-meta-row">
+      <span class="meta-chip">📊 Goal: Engagement + course start</span>
+      <span class="meta-chip">⏱ Send: Day 5 regardless of activity</span>
+      <span class="meta-chip">🎯 Segment: All users</span>
+    </div>
+  </div>
+
+  <div class="email-frame">
+    <div class="email-body">
+
+      <div class="e-header">
+        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
+      </div>
+
+      <div class="e-hero">
+        <div class="e-hero-emoji">🏠</div>
+        <h1 class="e-hero-title">Adding R500/month to your home loan saves you R380 000.</h1>
+        <p class="e-hero-sub">
+          On a R1 million, 20-year bond at 11.75% interest — that single habit also cuts 5 years off your loan. Most South Africans never know this. Now you do.
+        </p>
+        <a href="https://fundiapp.co.za" class="e-btn">Try the Home Loan Calculator →</a>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">📊 South Africa's money reality</div>
+        <p class="e-p">Here are three facts we cover in Fundi Finance that most schools never taught:</p>
+
+        <div class="e-highlight">
+          <p>🔥 <strong>77%</strong> of South Africans can't replace a single month's income from savings. Most aren't bad with money — they were never taught.</p>
+        </div>
+        <div class="e-highlight" style="border-color:#FFB612;background:#FFF6DC">
+          <p>💡 <strong>The Rule of 72:</strong> Divide 72 by your investment return. At 8%, your money doubles every 9 years. At 12%, every 6 years. Warren Buffett knew this at age 11.</p>
+        </div>
+        <div class="e-highlight" style="border-color:#E03C31;background:#FDECEA">
+          <p>⚠️ The average SA credit card charges <strong>20–22% interest</strong> per year. R10 000 in credit card debt costs you R2 200/year just in interest — before you repay a cent of the principal.</p>
+        </div>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">📚 Lessons that change these numbers</div>
+        <ul class="e-steps">
+          <li class="e-step">
+            <div class="e-step-num">💰</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Money Basics</div>
+              <div class="e-step-desc">Inflation, budgeting, emergency funds — the foundation everyone needs.</div>
+            </div>
+          </li>
+          <li class="e-step">
+            <div class="e-step-num">🏠</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Property</div>
+              <div class="e-step-desc">Bond calculators, deposit strategy, rates — everything the estate agents don't tell you.</div>
+            </div>
+          </li>
+          <li class="e-step">
+            <div class="e-step-num">📈</div>
+            <div class="e-step-body">
+              <div class="e-step-title">Investing Basics</div>
+              <div class="e-step-desc">ETFs, JSE, TFSAs — how to start investing in South Africa with as little as R50/month.</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="e-content" style="text-align:center;padding:28px 40px 32px">
+        <a href="https://fundiapp.co.za" class="e-btn">Open Fundi Finance →</a>
+      </div>
+
+      <div class="e-footer">
+        <p>
+          <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
+          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="email-notes">
+    <h4>Send Notes</h4>
+    <div class="notes-grid">
+      <div class="note-item">Subject is a specific, surprising stat — highest open-rate format</div>
+      <div class="note-item">Personalise: if user goal is "invest", lead with the Rule of 72 fact</div>
+      <div class="note-item">Personalise: if goal is "home", lead with the R500/month bond fact</div>
+      <div class="note-item">Track: forward/share rate as secondary metric (content emails spread)</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- EMAIL 4: RE-ENGAGE (Day 10) -->
+<!-- ══════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-meta">
+    <div class="email-num">Email 04 · Sent Day 10 — The Re-engagement</div>
+    <div class="email-subject-line">{{first_name}}, your {{streak}}-day streak is at risk 🔥</div>
+    <div class="email-meta-row">
+      <span class="meta-chip">📊 Goal: Return to app + lesson</span>
+      <span class="meta-chip">⏱ Send: Day 10, if no lesson in 3+ days</span>
+      <span class="meta-chip">🎯 Segment: Lapsed users only</span>
+    </div>
+  </div>
+
+  <div class="email-frame">
+    <div class="email-body">
+
+      <div class="e-header" style="background:linear-gradient(135deg,#B87D00,#6b4800)">
+        <div class="e-logo">Fundi <span style="color:white">Finance</span></div>
+        <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
+      </div>
+
+      <div class="e-hero" style="background:linear-gradient(135deg,#FFF6DC,#FFFBEF)">
+        <div class="streak-badge">🔥 {{streak}}-day streak in danger</div>
+        <h1 class="e-hero-title" style="color:#92400E">Don't let your streak slip, {{first_name}}.</h1>
+        <p class="e-hero-sub" style="color:#B45309">
+          You've built something real. It only takes 5 minutes to protect it. Come back today and your streak stays alive.
+        </p>
+        <a href="https://fundiapp.co.za" class="e-btn e-btn-gold">Save My Streak →</a>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">📊 Here's where you are</div>
+        <div class="e-stats">
+          <div class="e-stat-box">
+            <div class="e-stat-val" style="color:#FFB612">{{streak}}</div>
+            <div class="e-stat-lbl">Day Streak</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">{{lessons}}</div>
+            <div class="e-stat-lbl">Lessons Done</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">{{xp}}</div>
+            <div class="e-stat-lbl">XP Earned</div>
+          </div>
+        </div>
+        <p class="e-p">You've done great work. But the real magic happens when you stay consistent. One lesson today is all it takes.</p>
+      </div>
+
+      <div class="e-content" style="text-align:center">
+        <p style="font-size:13px;color:#6B7280;margin-bottom:6px">Where you left off:</p>
+        <div style="background:#E6F4EF;border-radius:12px;padding:16px;border:1px solid #D1E8DF;text-align:left;display:flex;gap:12px;align-items:center">
+          <div style="font-size:28px">💰</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;color:#111827">{{last_lesson_title}}</div>
+            <div style="font-size:12px;color:#6B7280;margin-top:2px">{{last_course_name}} · {{progress}}% complete</div>
+          </div>
+        </div>
+        <a href="https://fundiapp.co.za" class="e-btn" style="margin-top:20px;display:inline-block">Continue Now →</a>
+      </div>
+
+      <div class="e-footer">
+        <p>
+          <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
+          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="email-notes">
+    <h4>Send Notes</h4>
+    <div class="notes-grid">
+      <div class="note-item">Only send if last_lesson_date &gt; 3 days ago</div>
+      <div class="note-item">Pull {{streak}}, {{xp}}, {{lessons}} from Supabase user profile</div>
+      <div class="note-item">If streak = 0, change subject to "Ready to start a new streak?" + softer tone</div>
+      <div class="note-item">This email has highest reactivation rate — test send time at 8am vs 6pm</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════ -->
+<!-- EMAIL 5: CONVERT (Day 14) -->
+<!-- ══════════════════════════════════════ -->
+<div class="email-section">
+  <div class="email-meta">
+    <div class="email-num">Email 05 · Sent Day 14 — The Conversion/Social Proof</div>
+    <div class="email-subject-line">What {{first_name}} from Soweto learned in 14 days 🎓</div>
+    <div class="email-meta-row">
+      <span class="meta-chip">📊 Goal: Social share + referral</span>
+      <span class="meta-chip">⏱ Send: Day 14 for all users</span>
+      <span class="meta-chip">🎯 Segment: All users (diverge copy by activity)</span>
+    </div>
+  </div>
+
+  <div class="email-frame">
+    <div class="email-body">
+
+      <div class="e-header">
+        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
+      </div>
+
+      <div class="e-hero">
+        <div class="e-hero-emoji">🎓</div>
+        <h1 class="e-hero-title">2 weeks in. You're not the same person who signed up.</h1>
+        <p class="e-hero-sub">
+          In 14 days, Fundi Finance users learn things that take most South Africans decades to figure out — or never do. Here's a snapshot of what's changed.
+        </p>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">📊 Your 14-day snapshot</div>
+        <div class="e-stats">
+          <div class="e-stat-box">
+            <div class="e-stat-val">{{lessons}}</div>
+            <div class="e-stat-lbl">Lessons Done</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">{{xp}}</div>
+            <div class="e-stat-lbl">Total XP</div>
+          </div>
+          <div class="e-stat-box">
+            <div class="e-stat-val">{{rank}}</div>
+            <div class="e-stat-lbl">Leaderboard</div>
+          </div>
+        </div>
+
+        <div class="e-highlight">
+          <p>🏆 You're in the <strong>top {{percentile}}%</strong> of all Fundi Finance users this week. That's real progress.</p>
+        </div>
+      </div>
+
+      <div class="e-content">
+        <div class="e-h2">💬 Share what you've learned</div>
+        <p class="e-p">Every person you bring to Fundi Finance is one more South African who breaks the cycle. Share your progress — it takes 10 seconds.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+          <a href="https://wa.me/?text=I've been learning about money on Fundi Finance 🎓 It's free and built for South Africans. Check it out 👉 fundiapp.co.za" class="e-btn" style="background:#25D366;font-size:13px;padding:12px 20px">Share on WhatsApp</a>
+          <a href="https://twitter.com/intent/tweet?text=I just completed {{lessons}} lessons on @fundiapp! South African financial education, free and gamified 🎓🔥 fundiapp.co.za" class="e-btn" style="background:#1DA1F2;font-size:13px;padding:12px 20px">Share on X</a>
+        </div>
+      </div>
+
+      <div class="e-content" style="text-align:center;padding:28px 40px 32px">
+        <p class="e-p" style="margin-bottom:20px">Keep building. The next 14 days are where habits form.</p>
+        <a href="https://fundiapp.co.za" class="e-btn">Continue Learning →</a>
+      </div>
+
+      <div class="e-footer">
+        <p>
+          <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
+          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="email-notes">
+    <h4>Send Notes</h4>
+    <div class="notes-grid">
+      <div class="note-item">Subject line uses social proof + personalisation format (highest opens)</div>
+      <div class="note-item">WhatsApp share link is pre-filled — critical for SA market</div>
+      <div class="note-item">{{percentile}} = calculate from Supabase leaderboard weekly query</div>
+      <div class="note-item">High-activity users: add a "challenge a friend" CTA with referral link</div>
+    </div>
+  </div>
+</div>
+
+
+<div style="text-align:center;padding:20px 0 60px;color:#222;font-size:12px">
+  fundiapp.co.za · Fundi Finance Email System 2025 · Built with ♥ for South Africa<br>
+  Trigger logic via Supabase Edge Functions + Resend / SendGrid
+</div>
+
+</body>
+</html>
