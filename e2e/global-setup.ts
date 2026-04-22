@@ -2,6 +2,11 @@
  * Playwright Global Setup — saves auth state once so all tests reuse it.
  * Signs in once per run, saves cookies + localStorage to e2e/.auth/user.json.
  * All test files load this state via playwright.config.ts storageState.
+ *
+ * KEY FIX: The app reads localStorage("fundi-onboarded") on first render to decide
+ * whether to show OnboardingView vs AuthGate (sign-in). A fresh CI context has no
+ * localStorage, so the app defaults to OnboardingView, which has no "Sign In" button.
+ * We pre-seed localStorage BEFORE the page loads to force AuthGate (sign-in mode).
  */
 import { chromium, FullConfig } from "@playwright/test";
 import { BASE_URL, TEST_EMAIL, TEST_PASSWORD } from "./helpers";
@@ -19,8 +24,21 @@ export default async function globalSetup(_config: FullConfig) {
 
   console.log(`\n[global-setup] Starting auth for ${TEST_EMAIL}`);
 
-  // Navigate and wait up to 20s for splash + React to render
+  // ── Step 1: Navigate and inject localStorage before React renders ──────────
+  // We need fundi-onboarded set so the app shows AuthGate (sign-in) instead of
+  // OnboardingView. We do this by intercepting the first load and setting it.
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
+
+  // Inject the key as early as possible so React state initialiser picks it up
+  await page.evaluate(() => {
+    localStorage.setItem("fundi-onboarded", "1");
+    localStorage.setItem("fundi-last-route", "learn");
+  });
+
+  // Reload so React re-runs with the seeded localStorage
+  await page.reload({ waitUntil: "domcontentloaded" });
+
+  // Wait for splash + React to render (up to 25s)
   await page
     .waitForFunction(
       () => {
@@ -30,11 +48,11 @@ export default async function globalSetup(_config: FullConfig) {
         );
         return hasEmail || hasLearn;
       },
-      { timeout: 20_000 }
+      { timeout: 25_000 }
     )
     .catch(() => {});
 
-  // If app shell is visible, we're already authenticated
+  // ── Step 2: Check if already authenticated ────────────────────────────────
   const alreadyIn = await page
     .locator("text=Learn")
     .first()
@@ -44,23 +62,22 @@ export default async function globalSetup(_config: FullConfig) {
   if (alreadyIn) {
     console.log("[global-setup] Session already active — skipping sign-in.");
   } else {
-    // Wait for email input
+    // ── Step 3: Sign in ──────────────────────────────────────────────────────
+    // At this point the app should be in AuthGate sign-in mode (default mode="signin")
     const emailInput = page.locator('input[type="email"]').first();
     await emailInput.waitFor({ state: "visible", timeout: 15_000 });
 
-    // If we're on the signup/onboarding screen, navigate to sign-in mode.
-    // Look for a "Sign In" tab / link — its text contains "sign in" or "log in".
+    // If still showing signup mode, switch to sign-in
+    // (look for small nav links like "Already have an account? Sign in")
     const switchLinks = page.locator("button, a").filter({
       hasText: /already.have|sign\s+in|log\s+in/i,
     });
     const switchCount = await switchLinks.count().catch(() => 0);
     if (switchCount > 0) {
-      // Find one that's NOT the main submit button (the submit btn says "Sign In" too)
       for (let i = 0; i < switchCount; i++) {
         const el = switchLinks.nth(i);
         const text = await el.textContent().catch(() => "");
-        // Click small nav links like "Already have an account? Sign in"
-        if (text && text.length < 30 && (await el.isVisible().catch(() => false))) {
+        if (text && text.length < 50 && (await el.isVisible().catch(() => false))) {
           await el.click();
           await page.waitForTimeout(400);
           break;
@@ -72,40 +89,13 @@ export default async function globalSetup(_config: FullConfig) {
     await emailInput.fill(TEST_EMAIL);
     await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
 
-    // Find the main submit button — try several strategies in order
-    let clicked = false;
+    // Click the Sign In button — text-based selector only (no CSS class dependency)
+    // The button is <button className="btn btn-primary" onClick={handleSignIn}>Sign In</button>
+    const signInBtn = page.locator("button").filter({ hasText: /^Sign In$/ }).first();
+    await signInBtn.waitFor({ state: "visible", timeout: 10_000 });
+    await signInBtn.click();
 
-    // Strategy 1: any button with exact text "Sign In"
-    const signInExact = page.locator("button").filter({ hasText: /^Sign In$/ });
-    if (!clicked && (await signInExact.count().catch(() => 0)) > 0) {
-      await signInExact.first().click();
-      clicked = true;
-    }
-
-    // Strategy 2: any button with text containing "Sign In" or "Log In"
-    if (!clicked) {
-      const signInLoose = page
-        .locator("button")
-        .filter({ hasText: /Sign In|Log In/i })
-        .first();
-      if (await signInLoose.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        await signInLoose.click();
-        clicked = true;
-      }
-    }
-
-    // Strategy 3: click the only visible primary-style button after filling form
-    if (!clicked) {
-      const primaryBtn = page.locator("button.btn-primary, button.btn").first();
-      await primaryBtn.click();
-      clicked = true;
-    }
-
-    if (!clicked) {
-      throw new Error("[global-setup] Could not find the Sign In button");
-    }
-
-    // Wait for the app shell to confirm successful login
+    // Wait for app shell to confirm successful login
     await page
       .locator("text=Learn")
       .first()
@@ -113,7 +103,7 @@ export default async function globalSetup(_config: FullConfig) {
     console.log("[global-setup] Sign-in successful.");
   }
 
-  // Dismiss username modal if present
+  // ── Step 4: Dismiss username modal if present ─────────────────────────────
   await page.waitForTimeout(800);
   const usernameInput = page
     .locator(
@@ -130,7 +120,7 @@ export default async function globalSetup(_config: FullConfig) {
     await page.waitForTimeout(1000);
   }
 
-  // Persist auth cookies + localStorage
+  // ── Step 5: Persist auth state ────────────────────────────────────────────
   fs.mkdirSync(path.dirname(AUTH_FILE), { recursive: true });
   await context.storageState({ path: AUTH_FILE });
   console.log(`[global-setup] Auth state saved → ${AUTH_FILE}`);
