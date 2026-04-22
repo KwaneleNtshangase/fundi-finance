@@ -95,25 +95,38 @@ async function run() {
   }
 
   // ── 3. Auth screen or app shell visible ───────────────────────────────────
-  // Wait up to 12s for the sign-in form to appear (splash can take ~5s)
-  let emailInput = 0, passwordInput = 0;
-  try {
-    await page.locator('input[type="email"]').first().waitFor({ state: "visible", timeout: 12_000 });
-    emailInput = await page.locator('input[type="email"]').count();
-    passwordInput = await page.locator('input[type="password"]').count();
-  } catch (_) {
-    emailInput = await page.locator('input[type="email"]').count();
-    passwordInput = await page.locator('input[type="password"]').count();
+  // Splash animation can take up to 8s; React hydration adds more in CI.
+  // Poll for up to 25s for either sign-in form OR app shell to appear.
+  let authOrShellFound = false;
+  const authDeadline = Date.now() + 25_000;
+  while (Date.now() < authDeadline) {
+    const emailCount = await page.locator('input[type="email"]').count();
+    const passCount  = await page.locator('input[type="password"]').count();
+    if (emailCount > 0 && passCount > 0) { authOrShellFound = true; break; }
+
+    // Accept: app shell already showing (prior session cookie)
+    const learnVisible  = await page.locator("text=Learn").first().isVisible().catch(() => false);
+    const budgetVisible = await page.locator("text=Budget").first().isVisible().catch(() => false);
+    if (learnVisible || budgetVisible) { authOrShellFound = true; break; }
+
+    await page.waitForTimeout(600);
   }
-  if (emailInput > 0 && passwordInput > 0) {
-    pass("Sign-in form visible (email + password)");
-  } else {
-    // Also accept: app shell already showing (user was logged in via cookie)
-    const appShell = await page.locator("text=Learn, text=Budget, text=Profile").count();
-    if (appShell > 0) {
-      pass("App shell visible (authenticated session)");
+
+  if (authOrShellFound) {
+    const emailCount = await page.locator('input[type="email"]').count();
+    if (emailCount > 0) {
+      pass("Sign-in form visible (email + password)");
     } else {
-      fail("Sign-in form visible", "Could not find email/password inputs or app shell");
+      pass("App shell visible (authenticated session)");
+    }
+  } else {
+    // Last resort: if branding rendered with no JS errors, the app is up
+    // but stuck on splash — treat as a soft warning rather than hard fail.
+    const brandingOk = await page.locator("text=Fundi").count() > 0;
+    if (brandingOk) {
+      fail("Sign-in form visible", "App loaded (Fundi branding present) but sign-in form did not appear within 25s — possible splash hang");
+    } else {
+      fail("Sign-in form visible", "Could not find email/password inputs, app shell, or Fundi branding");
     }
   }
 

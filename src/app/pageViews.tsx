@@ -357,23 +357,104 @@ function getLessonTitle(
   return undefined;
 }
 
+function UsernameStepField({
+  username,
+  setUsername,
+  usernameError,
+  usernameChecking,
+  usernameAvailable,
+}: {
+  username: string;
+  setUsername: (v: string) => void;
+  usernameError: string | null;
+  usernameChecking: boolean;
+  usernameAvailable: boolean;
+}) {
+  return (
+    <div style={{ marginBottom: 12, textAlign: "left" }}>
+      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+        Username
+      </label>
+      <div style={{ position: "relative" }}>
+        <input
+          type="text"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          placeholder="e.g. fundi_learner"
+          value={username}
+          onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+          style={{
+            width: "100%",
+            padding: "12px 14px",
+            borderRadius: 12,
+            border: `2px solid ${usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-border)"}`,
+            fontSize: 14,
+            boxSizing: "border-box",
+            background: "var(--color-surface)",
+            color: "var(--color-text-primary)",
+          }}
+        />
+        {usernameAvailable && !usernameChecking && (
+          <CheckCircle2 size={16} style={{ position: "absolute", right: 12, top: 13, color: "var(--color-primary)" }} />
+        )}
+      </div>
+      <div style={{ minHeight: 20, marginTop: 6, fontSize: 12, color: usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-text-secondary)" }}>
+        {usernameChecking
+          ? "Checking availability..."
+          : usernameError
+            ? usernameError
+            : usernameAvailable
+              ? "Username is available."
+              : "3-20 chars: lowercase letters, numbers, underscores."}
+      </div>
+    </div>
+  );
+}
+
 function OnboardingView({
   onComplete,
 }: {
-  onComplete: (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => void;
+  onComplete: (payload: { firstName: string; lastName: string; email: string; password: string; goal: string; goalDescription?: string; username: string }) => void;
 }) {
   const [screen, setScreen] = React.useState(0);
+  const [firstName, setFirstName] = React.useState("");
+  const [lastName, setLastName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [selectedGoal, setSelectedGoal] = React.useState("");
-  const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
   const [ageConfirmed, setAgeConfirmed] = React.useState(false);
+  const [consentTerms, setConsentTerms] = React.useState(false);
+  const [consentPopia, setConsentPopia] = React.useState(false);
   const [username, setUsername] = React.useState("");
   const [usernameError, setUsernameError] = React.useState<string | null>(null);
   const [usernameChecking, setUsernameChecking] = React.useState(false);
   const [usernameAvailable, setUsernameAvailable] = React.useState(false);
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    if (screen !== 3) return;
+    void supabase.auth.getUser().then(async ({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      setCurrentUserId(user.id);
+      setEmail(user.email ?? "");
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      const fullName = String(profile?.full_name ?? user.user_metadata?.full_name ?? "").trim();
+      if (fullName) {
+        const parts = fullName.split(" ");
+        setFirstName(parts[0] ?? "");
+        setLastName(parts.slice(1).join(" "));
+      }
+    });
+  }, []);
+
+  React.useEffect(() => {
+    if (screen !== 2) return;
     const normalized = normalizeUsername(username);
     if (!normalized) {
       setUsernameError("Username is required.");
@@ -389,7 +470,7 @@ function OnboardingView({
     let active = true;
     setUsernameChecking(true);
     const timer = setTimeout(() => {
-      isUsernameAvailable(normalized)
+      isUsernameAvailable(normalized, currentUserId ?? undefined)
         .then((available) => {
           if (!active) return;
           setUsernameAvailable(available);
@@ -399,347 +480,128 @@ function OnboardingView({
           if (!active) return;
           setUsernameChecking(false);
         });
-    }, 250);
+    }, 400);
     return () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [screen, username]);
+  }, [screen, username, currentUserId]);
 
-  const screenCount = 5;
-  const screensMeta = [
-    {
-      title: "Welcome to Fundi Finance",
-      body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
-      cta: "Let's go",
-      action: () => { if (ageConfirmed) setScreen(1); },
-    },
-    {
-      title: "What's your money goal?",
-      body: "We'll personalise tips based on what matters most to you. Optional - skip if you prefer.",
-      cta: "Next",
-      action: () => {
-        if (selectedGoal) setScreen(2);
-      },
-    },
-    {
-      title: "Your age range",
-      body: "Helps us keep examples relevant. Optional - skip if you prefer.",
-      cta: "Next",
-      action: () => {
-        setScreen(3);
-      },
-    },
-    {
-      title: "Choose your leaderboard username",
-      body: "This is your public name on the leaderboard. It must be unique.",
-      cta: "Next",
-      action: () => {
-        if (usernameAvailable) setScreen(4);
-      },
-    },
-    {
-      title: "How it works",
-      body: "Earn XP for every lesson. Build streaks. Unlock badges. Compete on the leaderboard. Every lesson takes less than 3 minutes.",
-      cta: "Start learning",
-      action: () =>
-        onComplete({
-          goal: selectedGoal || undefined,
-          ageRange: selectedAgeRange || undefined,
-          goalDescription: goalDescription.trim() || undefined,
-          username: normalizeUsername(username),
-        }),
-    },
-  ];
+  const canContinueStep1 =
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    isValidEmailFormat(email) &&
+    password.length >= 8 &&
+    ageConfirmed &&
+    consentTerms &&
+    consentPopia;
 
-  const current = screensMeta[screen];
+  const canContinueStep2 =
+    Boolean(selectedGoal) && (selectedGoal !== "other" || goalDescription.trim().length > 0);
+
+  const currentMeta = [
+    { title: "Who you are", cta: "Next" },
+    { title: "Your goal", cta: "Next" },
+    { title: "Choose your username", cta: "Done" },
+  ][screen];
 
   return (
-    <div
-      style={{
-        minHeight: "100dvh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "var(--color-bg)",
-        padding: "32px 24px",
-      }}
-    >
-      <div style={{ display: "flex", gap: 6, marginBottom: 40 }}>
-        {Array.from({ length: screenCount }).map((_, i) => (
-          <div
-            key={i}
-            style={{
-              width: i === screen ? 20 : 8,
-              height: 8,
-              borderRadius: 4,
-              background: i === screen ? "var(--color-primary)" : "var(--color-border)",
-              transition: "all 0.3s",
-            }}
-          />
-        ))}
-      </div>
+    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "20px 16px" }}>
+      <div style={{ maxWidth: 380, width: "100%" }}>
+        <div style={{ display: "flex", gap: 6, marginBottom: 18, justifyContent: "center" }}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} style={{ width: i === screen ? 20 : 8, height: 8, borderRadius: 4, background: i === screen ? "var(--color-primary)" : "var(--color-border)", transition: "all 0.3s" }} />
+          ))}
+        </div>
+        <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, color: "var(--color-text-primary)", textAlign: "center" }}>{currentMeta.title}</h1>
 
-      <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
         {screen === 0 && (
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14 }}>
+            <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
+            <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
+            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
+            <input type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: "100%", marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
+                <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
+                <span>I confirm I am 18 years or older</span>
+              </label>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
+                <input type="checkbox" checked={consentTerms} onChange={(e) => setConsentTerms(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
+                <span>
+                  I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Privacy Policy</a>
+                </span>
+              </label>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
+                <input type="checkbox" checked={consentPopia} onChange={(e) => setConsentPopia(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
+                <span>I consent to Fundi Finance processing my personal data for the purpose of delivering financial education, in accordance with POPIA Section 11</span>
+              </label>
+            </div>
           </div>
-        )}
-        {screen === 4 && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
-            {[Target, Zap, Trophy].map((IconComp, i) => (
-              <div
-                key={i}
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: "50%",
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-border)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <IconComp size={24} style={{ color: "var(--color-primary)" }} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 12, color: "var(--color-text-primary)" }}>
-          {current.title}
-        </h1>
-        <p style={{ fontSize: 15, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>
-          {current.body}
-        </p>
-
-        {/* Age confirmation - screen 0 only */}
-        {screen === 0 && (
-          <label style={{
-            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24,
-            textAlign: "left", cursor: "pointer",
-            padding: "14px 16px", borderRadius: 12,
-            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
-            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
-          }}>
-            <input
-              type="checkbox"
-              checked={ageConfirmed}
-              onChange={(e) => setAgeConfirmed(e.target.checked)}
-              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
-            />
-            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-              I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
-            </span>
-          </label>
         )}
 
         {screen === 1 && (
-          <>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12, textAlign: "left" }}>
+          <div>
+            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginBottom: 12, textAlign: "center" }}>What&apos;s your main financial goal?</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
               {ONBOARDING_GOAL_OPTIONS.map((g) => (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => {
-                    setSelectedGoal(g.id);
-                    if (g.id !== "other") setGoalDescription("");
-                  }}
-                  style={{
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    cursor: "pointer",
-                    border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                    background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    fontWeight: 600,
-                    fontSize: 13,
-                    color: "var(--color-text-primary)",
-                    transition: "all 0.15s",
-                  }}
-                >
-                  <g.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
+                <button key={g.id} type="button" onClick={() => { setSelectedGoal(g.id); if (g.id !== "other") setGoalDescription(""); }} style={{ padding: "12px 10px", borderRadius: 12, border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`, background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)", display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 13, textAlign: "left", cursor: "pointer", color: "var(--color-text-primary)" }}>
+                  <g.Icon size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
                   {g.label}
                 </button>
               ))}
             </div>
-            {selectedGoal === "other" && (
+            {selectedGoal && (
               <textarea
-                placeholder="Describe your goal - e.g. save for my child's education"
-                value={goalDescription}
-                onChange={(e) => setGoalDescription(e.target.value)}
-                rows={3}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "2px solid var(--color-primary)",
-                  fontSize: 13,
-                  resize: "vertical",
-                  marginBottom: 12,
-                  boxSizing: "border-box",
-                  fontFamily: "inherit",
-                  background: "var(--color-surface)",
-                  color: "var(--color-text-primary)",
-                }}
-              />
-            )}
-            {selectedGoal && selectedGoal !== "other" && (
-              <textarea
-                placeholder="Anything more to say about this goal? (optional)"
+                placeholder={selectedGoal === "other" ? "Describe your goal..." : "Optional: add detail about this goal"}
                 value={goalDescription}
                 onChange={(e) => setGoalDescription(e.target.value)}
                 rows={2}
-                style={{
-                  width: "100%",
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "1px solid var(--color-border)",
-                  fontSize: 13,
-                  resize: "vertical",
-                  marginBottom: 12,
-                  boxSizing: "border-box",
-                  fontFamily: "inherit",
-                  background: "var(--color-surface)",
-                  color: "var(--color-text-primary)",
-                }}
+                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 13, resize: "none", boxSizing: "border-box", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
               />
             )}
-          </>
+          </div>
         )}
 
         {screen === 2 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
-            {ONBOARDING_AGE_RANGES.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setSelectedAgeRange(a.id)}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  border: `2px solid ${selectedAgeRange === a.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                  background: selectedAgeRange === a.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: "var(--color-text-primary)",
-                  transition: "all 0.15s",
-                }}
-              >
-                <a.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
-                {a.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {screen === 3 && (
-          <div style={{ marginBottom: 16, textAlign: "left" }}>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
-              Username
-            </label>
-            <input
-              type="text"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
-              placeholder="e.g. fundi_learner"
-              value={username}
-              onChange={(e) => setUsername(normalizeUsername(e.target.value))}
-              style={{
-                width: "100%",
-                padding: "12px 14px",
-                borderRadius: 12,
-                border: `2px solid ${usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-border)"}`,
-                fontSize: 14,
-                boxSizing: "border-box",
-                background: "var(--color-surface)",
-                color: "var(--color-text-primary)",
-              }}
-            />
-            <div style={{ minHeight: 20, marginTop: 6, fontSize: 12, color: usernameError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
-              {usernameChecking
-                ? "Checking availability..."
-                : usernameError
-                  ? usernameError
-                  : usernameAvailable
-                    ? "Username is available."
-                    : "3-20 chars: lowercase letters, numbers, underscores."}
-            </div>
-          </div>
+          <UsernameStepField
+            username={username}
+            setUsername={setUsername}
+            usernameError={usernameError}
+            usernameChecking={usernameChecking}
+            usernameAvailable={usernameAvailable}
+          />
         )}
 
         <button
           className="btn btn-primary"
-          style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
-          onClick={current.action}
+          style={{ width: "100%", marginTop: 10, padding: "13px 14px", fontSize: 16, fontWeight: 800 }}
           disabled={
-            (screen === 0 && !ageConfirmed) ||
-            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))) ||
-            (screen === 3 && (!usernameAvailable || usernameChecking))
+            (screen === 0 && !canContinueStep1) ||
+            (screen === 1 && !canContinueStep2) ||
+            (screen === 2 && (!usernameAvailable || usernameChecking))
           }
+          onClick={() => {
+            if (screen === 0) setScreen(1);
+            else if (screen === 1) setScreen(2);
+            else {
+              onComplete({
+                firstName: firstName.trim(),
+                lastName: lastName.trim(),
+                email: email.trim().toLowerCase(),
+                password,
+                goal: selectedGoal,
+                goalDescription: goalDescription.trim() || undefined,
+                username: normalizeUsername(username),
+              });
+            }
+          }}
         >
-          {current.cta}
+          {currentMeta.cta}
         </button>
 
-        {screen === 1 && (
-          <button
-            type="button"
-            onClick={() => setScreen(2)}
-            style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
-              width: "100%",
-            }}
-          >
-            Skip
-          </button>
-        )}
-
-        {screen === 2 && (
-          <button
-            type="button"
-            onClick={() => setScreen(3)}
-            style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
-              width: "100%",
-            }}
-          >
-            Skip
-          </button>
-        )}
-
         {screen > 0 && (
-          <button
-            type="button"
-            onClick={() => setScreen((s) => s - 1)}
-            style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
-            }}
-          >
+          <button type="button" onClick={() => setScreen((s) => s - 1)} style={{ marginTop: 10, background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 14, width: "100%" }}>
             Back
           </button>
         )}
@@ -6838,26 +6700,53 @@ export default function Home() {
   };
 
   // Handle onboarding complete
-  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => {
+  const handleOnboardingComplete = async (payload: { firstName: string; lastName: string; email: string; password: string; goal: string; goalDescription?: string; username: string }) => {
     localStorage.setItem("fundi-onboarded", "true");
+    localStorage.removeItem("fundi-onboarding-state");
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.removeItem("fundi-onboarding-state");
+    }
     if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
     if (payload.goalDescription) localStorage.setItem("fundi-goal-description", payload.goalDescription);
-    if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
     localStorage.setItem("fundi-username", payload.username);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const username = normalizeUsername(payload.username);
       const available = await isUsernameAvailable(username, user.id);
       if (!available) return;
+      const fullName = `${payload.firstName} ${payload.lastName}`.trim();
       const row: Record<string, unknown> = { user_id: user.id };
       if (payload.goal) row.goal = payload.goal;
       if (payload.goalDescription) row.goal_description = payload.goalDescription;
-      if (payload.ageRange) row.age_range = payload.ageRange;
       row.username = username;
-      if (row.goal ?? row.age_range ?? row.goal_description ?? row.username) {
+      row.full_name = fullName;
+      if (row.goal ?? row.goal_description ?? row.username ?? row.full_name) {
         await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
       }
+      await supabase.auth.updateUser({
+        email: payload.email,
+        password: payload.password,
+        data: { full_name: fullName },
+      });
       await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
+    }
+    const firstCourse = CONTENT_DATA.courses[0];
+    const firstUnit = firstCourse?.units?.[0];
+    const firstLesson = firstUnit?.lessons?.find((l) => !l.comingSoon && Array.isArray(l.steps) && l.steps.length > 0) ?? null;
+    if (firstCourse && firstLesson) {
+      setTimeout(() => {
+        beginLessonSession(firstCourse.id, firstLesson.id, firstLesson.title);
+        setCurrentLessonState({
+          courseId: firstCourse.id,
+          lessonId: firstLesson.id,
+          stepIndex: 0,
+          steps: firstLesson.steps ?? [],
+          answers: {},
+          correctCount: 0,
+        });
+        setRoute({ name: "lesson", courseId: firstCourse.id, lessonId: firstLesson.id } as Route);
+      }, 300);
+      return;
     }
     setRoute({ name: "learn" } as Route);
   };
@@ -6884,6 +6773,37 @@ export default function Home() {
       }
     })().catch(() => {});
   }, [progressReady, userId, route.name]);
+
+  useEffect(() => {
+    if (!needsUsernamePrompt || !userId) return;
+    const normalized = normalizeUsername(usernameDraft);
+    if (!normalized) {
+      setUsernamePromptError("Username is required.");
+      return;
+    }
+    const formatError = validateUsername(normalized);
+    if (formatError) {
+      setUsernamePromptError(formatError);
+      return;
+    }
+    let active = true;
+    setUsernamePromptChecking(true);
+    const timer = setTimeout(() => {
+      isUsernameAvailable(normalized, userId)
+        .then((available) => {
+          if (!active) return;
+          setUsernamePromptError(available ? null : "That username is already taken.");
+        })
+        .finally(() => {
+          if (!active) return;
+          setUsernamePromptChecking(false);
+        });
+    }, 400);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [needsUsernamePrompt, userId, usernameDraft]);
 
   const saveUsernameFromPrompt = async () => {
     if (!userId) return;
@@ -7659,25 +7579,17 @@ export default function Home() {
               <p style={{ marginTop: 8, marginBottom: 14, fontSize: 14, color: "var(--color-text-secondary)" }}>
                 You need a unique username before continuing. This is what appears on the leaderboard.
               </p>
-              <input
-                type="text"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                value={usernameDraft}
-                onChange={(e) => setUsernameDraft(normalizeUsername(e.target.value))}
-                placeholder="username"
-                style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `2px solid ${usernamePromptError ? "var(--color-danger)" : "var(--color-border)"}`, boxSizing: "border-box", marginBottom: 8, fontSize: 14 }}
+              <UsernameStepField
+                username={usernameDraft}
+                setUsername={setUsernameDraft}
+                usernameError={usernamePromptError}
+                usernameChecking={usernamePromptChecking}
+                usernameAvailable={!usernamePromptError && normalizeUsername(usernameDraft).length >= 3}
               />
-              <div style={{ minHeight: 18, fontSize: 12, color: usernamePromptError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
-                {usernamePromptChecking
-                  ? "Checking availability..."
-                  : usernamePromptError ?? "3-20 chars: lowercase letters, numbers, underscores."}
-              </div>
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={usernamePromptSaving || usernamePromptChecking}
+                disabled={usernamePromptSaving || usernamePromptChecking || Boolean(usernamePromptError) || normalizeUsername(usernameDraft).length < 3}
                 onClick={saveUsernameFromPrompt}
                 style={{ width: "100%", marginTop: 10 }}
               >
