@@ -38,8 +38,14 @@ test.describe("Authentication", () => {
   });
 
   test("1.2 — Sign-in form is visible before login", async ({ browser }) => {
-    // Use a fresh context (no storageState) to see the auth form
+    // Use a fresh context (no storageState) to see the auth form.
+    // Inject fundi-onboarded=1 so the app routes to AuthGate (sign-in form)
+    // instead of OnboardingView — both are unauthenticated but only AuthGate
+    // has the email/password inputs.
     const ctx = await browser.newContext();
+    await ctx.addInitScript(() => {
+      try { localStorage.setItem("fundi-onboarded", "1"); } catch (_) {}
+    });
     const page = await ctx.newPage();
     await gotoHome(page);
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 20_000 });
@@ -48,8 +54,12 @@ test.describe("Authentication", () => {
   });
 
   test("1.3 — Wrong password shows error", async ({ browser }) => {
-    // Fresh context — no session, must hit the actual sign-in form
+    // Fresh context — no session, must hit the actual sign-in form.
+    // Inject fundi-onboarded=1 so AuthGate (not OnboardingView) renders.
     const ctx = await browser.newContext();
+    await ctx.addInitScript(() => {
+      try { localStorage.setItem("fundi-onboarded", "1"); } catch (_) {}
+    });
     const page = await ctx.newPage();
     await gotoHome(page);
     await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 20_000 });

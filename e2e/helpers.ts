@@ -106,7 +106,7 @@ export async function dismissModals(page: Page) {
   }
 }
 
-/** Navigate to a specific tab using the bottom nav */
+/** Navigate to a specific tab using the bottom nav (mobile) or sidebar (desktop) */
 export async function goToTab(
   page: Page,
   tab:
@@ -117,7 +117,25 @@ export async function goToTab(
     | "Progress"
     | "Profile"
 ) {
-  await page.locator(`text=${tab}`).first().click();
+  // Target nav buttons specifically — avoids matching content-area text.
+  // Desktop (≥768px): sidebar uses .nav-link buttons
+  // Mobile (<768px): bottom nav uses .bottom-nav button elements
+  // We try both, whichever is visible wins.
+  const tabRegex = new RegExp(`^${tab}$`);
+  const navBtn = page
+    .locator(".nav-link, .bottom-nav button")
+    .filter({ hasText: tabRegex })
+    .first();
+
+  const isVisible = await navBtn.isVisible().catch(() => false);
+  if (isVisible) {
+    await navBtn.click();
+  } else {
+    // Fallback: any button or link in the page matching the tab label exactly
+    const fallback = page.locator("button, a").filter({ hasText: tabRegex }).first();
+    await fallback.waitFor({ state: "visible", timeout: 10_000 });
+    await fallback.click();
+  }
   await page.waitForTimeout(400);
 }
 
