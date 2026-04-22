@@ -56,7 +56,10 @@ export async function POST(req: NextRequest) {
       remainingFreezes: nextFreezeCount,
     });
   } else {
-    nextStreak = 0;
+    // Streak lapsed (gap > 1 day, no freeze available).
+    // Calling this endpoint means the user IS doing a lesson right now,
+    // so today counts as day 1 of a fresh streak — never drop to 0.
+    nextStreak = 1;
   }
 
   const { error: upsertError } = await admin.from("user_progress").upsert({
