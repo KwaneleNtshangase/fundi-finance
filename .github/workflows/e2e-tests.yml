@@ -1,13 +1,10 @@
 name: E2E Tests — Fundi Finance
 
 on:
-  # Run on every push to main (i.e. every Vercel deployment)
   push:
     branches: [main]
-  # Run daily at 7:00 AM South Africa time (05:00 UTC)
   schedule:
     - cron: "0 5 * * *"
-  # Allow manual trigger from GitHub Actions tab
   workflow_dispatch:
 
 jobs:
@@ -25,33 +22,41 @@ jobs:
           - "Mobile Chrome (Pixel 7)"
 
     steps:
-      # ── Checkout ────────────────────────────────────────────────────────────
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── Node & dependencies ──────────────────────────────────────────────────
       - name: Set up Node 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
+
       - name: Install npm dependencies
         run: npm ci
 
-      # ── Playwright ──────────────────────────────────────────────────────────
       - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium webkit
 
-      # ── Run tests ───────────────────────────────────────────────────────────
+      - name: Install Playwright system deps (cached hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium webkit
+
       - name: Run Playwright tests (${{ matrix.project }})
         run: npx playwright test --project="${{ matrix.project }}"
         env:
           BASE_URL: ${{ secrets.BASE_URL || 'https://fundiapp.co.za' }}
-          TEST_EMAIL: ${{ secrets.TEST_EMAIL }}
-          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+          TEST_EMAIL: ${{ secrets.TEST_EMAIL || 'e2e-test@fundiapp.co.za' }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD || 'FundiE2E_Test#2026' }}
 
-      # ── Upload report ───────────────────────────────────────────────────────
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4

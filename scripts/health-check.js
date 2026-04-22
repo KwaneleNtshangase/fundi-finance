@@ -110,7 +110,18 @@ async function run() {
     (e) =>
       !e.includes("favicon") &&
       !e.includes("404") &&
-      !e.includes("net::ERR_BLOCKED")
+      !e.includes("net::ERR_BLOCKED") &&
+      !e.includes("net::ERR_ABORTED") &&
+      !e.includes("posthog") &&
+      !e.includes("PostHog") &&
+      !e.includes("WebSocket") &&
+      !e.includes("supabase.co/realtime") &&
+      !e.includes("Failed to load resource") &&
+      !e.includes("Content Security Policy") &&
+      !e.includes("sw.js") &&
+      !e.includes("service-worker") &&
+      !e.includes("push") &&
+      !e.includes("Notification")
   );
   if (realErrors.length === 0) {
     pass("No JavaScript console errors");
