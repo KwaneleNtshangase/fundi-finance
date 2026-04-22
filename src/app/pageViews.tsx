@@ -4070,7 +4070,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
-  const [showLeagueInfo, setShowLeagueInfo] = useState(false);
 
   // Countdown to Saturday midnight reset
   useEffect(() => {
@@ -4193,16 +4192,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
   const top3 = leaders.slice(0, 3);
   const restLeaders = leaders.slice(3);
 
-  const LEAGUES = [
-    { name: "Bronze",  min: 0,     max: 999,   emoji: "🥉", color: "#CD7F32" },
-    { name: "Silver",  min: 1000,  max: 4999,  emoji: "🥈", color: "#A8A9AD" },
-    { name: "Gold",    min: 5000,  max: 14999, emoji: "🥇", color: "#FFB612" },
-    { name: "Diamond", min: 15000, max: Infinity, emoji: "💎", color: "#7DD3FC" },
-  ];
-  // Leagues based on total XP (permanent achievement), not weekly
-  const getLeague = (totalXpVal: number) => LEAGUES.find((l) => totalXpVal >= l.min && totalXpVal <= l.max) ?? LEAGUES[0];
-  const myLeague = myRank ? getLeague(myRank.totalXp) : null;
-
   return (
     <main className="main-content main-with-stats">
       <div>
@@ -4217,72 +4206,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
       <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 14 }}>
         This week's XP - everyone starts fresh every Sunday
       </p>
-
-      {/* League tier legend + info */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
-        {LEAGUES.map((league) => {
-          const isMyLeague = myLeague?.name === league.name;
-          return (
-            <div key={league.name} style={{
-              display: "flex", alignItems: "center", gap: 5,
-              padding: "4px 10px", borderRadius: 20,
-              background: isMyLeague ? league.color + "22" : "var(--color-border)",
-              border: isMyLeague ? `1.5px solid ${league.color}` : "1.5px solid transparent",
-              fontSize: 12, fontWeight: isMyLeague ? 700 : 500,
-              color: isMyLeague ? league.color : "var(--color-text-secondary)",
-            }}>
-              <span>{league.emoji}</span>
-              <span>{league.name}</span>
-              <span style={{ fontSize: 10, opacity: 0.7 }}>
-                {league.max === Infinity ? `${formatWithSpaces(league.min)}+` : `${formatWithSpaces(league.min)}–${formatWithSpaces(league.max)}`}
-              </span>
-            </div>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setShowLeagueInfo(true)}
-          aria-label="What do leagues mean?"
-          style={{
-            width: 22, height: 22, borderRadius: "50%", border: "1.5px solid var(--color-border)",
-            background: "var(--color-surface)", cursor: "pointer",
-            fontSize: 11, fontWeight: 800, color: "var(--color-text-secondary)",
-            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}
-        >?</button>
-      </div>
-
-      {/* League info modal */}
-      {showLeagueInfo && (
-        <div
-          onClick={() => setShowLeagueInfo(false)}
-          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
-        >
-          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: 20, padding: "24px", width: "100%", maxWidth: 360 }}>
-            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4, color: "var(--color-text-primary)" }}>What are leagues?</div>
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
-              Leagues show your overall Fundi Finance level based on your <strong>total XP earned all time</strong>. They don&apos;t reset - keep earning XP to move up permanently.
-            </p>
-            {LEAGUES.map((league) => (
-              <div key={league.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
-                <span style={{ fontSize: 22 }}>{league.emoji}</span>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: league.color }}>{league.name}</div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                    {league.max === Infinity
-                      ? `${formatWithSpaces(league.min)} XP and above`
-                      : `${formatWithSpaces(league.min)} – ${formatWithSpaces(league.max)} total XP`}
-                  </div>
-                </div>
-              </div>
-            ))}
-            <p style={{ color: "var(--color-text-secondary)", fontSize: 12, marginTop: 14, lineHeight: 1.5 }}>
-              The weekly leaderboard ranks everyone by XP earned <strong>this week only</strong>. Every Sunday it resets to zero so everyone gets a fresh start.
-            </p>
-            <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} onClick={() => setShowLeagueInfo(false)}>Got it</button>
-          </div>
-        </div>
-      )}
 
       {/* Your rank summary card */}
       {myRank && !loading && (
@@ -4305,11 +4228,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
               <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
                 {formatWithSpaces(myRank.totalXp)} total XP
               </div>
-              {myLeague && (
-                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6, padding: "3px 10px", borderRadius: 20, background: myLeague.color + "22", border: `1px solid ${myLeague.color}`, fontSize: 12, fontWeight: 700, color: myLeague.color }}>
-                  {myLeague.emoji} {myLeague.name} League
-                </div>
-              )}
             </div>
             {xpToNext !== null && xpToNext > 0 && aheadOfMe && (
               <div style={{
@@ -4413,37 +4331,24 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
             background: "var(--color-surface)", color: "var(--color-text-primary)",
             border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
           }}>
-            {/* Demotion zone divider - shown when ≥6 users, marks bottom 3 */}
-            {leaders.length >= 6 && (
-              <div style={{
-                background: "rgba(220,38,38,0.06)", borderBottom: "1.5px solid rgba(220,38,38,0.25)",
-                padding: "6px 16px", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 4 }}>
-                  <AlertTriangle size={11} style={{ flexShrink: 0 }} />Demotion Zone - bottom {Math.min(3, restLeaders.length)} this week
-                </span>
-              </div>
-            )}
             {restLeaders.map((leader) => {
               const prevLeader = leaders[leader.rank - 2]; // person above
-              const inDemotionZone = leaders.length >= 6 && leader.rank > leaders.length - 3;
               return (
                 <div
                   key={leader.id}
                   className="leaderboard-row"
                   style={{
                     ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
-                    ...(inDemotionZone && !leader.isYou ? { background: "rgba(220,38,38,0.04)" } : {}),
                     display: "flex", alignItems: "center", padding: "12px 16px",
                     borderBottom: "1px solid var(--color-border)",
                   }}
                 >
                   <div style={{
                     width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
-                    color: inDemotionZone ? "#dc2626" : leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
                     flexShrink: 0,
                   }}>
-                    {inDemotionZone ? <AlertTriangle size={14} style={{ color: "#dc2626" }} /> : leader.rank}
+                    {leader.rank}
                   </div>
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
@@ -4477,14 +4382,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                     }}>
                       {formatWithSpaces(leader.xp)} XP
                     </div>
-                    {(() => {
-                      const lg = getLeague(leader.totalXp);
-                      return (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: lg.color }}>
-                          {lg.emoji} {lg.name}
-                        </span>
-                      );
-                    })()}
                   </div>
                 </div>
               );
@@ -6951,6 +6848,19 @@ export default function Home() {
             <li className="nav-item">
               <button
                 className={`nav-link ${
+                  route.name === "leaderboard" ? "active" : ""
+                }`}
+                onClick={() => handleNav("leaderboard")}
+              >
+                <span className="nav-icon">
+                  <Trophy size={20} className="text-current" />
+                </span>
+                Leaderboard
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${
                   route.name === "settings" ? "active" : ""
                 }`}
                 onClick={() => handleNav("settings")}
@@ -6987,7 +6897,7 @@ export default function Home() {
             claimChallengeReward={claimChallengeReward}
             streak={userData.streak}
             showQuestSections={false}
-            onReviewXpEarned={(xp) => progress.addXP(xp)}
+            onReviewXpEarned={(xp) => addXP(xp)}
             onReviewChallengeProgress={() => {
               bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: 5, isPerfect: false });
             }}
@@ -7663,11 +7573,11 @@ export default function Home() {
             order: "order-4",
           },
           {
-            key: "progress",
-            label: "Progress",
-            icon: <TrendingUp size={20} className="text-current" />,
-            isActive: route.name === "settings",
-            onClick: () => handleNav("settings"),
+            key: "leaderboard",
+            label: "Leaderboard",
+            icon: <Trophy size={20} className="text-current" />,
+            isActive: route.name === "leaderboard",
+            onClick: () => handleNav("leaderboard"),
             order: "order-5",
           },
           {
