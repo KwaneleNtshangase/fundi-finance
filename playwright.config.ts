@@ -4,11 +4,11 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: false, // run sequentially so state builds correctly
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: [["html", { open: "never" }], ["list"]],
   use: {
-    baseURL: process.env.BASE_URL ?? "https://fundiapp.co.za",
+    baseURL: process.env.BASE_URL ?? "https://www.fundiapp.co.za",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
     trace: "retain-on-failure",
