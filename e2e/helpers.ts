@@ -66,7 +66,11 @@ export async function signIn(page: Page) {
   await emailInput.waitFor({ state: "visible", timeout: 20_000 });
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-  await page.locator('button[type="submit"]').click();
+  // Sign-in button uses onClick, not type="submit" — match by text
+  const signInBtn = page.locator("button.btn-primary, button.btn", { hasText: /^Sign In$/i }).first();
+  const fallbackBtn = page.locator("button", { hasText: /^Sign In$/i }).first();
+  const btn = (await signInBtn.isVisible({ timeout: 3_000 }).catch(() => false)) ? signInBtn : fallbackBtn;
+  await btn.click();
 
   // Wait for nav bar — means auth succeeded and app loaded
   await expect(page.locator("text=Learn").first()).toBeVisible({

@@ -13,16 +13,15 @@ import * as path from "path";
 const AUTH_FILE = path.join(__dirname, ".auth", "user.json");
 
 export default async function globalSetup(_config: FullConfig) {
-  // Always re-authenticate in CI for a fresh session
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
-    viewport: { width: 390, height: 844 }, // iPhone 14 size
+    viewport: { width: 390, height: 844 },
   });
   const page = await context.newPage();
 
   console.log(`\n[global-setup] Signing in as ${TEST_EMAIL}…`);
 
-  // Navigate and wait for splash to clear
+  // Navigate and wait for splash to finish
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
   await page
     .waitForFunction(
@@ -45,11 +44,30 @@ export default async function globalSetup(_config: FullConfig) {
     .catch(() => false);
 
   if (!alreadyIn) {
+    // Make sure we're on sign-in mode (not sign-up / onboarding)
+    // The auth screen has two modes — look for a "Sign In" button or tab
+    const signinModeLink = page.locator("button, a", { hasText: /^Sign In$/i }).first();
+    const isSigninMode = await signinModeLink.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (!isSigninMode) {
+      // Try clicking "Already have an account? Sign in" link
+      const switchToSignin = page.locator("button, a", { hasText: /sign.?in|log.?in|already.have/i }).last();
+      if (await switchToSignin.isVisible({ timeout: 2_000 }).catch(() => false)) {
+        await switchToSignin.click();
+        await page.waitForTimeout(500);
+      }
+    }
+
+    // Fill credentials
     const emailInput = page.locator('input[type="email"]').first();
-    await emailInput.waitFor({ state: "visible", timeout: 20_000 });
+    await emailInput.waitFor({ state: "visible", timeout: 15_000 });
     await emailInput.fill(TEST_EMAIL);
     await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-    await page.locator('button[type="submit"]').click();
+
+    // Click the "Sign In" button — NOT type="submit" (the app uses onClick)
+    const signInBtn = page.locator("button.btn-primary, button.btn", { hasText: /^Sign In$/i }).first();
+    await signInBtn.waitFor({ state: "visible", timeout: 10_000 });
+    await signInBtn.click();
+
     await page
       .locator("text=Learn")
       .first()
