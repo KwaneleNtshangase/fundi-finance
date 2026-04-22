@@ -2,6 +2,10 @@
  * Shared test helpers for Fundi Finance E2E tests.
  * Credentials are set via environment variables so they never live in source.
  *
+ * Auth is handled by global-setup.ts (signs in once, saves storageState).
+ * The `signIn` helper is now a fast "navigate home and confirm app is loaded"
+ * call — it only does a full sign-in if the session isn't already active.
+ *
  * Usage:
  *   TEST_EMAIL=test@example.com TEST_PASSWORD=secret npx playwright test
  */
@@ -25,27 +29,39 @@ export function normaliseUrl(url: string) {
 export async function gotoHome(page: Page) {
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
   // Wait up to 15 s for splash to finish and either auth form or app shell to appear
-  await page.waitForFunction(
-    () => {
-      const hasEmail = !!document.querySelector('input[type="email"]');
-      const hasLearn = [...document.querySelectorAll("*")].some(
-        (el) => el.textContent?.trim() === "Learn"
-      );
-      return hasEmail || hasLearn;
-    },
-    { timeout: 15_000 }
-  ).catch(() => {/* continue — next assertions will surface the real issue */});
+  await page
+    .waitForFunction(
+      () => {
+        const hasEmail = !!document.querySelector('input[type="email"]');
+        const hasLearn = [...document.querySelectorAll("*")].some(
+          (el) => el.textContent?.trim() === "Learn"
+        );
+        return hasEmail || hasLearn;
+      },
+      { timeout: 15_000 }
+    )
+    .catch(() => {
+      /* continue — next assertions will surface the real issue */
+    });
 }
 
-/** Sign in with email/password, wait for the app shell to appear */
+/**
+ * Fast sign-in: with storageState already loaded by global-setup, just
+ * navigate home and confirm the app shell is present.
+ * Falls back to full credential sign-in if the session has expired.
+ */
 export async function signIn(page: Page) {
   await gotoHome(page);
 
-  // If already authenticated (session cookie), skip sign-in
-  const alreadyIn = await page.locator("text=Learn").first().isVisible().catch(() => false);
+  // Happy path: session already active
+  const alreadyIn = await page
+    .locator("text=Learn")
+    .first()
+    .isVisible()
+    .catch(() => false);
   if (alreadyIn) return;
 
-  // Wait for email input (splash may still be fading)
+  // Session expired — do full sign-in
   const emailInput = page.locator('input[type="email"]').first();
   await emailInput.waitFor({ state: "visible", timeout: 20_000 });
   await emailInput.fill(TEST_EMAIL);
@@ -53,7 +69,9 @@ export async function signIn(page: Page) {
   await page.locator('button[type="submit"]').click();
 
   // Wait for nav bar — means auth succeeded and app loaded
-  await expect(page.locator("text=Learn").first()).toBeVisible({ timeout: 25_000 });
+  await expect(page.locator("text=Learn").first()).toBeVisible({
+    timeout: 25_000,
+  });
 
   // Dismiss any post-login modals (username prompt, etc.)
   await dismissModals(page);
@@ -63,17 +81,32 @@ export async function signIn(page: Page) {
 export async function dismissModals(page: Page) {
   await page.waitForTimeout(800);
   // Username prompt — fill with a test username if prompted
-  const usernameInput = page.locator('input[placeholder*="username" i], input[placeholder*="Username" i]').first();
+  const usernameInput = page
+    .locator(
+      'input[placeholder*="username" i], input[placeholder*="Username" i]'
+    )
+    .first();
   if (await usernameInput.isVisible().catch(() => false)) {
     await usernameInput.fill("e2e_test_bot");
-    const saveBtn = page.locator("button", { hasText: /Save|Continue|Done/i }).first();
+    const saveBtn = page
+      .locator("button", { hasText: /Save|Continue|Done/i })
+      .first();
     if (await saveBtn.isVisible()) await saveBtn.click();
     await page.waitForTimeout(1000);
   }
 }
 
 /** Navigate to a specific tab using the bottom nav */
-export async function goToTab(page: Page, tab: "Learn" | "Calculate" | "Budget" | "Goals" | "Progress" | "Profile") {
+export async function goToTab(
+  page: Page,
+  tab:
+    | "Learn"
+    | "Calculate"
+    | "Budget"
+    | "Goals"
+    | "Progress"
+    | "Profile"
+) {
   await page.locator(`text=${tab}`).first().click();
   await page.waitForTimeout(400);
 }
@@ -83,7 +116,9 @@ export async function openFirstLesson(page: Page): Promise<string> {
   await goToTab(page, "Learn");
   await page.locator(".course-card").first().click();
   await page.waitForTimeout(600);
-  const lesson = page.locator(".lesson-node.playable, .lesson-node.completed").first();
+  const lesson = page
+    .locator(".lesson-node.playable, .lesson-node.completed")
+    .first();
   await lesson.click();
   await page.waitForTimeout(700);
   const title = await page.locator(".step-title, h2").first().textContent();
@@ -95,7 +130,9 @@ export async function completeLesson(page: Page) {
   let safety = 0;
   while (safety < 40) {
     safety++;
-    const done = page.locator("text=Back to Course, text=Done — Back to Course").first();
+    const done = page
+      .locator("text=Back to Course, text=Done — Back to Course")
+      .first();
     if (await done.isVisible()) break;
 
     const options = page.locator(".option-button:not([disabled])");
@@ -105,19 +142,26 @@ export async function completeLesson(page: Page) {
     }
 
     const truBtn = page.locator("button", { hasText: "True" }).first();
-    if (await truBtn.isVisible().catch(() => false) && !(await truBtn.isDisabled().catch(() => true))) {
+    if (
+      (await truBtn.isVisible().catch(() => false)) &&
+      !(await truBtn.isDisabled().catch(() => true))
+    ) {
       await truBtn.click();
       await page.waitForTimeout(400);
     }
 
-    const continueBtn = page.locator("button", { hasText: /Continue|Finish|Next Lesson/ }).first();
+    const continueBtn = page
+      .locator("button", { hasText: /Continue|Finish|Next Lesson/ })
+      .first();
     if (await continueBtn.isVisible().catch(() => false)) {
       await continueBtn.click();
       await page.waitForTimeout(600);
       continue;
     }
 
-    const doneBtn = page.locator("button", { hasText: /I.ve done this|Done/i }).first();
+    const doneBtn = page
+      .locator("button", { hasText: /I.ve done this|Done/i })
+      .first();
     if (await doneBtn.isVisible().catch(() => false)) {
       await doneBtn.click();
       await page.waitForTimeout(400);
