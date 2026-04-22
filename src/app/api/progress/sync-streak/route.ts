@@ -29,17 +29,18 @@ export async function POST(req: NextRequest) {
 
   const { data } = await admin
     .from("user_progress")
-    .select("streak,last_activity_date,freeze_count,streak_freezes")
+    .select("streak,last_activity_date,freeze_count")
     .eq("user_id", userId)
     .maybeSingle();
   const today = isoToday();
   const yesterday = isoYesterday();
-  const lastActive = data?.last_activity_date ? String(data.last_activity_date) : null;
+  // Normalise to "YYYY-MM-DD" — last_activity_date is a DATE column so this is a no-op,
+  // but guards against any future schema changes.
+  const lastActive = data?.last_activity_date
+    ? String(data.last_activity_date).slice(0, 10)
+    : null;
   const current = Number(data?.streak ?? 0);
-  const freezeCount = Math.max(
-    0,
-    Number((data as any)?.streak_freezes ?? (data as any)?.freeze_count ?? 0)
-  );
+  const freezeCount = Math.max(0, Number(data?.freeze_count ?? 0));
 
   let nextStreak = current;
   let nextFreezeCount = freezeCount;
@@ -58,13 +59,17 @@ export async function POST(req: NextRequest) {
     nextStreak = 0;
   }
 
-  await admin.from("user_progress").upsert({
+  const { error: upsertError } = await admin.from("user_progress").upsert({
     user_id: userId,
     streak: nextStreak,
     freeze_count: nextFreezeCount,
-    streak_freezes: nextFreezeCount,
     last_activity_date: today,
   }, { onConflict: "user_id" });
+
+  if (upsertError) {
+    console.error("[sync-streak] upsert failed:", upsertError);
+    return NextResponse.json({ ok: false, error: upsertError.message }, { status: 500 });
+  }
 
   return NextResponse.json({
     ok: true,

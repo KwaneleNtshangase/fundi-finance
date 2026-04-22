@@ -823,12 +823,14 @@ function FundiTopBar({
   xp,
   hearts,
   maxHearts,
+  freezeCount = 0,
   heartsRegenInfo,
 }: {
   streak: number;
   xp: number;
   hearts: number;
   maxHearts: number;
+  freezeCount?: number;
   heartsRegenInfo?: () => { nextHeartIn: string; minutesLeft: number } | null;
 }) {
   const [showHeartsModal, setShowHeartsModal] = useState(false);
@@ -852,6 +854,15 @@ function FundiTopBar({
             <Flame size={20} style={{ color: "#FFB612" }} />
             <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
           </div>
+          {freezeCount > 0 && (
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 2, background: "rgba(59,130,246,0.12)", borderRadius: 999, padding: "2px 7px" }}
+              title={`${freezeCount} streak freeze${freezeCount !== 1 ? "s" : ""}`}
+            >
+              <Shield size={13} style={{ color: "#3B82F6" }} />
+              <span style={{ fontWeight: 700, fontSize: 12, color: "#3B82F6" }}>{freezeCount}</span>
+            </div>
+          )}
           <button
             type="button"
             onClick={async () => {
@@ -2845,7 +2856,7 @@ function QuestsView({
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
   return (
     <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Quests</h2>
+      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <Target size={16} className="text-[var(--color-primary)]" aria-hidden />
@@ -4748,6 +4759,14 @@ function SettingsView({
     setSelectedGoal(g);
     setDailyGoal(g);
     localStorage.setItem("fundi-daily-goal", String(g));
+    // Persist to Supabase for cross-device sync
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
+      if (!user) return;
+      await supabase.from("user_progress").upsert(
+        { user_id: user.id, daily_goal: g } as any,
+        { onConflict: "user_id" }
+      );
+    });
   };
 
   const Row = ({ icon, label, sub, children }: { icon: React.ReactNode; label: string; sub?: string; children?: React.ReactNode }) => (
@@ -5949,7 +5968,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_goal")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -5962,14 +5981,23 @@ export default function Home() {
       if (data.streak > localStreak) {
         localStorage.setItem("fundi-streak", String(data.streak));
       }
-      // Restore today's XP from Supabase if localStorage was wiped
+      // Restore today's XP from Supabase — DB is authoritative for cross-device sync
       const todayIso = new Date().toISOString().slice(0, 10);
+      const dbDailyXp = Number((data as any).daily_xp_today ?? 0);
+      const dbDailyDate = String((data as any).daily_xp_date ?? "");
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
-      if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
-        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
-        setDailyXP((data as any).daily_xp_today);
-      } else {
-        setDailyXP(Number.isNaN(localDailyXp) ? 0 : localDailyXp);
+      // Use the larger of DB or local value (mobile may have played more recently than local cache)
+      const dailyXpToUse = dbDailyDate === todayIso
+        ? Math.max(dbDailyXp, Number.isNaN(localDailyXp) ? 0 : localDailyXp)
+        : (Number.isNaN(localDailyXp) ? 0 : localDailyXp);
+      localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(dailyXpToUse));
+      setDailyXP(dailyXpToUse);
+
+      // Restore daily goal from Supabase if set
+      const dbDailyGoal = Number((data as any).daily_goal ?? 0);
+      if (dbDailyGoal > 0) {
+        localStorage.setItem("fundi-daily-goal", String(dbDailyGoal));
+        setDailyGoal(dbDailyGoal);
       }
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
@@ -6779,6 +6807,7 @@ export default function Home() {
           xp={userData.xp}
           hearts={hearts}
           maxHearts={maxHearts}
+          freezeCount={freezeCount}
           heartsRegenInfo={heartsRegenInfo}
         />
       </div>
@@ -6842,7 +6871,7 @@ export default function Home() {
                 <span className="nav-icon">
                   <Target size={20} className="text-current" />
                 </span>
-                Quests
+                Goals
               </button>
             </li>
             <li className="nav-item">
@@ -7566,7 +7595,7 @@ export default function Home() {
           },
           {
             key: "quests",
-            label: "Quests",
+            label: "Goals",
             icon: <Target size={20} className="text-current" />,
             isActive: route.name === "quests",
             onClick: () => handleNav("quests"),
