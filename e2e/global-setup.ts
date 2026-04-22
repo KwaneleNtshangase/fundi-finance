@@ -95,34 +95,53 @@ export default async function globalSetup(_config: FullConfig) {
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
 
   // Wait for splash + React hydration (up to 30s)
+  // The app shell can be detected by either:
+  //   - "Learn" text in the bottom nav (mobile) OR sidebar (desktop)
+  //   - "Your Learning Path" in the main content area
+  //   - "XP" in the top bar
+  // We use XP / Learning Path as they appear in the main content regardless of
+  // viewport/CSS issues with the bottom nav's md:hidden class.
   await page
     .waitForFunction(
-      () =>
-        [...document.querySelectorAll("*")].some(
-          (el) => el.textContent?.trim() === "Learn"
-        ),
+      () => {
+        const body = document.body?.innerText ?? "";
+        return (
+          body.includes("XP") ||
+          body.includes("Learning Path") ||
+          body.includes("Learn\n") ||
+          [...document.querySelectorAll("*")].some(
+            (el) => el.textContent?.trim() === "Learn"
+          )
+        );
+      },
       { timeout: 30_000 }
     )
     .catch(() => {});
 
-  const appLoaded = await page
+  // Verify app shell is loaded (use XP in top bar as the reliable indicator)
+  const xpVisible = await page
+    .locator("text=XP")
+    .first()
+    .isVisible()
+    .catch(() => false);
+  const learnVisible = await page
     .locator("text=Learn")
     .first()
     .isVisible()
     .catch(() => false);
+  const appLoaded = xpVisible || learnVisible;
 
   if (!appLoaded) {
-    // Check what's actually on screen for debugging
     const bodyText = await page.locator("body").innerText().catch(() => "?");
-    const snippet = bodyText.replace(/\s+/g, " ").slice(0, 300);
+    const snippet = bodyText.replace(/\s+/g, " ").slice(0, 400);
     console.log(`[global-setup] App not loaded — body preview: "${snippet}"`);
-
-    // One retry in case React needed an extra tick
+    // One retry
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page
-      .locator("text=Learn")
-      .first()
-      .waitFor({ state: "visible", timeout: 30_000 });
+    await page.waitForTimeout(5_000);
+    const retry = await page.locator("text=XP").first().isVisible().catch(() => false);
+    if (!retry) {
+      throw new Error("[global-setup] App shell did not appear after retry");
+    }
   }
 
   console.log("[global-setup] ✅ App shell confirmed.");

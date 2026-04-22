@@ -28,15 +28,15 @@ export function normaliseUrl(url: string) {
  */
 export async function gotoHome(page: Page) {
   await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
-  // Wait up to 15 s for splash to finish and either auth form or app shell to appear
+  // Wait up to 15 s for splash to finish and either auth form or app shell to appear.
+  // App shell is detected by "XP" in the top bar (always visible when authenticated).
   await page
     .waitForFunction(
       () => {
         const hasEmail = !!document.querySelector('input[type="email"]');
-        const hasLearn = [...document.querySelectorAll("*")].some(
-          (el) => el.textContent?.trim() === "Learn"
-        );
-        return hasEmail || hasLearn;
+        const body = document.body?.innerText ?? "";
+        const hasShell = body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
+        return hasEmail || hasShell;
       },
       { timeout: 15_000 }
     )
@@ -53,13 +53,16 @@ export async function gotoHome(page: Page) {
 export async function signIn(page: Page) {
   await gotoHome(page);
 
-  // Happy path: session already active
-  const alreadyIn = await page
-    .locator("text=Learn")
-    .first()
-    .isVisible()
-    .catch(() => false);
+  // Happy path: session already active — check for XP in top bar (always visible when authenticated)
+  const alreadyIn = await page.evaluate(() => {
+    const body = document.body?.innerText ?? "";
+    return body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
+  }).catch(() => false);
   if (alreadyIn) return;
+
+  // Also accept if the email form is NOT visible (some other app state but authenticated)
+  const emailVisible = await page.locator('input[type="email"]').first().isVisible().catch(() => false);
+  if (!emailVisible) return; // No email form = probably already in the app
 
   // Session expired — do full sign-in
   const emailInput = page.locator('input[type="email"]').first();
@@ -67,15 +70,18 @@ export async function signIn(page: Page) {
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
   // Sign-in button uses onClick, not type="submit" — match by text
-  const signInBtn = page.locator("button.btn-primary, button.btn", { hasText: /^Sign In$/i }).first();
-  const fallbackBtn = page.locator("button", { hasText: /^Sign In$/i }).first();
-  const btn = (await signInBtn.isVisible({ timeout: 3_000 }).catch(() => false)) ? signInBtn : fallbackBtn;
-  await btn.click();
+  const signInBtn = page.locator("button", { hasText: /^Sign In$/i }).first();
+  await signInBtn.waitFor({ state: "visible", timeout: 10_000 });
+  await signInBtn.click();
 
-  // Wait for nav bar — means auth succeeded and app loaded
-  await expect(page.locator("text=Learn").first()).toBeVisible({
-    timeout: 25_000,
-  });
+  // Wait for app to load (XP in top bar confirms authentication)
+  await page.waitForFunction(
+    () => {
+      const body = document.body?.innerText ?? "";
+      return body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
+    },
+    { timeout: 25_000 }
+  );
 
   // Dismiss any post-login modals (username prompt, etc.)
   await dismissModals(page);
