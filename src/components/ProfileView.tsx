@@ -149,14 +149,26 @@ function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("feedback").insert({
+      // 1. Save to Supabase for records
+      await supabase.from("feedback").insert({
         user_id: user?.id ?? null,
         subject,
         description,
         issue_type: issueType,
       });
-      if (!error) setSent(true);
-    } catch { /* ignore */ }
+      // 2. Send email to support@fundiapp.co.za via Resend
+      await fetch("/api/feedback-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          description,
+          issueType,
+          userEmail: user?.email ?? null,
+        }),
+      });
+      setSent(true);
+    } catch { /* ignore — DB insert is the source of truth */ }
     setSending(false);
   };
 

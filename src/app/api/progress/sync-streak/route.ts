@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+/** Returns SAST (UTC+2) date string YYYY-MM-DD */
+function sastDate(offsetDays = 0): string {
+  const d = new Date();
+  // South Africa Standard Time is UTC+2 (no DST)
+  d.setTime(d.getTime() + (2 * 60 + offsetDays * 24 * 60) * 60 * 1000);
+  return d.toISOString().split("T")[0];
+}
+
 function isoToday() {
-  return new Date().toISOString().split("T")[0];
+  return sastDate(0);
 }
 
 function isoYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split("T")[0];
+  return sastDate(-1);
 }
 
 export async function POST(req: NextRequest) {
@@ -37,9 +43,9 @@ export async function POST(req: NextRequest) {
 
   let nextStreak = current;
   let nextFreezeCount = freezeCount;
-  if (!lastActive) nextStreak = 0;
-  else if (lastActive === today) nextStreak = current;
-  else if (lastActive === yesterday) nextStreak = current + 1;
+  if (!lastActive) nextStreak = 1;          // first ever lesson → day 1
+  else if (lastActive === today) nextStreak = Math.max(1, current);
+  else if (lastActive === yesterday) nextStreak = Math.max(1, current) + 1;
   else if (freezeCount > 0) {
     nextStreak = current;
     nextFreezeCount = freezeCount - 1;

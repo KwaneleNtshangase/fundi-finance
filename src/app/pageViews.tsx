@@ -238,6 +238,12 @@ const GOAL_COURSE_MAP: Record<string, string[]> = {
   business: ["business-finance", "taxes", "money-basics"],
 };
 
+// Emoji helpers — explicit code points guarantee correct encoding in any build
+const E_GRAD  = "\uD83C\uDF93"; // 🎓
+const E_POINT = "\uD83D\uDC47"; // 👇
+const E_MEDAL = "\uD83C\uDFC5"; // 🏅
+const E_FIRE  = "\uD83D\uDD25"; // 🔥
+
 function generateShareText(
   type: "lesson" | "badge" | "streak",
   data: {
@@ -250,15 +256,15 @@ function generateShareText(
   if (type === "lesson") {
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
-    return `I just completed "${t}"${xpPart} on Fundi Finance 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
+    return `I just completed "${t}"${xpPart} on Fundi Finance ${E_GRAD}\n\nShort, South Africa-focused money lessons that actually make sense. Join me ${E_POINT}\nfundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just earned the "${n}" badge on Fundi Finance 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
+    return `I just earned the "${n}" badge on Fundi Finance ${E_MEDAL}\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d}-day learning streak on Fundi Finance 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
+    return `${d}-day learning streak on Fundi Finance ${E_FIRE}\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
   }
   return "";
 }
@@ -320,14 +326,16 @@ async function persistUserGoalToStorageAndSupabase(goalId: string, goalDescripti
 }
 
 function normalizeUsername(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  // Only trim leading/trailing whitespace — allow any printable characters including caps
+  return value.trim();
 }
 
 function validateUsername(value: string): string | null {
   if (!value) return "Username is required.";
   if (value.length < 3) return "Username must be at least 3 characters.";
-  if (value.length > 20) return "Username must be 20 characters or less.";
-  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
+  if (value.length > 30) return "Username must be 30 characters or less.";
+  // Disallow only truly problematic chars (null bytes, newlines)
+  if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
   return null;
 }
 
@@ -2062,7 +2070,15 @@ function DailyChallenges({ streak = 0 }: { streak?: number }) {
 
 // ── Spaced Repetition Review Session ─────────────────────────────────────────
 
-function ReviewSession({ onClose }: { onClose: () => void }) {
+function ReviewSession({
+  onClose,
+  onXpEarned,
+  onChallengeProgress,
+}: {
+  onClose: () => void;
+  onXpEarned?: (xp: number) => void;
+  onChallengeProgress?: () => void;
+}) {
   const [queue, setQueue] = useState<MasteryRecord[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -2138,6 +2154,20 @@ function ReviewSession({ onClose }: { onClose: () => void }) {
     const isCorrect = selected === concept.reviewCard.correct;
     const updated = applyReview(current, isCorrect ? 4 : 1);
     saveMastery(updated);
+
+    // Award XP for each review answer (5 XP correct, 2 XP wrong — encourages engagement)
+    const xpEarned = isCorrect ? 5 : 2;
+    if (onXpEarned) onXpEarned(xpEarned);
+    if (onChallengeProgress) onChallengeProgress();
+
+    // Persist XP award to daily key
+    if (typeof window !== "undefined") {
+      const isoDay = new Date().toISOString().slice(0, 10);
+      const xpKey = `fundi-daily-xp-${isoDay}`;
+      const prev = parseInt(localStorage.getItem(xpKey) ?? "0", 10);
+      localStorage.setItem(xpKey, String(prev + xpEarned));
+    }
+
     if (currentIdx + 1 >= queue.length) {
       // All done - go to summary by setting currentIdx beyond queue
       setCurrentIdx(queue.length);
@@ -2303,15 +2333,15 @@ function ReviewSession({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      {/* Footer */}
+      {/* Footer — extra bottom padding clears mobile bottom nav (≈56px) */}
       {selected !== null && (
-        <div className="px-4 pb-safe-bottom pb-6 pt-3 border-t border-gray-100 dark:border-gray-800">
+        <div className="px-4 pt-3 pb-6 pb-[88px] md:pb-6 border-t border-gray-100 dark:border-gray-800">
           <button
             type="button"
             onClick={handleNext}
             className="w-full rounded-xl bg-purple-600 py-3.5 text-sm font-bold text-white"
           >
-            {currentIdx + 1 >= queue.length ? "See Results" : "Next →"}
+            {currentIdx + 1 >= queue.length ? "See Results" : "Next \u2192"}
           </button>
         </div>
       )}
@@ -2334,6 +2364,8 @@ export function LearnView({
   onResumeLesson,
   streak = 0,
   showQuestSections = false,
+  onReviewXpEarned,
+  onReviewChallengeProgress,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
@@ -2349,6 +2381,8 @@ export function LearnView({
   onResumeLesson?: (p: SavedLessonProgress) => void;
   streak?: number;
   showQuestSections?: boolean;
+  onReviewXpEarned?: (xp: number) => void;
+  onReviewChallengeProgress?: () => void;
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
@@ -2467,6 +2501,8 @@ export function LearnView({
             setShowReview(false);
             void getDueCards().then((cards) => setDueCount(cards.length));
           }}
+          onXpEarned={onReviewXpEarned}
+          onChallengeProgress={onReviewChallengeProgress}
         />
       )}
 
@@ -6889,19 +6925,6 @@ export default function Home() {
             <li className="nav-item">
               <button
                 className={`nav-link ${
-                  route.name === "leaderboard" ? "active" : ""
-                }`}
-                onClick={() => handleNav("leaderboard")}
-              >
-                <span className="nav-icon">
-                  <Trophy size={20} className="text-current" />
-                </span>
-                Leaderboard
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${
                   route.name === "budget" ? "active" : ""
                 }`}
                 onClick={() => handleNav("budget")}
@@ -6964,6 +6987,10 @@ export default function Home() {
             claimChallengeReward={claimChallengeReward}
             streak={userData.streak}
             showQuestSections={false}
+            onReviewXpEarned={(xp) => progress.addXP(xp)}
+            onReviewChallengeProgress={() => {
+              bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: 5, isPerfect: false });
+            }}
           />
         )}
 
@@ -7639,8 +7666,8 @@ export default function Home() {
             key: "progress",
             label: "Progress",
             icon: <TrendingUp size={20} className="text-current" />,
-            isActive: route.name === "leaderboard",
-            onClick: () => handleNav("leaderboard"),
+            isActive: route.name === "settings",
+            onClick: () => handleNav("settings"),
             order: "order-5",
           },
           {
