@@ -69,8 +69,15 @@ async function run() {
     return summarize();
   }
 
-  // Wait for React to render
-  await page.waitForTimeout(2500);
+  // Wait for splash screen to finish and React to fully render (up to 10s)
+  try {
+    await page.waitForFunction(
+      () => document.body?.innerText?.length > 50,
+      { timeout: 10_000 }
+    );
+  } catch (_) {
+    // continue even if timeout — subsequent checks will catch blank screen
+  }
 
   // ── 2. No crash overlay / blank screen ────────────────────────────────────
   const bodyText = await page.evaluate(() => document.body?.innerText ?? "");
@@ -87,13 +94,27 @@ async function run() {
     pass("No Next.js crash overlay");
   }
 
-  // ── 3. Auth screen visible ─────────────────────────────────────────────────
-  const emailInput = await page.locator('input[type="email"]').count();
-  const passwordInput = await page.locator('input[type="password"]').count();
+  // ── 3. Auth screen or app shell visible ───────────────────────────────────
+  // Wait up to 12s for the sign-in form to appear (splash can take ~5s)
+  let emailInput = 0, passwordInput = 0;
+  try {
+    await page.locator('input[type="email"]').first().waitFor({ state: "visible", timeout: 12_000 });
+    emailInput = await page.locator('input[type="email"]').count();
+    passwordInput = await page.locator('input[type="password"]').count();
+  } catch (_) {
+    emailInput = await page.locator('input[type="email"]').count();
+    passwordInput = await page.locator('input[type="password"]').count();
+  }
   if (emailInput > 0 && passwordInput > 0) {
     pass("Sign-in form visible (email + password)");
   } else {
-    fail("Sign-in form visible", "Could not find email/password inputs");
+    // Also accept: app shell already showing (user was logged in via cookie)
+    const appShell = await page.locator("text=Learn, text=Budget, text=Profile").count();
+    if (appShell > 0) {
+      pass("App shell visible (authenticated session)");
+    } else {
+      fail("Sign-in form visible", "Could not find email/password inputs or app shell");
+    }
   }
 
   // ── 4. Branding present ────────────────────────────────────────────────────
