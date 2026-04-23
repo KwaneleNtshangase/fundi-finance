@@ -6116,9 +6116,8 @@ export default function Home() {
     }
     const today = new Date().toISOString().slice(0, 10); // ISO format: YYYY-MM-DD
     const dailyKey = `fundi-daily-xp-${today}`;
-    const dailyXpSoFar =
-      parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
-    localStorage.setItem(dailyKey, String(dailyXpSoFar));
+    // addXP (called via completeLesson) already wrote the updated value — just read it.
+    const dailyXpSoFar = parseInt(localStorage.getItem(dailyKey) ?? "0", 10);
 
     const dailyLessonsKey = `fundi-daily-lessons-${today}`;
     const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
@@ -6294,11 +6293,10 @@ export default function Home() {
         const perfKey = `fundi-perfect-today-${isoDay}`;
         localStorage.setItem(perfKey, String((parseInt(localStorage.getItem(perfKey) ?? "0", 10)) + 1));
       }
-      // Also write ISO-keyed daily XP (for challenge condition checks)
+      // Read ISO-keyed daily XP — addXP (called via completeLesson above) already
+      // wrote the updated value, so we must NOT add totalXP again here.
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
-      const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
-      const newDailyXp = prev + totalXP;
-      localStorage.setItem(xpIsoKey, String(newDailyXp));
+      const newDailyXp = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
       // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
