@@ -331,10 +331,10 @@ function normalizeUsername(value: string): string {
 }
 
 function validateUsername(value: string): string | null {
-  if (!value) return "Username is required.";
-  if (value.length < 3) return "Username must be at least 3 characters.";
-  if (value.length > 30) return "Username must be 30 characters or less.";
-  // Disallow only truly problematic chars (null bytes, newlines)
+  if (!value || !value.trim()) return "Username is required.";
+  if (value.trim().length < 2) return "Username must be at least 2 characters.";
+  if (value.length > 50) return "Username must be 50 characters or less.";
+  // Disallow control characters (null bytes, newlines, etc.)
   if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
   return null;
 }
@@ -386,12 +386,11 @@ function UsernameStepField({
       <div style={{ position: "relative" }}>
         <input
           type="text"
-          autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="e.g. fundi_learner"
+          placeholder="e.g. Kwanele or FirstName_2024"
           value={username}
-          onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+          onChange={(e) => setUsername(e.target.value)}
           style={{
             width: "100%",
             padding: "12px 14px",
@@ -414,7 +413,7 @@ function UsernameStepField({
             ? usernameError
             : usernameAvailable
               ? "Username is available."
-              : "3-20 chars: lowercase letters, numbers, underscores."}
+              : "2–50 chars. Caps, spaces, and symbols are all welcome."}
       </div>
     </div>
   );
@@ -6372,7 +6371,11 @@ export default function Home() {
       setReviewAnswers(reviewList);
     }
 
-    const tc = userData.totalCompleted + 1;
+    // If this lesson was already in completedLessons (e.g. synced from another device),
+    // don't add 1 again — it's already counted in userData.totalCompleted.
+    const currentLessonKey = `${currentLessonState.courseId}:${currentLessonState.lessonId}`;
+    const alreadyInSet = progress.completedLessons.has(currentLessonKey);
+    const tc = userData.totalCompleted + (alreadyInSet ? 0 : 1);
     if (typeof window !== "undefined") {
       const alreadyShown = localStorage.getItem("fundi-cta-milestone-shown");
       if (tc >= 5 && !alreadyShown) {
@@ -7574,12 +7577,12 @@ export default function Home() {
                 setUsername={setUsernameDraft}
                 usernameError={usernamePromptError}
                 usernameChecking={usernamePromptChecking}
-                usernameAvailable={!usernamePromptError && normalizeUsername(usernameDraft).length >= 3}
+                usernameAvailable={!usernamePromptError && normalizeUsername(usernameDraft).length >= 2}
               />
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={usernamePromptSaving || usernamePromptChecking || Boolean(usernamePromptError) || normalizeUsername(usernameDraft).length < 3}
+                disabled={usernamePromptSaving || usernamePromptChecking || Boolean(usernamePromptError) || normalizeUsername(usernameDraft).length < 2}
                 onClick={saveUsernameFromPrompt}
                 style={{ width: "100%", marginTop: 10 }}
               >

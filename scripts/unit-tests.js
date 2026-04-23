@@ -360,6 +360,109 @@ section("8. ReviewSession Z-Index");
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 9. USERNAME VALIDATION
+// ─────────────────────────────────────────────────────────────────────────────
+section("9. Username Validation");
+
+{
+  // Mirror validateUsername logic from pageViews.tsx
+  function validateUsername(value) {
+    if (!value || !value.trim()) return "Username is required.";
+    if (value.trim().length < 2) return "Username must be at least 2 characters.";
+    if (value.length > 50) return "Username must be 50 characters or less.";
+    if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
+    return null;
+  }
+
+  // Valid cases
+  assert(validateUsername("Kwanele") === null, "Uppercase letters allowed");
+  assert(validateUsername("kwanele_bc") === null, "Underscores allowed");
+  assert(validateUsername("Kwanele BC") === null, "Spaces allowed");
+  assert(validateUsername("Kwanele-Bonga") === null, "Hyphens allowed");
+  assert(validateUsername("Kwanele.Bonga") === null, "Dots allowed");
+  assert(validateUsername("Ân") === null, "Unicode/accented characters allowed");
+  assert(validateUsername("KwaneleBC031") === null, "Mix of caps and numbers allowed");
+  assert(validateUsername("K!@#$%") === null, "Special printable characters allowed");
+
+  // Invalid cases
+  assert(validateUsername("") !== null, "Empty string rejected");
+  assert(validateUsername("  ") !== null, "Whitespace-only rejected");
+  assert(validateUsername("K") !== null, "Single character rejected (under min length)");
+  assert(validateUsername("K".repeat(51)) !== null, "51-character username rejected");
+  assert(validateUsername("abc\x00def") !== null, "Null byte rejected");
+  assert(validateUsername("abc\ndef") !== null, "Newline rejected");
+  assert(validateUsername("abc\x1Bdef") !== null, "Escape character rejected");
+
+  // Check that app code no longer enforces the old lowercase-only constraint
+  const src = readFileSync(path.join(ROOT, "src/app/pageViews.tsx"), "utf8");
+  const hasOldConstraint = /\^?\[a-z0-9_\]\{3,20\}/.test(src);
+  assert(!hasOldConstraint, "Old lowercase-only regex not present in validateUsername");
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 10. BADGE TIMING — tc does not double-count already-synced lessons
+// ─────────────────────────────────────────────────────────────────────────────
+section("10. Badge Timing (lesson count tc)");
+
+{
+  // Mirror the badge-count logic from finalizeCurrentLesson
+  function calcTc(completedLessonsSet, courseId, lessonId, totalCompleted) {
+    const key = `${courseId}:${lessonId}`;
+    const alreadyInSet = completedLessonsSet.has(key);
+    return totalCompleted + (alreadyInSet ? 0 : 1);
+  }
+
+  // Scenario A: lesson is NEW (not yet in completedLessons from Supabase)
+  {
+    const completed = new Set(["course1:lesson1", "course1:lesson2"]);
+    const tc = calcTc(completed, "course1", "lesson3", completed.size);
+    assertEqual(tc, 3, "New lesson: tc = totalCompleted + 1 (adds 1 correctly)");
+  }
+
+  // Scenario B: lesson was already synced from another device (the bug case)
+  {
+    // User has 26 lessons in DB. Lesson 25 was synced from another device.
+    const completed = new Set(Array.from({length: 26}, (_, i) => `course:lesson${i+1}`));
+    // They are now "completing" lesson25 again on this device
+    const tc = calcTc(completed, "course", "lesson25", completed.size);
+    assertEqual(tc, 26, "Already-synced lesson: tc = totalCompleted (no +1 overcount)");
+    assert(tc >= 25, "Badge for 25 lessons would correctly fire (tc=26 >= 25)");
+  }
+
+  // Scenario C: exactly at badge boundary — completing lesson 25 for first time
+  {
+    const completed = new Set(Array.from({length: 24}, (_, i) => `course:lesson${i+1}`));
+    const tc = calcTc(completed, "course", "lesson25", completed.size);
+    assertEqual(tc, 25, "First completion of lesson 25: tc = 25 (triggers badge at exact threshold)");
+    assert(tc >= 25, "Badge for 25 lessons fires at correct threshold");
+  }
+
+  // Scenario D: old (buggy) behaviour would have fired badge at 27
+  {
+    // User had 26 lessons already synced. Bug: tc = 26 + 1 = 27.
+    // Fix: alreadyInSet=true so tc = 26 + 0 = 26. Badge fires at 26 (>= 25).
+    const completed = new Set(Array.from({length: 26}, (_, i) => `course:lesson${i+1}`));
+    const buggyTc = completed.size + 1; // old behaviour
+    const fixedTc = calcTc(completed, "course", "lesson26", completed.size);
+    assert(buggyTc === 27, "Old behaviour: tc was 27 when lesson already synced");
+    assert(fixedTc === 26, "Fixed behaviour: tc is 26 (no overcount)");
+    assert(fixedTc < buggyTc, "Fixed tc is lower than buggy tc — badge fires earlier");
+  }
+
+  // Verify the fix is present in pageViews.tsx source code
+  const src = readFileSync(path.join(ROOT, "src/app/pageViews.tsx"), "utf8");
+  assert(
+    /alreadyInSet.*completedLessons\.has\(currentLessonKey\)/.test(src) ||
+    /completedLessons\.has\(currentLessonKey\).*alreadyInSet/.test(src),
+    "pageViews.tsx uses alreadyInSet check before computing tc"
+  );
+  assert(
+    /alreadyInSet \? 0 : 1/.test(src),
+    "pageViews.tsx: tc uses ternary (alreadyInSet ? 0 : 1)"
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // SUMMARY
 // ─────────────────────────────────────────────────────────────────────────────
 console.log(`\n${"─".repeat(50)}`);
