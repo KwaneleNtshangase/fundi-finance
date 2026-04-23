@@ -6374,7 +6374,7 @@ export default function Home() {
     // If this lesson was already in completedLessons (e.g. synced from another device),
     // don't add 1 again — it's already counted in userData.totalCompleted.
     const currentLessonKey = `${currentLessonState.courseId}:${currentLessonState.lessonId}`;
-    const alreadyInSet = progress.completedLessons.has(currentLessonKey);
+    const alreadyInSet = completedLessons.has(currentLessonKey);
     const tc = userData.totalCompleted + (alreadyInSet ? 0 : 1);
     if (typeof window !== "undefined") {
       const alreadyShown = localStorage.getItem("fundi-cta-milestone-shown");

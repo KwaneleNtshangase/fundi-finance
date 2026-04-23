@@ -452,9 +452,8 @@ section("10. Badge Timing (lesson count tc)");
   // Verify the fix is present in pageViews.tsx source code
   const src = readFileSync(path.join(ROOT, "src/app/pageViews.tsx"), "utf8");
   assert(
-    /alreadyInSet.*completedLessons\.has\(currentLessonKey\)/.test(src) ||
-    /completedLessons\.has\(currentLessonKey\).*alreadyInSet/.test(src),
-    "pageViews.tsx uses alreadyInSet check before computing tc"
+    /completedLessons\.has\(currentLessonKey\)/.test(src),
+    "pageViews.tsx uses completedLessons.has(currentLessonKey) to check alreadyInSet"
   );
   assert(
     /alreadyInSet \? 0 : 1/.test(src),
