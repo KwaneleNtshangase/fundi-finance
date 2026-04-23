@@ -2856,7 +2856,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Generous Person Prospers",
-                  content: "<p>Proverbs 11:24-25, <em>One person gives freely, yet gains even more; another withholds unduly, but comes to poverty. A generous person will prosper; whoever refreshes others will be refreshed.</em></p><p>Generosity is not a financial risk, Scripture presents it as a path to flourishing. This doesn't mean giving without wisdom, but that a generous spirit is foundational to a healthy relationship with money.</p>",
+                  content: "<p>Proverbs 11:24-25 (NLT), <em>Give freely and become more wealthy; be stingy and lose everything. The generous will prosper; those who refresh others will themselves be refreshed.</em></p><p>Generosity is not a financial risk, Scripture presents it as a path to flourishing. This doesn't mean giving without wisdom, but that a generous spirit is foundational to a healthy relationship with money.</p>",
                 },
                 {
                   type: "mcq",
@@ -2877,7 +2877,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Borrower is Servant to the Lender",
-                  content: "<p>Proverbs 22:7, <em>The rich rule over the poor, and the borrower is slave to the lender.</em></p><p>This is not a prohibition on all debt, but a warning about the power dynamic it creates. When you owe money, someone else has a claim on your future income and your freedom.</p>",
+                  content: "<p>Proverbs 22:7 (NLT), <em>Just as the rich rule the poor, so the borrower is servant to the lender.</em></p><p>This is not a prohibition on all debt, but a warning about the power dynamic it creates. When you owe money, someone else has a claim on your future income and your freedom.</p>",
                 },
                 {
                   type: "mcq",
@@ -2894,8 +2894,8 @@ const RAW_COURSES: Course[] = [
                   statement: "The Bible teaches that being debt-free is part of financial and personal freedom.",
                   correct: true,
                   feedback: {
-                    correct: "Correct, Romans 13:8 says 'Let no debt remain outstanding.' Freedom from debt is a biblical principle of good stewardship.",
-                    incorrect: "Romans 13:8, 'Let no debt remain outstanding.' The Bible consistently points toward freedom from financial obligation.",
+                    correct: "Correct. Romans 13:8 (NLT) says 'Owe nothing to anyone.' Freedom from debt is a biblical principle of good stewardship.",
+                    incorrect: "Romans 13:8 (NLT), 'Owe nothing to anyone.' The Bible consistently points toward freedom from financial obligation.",
                   },
                 },
               ] satisfies LessonStep[],

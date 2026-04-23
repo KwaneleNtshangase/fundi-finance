@@ -90,11 +90,15 @@ export function useProgress() {
   const persist = async (partial: Partial<ProgressState>) => {
     if (!userId) return;
     const next = { ...state, ...partial };
+    // NOTE: streak and last_activity_date are intentionally excluded here.
+    // They are owned exclusively by the /api/progress/sync-streak route, which
+    // uses the server-side clock and atomic read-modify-write logic.
+    // Including them here caused a race condition where persist() (fired from
+    // addXP during lesson completion) overwrote the fresh streak value that
+    // sync-streak had just written, resetting the streak to the old cached value.
     const payload: Record<string, unknown> = {
       user_id: userId,
       xp: next.xp,
-      streak: next.streak,
-      last_activity_date: next.lastActivityDate,
       completed_lessons: next.completedLessons,
       freeze_count: next.freezeCount,
       weekly_xp: next.weeklyXp,
