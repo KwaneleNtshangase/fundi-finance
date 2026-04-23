@@ -110,14 +110,16 @@ const FUNDI_FAQ = [
 ];
 
 function normalizeUsername(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  // Trim only — allow caps, spaces, symbols
+  return value.trim();
 }
 
 function validateUsername(value: string): string | null {
-  if (!value) return "Username is required.";
-  if (value.length < 3) return "Username must be at least 3 characters.";
-  if (value.length > 20) return "Username must be 20 characters or less.";
-  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
+  if (!value || !value.trim()) return "Username is required.";
+  if (value.trim().length < 2) return "Username must be at least 2 characters.";
+  if (value.length > 50) return "Username must be 50 characters or less.";
+  // Disallow control characters only (null bytes, newlines, etc.)
+  if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
   return null;
 }
 
@@ -763,12 +765,11 @@ export function ProfileView({
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>Username (leaderboard name)</label>
             <input
               type="text"
-              autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="username"
+              placeholder="e.g. Kwanele or FirstName_2024"
               value={editUsername}
-              onChange={(e) => setEditUsername(normalizeUsername(e.target.value))}
+              onChange={(e) => setEditUsername(e.target.value)}
               style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" as const }}
             />
           </div>
