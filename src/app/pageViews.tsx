@@ -1624,7 +1624,13 @@ function useFundiState() {
     { id: "wc-5lessons-perfect", text: "Complete 5 lessons with at least 80% score", target: 5, unit: "lessons", xp: 300 },
   ];
   const getWeeklyChallenge = () => {
-    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+    // Anchor the week number to the most recent Sunday so the challenge only
+    // rotates on Sunday, not mid-week (epoch day 0 = Thursday Jan 1 1970).
+    const now = new Date();
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - now.getDay()); // roll back to Sunday
+    sunday.setHours(0, 0, 0, 0);
+    const weekNum = Math.floor(sunday.getTime() / (7 * 24 * 60 * 60 * 1000));
     return WEEKLY_CHALLENGES[weekNum % WEEKLY_CHALLENGES.length];
   };
   const weeklyChallenge = getWeeklyChallenge();
@@ -1968,7 +1974,7 @@ function DailyChallenges({ streak = 0 }: { streak?: number }) {
       "check-budget":    localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
       "earn-50xp":       parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0") >= 50,
       "perfect-quiz":    parseInt(localStorage.getItem(`fundi-perfect-today-${today}`) ?? "0") >= 1,
-      "complete-2-lessons": (parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0") >= 2),
+      "complete-2-lessons": (parseInt(localStorage.getItem(`fundi-lessons-today-${today}`) ?? "0") >= 2),
     });
   }, [today, streak]);
 
@@ -2168,16 +2174,10 @@ function ReviewSession({
 
     // Award XP for each review answer (5 XP correct, 2 XP wrong — encourages engagement)
     const xpEarned = isCorrect ? 5 : 2;
+    // onXpEarned calls addXP which already writes to fundi-daily-xp-{date} localStorage.
+    // Do NOT write to localStorage again here — that would double-count the XP.
     if (onXpEarned) onXpEarned(xpEarned);
     if (onChallengeProgress) onChallengeProgress();
-
-    // Persist XP award to daily key
-    if (typeof window !== "undefined") {
-      const isoDay = new Date().toISOString().slice(0, 10);
-      const xpKey = `fundi-daily-xp-${isoDay}`;
-      const prev = parseInt(localStorage.getItem(xpKey) ?? "0", 10);
-      localStorage.setItem(xpKey, String(prev + xpEarned));
-    }
 
     if (currentIdx + 1 >= queue.length) {
       // All done - go to summary by setting currentIdx beyond queue
@@ -2193,7 +2193,7 @@ function ReviewSession({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">Loading review...</p>
         </div>
@@ -2203,7 +2203,7 @@ function ReviewSession({
 
   if (hasLoaded && queue.length === 0) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Review</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
@@ -2226,7 +2226,7 @@ function ReviewSession({
       localStorage.removeItem(REVIEW_SESSION_KEY);
     }
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <Brain size={52} className="mx-auto mb-3" style={{ color: "#3B7DD8" }} />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Review complete!</h2>
@@ -2263,9 +2263,9 @@ function ReviewSession({
   const optionLetters = ["A", "B", "C", "D"];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-950">
+    <div className="fixed inset-0 flex flex-col bg-white dark:bg-gray-950" style={{ zIndex: 300 }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-safe-top pb-3 pt-4 border-b border-gray-100 dark:border-gray-800">
+      <div className="flex items-center justify-between px-4 pb-3 border-b border-gray-100 dark:border-gray-800" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 16px)" }}>
         <button
           type="button"
           onClick={onClose}
@@ -5968,7 +5968,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_goal")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_goal, daily_xp_history")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -5992,6 +5992,23 @@ export default function Home() {
         : (Number.isNaN(localDailyXp) ? 0 : localDailyXp);
       localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(dailyXpToUse));
       setDailyXP(dailyXpToUse);
+
+      // Restore weekly XP graph data from Supabase daily_xp_history for cross-device sync
+      const xpHistory = ((data as any).daily_xp_history ?? {}) as Record<string, number>;
+      if (Object.keys(xpHistory).length > 0) {
+        const now = new Date();
+        // Populate localStorage for each day of the current week (Sun–Sat)
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(now);
+          d.setDate(now.getDate() - now.getDay() + i);
+          const iso = d.toISOString().slice(0, 10);
+          if (xpHistory[iso] != null) {
+            const localVal = parseInt(localStorage.getItem(`fundi-daily-xp-${iso}`) ?? "0", 10);
+            const dbVal = Number(xpHistory[iso]);
+            localStorage.setItem(`fundi-daily-xp-${iso}`, String(Math.max(localVal, dbVal)));
+          }
+        }
+      }
 
       // Restore daily goal from Supabase if set
       const dbDailyGoal = Number((data as any).daily_goal ?? 0);
@@ -6119,10 +6136,9 @@ export default function Home() {
     // addXP (called via completeLesson) already wrote the updated value — just read it.
     const dailyXpSoFar = parseInt(localStorage.getItem(dailyKey) ?? "0", 10);
 
-    const dailyLessonsKey = `fundi-daily-lessons-${today}`;
-    const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
-    localStorage.setItem(dailyLessonsKey, String(prevLessons + 1));
-
+    // NOTE: do NOT increment a daily lesson counter here — bumpWeeklyChallengeProgress
+    // is called for concept review cards too, which must not count as lesson completions.
+    // The fundi-lessons-today key is incremented only in finalizeCurrentLesson.
     state.lessonsCompleted += 1;
     state.xpEarned += payload.xpEarned;
     state.perfectLessons += payload.isPerfect ? 1 : 0;
@@ -6298,12 +6314,22 @@ export default function Home() {
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
       const newDailyXp = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
       // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
+      // Also update daily_xp_history so the weekly graph works on any device.
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
+        // Read current history, merge today's value (take the max to avoid downgrades)
+        const { data: row } = await supabase
+          .from("user_progress")
+          .select("daily_xp_history")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const history = (((row as any)?.daily_xp_history) ?? {}) as Record<string, number>;
+        const updatedHistory = { ...history, [isoDay]: Math.max(newDailyXp, history[isoDay] ?? 0) };
         await supabase.from("user_progress").upsert({
           user_id: user.id,
           daily_xp_today: newDailyXp,
           daily_xp_date: isoDay,
+          daily_xp_history: updatedHistory,
         } as any, { onConflict: "user_id" });
       });
     }
