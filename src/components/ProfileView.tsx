@@ -151,14 +151,16 @@ function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      // Generate id client-side so we can pass it to the email route for logging
+      const feedbackId = crypto.randomUUID();
       // 1. Save to Supabase for records
-      const { data: feedbackRows } = await supabase.from("feedback").insert({
+      await supabase.from("feedback").insert({
+        id: feedbackId,
         user_id: user?.id ?? null,
         subject,
         description,
         issue_type: issueType,
-      }).select("id");
-      const feedbackId = feedbackRows?.[0]?.id ?? null;
+      });
       // 2. Send email to support@fundiapp.co.za via Resend
       await fetch("/api/feedback-email", {
         method: "POST",
