@@ -138,20 +138,21 @@ export function useProgress() {
     });
   };
 
-  const applyStreakAfterLesson = (): number | null => {
+  const applyStreakAfterLesson = async (): Promise<number | null> => {
     if (!userId) return null;
-    void fetch("/api/progress/sync-streak", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    })
-      .then((r) => r.json())
-      .then((json) => {
-        if (!json?.ok) return;
-        setState((prev) => ({ ...prev, streak: json.streak, lastActivityDate: json.lastActivityDate }));
-      })
-      .catch(() => {});
-    return state.streak;
+    try {
+      const r = await fetch("/api/progress/sync-streak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const json = await r.json();
+      if (!json?.ok) return state.streak;
+      setState((prev) => ({ ...prev, streak: json.streak, lastActivityDate: json.lastActivityDate }));
+      return json.streak as number;
+    } catch {
+      return state.streak;
+    }
   };
 
   const buyStreakFreeze = (cost = 200): boolean => {

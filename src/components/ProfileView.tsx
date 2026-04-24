@@ -767,7 +767,7 @@ export function ProfileView({
               type="text"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="e.g. Kwanele or FirstName_2024"
+              placeholder="e.g. FirstName_2026"
               value={editUsername}
               onChange={(e) => setEditUsername(e.target.value)}
               style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" as const }}

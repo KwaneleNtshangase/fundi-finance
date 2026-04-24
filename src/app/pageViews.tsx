@@ -388,7 +388,7 @@ function UsernameStepField({
           type="text"
           autoCorrect="off"
           spellCheck={false}
-          placeholder="e.g. Kwanele or FirstName_2024"
+          placeholder="e.g. FirstName_2026"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           style={{
@@ -1729,13 +1729,14 @@ function useFundiState() {
     setTimeout(() => setXpToast(null), 2000);
   };
 
-  const completeLesson = (
+  const completeLesson = async (
     courseId: string,
     lessonId: string,
     xpEarned: number
-  ): number | null => {
+  ): Promise<number | null> => {
     progress.completeLesson(`${courseId}:${lessonId}`);
-    const newStreak = progress.applyStreakAfterLesson();
+    // Await streak sync so badge checks use the NEW streak value (not pre-lesson).
+    const newStreak = await progress.applyStreakAfterLesson();
     if (newStreak !== null) analytics.streakUpdated(newStreak);
     addXP(xpEarned);
     return newStreak;
@@ -6276,7 +6277,7 @@ export default function Home() {
       }
     );
 
-    const streakAfterLesson = completeLesson(
+    const streakAfterLesson = await completeLesson(
       currentLessonState.courseId,
       currentLessonState.lessonId,
       totalXP

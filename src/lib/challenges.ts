@@ -62,7 +62,21 @@ export async function assignChallengesForUser(userId: string) {
   const inserts: Record<string, unknown>[] = [];
 
   if (dailyExisting.length < 3) {
-    const selected = choose(DAILY_CHALLENGE_BANK, allowed, 3 - dailyExisting.length, new Set(dailyExisting.map((r) => r.challenge_code)));
+    // Fetch challenge codes assigned in the last 7 days to prevent repeats across days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const { data: recentData } = await supabase
+      .from("user_challenge_assignments")
+      .select("challenge_code")
+      .eq("user_id", userId)
+      .eq("period_type", "daily")
+      .neq("period_key", today)
+      .gte("created_at", sevenDaysAgo.toISOString());
+    const recentCodes = new Set<string>((recentData ?? []).map((r: { challenge_code: string }) => r.challenge_code));
+    // Also exclude today's already-assigned challenges
+    const todayCodes = new Set(dailyExisting.map((r) => r.challenge_code));
+    const excludes = new Set([...recentCodes, ...todayCodes]);
+    const selected = choose(DAILY_CHALLENGE_BANK, allowed, 3 - dailyExisting.length, excludes);
     for (const c of selected) {
       inserts.push({
         user_id: userId,
