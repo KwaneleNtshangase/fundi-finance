@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { trackChallengeEvent } from "@/lib/challengeEvents";
 import { CONTENT_DATA } from "@/data/content";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import {
@@ -6293,10 +6294,12 @@ export default function Home() {
       if (hearts < maxHearts) gainHeart();
     }
     // Track daily challenge progress + first-lesson analytics
+    let isFirstLessonToday = false;
     if (typeof window !== "undefined") {
       const isoDay = new Date().toISOString().slice(0, 10);
       const lessonsKey = `fundi-lessons-today-${isoDay}`;
       const newLessonCount = (parseInt(localStorage.getItem(lessonsKey) ?? "0", 10)) + 1;
+      isFirstLessonToday = newLessonCount === 1;
       localStorage.setItem(lessonsKey, String(newLessonCount));
       // Fire first-lesson-completed analytics event once
       if (!localStorage.getItem("fundi-first-lesson-fired")) {
@@ -6334,6 +6337,43 @@ export default function Home() {
       });
     }
     bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
+
+    // ── Wire challenge progress to Supabase (enables cross-device sync) ──────
+    void trackChallengeEvent("lesson_completed", { value: 1 });
+    void trackChallengeEvent("xp_earned", { value: totalXP });
+    if (isPerfect) {
+      void trackChallengeEvent("quiz_score_100", { value: 1 });
+      void trackChallengeEvent("quiz_score_80plus", { value: 1 });
+    } else {
+      // Compute score percentage for 80%+ check
+      const totalQ = currentLessonState.steps.filter(
+        (s: { type: string }) => s.type === "mcq" || s.type === "true-false" || s.type === "scenario" || s.type === "fill-blank"
+      ).length;
+      if (totalQ > 0 && currentLessonState.correctCount / totalQ >= 0.8) {
+        void trackChallengeEvent("quiz_score_80plus", { value: 1 });
+      }
+    }
+    if (streakAfterLesson !== null && streakAfterLesson > 0) {
+      // value: 1 means "maintained streak today" — target 1 completes on any active day.
+      void trackChallengeEvent("streak_updated", { value: 1 });
+      // set_max: progress is capped at the highest streak seen, not summed per lesson.
+      void trackChallengeEvent("streak_count", { value: streakAfterLesson, mode: "set_max" });
+    }
+    // active_lesson_days counts unique days — fire only on the first lesson of each day.
+    if (isFirstLessonToday) {
+      void trackChallengeEvent("active_lesson_days", { value: 1 });
+      void trackChallengeEvent("daily_login", { value: 1 });
+    }
+    // Topic-specific events
+    const courseId = currentLessonState.courseId ?? "";
+    const BUDGETING_COURSES = new Set(["money-basics", "salary-payslip", "banking-debit", "credit-debt", "emergency-fund", "taxes", "business-finance"]);
+    const INVESTING_COURSES = new Set(["investing-basics", "sa-investing", "property", "retirement", "crypto-basics"]);
+    if (BUDGETING_COURSES.has(courseId)) {
+      void trackChallengeEvent("lesson_completed_topic_budgeting", { value: 1 });
+    }
+    if (INVESTING_COURSES.has(courseId)) {
+      void trackChallengeEvent("lesson_completed_topic_investing", { value: 1 });
+    }
 
     playSound("complete");
 
