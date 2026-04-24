@@ -89,6 +89,9 @@ export async function POST(req: NextRequest) {
     resendStatus = response.status;
     resendBody = await response.json().catch(() => null);
 
+    // Always log so we can see the result in Vercel runtime logs
+    console.log("[feedback-email] Resend response:", JSON.stringify({ resendStatus, resendBody }));
+
     if (!response.ok) {
       console.error("[feedback-email] Resend error:", resendStatus, resendBody);
       await logStatus({ resendStatus, resendBody, ok: false });
