@@ -1,22 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    // RESEND_API_KEY not configured — feedback is saved in DB but email is NOT sent.
-    // To fix: add RESEND_API_KEY to your Vercel environment variables.
-    console.warn("[feedback-email] RESEND_API_KEY is not set. Email will NOT be delivered.");
-    return NextResponse.json({ ok: true, skipped: true });
-  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  const { subject, description, issueType, userEmail } = (await req.json()) as {
+  const body = await req.json() as {
     subject?: string;
     description?: string;
     issueType?: string;
     userEmail?: string;
+    feedbackId?: string;
   };
 
+  const { subject, description, issueType, userEmail, feedbackId } = body;
+
+  // Helper: write diagnostic info back to the feedback row so we can query it
+  const logStatus = async (status: Record<string, unknown>) => {
+    if (!feedbackId || !supabaseUrl || !serviceKey) return;
+    try {
+      const admin = createClient(supabaseUrl, serviceKey);
+      await admin.from("feedback").update({ email_status: status }).eq("id", feedbackId);
+    } catch { /* best-effort */ }
+  };
+
+  if (!resendKey) {
+    await logStatus({ error: "RESEND_API_KEY not set in Vercel env vars", skipped: true });
+    console.warn("[feedback-email] RESEND_API_KEY is not set.");
+    return NextResponse.json({ ok: true, skipped: true });
+  }
+
   if (!subject || !description) {
+    await logStatus({ error: "Missing subject or description" });
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
 
@@ -29,51 +45,62 @@ export async function POST(req: NextRequest) {
   };
   const typeDisplay = typeLabel[issueType ?? ""] ?? issueType ?? "Unknown";
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Fundi Finance <hello@fundiapp.co.za>",
-      // NOTE: sending to the same domain (fundiapp.co.za → fundiapp.co.za) can be
-      // silently dropped by the mail server as a spoofing attempt. If you aren't
-      // receiving these, change the address below to an external inbox (e.g. Gmail).
-      to: ["support@fundiapp.co.za"],
-      reply_to: userEmail ?? "no-reply@fundiapp.co.za",
-      subject: `[${typeDisplay}] ${subject}`,
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:600px">
-          <h2 style="color:#007A4D">New Feedback from Fundi Finance</h2>
-          <table style="width:100%;border-collapse:collapse">
-            <tr>
-              <td style="padding:8px 0;font-weight:700;width:140px;color:#6b7280">Type</td>
-              <td style="padding:8px 0">${typeDisplay}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;font-weight:700;color:#6b7280">From</td>
-              <td style="padding:8px 0">${userEmail ?? "Anonymous"}</td>
-            </tr>
-            <tr>
-              <td style="padding:8px 0;font-weight:700;color:#6b7280">Subject</td>
-              <td style="padding:8px 0">${subject}</td>
-            </tr>
-          </table>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
-          <h3 style="font-size:14px;color:#374151;margin-bottom:8px">Description</h3>
-          <p style="background:#f9fafb;border-radius:8px;padding:14px;white-space:pre-wrap;font-size:14px">${description}</p>
-          <p style="font-size:12px;color:#9ca3af;margin-top:24px">Sent from Fundi Finance app feedback form</p>
-        </div>
-      `,
-    }),
-  });
+  let resendStatus: number | null = null;
+  let resendBody: unknown = null;
 
-  if (!response.ok) {
-    const text = await response.text();
-    // Don't fail the user-facing request — feedback is already in DB
-    console.error("[feedback-email] Resend error:", text);
-    return NextResponse.json({ ok: true, emailError: text });
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "Fundi Finance <hello@fundiapp.co.za>",
+        to: ["support@fundiapp.co.za"],
+        reply_to: userEmail ?? "no-reply@fundiapp.co.za",
+        subject: `[${typeDisplay}] ${subject}`,
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:600px">
+            <h2 style="color:#007A4D">New Feedback from Fundi Finance</h2>
+            <table style="width:100%;border-collapse:collapse">
+              <tr>
+                <td style="padding:8px 0;font-weight:700;width:140px;color:#6b7280">Type</td>
+                <td style="padding:8px 0">${typeDisplay}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-weight:700;color:#6b7280">From</td>
+                <td style="padding:8px 0">${userEmail ?? "Anonymous"}</td>
+              </tr>
+              <tr>
+                <td style="padding:8px 0;font-weight:700;color:#6b7280">Subject</td>
+                <td style="padding:8px 0">${subject}</td>
+              </tr>
+            </table>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
+            <h3 style="font-size:14px;color:#374151;margin-bottom:8px">Description</h3>
+            <p style="background:#f9fafb;border-radius:8px;padding:14px;white-space:pre-wrap;font-size:14px">${description}</p>
+            <p style="font-size:12px;color:#9ca3af;margin-top:24px">Sent from Fundi Finance app feedback form</p>
+          </div>
+        `,
+      }),
+    });
+
+    resendStatus = response.status;
+    resendBody = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      console.error("[feedback-email] Resend error:", resendStatus, resendBody);
+      await logStatus({ resendStatus, resendBody, ok: false });
+      return NextResponse.json({ ok: true, emailError: resendBody });
+    }
+
+    await logStatus({ resendStatus, resendBody, ok: true });
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[feedback-email] fetch threw:", msg);
+    await logStatus({ fetchError: msg, ok: false });
+    return NextResponse.json({ ok: true, fetchError: msg });
   }
-  return NextResponse.json({ ok: true });
 }

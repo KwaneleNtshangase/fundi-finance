@@ -110,14 +110,16 @@ const FUNDI_FAQ = [
 ];
 
 function normalizeUsername(value: string): string {
-  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
+  // Trim only — allow caps, spaces, symbols
+  return value.trim();
 }
 
 function validateUsername(value: string): string | null {
-  if (!value) return "Username is required.";
-  if (value.length < 3) return "Username must be at least 3 characters.";
-  if (value.length > 20) return "Username must be 20 characters or less.";
-  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
+  if (!value || !value.trim()) return "Username is required.";
+  if (value.trim().length < 2) return "Username must be at least 2 characters.";
+  if (value.length > 50) return "Username must be 50 characters or less.";
+  // Disallow control characters only (null bytes, newlines, etc.)
+  if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
   return null;
 }
 
@@ -149,14 +151,28 @@ function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }
     setSending(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase.from("feedback").insert({
+      // 1. Save to Supabase for records
+      const { data: feedbackRows } = await supabase.from("feedback").insert({
         user_id: user?.id ?? null,
         subject,
         description,
         issue_type: issueType,
+      }).select("id");
+      const feedbackId = feedbackRows?.[0]?.id ?? null;
+      // 2. Send email to support@fundiapp.co.za via Resend
+      await fetch("/api/feedback-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subject,
+          description,
+          issueType,
+          userEmail: user?.email ?? null,
+          feedbackId,
+        }),
       });
-      if (!error) setSent(true);
-    } catch { /* ignore */ }
+      setSent(true);
+    } catch { /* ignore — DB insert is the source of truth */ }
     setSending(false);
   };
 
@@ -751,12 +767,11 @@ export function ProfileView({
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>Username (leaderboard name)</label>
             <input
               type="text"
-              autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="username"
+              placeholder="e.g. FirstName_2026"
               value={editUsername}
-              onChange={(e) => setEditUsername(normalizeUsername(e.target.value))}
+              onChange={(e) => setEditUsername(e.target.value)}
               style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, boxSizing: "border-box" as const }}
             />
           </div>
