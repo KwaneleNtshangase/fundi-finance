@@ -5745,11 +5745,15 @@ export default function Home() {
   const lessonHeartLostRef = useRef(false);
   const lessonStateRef = useRef(currentLessonState);
   lessonStateRef.current = currentLessonState;
+  // Prevents multiple XP awards if the user taps "Done" more than once
+  // before navigation completes.
+  const isFinalizingRef = useRef(false);
 
   const beginLessonSession = React.useCallback(
     (courseId: string, lessonId: string, lessonTitle: string) => {
       lessonStartTimeRef.current = Date.now();
       lessonHeartLostRef.current = false;
+      isFinalizingRef.current = false; // reset so next lesson can finalize
       analytics.lessonStarted(courseId, lessonId, lessonTitle);
     },
     []
@@ -6250,6 +6254,10 @@ export default function Home() {
   };
 
   const finalizeCurrentLesson = async (choice: "next" | "course") => {
+    // Guard: ignore all calls after the first one (prevents double-XP from rapid taps)
+    if (isFinalizingRef.current) return;
+    isFinalizingRef.current = true;
+
     const baseXP = 50;
     const totalXP = baseXP + currentLessonState.correctCount * 10;
     if (!currentLessonState.courseId || !currentLessonState.lessonId) return;
