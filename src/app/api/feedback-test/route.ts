@@ -1,23 +1,21 @@
 import { NextResponse } from "next/server";
 
 /**
- * Diagnostic endpoint — visit /api/feedback-test in your browser to verify
- * Resend is configured correctly and the domain is verified.
- *
- * DELETE THIS FILE before going to a public launch.
+ * Diagnostic endpoint — visit /api/feedback-test in your browser.
+ * Sends a test email to every fundiapp.co.za address and reports per-address results.
+ * DELETE THIS FILE before a public launch.
  */
-export async function GET() {
-  const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    return NextResponse.json({
-      ok: false,
-      step: "env",
-      error: "RESEND_API_KEY is not set in Vercel environment variables.",
-      fix: "Go to Vercel → Project → Settings → Environment Variables and add RESEND_API_KEY, then redeploy.",
-    });
-  }
 
-  const response = await fetch("https://api.resend.com/emails", {
+const ADDRESSES = [
+  "support@fundiapp.co.za",
+  "hello@fundiapp.co.za",
+  "legal@fundiapp.co.za",
+  "noreply@fundiapp.co.za",
+  "privacy@fundiapp.co.za",
+];
+
+async function sendTest(resendKey: string, to: string) {
+  const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${resendKey}`,
@@ -25,32 +23,33 @@ export async function GET() {
     },
     body: JSON.stringify({
       from: "Fundi Finance <hello@fundiapp.co.za>",
-      to: ["support@fundiapp.co.za"],
-      subject: "[Fundi Diagnostic] Resend test email",
-      html: "<p>This is a test email sent from the /api/feedback-test diagnostic endpoint. If you received this, Resend is working correctly.</p>",
+      to: [to],
+      subject: `[Fundi Test] Delivery check → ${to}`,
+      html: `<p>This is a delivery test sent via Resend to <strong>${to}</strong>. If you received this, delivery to this address is working correctly.</p><p><em>Sent: ${new Date().toISOString()}</em></p>`,
     }),
   });
+  const body = await res.json().catch(() => null);
+  return { to, status: res.status, ok: res.ok, resend_id: body?.id ?? null, error: res.ok ? null : body };
+}
 
-  const body = await response.json().catch(() => null);
-
-  if (!response.ok) {
+export async function GET() {
+  const resendKey = process.env.RESEND_API_KEY;
+  if (!resendKey) {
     return NextResponse.json({
       ok: false,
-      step: "resend_send",
-      status: response.status,
-      resend_error: body,
-      fix:
-        response.status === 403
-          ? "API key is invalid or revoked — regenerate it in Resend."
-          : response.status === 422
-          ? "Domain fundiapp.co.za is not verified in Resend. Go to resend.com → Domains, add fundiapp.co.za, then add the DNS records shown to your domain registrar."
-          : "Unknown Resend error — see resend_error above.",
+      error: "RESEND_API_KEY not set in Vercel environment variables.",
     });
   }
 
+  const results = await Promise.all(ADDRESSES.map((addr) => sendTest(resendKey, addr)));
+
+  const allOk = results.every((r) => r.ok);
+  const failed = results.filter((r) => !r.ok);
+
   return NextResponse.json({
-    ok: true,
-    message: "Test email sent successfully! Check support@fundiapp.co.za inbox.",
-    resend_response: body,
+    summary: allOk
+      ? "All emails accepted by Resend for delivery. Check each inbox (including Junk/Spam)."
+      : `${failed.length} address(es) rejected by Resend.`,
+    results,
   });
 }
