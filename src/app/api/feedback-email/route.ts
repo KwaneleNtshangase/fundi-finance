@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) {
-    // Silently succeed if Resend not configured — feedback still saved in DB
+    // RESEND_API_KEY not configured — feedback is saved in DB but email is NOT sent.
+    // To fix: add RESEND_API_KEY to your Vercel environment variables.
+    console.warn("[feedback-email] RESEND_API_KEY is not set. Email will NOT be delivered.");
     return NextResponse.json({ ok: true, skipped: true });
   }
 

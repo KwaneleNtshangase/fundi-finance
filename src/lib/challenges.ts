@@ -62,21 +62,7 @@ export async function assignChallengesForUser(userId: string) {
   const inserts: Record<string, unknown>[] = [];
 
   if (dailyExisting.length < 3) {
-    // Fetch challenge codes assigned in the last 7 days to prevent repeats across days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const { data: recentData } = await supabase
-      .from("user_challenge_assignments")
-      .select("challenge_code")
-      .eq("user_id", userId)
-      .eq("period_type", "daily")
-      .neq("period_key", today)
-      .gte("created_at", sevenDaysAgo.toISOString());
-    const recentCodes = new Set<string>((recentData ?? []).map((r: { challenge_code: string }) => r.challenge_code));
-    // Also exclude today's already-assigned challenges
-    const todayCodes = new Set(dailyExisting.map((r) => r.challenge_code));
-    const excludes = new Set([...recentCodes, ...todayCodes]);
-    const selected = choose(DAILY_CHALLENGE_BANK, allowed, 3 - dailyExisting.length, excludes);
+    const selected = choose(DAILY_CHALLENGE_BANK, allowed, 3 - dailyExisting.length, new Set(dailyExisting.map((r) => r.challenge_code)));
     for (const c of selected) {
       inserts.push({
         user_id: userId,
@@ -123,20 +109,14 @@ export async function evaluateChallengeProgress(userId: string, event: string, p
   for (const r of rows as AssignmentRow[]) {
     const definition = fullBank.find((d) => d.id === r.challenge_code);
     if (!definition || definition.event !== event) continue;
-    // "set_max" mode: use max(current, value) for threshold checks like streak_count.
-    // Default mode "add" accumulates value (e.g. lesson count, XP earned).
-    const rawValue = Number(payload.value ?? payload.amount ?? 1) || 1;
-    const mode = String(payload.mode ?? "add");
+    const delta = Number(payload.value ?? payload.amount ?? 1) || 1;
     const { data: existing } = await supabase
       .from("user_challenge_progress")
       .select("current_value,target_value,is_complete")
       .eq("assignment_id", r.id)
       .maybeSingle();
     const progress = (existing ?? null) as ProgressRow;
-    const currentProgress = Number(progress?.current_value ?? 0);
-    const nextValue = mode === "set_max"
-      ? Math.max(currentProgress, rawValue)
-      : Math.max(0, currentProgress + rawValue);
+    const nextValue = Math.max(0, Number(progress?.current_value ?? 0) + delta);
     const target = Number(progress?.target_value ?? r.target_value ?? 1);
     const isComplete = nextValue >= target;
     await supabase.from("user_challenge_progress").upsert({

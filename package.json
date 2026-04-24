@@ -2,7 +2,6 @@
   "name": "fundi-finance",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,9 +12,7 @@
     "test:ui": "playwright test --ui",
     "test:smoke": "playwright test --project='Desktop Chrome' e2e/01-auth.spec.ts e2e/02-lesson-flow.spec.ts",
     "test:report": "playwright show-report",
-    "test:health": "node scripts/health-check.js",
-    "test:unit": "node scripts/unit-tests.js",
-    "test:all": "node scripts/unit-tests.js && node scripts/calculator-self-check.js && node scripts/health-check.js"
+    "test:health": "node scripts/health-check.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",

@@ -5,7 +5,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
-import { trackChallengeEvent } from "@/lib/challengeEvents";
 import { CONTENT_DATA } from "@/data/content";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import {
@@ -239,12 +238,6 @@ const GOAL_COURSE_MAP: Record<string, string[]> = {
   business: ["business-finance", "taxes", "money-basics"],
 };
 
-// Emoji helpers — explicit code points guarantee correct encoding in any build
-const E_GRAD  = "\uD83C\uDF93"; // 🎓
-const E_POINT = "\uD83D\uDC47"; // 👇
-const E_MEDAL = "\uD83C\uDFC5"; // 🏅
-const E_FIRE  = "\uD83D\uDD25"; // 🔥
-
 function generateShareText(
   type: "lesson" | "badge" | "streak",
   data: {
@@ -257,15 +250,15 @@ function generateShareText(
   if (type === "lesson") {
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
-    return `I just completed "${t}"${xpPart} on Fundi Finance ${E_GRAD}\n\nShort, South Africa-focused money lessons that actually make sense. Join me ${E_POINT}\nfundiapp.co.za`;
+    return `I just completed "${t}"${xpPart} on Fundi Finance 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just earned the "${n}" badge on Fundi Finance ${E_MEDAL}\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
+    return `I just earned the "${n}" badge on Fundi Finance 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d}-day learning streak on Fundi Finance ${E_FIRE}\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
+    return `${d}-day learning streak on Fundi Finance 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
   }
   return "";
 }
@@ -327,16 +320,14 @@ async function persistUserGoalToStorageAndSupabase(goalId: string, goalDescripti
 }
 
 function normalizeUsername(value: string): string {
-  // Only trim leading/trailing whitespace — allow any printable characters including caps
-  return value.trim();
+  return value.trim().toLowerCase().replace(/[^a-z0-9_]/g, "");
 }
 
 function validateUsername(value: string): string | null {
-  if (!value || !value.trim()) return "Username is required.";
-  if (value.trim().length < 2) return "Username must be at least 2 characters.";
-  if (value.length > 50) return "Username must be 50 characters or less.";
-  // Disallow control characters (null bytes, newlines, etc.)
-  if (/[\x00-\x1F\x7F]/.test(value)) return "Username contains invalid characters.";
+  if (!value) return "Username is required.";
+  if (value.length < 3) return "Username must be at least 3 characters.";
+  if (value.length > 20) return "Username must be 20 characters or less.";
+  if (!/^[a-z0-9_]+$/.test(value)) return "Use only lowercase letters, numbers, and underscores.";
   return null;
 }
 
@@ -366,103 +357,23 @@ function getLessonTitle(
   return undefined;
 }
 
-function UsernameStepField({
-  username,
-  setUsername,
-  usernameError,
-  usernameChecking,
-  usernameAvailable,
-}: {
-  username: string;
-  setUsername: (v: string) => void;
-  usernameError: string | null;
-  usernameChecking: boolean;
-  usernameAvailable: boolean;
-}) {
-  return (
-    <div style={{ marginBottom: 12, textAlign: "left" }}>
-      <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
-        Username
-      </label>
-      <div style={{ position: "relative" }}>
-        <input
-          type="text"
-          autoCorrect="off"
-          spellCheck={false}
-          placeholder="e.g. FirstName_2026"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          style={{
-            width: "100%",
-            padding: "12px 14px",
-            borderRadius: 12,
-            border: `2px solid ${usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-border)"}`,
-            fontSize: 14,
-            boxSizing: "border-box",
-            background: "var(--color-surface)",
-            color: "var(--color-text-primary)",
-          }}
-        />
-        {usernameAvailable && !usernameChecking && (
-          <CheckCircle2 size={16} style={{ position: "absolute", right: 12, top: 13, color: "var(--color-primary)" }} />
-        )}
-      </div>
-      <div style={{ minHeight: 20, marginTop: 6, fontSize: 12, color: usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-text-secondary)" }}>
-        {usernameChecking
-          ? "Checking availability..."
-          : usernameError
-            ? usernameError
-            : usernameAvailable
-              ? "Username is available."
-              : "2–50 chars. Caps, spaces, and symbols are all welcome."}
-      </div>
-    </div>
-  );
-}
-
 function OnboardingView({
   onComplete,
 }: {
-  onComplete: (payload: { firstName: string; lastName: string; email: string; password: string; goal: string; goalDescription?: string; username: string }) => void;
+  onComplete: (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => void;
 }) {
   const [screen, setScreen] = React.useState(0);
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [password, setPassword] = React.useState("");
   const [selectedGoal, setSelectedGoal] = React.useState("");
+  const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
   const [ageConfirmed, setAgeConfirmed] = React.useState(false);
-  const [consentTerms, setConsentTerms] = React.useState(false);
-  const [consentPopia, setConsentPopia] = React.useState(false);
   const [username, setUsername] = React.useState("");
   const [usernameError, setUsernameError] = React.useState<string | null>(null);
   const [usernameChecking, setUsernameChecking] = React.useState(false);
   const [usernameAvailable, setUsernameAvailable] = React.useState(false);
-  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
-    void supabase.auth.getUser().then(async ({ data }) => {
-      const user = data.user;
-      if (!user) return;
-      setCurrentUserId(user.id);
-      setEmail(user.email ?? "");
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      const fullName = String(profile?.full_name ?? user.user_metadata?.full_name ?? "").trim();
-      if (fullName) {
-        const parts = fullName.split(" ");
-        setFirstName(parts[0] ?? "");
-        setLastName(parts.slice(1).join(" "));
-      }
-    });
-  }, []);
-
-  React.useEffect(() => {
-    if (screen !== 2) return;
+    if (screen !== 3) return;
     const normalized = normalizeUsername(username);
     if (!normalized) {
       setUsernameError("Username is required.");
@@ -478,7 +389,7 @@ function OnboardingView({
     let active = true;
     setUsernameChecking(true);
     const timer = setTimeout(() => {
-      isUsernameAvailable(normalized, currentUserId ?? undefined)
+      isUsernameAvailable(normalized)
         .then((available) => {
           if (!active) return;
           setUsernameAvailable(available);
@@ -488,128 +399,347 @@ function OnboardingView({
           if (!active) return;
           setUsernameChecking(false);
         });
-    }, 400);
+    }, 250);
     return () => {
       active = false;
       clearTimeout(timer);
     };
-  }, [screen, username, currentUserId]);
+  }, [screen, username]);
 
-  const canContinueStep1 =
-    firstName.trim().length > 0 &&
-    lastName.trim().length > 0 &&
-    isValidEmailFormat(email) &&
-    password.length >= 8 &&
-    ageConfirmed &&
-    consentTerms &&
-    consentPopia;
+  const screenCount = 5;
+  const screensMeta = [
+    {
+      title: "Welcome to Fundi Finance",
+      body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
+      cta: "Let's go",
+      action: () => { if (ageConfirmed) setScreen(1); },
+    },
+    {
+      title: "What's your money goal?",
+      body: "We'll personalise tips based on what matters most to you. Optional - skip if you prefer.",
+      cta: "Next",
+      action: () => {
+        if (selectedGoal) setScreen(2);
+      },
+    },
+    {
+      title: "Your age range",
+      body: "Helps us keep examples relevant. Optional - skip if you prefer.",
+      cta: "Next",
+      action: () => {
+        setScreen(3);
+      },
+    },
+    {
+      title: "Choose your leaderboard username",
+      body: "This is your public name on the leaderboard. It must be unique.",
+      cta: "Next",
+      action: () => {
+        if (usernameAvailable) setScreen(4);
+      },
+    },
+    {
+      title: "How it works",
+      body: "Earn XP for every lesson. Build streaks. Unlock badges. Compete on the leaderboard. Every lesson takes less than 3 minutes.",
+      cta: "Start learning",
+      action: () =>
+        onComplete({
+          goal: selectedGoal || undefined,
+          ageRange: selectedAgeRange || undefined,
+          goalDescription: goalDescription.trim() || undefined,
+          username: normalizeUsername(username),
+        }),
+    },
+  ];
 
-  const canContinueStep2 =
-    Boolean(selectedGoal) && (selectedGoal !== "other" || goalDescription.trim().length > 0);
-
-  const currentMeta = [
-    { title: "Who you are", cta: "Next" },
-    { title: "Your goal", cta: "Next" },
-    { title: "Choose your username", cta: "Done" },
-  ][screen];
+  const current = screensMeta[screen];
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--color-bg)", padding: "20px 16px" }}>
-      <div style={{ maxWidth: 380, width: "100%" }}>
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, justifyContent: "center" }}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} style={{ width: i === screen ? 20 : 8, height: 8, borderRadius: 4, background: i === screen ? "var(--color-primary)" : "var(--color-border)", transition: "all 0.3s" }} />
-          ))}
-        </div>
-        <h1 style={{ fontSize: 24, fontWeight: 900, marginBottom: 8, color: "var(--color-text-primary)", textAlign: "center" }}>{currentMeta.title}</h1>
+    <div
+      style={{
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "var(--color-bg)",
+        padding: "32px 24px",
+      }}
+    >
+      <div style={{ display: "flex", gap: 6, marginBottom: 40 }}>
+        {Array.from({ length: screenCount }).map((_, i) => (
+          <div
+            key={i}
+            style={{
+              width: i === screen ? 20 : 8,
+              height: 8,
+              borderRadius: 4,
+              background: i === screen ? "var(--color-primary)" : "var(--color-border)",
+              transition: "all 0.3s",
+            }}
+          />
+        ))}
+      </div>
 
+      <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
         {screen === 0 && (
-          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14 }}>
-            <input type="text" placeholder="First name" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
-            <input type="text" placeholder="Last name" value={lastName} onChange={(e) => setLastName(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
-            <input type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={{ width: "100%", marginBottom: 8, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
-            <input type="password" placeholder="Password (min 8 chars)" value={password} onChange={(e) => setPassword(e.target.value)} style={{ width: "100%", marginBottom: 12, padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, boxSizing: "border-box" }} />
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
-                <input type="checkbox" checked={ageConfirmed} onChange={(e) => setAgeConfirmed(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
-                <span>I confirm I am 18 years or older</span>
-              </label>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
-                <input type="checkbox" checked={consentTerms} onChange={(e) => setConsentTerms(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
-                <span>
-                  I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Terms of Service</a> and <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Privacy Policy</a>
-                </span>
-              </label>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: 12, color: "var(--color-text-primary)", lineHeight: 1.45 }}>
-                <input type="checkbox" checked={consentPopia} onChange={(e) => setConsentPopia(e.target.checked)} style={{ marginTop: 2, accentColor: "var(--color-primary)" }} />
-                <span>I consent to Fundi Finance processing my personal data for the purpose of delivering financial education, in accordance with POPIA Section 11</span>
-              </label>
-            </div>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
+            <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
+          </div>
+        )}
+        {screen === 4 && (
+          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
+            {[Target, Zap, Trophy].map((IconComp, i) => (
+              <div
+                key={i}
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50%",
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <IconComp size={24} style={{ color: "var(--color-primary)" }} />
+              </div>
+            ))}
           </div>
         )}
 
+        <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 12, color: "var(--color-text-primary)" }}>
+          {current.title}
+        </h1>
+        <p style={{ fontSize: 15, color: "var(--color-text-secondary)", lineHeight: 1.6, marginBottom: 28 }}>
+          {current.body}
+        </p>
+
+        {/* Age confirmation - screen 0 only */}
+        {screen === 0 && (
+          <label style={{
+            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24,
+            textAlign: "left", cursor: "pointer",
+            padding: "14px 16px", borderRadius: 12,
+            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
+          }}>
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+              I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
+            </span>
+          </label>
+        )}
+
         {screen === 1 && (
-          <div>
-            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginBottom: 12, textAlign: "center" }}>What&apos;s your main financial goal?</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 10 }}>
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12, textAlign: "left" }}>
               {ONBOARDING_GOAL_OPTIONS.map((g) => (
-                <button key={g.id} type="button" onClick={() => { setSelectedGoal(g.id); if (g.id !== "other") setGoalDescription(""); }} style={{ padding: "12px 10px", borderRadius: 12, border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`, background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)", display: "flex", alignItems: "center", gap: 8, fontWeight: 700, fontSize: 13, textAlign: "left", cursor: "pointer", color: "var(--color-text-primary)" }}>
-                  <g.Icon size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedGoal(g.id);
+                    if (g.id !== "other") setGoalDescription("");
+                  }}
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
+                    background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    fontWeight: 600,
+                    fontSize: 13,
+                    color: "var(--color-text-primary)",
+                    transition: "all 0.15s",
+                  }}
+                >
+                  <g.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
                   {g.label}
                 </button>
               ))}
             </div>
-            {selectedGoal && (
+            {selectedGoal === "other" && (
               <textarea
-                placeholder={selectedGoal === "other" ? "Describe your goal..." : "Optional: add detail about this goal"}
+                placeholder="Describe your goal - e.g. save for my child's education"
+                value={goalDescription}
+                onChange={(e) => setGoalDescription(e.target.value)}
+                rows={3}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "2px solid var(--color-primary)",
+                  fontSize: 13,
+                  resize: "vertical",
+                  marginBottom: 12,
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  background: "var(--color-surface)",
+                  color: "var(--color-text-primary)",
+                }}
+              />
+            )}
+            {selectedGoal && selectedGoal !== "other" && (
+              <textarea
+                placeholder="Anything more to say about this goal? (optional)"
                 value={goalDescription}
                 onChange={(e) => setGoalDescription(e.target.value)}
                 rows={2}
-                style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 13, resize: "none", boxSizing: "border-box", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  border: "1px solid var(--color-border)",
+                  fontSize: 13,
+                  resize: "vertical",
+                  marginBottom: 12,
+                  boxSizing: "border-box",
+                  fontFamily: "inherit",
+                  background: "var(--color-surface)",
+                  color: "var(--color-text-primary)",
+                }}
               />
             )}
-          </div>
+          </>
         )}
 
         {screen === 2 && (
-          <UsernameStepField
-            username={username}
-            setUsername={setUsername}
-            usernameError={usernameError}
-            usernameChecking={usernameChecking}
-            usernameAvailable={usernameAvailable}
-          />
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
+            {ONBOARDING_AGE_RANGES.map((a) => (
+              <button
+                key={a.id}
+                type="button"
+                onClick={() => setSelectedAgeRange(a.id)}
+                style={{
+                  padding: "12px 14px",
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  border: `2px solid ${selectedAgeRange === a.id ? "var(--color-primary)" : "var(--color-border)"}`,
+                  background: selectedAgeRange === a.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontWeight: 600,
+                  fontSize: 13,
+                  color: "var(--color-text-primary)",
+                  transition: "all 0.15s",
+                }}
+              >
+                <a.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
+                {a.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {screen === 3 && (
+          <div style={{ marginBottom: 16, textAlign: "left" }}>
+            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
+              Username
+            </label>
+            <input
+              type="text"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              placeholder="e.g. fundi_learner"
+              value={username}
+              onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+              style={{
+                width: "100%",
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `2px solid ${usernameError ? "var(--color-danger)" : usernameAvailable ? "var(--color-primary)" : "var(--color-border)"}`,
+                fontSize: 14,
+                boxSizing: "border-box",
+                background: "var(--color-surface)",
+                color: "var(--color-text-primary)",
+              }}
+            />
+            <div style={{ minHeight: 20, marginTop: 6, fontSize: 12, color: usernameError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
+              {usernameChecking
+                ? "Checking availability..."
+                : usernameError
+                  ? usernameError
+                  : usernameAvailable
+                    ? "Username is available."
+                    : "3-20 chars: lowercase letters, numbers, underscores."}
+            </div>
+          </div>
         )}
 
         <button
           className="btn btn-primary"
-          style={{ width: "100%", marginTop: 10, padding: "13px 14px", fontSize: 16, fontWeight: 800 }}
+          style={{ width: "100%", padding: "14px", fontSize: 16, fontWeight: 700 }}
+          onClick={current.action}
           disabled={
-            (screen === 0 && !canContinueStep1) ||
-            (screen === 1 && !canContinueStep2) ||
-            (screen === 2 && (!usernameAvailable || usernameChecking))
+            (screen === 0 && !ageConfirmed) ||
+            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))) ||
+            (screen === 3 && (!usernameAvailable || usernameChecking))
           }
-          onClick={() => {
-            if (screen === 0) setScreen(1);
-            else if (screen === 1) setScreen(2);
-            else {
-              onComplete({
-                firstName: firstName.trim(),
-                lastName: lastName.trim(),
-                email: email.trim().toLowerCase(),
-                password,
-                goal: selectedGoal,
-                goalDescription: goalDescription.trim() || undefined,
-                username: normalizeUsername(username),
-              });
-            }
-          }}
         >
-          {currentMeta.cta}
+          {current.cta}
         </button>
 
+        {screen === 1 && (
+          <button
+            type="button"
+            onClick={() => setScreen(2)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+              width: "100%",
+            }}
+          >
+            Skip
+          </button>
+        )}
+
+        {screen === 2 && (
+          <button
+            type="button"
+            onClick={() => setScreen(3)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+              width: "100%",
+            }}
+          >
+            Skip
+          </button>
+        )}
+
         {screen > 0 && (
-          <button type="button" onClick={() => setScreen((s) => s - 1)} style={{ marginTop: 10, background: "none", border: "none", color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 14, width: "100%" }}>
+          <button
+            type="button"
+            onClick={() => setScreen((s) => s - 1)}
+            style={{
+              marginTop: 12,
+              background: "none",
+              border: "none",
+              color: "var(--color-text-secondary)",
+              cursor: "pointer",
+              fontSize: 14,
+            }}
+          >
             Back
           </button>
         )}
@@ -823,14 +953,12 @@ function FundiTopBar({
   xp,
   hearts,
   maxHearts,
-  freezeCount = 0,
   heartsRegenInfo,
 }: {
   streak: number;
   xp: number;
   hearts: number;
   maxHearts: number;
-  freezeCount?: number;
   heartsRegenInfo?: () => { nextHeartIn: string; minutesLeft: number } | null;
 }) {
   const [showHeartsModal, setShowHeartsModal] = useState(false);
@@ -854,15 +982,6 @@ function FundiTopBar({
             <Flame size={20} style={{ color: "#FFB612" }} />
             <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
           </div>
-          {freezeCount > 0 && (
-            <div
-              style={{ display: "flex", alignItems: "center", gap: 2, background: "rgba(59,130,246,0.12)", borderRadius: 999, padding: "2px 7px" }}
-              title={`${freezeCount} streak freeze${freezeCount !== 1 ? "s" : ""}`}
-            >
-              <Shield size={13} style={{ color: "#3B82F6" }} />
-              <span style={{ fontWeight: 700, fontSize: 12, color: "#3B82F6" }}>{freezeCount}</span>
-            </div>
-          )}
           <button
             type="button"
             onClick={async () => {
@@ -1624,13 +1743,7 @@ function useFundiState() {
     { id: "wc-5lessons-perfect", text: "Complete 5 lessons with at least 80% score", target: 5, unit: "lessons", xp: 300 },
   ];
   const getWeeklyChallenge = () => {
-    // Anchor the week number to the most recent Sunday so the challenge only
-    // rotates on Sunday, not mid-week (epoch day 0 = Thursday Jan 1 1970).
-    const now = new Date();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay()); // roll back to Sunday
-    sunday.setHours(0, 0, 0, 0);
-    const weekNum = Math.floor(sunday.getTime() / (7 * 24 * 60 * 60 * 1000));
+    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
     return WEEKLY_CHALLENGES[weekNum % WEEKLY_CHALLENGES.length];
   };
   const weeklyChallenge = getWeeklyChallenge();
@@ -1730,14 +1843,13 @@ function useFundiState() {
     setTimeout(() => setXpToast(null), 2000);
   };
 
-  const completeLesson = async (
+  const completeLesson = (
     courseId: string,
     lessonId: string,
     xpEarned: number
-  ): Promise<number | null> => {
+  ): number | null => {
     progress.completeLesson(`${courseId}:${lessonId}`);
-    // Await streak sync so badge checks use the NEW streak value (not pre-lesson).
-    const newStreak = await progress.applyStreakAfterLesson();
+    const newStreak = progress.applyStreakAfterLesson();
     if (newStreak !== null) analytics.streakUpdated(newStreak);
     addXP(xpEarned);
     return newStreak;
@@ -1975,7 +2087,7 @@ function DailyChallenges({ streak = 0 }: { streak?: number }) {
       "check-budget":    localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
       "earn-50xp":       parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0") >= 50,
       "perfect-quiz":    parseInt(localStorage.getItem(`fundi-perfect-today-${today}`) ?? "0") >= 1,
-      "complete-2-lessons": (parseInt(localStorage.getItem(`fundi-lessons-today-${today}`) ?? "0") >= 2),
+      "complete-2-lessons": (parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0") >= 2),
     });
   }, [today, streak]);
 
@@ -2088,15 +2200,7 @@ function DailyChallenges({ streak = 0 }: { streak?: number }) {
 
 // ── Spaced Repetition Review Session ─────────────────────────────────────────
 
-function ReviewSession({
-  onClose,
-  onXpEarned,
-  onChallengeProgress,
-}: {
-  onClose: () => void;
-  onXpEarned?: (xp: number) => void;
-  onChallengeProgress?: () => void;
-}) {
+function ReviewSession({ onClose }: { onClose: () => void }) {
   const [queue, setQueue] = useState<MasteryRecord[]>([]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -2172,14 +2276,6 @@ function ReviewSession({
     const isCorrect = selected === concept.reviewCard.correct;
     const updated = applyReview(current, isCorrect ? 4 : 1);
     saveMastery(updated);
-
-    // Award XP for each review answer (5 XP correct, 2 XP wrong — encourages engagement)
-    const xpEarned = isCorrect ? 5 : 2;
-    // onXpEarned calls addXP which already writes to fundi-daily-xp-{date} localStorage.
-    // Do NOT write to localStorage again here — that would double-count the XP.
-    if (onXpEarned) onXpEarned(xpEarned);
-    if (onChallengeProgress) onChallengeProgress();
-
     if (currentIdx + 1 >= queue.length) {
       // All done - go to summary by setting currentIdx beyond queue
       setCurrentIdx(queue.length);
@@ -2194,7 +2290,7 @@ function ReviewSession({
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <p className="text-sm font-semibold text-gray-600 dark:text-gray-300">Loading review...</p>
         </div>
@@ -2204,7 +2300,7 @@ function ReviewSession({
 
   if (hasLoaded && queue.length === 0) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Review</h2>
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">
@@ -2227,7 +2323,7 @@ function ReviewSession({
       localStorage.removeItem(REVIEW_SESSION_KEY);
     }
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black/60 p-4" style={{ zIndex: 300 }}>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
         <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-gray-900 p-6 text-center shadow-2xl">
           <Brain size={52} className="mx-auto mb-3" style={{ color: "#3B7DD8" }} />
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">Review complete!</h2>
@@ -2264,9 +2360,9 @@ function ReviewSession({
   const optionLetters = ["A", "B", "C", "D"];
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-white dark:bg-gray-950" style={{ zIndex: 300 }}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-950">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pb-3 border-b border-gray-100 dark:border-gray-800" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 16px)" }}>
+      <div className="flex items-center justify-between px-4 pt-safe-top pb-3 pt-4 border-b border-gray-100 dark:border-gray-800">
         <button
           type="button"
           onClick={onClose}
@@ -2345,15 +2441,15 @@ function ReviewSession({
         )}
       </div>
 
-      {/* Footer — extra bottom padding clears mobile bottom nav (≈56px) */}
+      {/* Footer */}
       {selected !== null && (
-        <div className="px-4 pt-3 pb-6 pb-[88px] md:pb-6 border-t border-gray-100 dark:border-gray-800">
+        <div className="px-4 pb-safe-bottom pb-6 pt-3 border-t border-gray-100 dark:border-gray-800">
           <button
             type="button"
             onClick={handleNext}
             className="w-full rounded-xl bg-purple-600 py-3.5 text-sm font-bold text-white"
           >
-            {currentIdx + 1 >= queue.length ? "See Results" : "Next \u2192"}
+            {currentIdx + 1 >= queue.length ? "See Results" : "Next →"}
           </button>
         </div>
       )}
@@ -2376,8 +2472,6 @@ export function LearnView({
   onResumeLesson,
   streak = 0,
   showQuestSections = false,
-  onReviewXpEarned,
-  onReviewChallengeProgress,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
@@ -2393,8 +2487,6 @@ export function LearnView({
   onResumeLesson?: (p: SavedLessonProgress) => void;
   streak?: number;
   showQuestSections?: boolean;
-  onReviewXpEarned?: (xp: number) => void;
-  onReviewChallengeProgress?: () => void;
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
@@ -2513,8 +2605,6 @@ export function LearnView({
             setShowReview(false);
             void getDueCards().then((cards) => setDueCount(cards.length));
           }}
-          onXpEarned={onReviewXpEarned}
-          onChallengeProgress={onReviewChallengeProgress}
         />
       )}
 
@@ -2857,7 +2947,7 @@ function QuestsView({
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
   return (
     <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
+      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Quests</h2>
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <Target size={16} className="text-[var(--color-primary)]" aria-hidden />
@@ -4082,6 +4172,7 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
+  const [showLeagueInfo, setShowLeagueInfo] = useState(false);
 
   // Countdown to Saturday midnight reset
   useEffect(() => {
@@ -4204,6 +4295,16 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
   const top3 = leaders.slice(0, 3);
   const restLeaders = leaders.slice(3);
 
+  const LEAGUES = [
+    { name: "Bronze",  min: 0,     max: 999,   emoji: "🥉", color: "#CD7F32" },
+    { name: "Silver",  min: 1000,  max: 4999,  emoji: "🥈", color: "#A8A9AD" },
+    { name: "Gold",    min: 5000,  max: 14999, emoji: "🥇", color: "#FFB612" },
+    { name: "Diamond", min: 15000, max: Infinity, emoji: "💎", color: "#7DD3FC" },
+  ];
+  // Leagues based on total XP (permanent achievement), not weekly
+  const getLeague = (totalXpVal: number) => LEAGUES.find((l) => totalXpVal >= l.min && totalXpVal <= l.max) ?? LEAGUES[0];
+  const myLeague = myRank ? getLeague(myRank.totalXp) : null;
+
   return (
     <main className="main-content main-with-stats">
       <div>
@@ -4218,6 +4319,72 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
       <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 14 }}>
         This week's XP - everyone starts fresh every Sunday
       </p>
+
+      {/* League tier legend + info */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+        {LEAGUES.map((league) => {
+          const isMyLeague = myLeague?.name === league.name;
+          return (
+            <div key={league.name} style={{
+              display: "flex", alignItems: "center", gap: 5,
+              padding: "4px 10px", borderRadius: 20,
+              background: isMyLeague ? league.color + "22" : "var(--color-border)",
+              border: isMyLeague ? `1.5px solid ${league.color}` : "1.5px solid transparent",
+              fontSize: 12, fontWeight: isMyLeague ? 700 : 500,
+              color: isMyLeague ? league.color : "var(--color-text-secondary)",
+            }}>
+              <span>{league.emoji}</span>
+              <span>{league.name}</span>
+              <span style={{ fontSize: 10, opacity: 0.7 }}>
+                {league.max === Infinity ? `${formatWithSpaces(league.min)}+` : `${formatWithSpaces(league.min)}–${formatWithSpaces(league.max)}`}
+              </span>
+            </div>
+          );
+        })}
+        <button
+          type="button"
+          onClick={() => setShowLeagueInfo(true)}
+          aria-label="What do leagues mean?"
+          style={{
+            width: 22, height: 22, borderRadius: "50%", border: "1.5px solid var(--color-border)",
+            background: "var(--color-surface)", cursor: "pointer",
+            fontSize: 11, fontWeight: 800, color: "var(--color-text-secondary)",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}
+        >?</button>
+      </div>
+
+      {/* League info modal */}
+      {showLeagueInfo && (
+        <div
+          onClick={() => setShowLeagueInfo(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}
+        >
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: 20, padding: "24px", width: "100%", maxWidth: 360 }}>
+            <div style={{ fontSize: 18, fontWeight: 900, marginBottom: 4, color: "var(--color-text-primary)" }}>What are leagues?</div>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.5 }}>
+              Leagues show your overall Fundi Finance level based on your <strong>total XP earned all time</strong>. They don&apos;t reset - keep earning XP to move up permanently.
+            </p>
+            {LEAGUES.map((league) => (
+              <div key={league.name} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 0", borderBottom: "1px solid var(--color-border)" }}>
+                <span style={{ fontSize: 22 }}>{league.emoji}</span>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: league.color }}>{league.name}</div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                    {league.max === Infinity
+                      ? `${formatWithSpaces(league.min)} XP and above`
+                      : `${formatWithSpaces(league.min)} – ${formatWithSpaces(league.max)} total XP`}
+                  </div>
+                </div>
+              </div>
+            ))}
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 12, marginTop: 14, lineHeight: 1.5 }}>
+              The weekly leaderboard ranks everyone by XP earned <strong>this week only</strong>. Every Sunday it resets to zero so everyone gets a fresh start.
+            </p>
+            <button className="btn btn-primary" style={{ width: "100%", marginTop: 16 }} onClick={() => setShowLeagueInfo(false)}>Got it</button>
+          </div>
+        </div>
+      )}
 
       {/* Your rank summary card */}
       {myRank && !loading && (
@@ -4240,6 +4407,11 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
               <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
                 {formatWithSpaces(myRank.totalXp)} total XP
               </div>
+              {myLeague && (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 6, padding: "3px 10px", borderRadius: 20, background: myLeague.color + "22", border: `1px solid ${myLeague.color}`, fontSize: 12, fontWeight: 700, color: myLeague.color }}>
+                  {myLeague.emoji} {myLeague.name} League
+                </div>
+              )}
             </div>
             {xpToNext !== null && xpToNext > 0 && aheadOfMe && (
               <div style={{
@@ -4343,24 +4515,37 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
             background: "var(--color-surface)", color: "var(--color-text-primary)",
             border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
           }}>
+            {/* Demotion zone divider - shown when ≥6 users, marks bottom 3 */}
+            {leaders.length >= 6 && (
+              <div style={{
+                background: "rgba(220,38,38,0.06)", borderBottom: "1.5px solid rgba(220,38,38,0.25)",
+                padding: "6px 16px", display: "flex", alignItems: "center", gap: 6,
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 4 }}>
+                  <AlertTriangle size={11} style={{ flexShrink: 0 }} />Demotion Zone - bottom {Math.min(3, restLeaders.length)} this week
+                </span>
+              </div>
+            )}
             {restLeaders.map((leader) => {
               const prevLeader = leaders[leader.rank - 2]; // person above
+              const inDemotionZone = leaders.length >= 6 && leader.rank > leaders.length - 3;
               return (
                 <div
                   key={leader.id}
                   className="leaderboard-row"
                   style={{
                     ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
+                    ...(inDemotionZone && !leader.isYou ? { background: "rgba(220,38,38,0.04)" } : {}),
                     display: "flex", alignItems: "center", padding: "12px 16px",
                     borderBottom: "1px solid var(--color-border)",
                   }}
                 >
                   <div style={{
                     width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
-                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    color: inDemotionZone ? "#dc2626" : leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
                     flexShrink: 0,
                   }}>
-                    {leader.rank}
+                    {inDemotionZone ? <AlertTriangle size={14} style={{ color: "#dc2626" }} /> : leader.rank}
                   </div>
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
@@ -4394,6 +4579,14 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                     }}>
                       {formatWithSpaces(leader.xp)} XP
                     </div>
+                    {(() => {
+                      const lg = getLeague(leader.totalXp);
+                      return (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: lg.color }}>
+                          {lg.emoji} {lg.name}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -4760,14 +4953,6 @@ function SettingsView({
     setSelectedGoal(g);
     setDailyGoal(g);
     localStorage.setItem("fundi-daily-goal", String(g));
-    // Persist to Supabase for cross-device sync
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) return;
-      await supabase.from("user_progress").upsert(
-        { user_id: user.id, daily_goal: g } as any,
-        { onConflict: "user_id" }
-      );
-    });
   };
 
   const Row = ({ icon, label, sub, children }: { icon: React.ReactNode; label: string; sub?: string; children?: React.ReactNode }) => (
@@ -5745,15 +5930,11 @@ export default function Home() {
   const lessonHeartLostRef = useRef(false);
   const lessonStateRef = useRef(currentLessonState);
   lessonStateRef.current = currentLessonState;
-  // Prevents multiple XP awards if the user taps "Done" more than once
-  // before navigation completes.
-  const isFinalizingRef = useRef(false);
 
   const beginLessonSession = React.useCallback(
     (courseId: string, lessonId: string, lessonTitle: string) => {
       lessonStartTimeRef.current = Date.now();
       lessonHeartLostRef.current = false;
-      isFinalizingRef.current = false; // reset so next lesson can finalize
       analytics.lessonStarted(courseId, lessonId, lessonTitle);
     },
     []
@@ -5973,7 +6154,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_goal, daily_xp_history")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -5986,40 +6167,14 @@ export default function Home() {
       if (data.streak > localStreak) {
         localStorage.setItem("fundi-streak", String(data.streak));
       }
-      // Restore today's XP from Supabase — DB is authoritative for cross-device sync
+      // Restore today's XP from Supabase if localStorage was wiped
       const todayIso = new Date().toISOString().slice(0, 10);
-      const dbDailyXp = Number((data as any).daily_xp_today ?? 0);
-      const dbDailyDate = String((data as any).daily_xp_date ?? "");
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
-      // Use the larger of DB or local value (mobile may have played more recently than local cache)
-      const dailyXpToUse = dbDailyDate === todayIso
-        ? Math.max(dbDailyXp, Number.isNaN(localDailyXp) ? 0 : localDailyXp)
-        : (Number.isNaN(localDailyXp) ? 0 : localDailyXp);
-      localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(dailyXpToUse));
-      setDailyXP(dailyXpToUse);
-
-      // Restore weekly XP graph data from Supabase daily_xp_history for cross-device sync
-      const xpHistory = ((data as any).daily_xp_history ?? {}) as Record<string, number>;
-      if (Object.keys(xpHistory).length > 0) {
-        const now = new Date();
-        // Populate localStorage for each day of the current week (Sun–Sat)
-        for (let i = 0; i < 7; i++) {
-          const d = new Date(now);
-          d.setDate(now.getDate() - now.getDay() + i);
-          const iso = d.toISOString().slice(0, 10);
-          if (xpHistory[iso] != null) {
-            const localVal = parseInt(localStorage.getItem(`fundi-daily-xp-${iso}`) ?? "0", 10);
-            const dbVal = Number(xpHistory[iso]);
-            localStorage.setItem(`fundi-daily-xp-${iso}`, String(Math.max(localVal, dbVal)));
-          }
-        }
-      }
-
-      // Restore daily goal from Supabase if set
-      const dbDailyGoal = Number((data as any).daily_goal ?? 0);
-      if (dbDailyGoal > 0) {
-        localStorage.setItem("fundi-daily-goal", String(dbDailyGoal));
-        setDailyGoal(dbDailyGoal);
+      if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
+        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
+        setDailyXP((data as any).daily_xp_today);
+      } else {
+        setDailyXP(Number.isNaN(localDailyXp) ? 0 : localDailyXp);
       }
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
@@ -6138,12 +6293,14 @@ export default function Home() {
     }
     const today = new Date().toISOString().slice(0, 10); // ISO format: YYYY-MM-DD
     const dailyKey = `fundi-daily-xp-${today}`;
-    // addXP (called via completeLesson) already wrote the updated value — just read it.
-    const dailyXpSoFar = parseInt(localStorage.getItem(dailyKey) ?? "0", 10);
+    const dailyXpSoFar =
+      parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
+    localStorage.setItem(dailyKey, String(dailyXpSoFar));
 
-    // NOTE: do NOT increment a daily lesson counter here — bumpWeeklyChallengeProgress
-    // is called for concept review cards too, which must not count as lesson completions.
-    // The fundi-lessons-today key is incremented only in finalizeCurrentLesson.
+    const dailyLessonsKey = `fundi-daily-lessons-${today}`;
+    const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
+    localStorage.setItem(dailyLessonsKey, String(prevLessons + 1));
+
     state.lessonsCompleted += 1;
     state.xpEarned += payload.xpEarned;
     state.perfectLessons += payload.isPerfect ? 1 : 0;
@@ -6254,10 +6411,6 @@ export default function Home() {
   };
 
   const finalizeCurrentLesson = async (choice: "next" | "course") => {
-    // Guard: ignore all calls after the first one (prevents double-XP from rapid taps)
-    if (isFinalizingRef.current) return;
-    isFinalizingRef.current = true;
-
     const baseXP = 50;
     const totalXP = baseXP + currentLessonState.correctCount * 10;
     if (!currentLessonState.courseId || !currentLessonState.lessonId) return;
@@ -6286,7 +6439,7 @@ export default function Home() {
       }
     );
 
-    const streakAfterLesson = await completeLesson(
+    const streakAfterLesson = completeLesson(
       currentLessonState.courseId,
       currentLessonState.lessonId,
       totalXP
@@ -6302,12 +6455,10 @@ export default function Home() {
       if (hearts < maxHearts) gainHeart();
     }
     // Track daily challenge progress + first-lesson analytics
-    let isFirstLessonToday = false;
     if (typeof window !== "undefined") {
       const isoDay = new Date().toISOString().slice(0, 10);
       const lessonsKey = `fundi-lessons-today-${isoDay}`;
       const newLessonCount = (parseInt(localStorage.getItem(lessonsKey) ?? "0", 10)) + 1;
-      isFirstLessonToday = newLessonCount === 1;
       localStorage.setItem(lessonsKey, String(newLessonCount));
       // Fire first-lesson-completed analytics event once
       if (!localStorage.getItem("fundi-first-lesson-fired")) {
@@ -6320,68 +6471,22 @@ export default function Home() {
         const perfKey = `fundi-perfect-today-${isoDay}`;
         localStorage.setItem(perfKey, String((parseInt(localStorage.getItem(perfKey) ?? "0", 10)) + 1));
       }
-      // Read ISO-keyed daily XP — addXP (called via completeLesson above) already
-      // wrote the updated value, so we must NOT add totalXP again here.
+      // Also write ISO-keyed daily XP (for challenge condition checks)
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
-      const newDailyXp = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
+      const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
+      const newDailyXp = prev + totalXP;
+      localStorage.setItem(xpIsoKey, String(newDailyXp));
       // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
-      // Also update daily_xp_history so the weekly graph works on any device.
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
-        // Read current history, merge today's value (take the max to avoid downgrades)
-        const { data: row } = await supabase
-          .from("user_progress")
-          .select("daily_xp_history")
-          .eq("user_id", user.id)
-          .maybeSingle();
-        const history = (((row as any)?.daily_xp_history) ?? {}) as Record<string, number>;
-        const updatedHistory = { ...history, [isoDay]: Math.max(newDailyXp, history[isoDay] ?? 0) };
         await supabase.from("user_progress").upsert({
           user_id: user.id,
           daily_xp_today: newDailyXp,
           daily_xp_date: isoDay,
-          daily_xp_history: updatedHistory,
         } as any, { onConflict: "user_id" });
       });
     }
     bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
-
-    // ── Wire challenge progress to Supabase (enables cross-device sync) ──────
-    void trackChallengeEvent("lesson_completed", { value: 1 });
-    void trackChallengeEvent("xp_earned", { value: totalXP });
-    if (isPerfect) {
-      void trackChallengeEvent("quiz_score_100", { value: 1 });
-      void trackChallengeEvent("quiz_score_80plus", { value: 1 });
-    } else {
-      // Compute score percentage for 80%+ check
-      const totalQ = currentLessonState.steps.filter(
-        (s: { type: string }) => s.type === "mcq" || s.type === "true-false" || s.type === "scenario" || s.type === "fill-blank"
-      ).length;
-      if (totalQ > 0 && currentLessonState.correctCount / totalQ >= 0.8) {
-        void trackChallengeEvent("quiz_score_80plus", { value: 1 });
-      }
-    }
-    if (streakAfterLesson !== null && streakAfterLesson > 0) {
-      // value: 1 means "maintained streak today" — target 1 completes on any active day.
-      void trackChallengeEvent("streak_updated", { value: 1 });
-      // set_max: progress is capped at the highest streak seen, not summed per lesson.
-      void trackChallengeEvent("streak_count", { value: streakAfterLesson, mode: "set_max" });
-    }
-    // active_lesson_days counts unique days — fire only on the first lesson of each day.
-    if (isFirstLessonToday) {
-      void trackChallengeEvent("active_lesson_days", { value: 1 });
-      void trackChallengeEvent("daily_login", { value: 1 });
-    }
-    // Topic-specific events
-    const courseId = currentLessonState.courseId ?? "";
-    const BUDGETING_COURSES = new Set(["money-basics", "salary-payslip", "banking-debit", "credit-debt", "emergency-fund", "taxes", "business-finance"]);
-    const INVESTING_COURSES = new Set(["investing-basics", "sa-investing", "property", "retirement", "crypto-basics"]);
-    if (BUDGETING_COURSES.has(courseId)) {
-      void trackChallengeEvent("lesson_completed_topic_budgeting", { value: 1 });
-    }
-    if (INVESTING_COURSES.has(courseId)) {
-      void trackChallengeEvent("lesson_completed_topic_investing", { value: 1 });
-    }
 
     playSound("complete");
 
@@ -6420,11 +6525,7 @@ export default function Home() {
       setReviewAnswers(reviewList);
     }
 
-    // If this lesson was already in completedLessons (e.g. synced from another device),
-    // don't add 1 again — it's already counted in userData.totalCompleted.
-    const currentLessonKey = `${currentLessonState.courseId}:${currentLessonState.lessonId}`;
-    const alreadyInSet = completedLessons.has(currentLessonKey);
-    const tc = userData.totalCompleted + (alreadyInSet ? 0 : 1);
+    const tc = userData.totalCompleted + 1;
     if (typeof window !== "undefined") {
       const alreadyShown = localStorage.getItem("fundi-cta-milestone-shown");
       if (tc >= 5 && !alreadyShown) {
@@ -6737,53 +6838,26 @@ export default function Home() {
   };
 
   // Handle onboarding complete
-  const handleOnboardingComplete = async (payload: { firstName: string; lastName: string; email: string; password: string; goal: string; goalDescription?: string; username: string }) => {
+  const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => {
     localStorage.setItem("fundi-onboarded", "true");
-    localStorage.removeItem("fundi-onboarding-state");
-    if (typeof sessionStorage !== "undefined") {
-      sessionStorage.removeItem("fundi-onboarding-state");
-    }
     if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
     if (payload.goalDescription) localStorage.setItem("fundi-goal-description", payload.goalDescription);
+    if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
     localStorage.setItem("fundi-username", payload.username);
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const username = normalizeUsername(payload.username);
       const available = await isUsernameAvailable(username, user.id);
       if (!available) return;
-      const fullName = `${payload.firstName} ${payload.lastName}`.trim();
       const row: Record<string, unknown> = { user_id: user.id };
       if (payload.goal) row.goal = payload.goal;
       if (payload.goalDescription) row.goal_description = payload.goalDescription;
+      if (payload.ageRange) row.age_range = payload.ageRange;
       row.username = username;
-      row.full_name = fullName;
-      if (row.goal ?? row.goal_description ?? row.username ?? row.full_name) {
+      if (row.goal ?? row.age_range ?? row.goal_description ?? row.username) {
         await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
       }
-      await supabase.auth.updateUser({
-        email: payload.email,
-        password: payload.password,
-        data: { full_name: fullName },
-      });
       await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
-    }
-    const firstCourse = CONTENT_DATA.courses[0];
-    const firstUnit = firstCourse?.units?.[0];
-    const firstLesson = firstUnit?.lessons?.find((l) => !l.comingSoon && Array.isArray(l.steps) && l.steps.length > 0) ?? null;
-    if (firstCourse && firstLesson) {
-      setTimeout(() => {
-        beginLessonSession(firstCourse.id, firstLesson.id, firstLesson.title);
-        setCurrentLessonState({
-          courseId: firstCourse.id,
-          lessonId: firstLesson.id,
-          stepIndex: 0,
-          steps: firstLesson.steps ?? [],
-          answers: {},
-          correctCount: 0,
-        });
-        setRoute({ name: "lesson", courseId: firstCourse.id, lessonId: firstLesson.id } as Route);
-      }, 300);
-      return;
     }
     setRoute({ name: "learn" } as Route);
   };
@@ -6810,37 +6884,6 @@ export default function Home() {
       }
     })().catch(() => {});
   }, [progressReady, userId, route.name]);
-
-  useEffect(() => {
-    if (!needsUsernamePrompt || !userId) return;
-    const normalized = normalizeUsername(usernameDraft);
-    if (!normalized) {
-      setUsernamePromptError("Username is required.");
-      return;
-    }
-    const formatError = validateUsername(normalized);
-    if (formatError) {
-      setUsernamePromptError(formatError);
-      return;
-    }
-    let active = true;
-    setUsernamePromptChecking(true);
-    const timer = setTimeout(() => {
-      isUsernameAvailable(normalized, userId)
-        .then((available) => {
-          if (!active) return;
-          setUsernamePromptError(available ? null : "That username is already taken.");
-        })
-        .finally(() => {
-          if (!active) return;
-          setUsernamePromptChecking(false);
-        });
-    }, 400);
-    return () => {
-      active = false;
-      clearTimeout(timer);
-    };
-  }, [needsUsernamePrompt, userId, usernameDraft]);
 
   const saveUsernameFromPrompt = async () => {
     if (!userId) return;
@@ -6883,7 +6926,6 @@ export default function Home() {
           xp={userData.xp}
           hearts={hearts}
           maxHearts={maxHearts}
-          freezeCount={freezeCount}
           heartsRegenInfo={heartsRegenInfo}
         />
       </div>
@@ -6927,6 +6969,19 @@ export default function Home() {
             <li className="nav-item">
               <button
                 className={`nav-link ${
+                  route.name === "leaderboard" ? "active" : ""
+                }`}
+                onClick={() => handleNav("leaderboard")}
+              >
+                <span className="nav-icon">
+                  <Trophy size={20} className="text-current" />
+                </span>
+                Leaderboard
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${
                   route.name === "budget" ? "active" : ""
                 }`}
                 onClick={() => handleNav("budget")}
@@ -6947,20 +7002,7 @@ export default function Home() {
                 <span className="nav-icon">
                   <Target size={20} className="text-current" />
                 </span>
-                Goals
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${
-                  route.name === "leaderboard" ? "active" : ""
-                }`}
-                onClick={() => handleNav("leaderboard")}
-              >
-                <span className="nav-icon">
-                  <Trophy size={20} className="text-current" />
-                </span>
-                Leaderboard
+                Quests
               </button>
             </li>
             <li className="nav-item">
@@ -7002,10 +7044,6 @@ export default function Home() {
             claimChallengeReward={claimChallengeReward}
             streak={userData.streak}
             showQuestSections={false}
-            onReviewXpEarned={(xp) => addXP(xp)}
-            onReviewChallengeProgress={() => {
-              bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: 5, isPerfect: false });
-            }}
           />
         )}
 
@@ -7621,17 +7659,25 @@ export default function Home() {
               <p style={{ marginTop: 8, marginBottom: 14, fontSize: 14, color: "var(--color-text-secondary)" }}>
                 You need a unique username before continuing. This is what appears on the leaderboard.
               </p>
-              <UsernameStepField
-                username={usernameDraft}
-                setUsername={setUsernameDraft}
-                usernameError={usernamePromptError}
-                usernameChecking={usernamePromptChecking}
-                usernameAvailable={!usernamePromptError && normalizeUsername(usernameDraft).length >= 2}
+              <input
+                type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
+                value={usernameDraft}
+                onChange={(e) => setUsernameDraft(normalizeUsername(e.target.value))}
+                placeholder="username"
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 12, border: `2px solid ${usernamePromptError ? "var(--color-danger)" : "var(--color-border)"}`, boxSizing: "border-box", marginBottom: 8, fontSize: 14 }}
               />
+              <div style={{ minHeight: 18, fontSize: 12, color: usernamePromptError ? "var(--color-danger)" : "var(--color-text-secondary)" }}>
+                {usernamePromptChecking
+                  ? "Checking availability..."
+                  : usernamePromptError ?? "3-20 chars: lowercase letters, numbers, underscores."}
+              </div>
               <button
                 type="button"
                 className="btn btn-primary"
-                disabled={usernamePromptSaving || usernamePromptChecking || Boolean(usernamePromptError) || normalizeUsername(usernameDraft).length < 2}
+                disabled={usernamePromptSaving || usernamePromptChecking}
                 onClick={saveUsernameFromPrompt}
                 style={{ width: "100%", marginTop: 10 }}
               >
@@ -7671,16 +7717,16 @@ export default function Home() {
           },
           {
             key: "quests",
-            label: "Goals",
+            label: "Quests",
             icon: <Target size={20} className="text-current" />,
             isActive: route.name === "quests",
             onClick: () => handleNav("quests"),
             order: "order-4",
           },
           {
-            key: "leaderboard",
-            label: "Leaderboard",
-            icon: <Trophy size={20} className="text-current" />,
+            key: "progress",
+            label: "Progress",
+            icon: <TrendingUp size={20} className="text-current" />,
             isActive: route.name === "leaderboard",
             onClick: () => handleNav("leaderboard"),
             order: "order-5",

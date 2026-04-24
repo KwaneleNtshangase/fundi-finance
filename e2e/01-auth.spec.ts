@@ -1,102 +1,60 @@
 /**
  * Test Suite 1: Authentication
  * Tests sign-in, sign-out, and session persistence.
- *
- * NOTE: storageState is loaded via playwright.config.ts so most tests start
- * already authenticated. Tests 1.2 and 1.3 use fresh browser contexts so they
- * actually hit the sign-in form without a cached session.
- *
- * NAV VISIBILITY NOTE: The bottom nav uses md:hidden so nav labels (Learn, Budget,
- * Profile) are only in the bottom nav on mobile (<768px) and in the sidebar on
- * desktop (≥768px). We check for XP in the top bar as the reliable "app loaded"
- * indicator across all viewports.
  */
 import { test, expect } from "@playwright/test";
-import { signIn, goToTab, gotoHome, normaliseUrl, BASE_URL } from "./helpers";
-
-/** Helper: click the Sign In button regardless of its exact selector */
-async function clickSignIn(page: Parameters<typeof signIn>[0]) {
-  const btn = page.locator("button", { hasText: /^Sign In$/i }).first();
-  await btn.waitFor({ state: "visible", timeout: 10_000 });
-  await btn.click();
-}
-
-/** Check if the app shell is loaded (XP in top bar is the reliable indicator) */
-async function appShellLoaded(page: Parameters<typeof signIn>[0]) {
-  return page.evaluate(() => {
-    const body = document.body?.innerText ?? "";
-    return body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
-  }).catch(() => false);
-}
+import { signIn, goToTab, BASE_URL } from "./helpers";
 
 test.describe("Authentication", () => {
-  test("1.1 — Site loads and redirects correctly", async ({ page }) => {
-    await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
-    await page.waitForLoadState("domcontentloaded");
-    const url = page.url();
-    expect(normaliseUrl(url)).toContain("fundiapp.co.za");
+  test("1.1 — Splash screen appears on first load", async ({ page }) => {
+    await page.goto(BASE_URL);
+    // Splash should show briefly
+    const splash = page.locator(".splash-logo-wrap, #splashScreen, img[alt*='Fundi']");
+    // It may already have animated out — just ensure no JS crash
+    await expect(page).toHaveURL(BASE_URL);
   });
 
-  test("1.2 — Sign-in form is visible before login", async ({ browser }) => {
-    // Use a fresh context (no storageState) to see the auth form.
-    // Inject fundi-onboarded=1 so the app routes to AuthGate (sign-in form)
-    // instead of OnboardingView — both are unauthenticated but only AuthGate
-    // has the email/password inputs.
-    const ctx = await browser.newContext();
-    await ctx.addInitScript(() => {
-      try { localStorage.setItem("fundi-onboarded", "1"); } catch (_) {}
-    });
-    const page = await ctx.newPage();
-    await gotoHome(page);
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 20_000 });
+  test("1.2 — Sign-in form is visible before login", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(2000); // let splash finish
+    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('input[type="password"]').first()).toBeVisible({ timeout: 5_000 });
-    await ctx.close();
   });
 
-  test("1.3 — Wrong password shows error", async ({ browser }) => {
-    // Fresh context — no session, must hit the actual sign-in form.
-    // Inject fundi-onboarded=1 so AuthGate (not OnboardingView) renders.
-    const ctx = await browser.newContext();
-    await ctx.addInitScript(() => {
-      try { localStorage.setItem("fundi-onboarded", "1"); } catch (_) {}
-    });
-    const page = await ctx.newPage();
-    await gotoHome(page);
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 20_000 });
+  test("1.3 — Wrong password shows error", async ({ page }) => {
+    await page.goto(BASE_URL);
+    await page.waitForTimeout(2000);
     await page.locator('input[type="email"]').first().fill("wrong@example.com");
     await page.locator('input[type="password"]').first().fill("wrongpassword");
-    await clickSignIn(page);
+    await page.locator('button[type="submit"]').click();
+    // Error message or still on auth screen
     await page.waitForTimeout(3000);
-    // Should still be on auth screen (not logged in)
-    const stillOnAuth = await page.locator('input[type="email"]').isVisible().catch(() => false);
-    expect(stillOnAuth).toBe(true);
-    await ctx.close();
+    const stillOnAuth = await page.locator('input[type="email"]').isVisible();
+    expect(stillOnAuth).toBe(true); // should NOT be logged in
   });
 
   test("1.4 — Successful sign-in loads the app", async ({ page }) => {
-    // storageState already loaded — just navigate home
     await signIn(page);
-    // XP in top bar is the reliable "authenticated app shell" indicator across all viewports
-    const loaded = await appShellLoaded(page);
-    expect(loaded).toBe(true);
-    // Nav items should be present somewhere in the DOM (mobile bottom nav OR desktop sidebar)
-    const learnCount = await page.locator("button", { hasText: /^Learn$/ }).count();
-    const budgetCount = await page.locator("button", { hasText: /^Budget$/ }).count();
-    expect(learnCount + budgetCount).toBeGreaterThan(0);
+    await expect(page.locator("text=Learn").first()).toBeVisible();
+    await expect(page.locator("text=Budget").first()).toBeVisible();
+    await expect(page.locator("text=Profile").first()).toBeVisible();
   });
 
-  test("1.5 — XP or streak visible after login", async ({ page }) => {
+  test("1.5 — Stats panel shows XP, Streak, Level after login", async ({ page }) => {
     await signIn(page);
-    const loaded = await appShellLoaded(page);
-    expect(loaded).toBe(true);
+    // Stats sidebar (desktop) or stats section
+    await expect(page.locator("#xpValue, text=Total XP").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator("#streakValue, text=Day Streak").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("#levelValue, text=Level").first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("1.6 — Sign out works", async ({ page }) => {
     await signIn(page);
     await goToTab(page, "Profile");
     const signOutBtn = page.locator("button", { hasText: /Sign Out|Log Out/i }).last();
-    await signOutBtn.waitFor({ state: "visible", timeout: 15_000 });
+    await signOutBtn.waitFor({ state: "visible", timeout: 10_000 });
     await signOutBtn.click();
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 15_000 });
+    // Should return to auth screen
+    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10_000 });
   });
 });

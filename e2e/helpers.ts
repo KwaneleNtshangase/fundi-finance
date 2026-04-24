@@ -2,153 +2,49 @@
  * Shared test helpers for Fundi Finance E2E tests.
  * Credentials are set via environment variables so they never live in source.
  *
- * Auth is handled by global-setup.ts (signs in once, saves storageState).
- * The `signIn` helper is now a fast "navigate home and confirm app is loaded"
- * call — it only does a full sign-in if the session isn't already active.
- *
  * Usage:
  *   TEST_EMAIL=test@example.com TEST_PASSWORD=secret npx playwright test
  */
 import { Page, expect } from "@playwright/test";
 
-export const TEST_EMAIL = process.env.TEST_EMAIL ?? "e2e-test@fundiapp.co.za";
-export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "FundiE2E_Test#2026";
-// Accept both www and non-www — site redirects non-www to www
-export const BASE_URL = process.env.BASE_URL ?? "https://www.fundiapp.co.za";
+export const TEST_EMAIL = process.env.TEST_EMAIL ?? "e2e-test@fundi.test";
+export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "FundiTest123!";
+export const BASE_URL =
+  process.env.BASE_URL ?? "https://fundiapp.co.za";
 
-/** Normalise URL for comparison — strip trailing slash, ignore www prefix */
-export function normaliseUrl(url: string) {
-  return url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
-}
-
-/**
- * Navigate to the app root and wait for either the sign-in form or
- * the app shell (if a session cookie is already present).
- * Handles the www redirect and the splash screen delay.
- */
-export async function gotoHome(page: Page) {
-  await page.goto(BASE_URL, { waitUntil: "domcontentloaded" });
-  // Wait up to 15 s for splash to finish and either auth form or app shell to appear.
-  // App shell is detected by "XP" in the top bar (always visible when authenticated).
-  await page
-    .waitForFunction(
-      () => {
-        const hasEmail = !!document.querySelector('input[type="email"]');
-        const body = document.body?.innerText ?? "";
-        const hasShell = body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
-        return hasEmail || hasShell;
-      },
-      { timeout: 15_000 }
-    )
-    .catch(() => {
-      /* continue — next assertions will surface the real issue */
-    });
-}
-
-/**
- * Fast sign-in: with storageState already loaded by global-setup, just
- * navigate home and confirm the app shell is present.
- * Falls back to full credential sign-in if the session has expired.
- */
+/** Sign in with email/password, wait for the app shell to appear */
 export async function signIn(page: Page) {
-  await gotoHome(page);
-
-  // Happy path: session already active — check for XP in top bar (always visible when authenticated)
-  const alreadyIn = await page.evaluate(() => {
-    const body = document.body?.innerText ?? "";
-    return body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
-  }).catch(() => false);
-  if (alreadyIn) return;
-
-  // Also accept if the email form is NOT visible (some other app state but authenticated)
-  const emailVisible = await page.locator('input[type="email"]').first().isVisible().catch(() => false);
-  if (!emailVisible) return; // No email form = probably already in the app
-
-  // Session expired — do full sign-in
+  await page.goto(BASE_URL);
+  // Dismiss splash if present
+  await page.waitForTimeout(1500);
+  // Look for sign-in form
   const emailInput = page.locator('input[type="email"]').first();
-  await emailInput.waitFor({ state: "visible", timeout: 20_000 });
+  await emailInput.waitFor({ state: "visible", timeout: 10_000 });
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-  // Sign-in button uses onClick, not type="submit" — match by text
-  const signInBtn = page.locator("button", { hasText: /^Sign In$/i }).first();
-  await signInBtn.waitFor({ state: "visible", timeout: 10_000 });
-  await signInBtn.click();
-
-  // Wait for app to load (XP in top bar confirms authentication)
-  await page.waitForFunction(
-    () => {
-      const body = document.body?.innerText ?? "";
-      return body.includes(" XP") || body.includes("XP\n") || body.includes("Learning Path");
-    },
-    { timeout: 25_000 }
-  );
-
-  // Dismiss any post-login modals (username prompt, etc.)
-  await dismissModals(page);
+  await page.locator('button[type="submit"]').click();
+  // Wait for nav bar (Learn tab) — means auth succeeded and app loaded
+  await expect(page.locator("text=Learn").first()).toBeVisible({
+    timeout: 20_000,
+  });
 }
 
-/** Dismiss any blocking modals that appear after login (username prompt, etc.) */
-export async function dismissModals(page: Page) {
-  await page.waitForTimeout(800);
-  // Username prompt — fill with a test username if prompted
-  const usernameInput = page
-    .locator(
-      'input[placeholder*="username" i], input[placeholder*="Username" i]'
-    )
-    .first();
-  if (await usernameInput.isVisible().catch(() => false)) {
-    await usernameInput.fill("e2e_test_bot");
-    const saveBtn = page
-      .locator("button", { hasText: /Save|Continue|Done/i })
-      .first();
-    if (await saveBtn.isVisible()) await saveBtn.click();
-    await page.waitForTimeout(1000);
-  }
-}
-
-/** Navigate to a specific tab using the bottom nav (mobile) or sidebar (desktop) */
-export async function goToTab(
-  page: Page,
-  tab:
-    | "Learn"
-    | "Calculate"
-    | "Budget"
-    | "Goals"
-    | "Progress"
-    | "Profile"
-) {
-  // Target nav buttons specifically — avoids matching content-area text.
-  // Desktop (≥768px): sidebar uses .nav-link buttons
-  // Mobile (<768px): bottom nav uses .bottom-nav button elements
-  // We try both, whichever is visible wins.
-  const tabRegex = new RegExp(`^${tab}$`);
-  const navBtn = page
-    .locator(".nav-link, .bottom-nav button")
-    .filter({ hasText: tabRegex })
-    .first();
-
-  const isVisible = await navBtn.isVisible().catch(() => false);
-  if (isVisible) {
-    await navBtn.click();
-  } else {
-    // Fallback: any button or link in the page matching the tab label exactly
-    const fallback = page.locator("button, a").filter({ hasText: tabRegex }).first();
-    await fallback.waitFor({ state: "visible", timeout: 10_000 });
-    await fallback.click();
-  }
-  await page.waitForTimeout(400);
+/** Navigate to a specific tab using the bottom nav */
+export async function goToTab(page: Page, tab: "Learn" | "Calculate" | "Budget" | "Progress" | "Profile") {
+  await page.locator(`text=${tab}`).first().click();
+  await page.waitForTimeout(300);
 }
 
 /** Open the first available (non-locked) lesson and return its title */
 export async function openFirstLesson(page: Page): Promise<string> {
   await goToTab(page, "Learn");
+  // Click first course card
   await page.locator(".course-card").first().click();
-  await page.waitForTimeout(600);
-  const lesson = page
-    .locator(".lesson-node.playable, .lesson-node.completed")
-    .first();
+  await page.waitForTimeout(500);
+  // Click first playable lesson node
+  const lesson = page.locator(".lesson-node.playable, .lesson-node.completed").first();
   await lesson.click();
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(600);
   const title = await page.locator(".step-title, h2").first().textContent();
   return title ?? "unknown";
 }
@@ -158,44 +54,43 @@ export async function completeLesson(page: Page) {
   let safety = 0;
   while (safety < 40) {
     safety++;
-    const done = page
-      .locator("text=Back to Course, text=Done — Back to Course")
-      .first();
+    // Check if we're on a completion screen
+    const done = page.locator("text=Back to Course, text=Done — Back to Course").first();
     if (await done.isVisible()) break;
 
+    // MCQ — click first option
     const options = page.locator(".option-button:not([disabled])");
     if ((await options.count()) > 0) {
       await options.first().click();
       await page.waitForTimeout(400);
     }
 
+    // True/False
     const truBtn = page.locator("button", { hasText: "True" }).first();
-    if (
-      (await truBtn.isVisible().catch(() => false)) &&
-      !(await truBtn.isDisabled().catch(() => true))
-    ) {
+    if (await truBtn.isVisible() && !(await truBtn.isDisabled())) {
       await truBtn.click();
       await page.waitForTimeout(400);
     }
 
+    // Continue / Finish / Next
     const continueBtn = page
       .locator("button", { hasText: /Continue|Finish|Next Lesson/ })
       .first();
-    if (await continueBtn.isVisible().catch(() => false)) {
+    if (await continueBtn.isVisible()) {
       await continueBtn.click();
       await page.waitForTimeout(600);
       continue;
     }
 
-    const doneBtn = page
-      .locator("button", { hasText: /I.ve done this|Done/i })
-      .first();
-    if (await doneBtn.isVisible().catch(() => false)) {
+    // action-check: click "I've done this"
+    const doneBtn = page.locator("button", { hasText: /I.ve done this|Done/i }).first();
+    if (await doneBtn.isVisible()) {
       await doneBtn.click();
       await page.waitForTimeout(400);
       continue;
     }
 
+    // If nothing found, break to avoid infinite loop
     break;
   }
 }

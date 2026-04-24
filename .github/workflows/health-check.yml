@@ -12,9 +12,6 @@ jobs:
     name: Site health check
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    permissions:
-      issues: write
-      contents: read
 
     steps:
       - name: Checkout

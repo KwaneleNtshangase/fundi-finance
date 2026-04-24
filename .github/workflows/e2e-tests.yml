@@ -11,7 +11,7 @@ jobs:
   e2e:
     name: Playwright E2E (${{ matrix.project }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false
