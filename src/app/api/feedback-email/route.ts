@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         from: "Fundi Finance <hello@fundiapp.co.za>",
         to: ["support@fundiapp.co.za"],
-        reply_to: userEmail ?? "no-reply@fundiapp.co.za",
         subject: `[${typeDisplay}] ${subject}`,
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:600px">
