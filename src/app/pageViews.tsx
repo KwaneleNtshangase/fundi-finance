@@ -1150,9 +1150,12 @@ export function CalculatorView() {
     monthly: 500,
   });
 
+  const [startYearB, setStartYearB] = useState(0);
+
   const [hasCalculated, setHasCalculated] = useState(false);
   const [calcA, setCalcA] = useState<CalcInputs>(defaultInputs);
   const [calcB, setCalcB] = useState<CalcInputs>({ ...defaultInputs, rate: 7, monthly: 500 });
+  const [calcStartYearB, setCalcStartYearB] = useState(0);
   const [projectionSaved, setProjectionSaved] = useState(false);
 
   // Load user's previously saved projection as default inputs
@@ -1207,6 +1210,7 @@ export function CalculatorView() {
 
     setCalcA(effectiveA);
     setCalcB(inputsB);
+    setCalcStartYearB(startYearB);
     setHasCalculated(true);
     setProjectionSaved(false);
     setSolveResult(result);
@@ -1231,23 +1235,29 @@ export function CalculatorView() {
   const finalA = hasCalculated && dataA.length > 0 ? dataA[dataA.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
   const finalB = hasCalculated && dataB.length > 0 ? dataB[dataB.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
 
-  const chartData: Record<string, number>[] = useMemo(
-    () =>
-      !hasCalculated
-        ? []
-        : mode === "single"
-          ? dataA.map((d) => ({
-              year: d.year,
-              "Portfolio Value": d.value,
-              "Total Contributions": d.contributions,
-            }))
-          : dataA.map((d, i) => ({
-              year: d.year,
-              "Investment A": d.value,
-              "Investment B": dataB[i]?.value ?? 0,
-            })),
-    [hasCalculated, mode, dataA, dataB]
-  );
+  const chartData: Record<string, number | null>[] = useMemo(() => {
+    if (!hasCalculated) return [];
+    if (mode === "single") {
+      return dataA.map((d) => ({
+        year: d.year,
+        "Portfolio Value": d.value,
+        "Total Contributions": d.contributions,
+      }));
+    }
+    // Compare mode: build full horizon, using null for inactive periods so lines end cleanly
+    const maxYear = Math.max(
+      dataA.length > 0 ? dataA[dataA.length - 1].year : 0,
+      calcStartYearB + (dataB.length > 0 ? dataB[dataB.length - 1].year : 0)
+    );
+    const rows: Record<string, number | null>[] = [];
+    for (let y = 0; y <= maxYear; y++) {
+      const aVal: number | null = y < dataA.length ? dataA[y].value : null;
+      const bIdx = y - calcStartYearB;
+      const bVal: number | null = bIdx >= 0 && bIdx < dataB.length ? dataB[bIdx].value : null;
+      rows.push({ year: y, "Investment A": aVal, "Investment B": bVal });
+    }
+    return rows;
+  }, [hasCalculated, mode, dataA, dataB, calcStartYearB]);
 
   const ResultCard = ({
     label,
@@ -1401,7 +1411,20 @@ export function CalculatorView() {
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
         <InputPanel inputs={inputsA} setInputs={setInputsA} label={mode === "compare" && solveMode === "goal" ? "Investment A" : undefined} hideField={solveMode !== "goal" ? solveMode : undefined} />
-        {mode === "compare" && solveMode === "goal" && <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />}
+        {mode === "compare" && solveMode === "goal" && (
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+            <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "12px 16px" }}>
+              <CalcNumberRow
+                label="Starts how many years from now?"
+                tooltip="Delay Investment B's start date to simulate the cost of waiting."
+                value={startYearB}
+                step="1"
+                onChange={(v) => setStartYearB(Math.max(0, Math.round(v)))}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Results + chart section (clean) */}
@@ -1487,7 +1510,9 @@ export function CalculatorView() {
                 ["Contributions", formatZAR(finalA.contributions), formatZAR(finalB.contributions)],
                 ["Interest", formatZAR(finalA.interest), formatZAR(finalB.interest)],
                 ["Return %", `${calcReturnPct(finalA.value, finalA.contributions).toFixed(1)}%`, `${calcReturnPct(finalB.value, finalB.contributions).toFixed(1)}%`],
-                ["Term", `${inputsA.years} yrs`, `${inputsB.years} yrs`],
+                ["Term", `${calcA.years} yrs`, `${calcB.years} yrs`],
+                ["Starts at year", "0", calcStartYearB > 0 ? `${calcStartYearB}` : "0"],
+                ["Ends at year", `${calcA.years}`, `${calcStartYearB + calcB.years}`],
               ].map(([metric, a, b]) => (
                 <tr key={metric} style={{ borderTop: "1px solid var(--color-border)" }}>
                   <td style={{ padding: "12px 16px", color: "var(--color-text-secondary)", fontWeight: 600 }}>{metric}</td>
@@ -1500,6 +1525,19 @@ export function CalculatorView() {
         </div>
       )}
 
+      {hasCalculated && mode === "compare" && (
+        <div style={{ marginBottom: 16 }}>
+          <ShareResultButton
+            data={{
+              type: "calculator",
+              headline: `Investment A: ${formatZAR(finalA.value)} vs Investment B: ${formatZAR(finalB.value)}`,
+              sub: `A: R${formatWithSpaces(calcA.monthly)}/mo at ${calcA.rate}% over ${calcA.years} yrs · B: R${formatWithSpaces(calcB.monthly)}/mo at ${calcB.rate}%${calcStartYearB > 0 ? ` (starts yr ${calcStartYearB})` : ""} · Calculated on Fundi Finance`,
+            }}
+            label="Share this comparison"
+          />
+        </div>
+      )}
+
       {hasCalculated && (
         <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 16, padding: 20, marginBottom: 24 }}>
           <div style={{ fontWeight: 700, marginBottom: 16, fontSize: 16 }}>Growth Over Time</div>
@@ -1507,7 +1545,11 @@ export function CalculatorView() {
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} />
-              <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={50} />
+              <YAxis tickFormatter={(v) => {
+                if (v >= 1_000_000) return `R${(v / 1_000_000).toFixed(1)}M`;
+                if (v >= 1_000) return `R${(v / 1_000).toFixed(0)}k`;
+                return `R${v}`;
+              }} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={58} />
               <Tooltip
                 formatter={(v) => formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
                 labelFormatter={(l) => `Year ${l}`}
@@ -1521,8 +1563,8 @@ export function CalculatorView() {
                 </>
               ) : (
                 <>
-                  <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} connectNulls={false} />
+                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} connectNulls={false} />
                 </>
               )}
             </LineChart>
@@ -4606,11 +4648,29 @@ type ShareCardData =
   | { type: "calculator"; headline: string; sub: string };
 
 function generateShareCard(data: ShareCardData): Promise<string> {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    try {
     const W = 1080, H = 1920;
     const canvas = document.createElement("canvas");
     canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext("2d")!;
+
+    // Polyfill ctx.roundRect for browsers that don't support it natively
+    if (typeof ctx.roundRect !== "function") {
+      ctx.roundRect = function(x: number, y: number, w: number, h: number, r: number) {
+        const radius = Math.min(r, w / 2, h / 2);
+        this.moveTo(x + radius, y);
+        this.lineTo(x + w - radius, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + radius);
+        this.lineTo(x + w, y + h - radius);
+        this.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+        this.lineTo(x + radius, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - radius);
+        this.lineTo(x, y + radius);
+        this.quadraticCurveTo(x, y, x + radius, y);
+        this.closePath();
+      };
+    }
 
     // Background gradient
     const bg = ctx.createLinearGradient(0, 0, W, H);
@@ -4731,14 +4791,17 @@ function generateShareCard(data: ShareCardData): Promise<string> {
     ctx.fillText("Your financial journey starts here", W / 2, H - 110);
 
     resolve(canvas.toDataURL("image/png"));
+    } catch (err) { reject(err); }
   });
 }
 
 function ShareResultButton({ data, label = "Share" }: { data: ShareCardData; label?: string }) {
   const [sharing, setSharing] = useState(false);
+  const [status, setStatus] = useState<"idle" | "done" | "error">("idle");
 
   const handleShare = async () => {
     setSharing(true);
+    setStatus("idle");
     try {
       const dataUrl = await generateShareCard(data);
       const blob = await (await fetch(dataUrl)).blob();
@@ -4748,18 +4811,36 @@ function ShareResultButton({ data, label = "Share" }: { data: ShareCardData; lab
         ? `${data.headline} - calculated on Fundi Finance 📊 Try it free at fundiapp.co.za`
         : `I just completed "${data.lessonTitle}" (+${data.xpEarned} XP) on Fundi Finance 🎓 fundiapp.co.za`;
 
-      if (navigator.canShare?.({ files: [file] })) {
-        await navigator.share({ files: [file], title: "Fundi Finance", text });
-        analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
-      } else {
-        // Fallback: download the image
+      let shared = false;
+      // Try native share with file
+      if (!shared && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], title: "Fundi Finance", text });
+          analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
+          shared = true;
+        } catch { /* cancelled or blocked */ }
+      }
+      // Try native share without file
+      if (!shared && navigator.share) {
+        try {
+          await navigator.share({ title: "Fundi Finance", text, url: "https://fundiapp.co.za" });
+          shared = true;
+        } catch { /* cancelled */ }
+      }
+      // Fallback: download the image
+      if (!shared) {
         const a = document.createElement("a");
         a.href = dataUrl;
         a.download = "fundi-result.png";
         a.click();
+        shared = true;
       }
-    } catch { /* user cancelled or unsupported */ }
+      setStatus("done");
+    } catch {
+      setStatus("error");
+    }
     setSharing(false);
+    if (status !== "error") setTimeout(() => setStatus("idle"), 3000);
   };
 
   return (
@@ -4770,12 +4851,13 @@ function ShareResultButton({ data, label = "Share" }: { data: ShareCardData; lab
       style={{
         display: "flex", alignItems: "center", gap: 8, justifyContent: "center",
         padding: "12px 20px", borderRadius: 12, cursor: sharing ? "default" : "pointer",
-        border: "1.5px solid rgba(34,197,94,0.4)", background: "rgba(34,197,94,0.08)",
-        color: "#22c55e", fontWeight: 700, fontSize: 14, width: "100%",
+        border: `1.5px solid ${status === "error" ? "rgba(239,68,68,0.4)" : "rgba(34,197,94,0.4)"}`,
+        background: status === "error" ? "rgba(239,68,68,0.08)" : "rgba(34,197,94,0.08)",
+        color: status === "error" ? "#ef4444" : "#22c55e", fontWeight: 700, fontSize: 14, width: "100%",
       }}
     >
       <Share2 size={16} />
-      {sharing ? "Generating…" : label}
+      {sharing ? "Generating…" : status === "done" ? "Saved / Shared ✓" : status === "error" ? "Try again" : label}
     </button>
   );
 }
