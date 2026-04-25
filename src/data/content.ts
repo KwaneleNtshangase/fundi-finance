@@ -422,12 +422,12 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Salary Shock",
-                  content: "<p>Your first payslip can be shocking. You were promised R25 000 but only R18,500 arrives. Where did R6,500 go?</p><p><strong>Gross salary:</strong> The total before deductions.<br/><strong>Net salary:</strong> What you actually receive.</p>",
+                  content: "<p>Your first payslip can be shocking. You were promised R25 000 but only R18 500 arrives. Where did R6 500 go?</p><p><strong>Gross salary:</strong> The total before deductions.<br/><strong>Net salary:</strong> What you actually receive.</p>",
                 },
                 {
                   type: "info",
                   title: "The Big One: PAYE",
-                  content: "<p><strong>PAYE (Pay As You Earn)</strong> is income tax deducted monthly. South Africa uses progressive tax, the more you earn, the higher the rate.</p><ul><li>First ~R95,750/year: 0%</li><li>Up to ~R237,100: 18%</li><li>Up to ~R370,500: 26%</li></ul><p><em>Thresholds change annually, this is illustrative.</em></p>",
+                  content: "<p><strong>PAYE (Pay As You Earn)</strong> is income tax deducted monthly. South Africa uses progressive tax, the more you earn, the higher the rate.</p><ul><li>First ~R95 750/year: 0%</li><li>Up to ~R237 100: 18%</li><li>Up to ~R370 500: 26%</li></ul><p><em>Thresholds change annually, this is illustrative.</em></p>",
                 },
                 {
                   type: "mcq",
@@ -446,12 +446,12 @@ const RAW_COURSES: Course[] = [
                 },
                 {
                   type: "scenario",
-                  question: "Your payslip: Gross R30 000 | PAYE R4,500 | UIF R300 | Medical Aid R2,200 | Pension R3 000. What's your net pay?",
-                  options: ["R30 000", "R25,500", "R20 000", "R23,700"],
+                  question: "Your payslip: Gross R30 000 | PAYE R4 500 | UIF R300 | Medical Aid R2 200 | Pension R3 000. What's your net pay?",
+                  options: ["R30 000", "R25 500", "R20 000", "R23 700"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct! R30 000 - R4,500 - R300 - R2,200 - R3 000 = R20 000.",
-                    incorrect: "Add all deductions: R4,500 + R300 + R2,200 + R3 000 = R10 000. R30 000 - R10 000 = R20 000.",
+                    correct: "Correct! R30 000 - R4 500 - R300 - R2 200 - R3 000 = R20 000.",
+                    incorrect: "Add all deductions: R4 500 + R300 + R2 200 + R3 000 = R10 000. R30 000 - R10 000 = R20 000.",
                   },
                 },
                 {
@@ -599,8 +599,8 @@ const RAW_COURSES: Course[] = [
                   options: ["The colour of the card", "Total monthly fees and transaction costs", "How many branches there are", "Whether your friends use the same bank"],
                   correct: 1,
                   feedback: {
-                    correct: "Exactly. Over a year, the difference between a R0 and R150/month account is R1,800, a meaningful amount.",
-                    incorrect: "Fees matter most. R150/month in bank charges is R1,800/year you could be saving.",
+                    correct: "Exactly. Over a year, the difference between a R0 and R150/month account is R1 800, a meaningful amount.",
+                    incorrect: "Fees matter most. R150/month in bank charges is R1 800/year you could be saving.",
                   },
                 },
                 {
@@ -1512,7 +1512,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The 8th Wonder of the World",
-                  content: "<p>Compound interest means you earn interest on your interest. Over time this creates exponential growth.</p><p><strong>Example:</strong><br/>R10 000 at 10% per year:<br/>• Year 1: R11 000<br/>• Year 5: R16,105<br/>• Year 10: R25,937<br/>• Year 20: R67,275<br/>• Year 30: R174,494</p><p>You did nothing after year 1. Time did the work.</p>",
+                  content: "<p>Compound interest means you earn interest on your interest. Over time this creates exponential growth.</p><p><strong>Example:</strong><br/>R10 000 at 10% per year:<br/>• Year 1: R11 000<br/>• Year 5: R16 105<br/>• Year 10: R25 937<br/>• Year 20: R67 275<br/>• Year 30: R174 494</p><p>You did nothing after year 1. Time did the work.</p>",
                 },
                 {
                   type: "mcq",
@@ -2079,11 +2079,11 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "mcq",
                   question: "You earn R35 000 gross per month. Using the 30% rule, what's the maximum you should spend on housing?",
-                  options: ["R7 000", "R10,500", "R15 000", "R35 000"],
+                  options: ["R7 000", "R10 500", "R15 000", "R35 000"],
                   correct: 1,
                   feedback: {
-                    correct: "R35 000 × 30% = R10,500. That covers bond repayment, rates, levy, and insurance combined.",
-                    incorrect: "30% of R35 000 = R10,500. This must cover ALL housing costs, not just the bond.",
+                    correct: "R35 000 × 30% = R10 500. That covers bond repayment, rates, levy, and insurance combined.",
+                    incorrect: "30% of R35 000 = R10 500. This must cover ALL housing costs, not just the bond.",
                   },
                 },
                 {
@@ -2297,8 +2297,8 @@ const RAW_COURSES: Course[] = [
                   options: ["About R16 000", "About R8 000", "Zero, you're below the tax threshold", "Exactly 18% of R90 000"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct, the 2024/25 tax threshold is approximately R95,750. Below that, you pay zero income tax.",
-                    incorrect: "If your income is below the annual tax threshold (~R95,750 in 2024/25), you owe zero income tax.",
+                    correct: "Correct, the 2024/25 tax threshold is approximately R95 750. Below that, you pay zero income tax.",
+                    incorrect: "If your income is below the annual tax threshold (~R95 750 in 2024/25), you owe zero income tax.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2780,15 +2780,15 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Faithful with Little",
-                  content: "<p>Luke 16:10 (NLT), <em>Whoever can be trusted with very little can also be trusted with much.</em></p><p>Biblical stewardship isn't just for the wealthy. How you handle R500 reveals what you'd do with R5 million. Faithfulness with money starts with the small decisions you make today.</p>",
+                  content: "<p>Luke 16:10 (NLT), <em>If you are faithful in little things, you will be faithful in large ones. But if you are dishonest in little things, you won't be honest with greater responsibilities.</em></p><p>Biblical stewardship isn't just for the wealthy. How you handle R500 reveals what you'd do with R5 million. Faithfulness with money starts with the small decisions you make today.</p>",
                 },
                 {
                   type: "true-false",
                   statement: "The Bible teaches that money itself is evil.",
                   correct: false,
                   feedback: {
-                    correct: "Correct, 1 Timothy 6:10 says the LOVE of money is the root of all kinds of evil. Money itself is a tool, neutral in itself.",
-                    incorrect: "1 Timothy 6:10 says 'the love of money is the root of all kinds of evil', not money itself. Money is a tool; the heart behind it is what matters.",
+                    correct: "Correct, 1 Timothy 6:10 (NLT) says the LOVE of money is the root of all kinds of evil. Money itself is a tool, neutral in itself.",
+                    incorrect: "1 Timothy 6:10 (NLT) says 'the love of money is the root of all kinds of evil', not money itself. Money is a tool; the heart behind it is what matters.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2800,7 +2800,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Ancient Wisdom, Modern Application",
-                  content: "<p>Proverbs 21:20 (NLT), <em>The wise store up choice food and olive oil, but fools gulp theirs down.</em></p><p>In modern terms: save before you spend. Build reserves. The fool consumes everything immediately; the wise person plans ahead.</p>",
+                  content: "<p>Proverbs 21:20 (NLT), <em>The wise have wealth and luxury, but fools spend whatever they get.</em></p><p>In modern terms: save before you spend. Build reserves. The fool consumes everything immediately; the wise person plans ahead.</p>",
                 },
                 {
                   type: "mcq",
@@ -2815,7 +2815,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Ant Principle",
-                  content: "<p>Proverbs 6:6-8 (NLT), <em>Go to the ant, you sluggard; consider its ways and be wise! It has no commander, no overseer or ruler, yet it stores its provisions in summer and gathers its food at harvest.</em></p><p>The ant saves without being told to. It prepares for seasons ahead. This is the spirit of an emergency fund, retirement savings, and consistent investing.</p>",
+                  content: "<p>Proverbs 6:6-8 (NLT), <em>Take a lesson from the ants, you lazybones. Learn from their ways and become wise! Though they have no prince or governor or ruler to make them work, they labor hard all summer, gathering food for the winter.</em></p><p>The ant saves without being told to. It prepares for seasons ahead. This is the spirit of an emergency fund, retirement savings, and consistent investing.</p>",
                 },
                 {
                   type: "true-false",
@@ -2842,7 +2842,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Honour God with Your Wealth",
-                  content: "<p>Proverbs 3:9 (NLT), <em>Honour the Lord with your wealth, with the firstfruits of all your crops.</em></p><p>Giving first is an act of faith and financial discipline. 'Firstfruits' means off the top, not what's left over after everything else.</p>",
+                  content: "<p>Proverbs 3:9 (NLT), <em>Honor the Lord with your wealth and with the best part of everything you produce.</em></p><p>Giving first is an act of faith and financial discipline. 'Firstfruits' means off the top, not what's left over after everything else.</p>",
                 },
                 {
                   type: "true-false",
@@ -2856,7 +2856,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Generous Person Prospers",
-                  content: "<p>Proverbs 11:24-25, <em>One person gives freely, yet gains even more; another withholds unduly, but comes to poverty. A generous person will prosper; whoever refreshes others will be refreshed.</em></p><p>Generosity is not a financial risk, Scripture presents it as a path to flourishing. This doesn't mean giving without wisdom, but that a generous spirit is foundational to a healthy relationship with money.</p>",
+                  content: "<p>Proverbs 11:24-25 (NLT), <em>Give freely and become more wealthy; be stingy and lose everything. The generous will prosper; those who refresh others will themselves be refreshed.</em></p><p>Generosity is not a financial risk, Scripture presents it as a path to flourishing. This doesn't mean giving without wisdom, but that a generous spirit is foundational to a healthy relationship with money.</p>",
                 },
                 {
                   type: "mcq",
@@ -2877,7 +2877,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Borrower is Servant to the Lender",
-                  content: "<p>Proverbs 22:7, <em>The rich rule over the poor, and the borrower is slave to the lender.</em></p><p>This is not a prohibition on all debt, but a warning about the power dynamic it creates. When you owe money, someone else has a claim on your future income and your freedom.</p>",
+                  content: "<p>Proverbs 22:7 (NLT), <em>Just as the rich rule the poor, so the borrower is servant to the lender.</em></p><p>This is not a prohibition on all debt, but a warning about the power dynamic it creates. When you owe money, someone else has a claim on your future income and your freedom.</p>",
                 },
                 {
                   type: "mcq",
@@ -2894,8 +2894,8 @@ const RAW_COURSES: Course[] = [
                   statement: "The Bible teaches that being debt-free is part of financial and personal freedom.",
                   correct: true,
                   feedback: {
-                    correct: "Correct, Romans 13:8 says 'Let no debt remain outstanding.' Freedom from debt is a biblical principle of good stewardship.",
-                    incorrect: "Romans 13:8, 'Let no debt remain outstanding.' The Bible consistently points toward freedom from financial obligation.",
+                    correct: "Correct. Romans 13:8 (NLT) says 'Owe nothing to anyone.' Freedom from debt is a biblical principle of good stewardship.",
+                    incorrect: "Romans 13:8 (NLT), 'Owe nothing to anyone.' The Bible consistently points toward freedom from financial obligation.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -3113,7 +3113,7 @@ const RAW_COURSES: Course[] = [
               steps: [
                 { type: "info", title: "The Biggest Retirement Change in 30 Years", content: "<p>From 1 September 2024, every rand you contribute to a pension, provident, or retirement annuity fund is split into two pots. This affects every formal employee in South Africa, roughly 7 million people.</p>" },
                 { type: "info", title: "The Two Pots Explained", content: "<p><strong>Savings Pot (1/3):</strong> Access once per tax year (minimum R2 000 withdrawal). Taxed as income when withdrawn. Emergency provision only.</p><p><strong>Retirement Pot (2/3):</strong> Completely locked until retirement age. No exceptions.</p><p><strong>Vested Pot:</strong> Everything before 1 September 2024, old rules still apply.</p>" },
-                { type: "mcq", question: "You contribute R3 000/month to your RA. How much goes into the Savings Pot monthly?", options: ["R3 000", "R1 000", "R2 000", "R1,500"], correct: 1, feedback: { correct: "R3 000 ÷ 3 = R1 000 to the Savings Pot. R2 000 to the Retirement Pot.", incorrect: "One third goes to the Savings Pot. R3 000 ÷ 3 = R1 000." } },
+                { type: "mcq", question: "You contribute R3 000/month to your RA. How much goes into the Savings Pot monthly?", options: ["R3 000", "R1 000", "R2 000", "R1 500"], correct: 1, feedback: { correct: "R3 000 ÷ 3 = R1 000 to the Savings Pot. R2 000 to the Retirement Pot.", incorrect: "One third goes to the Savings Pot. R3 000 ÷ 3 = R1 000." } },
                 { type: "info", title: "The Tax Catch", content: "<p>Withdrawing from your Savings Pot is taxed as income in that year. If you earn R420 000/year and withdraw R50 000, SARS taxes you on R470 000, costing roughly R15 000–R18 000 in additional tax. This is a last resort, not a bonus account.</p>" },
                 { type: "true-false", statement: "You can withdraw from your Savings Pot every month if needed.", correct: false, feedback: { correct: "Only once per tax year, minimum R2 000. It was designed as an emergency provision.", incorrect: "Once per tax year maximum, with a R2 000 minimum withdrawal." } },
                 { type: "mcq", question: "Why was the two-pot system introduced?", options: ["To increase government tax revenue", "To stop people from cashing out all retirement savings on resignation", "To force people to invest in government bonds", "To simplify pension fund administration"], correct: 1, feedback: { correct: "90%+ of South Africans previously cashed out their entire retirement savings on resignation. The two-pot protects the Retirement Pot while giving emergency access through the Savings Pot.", incorrect: "The two-pot system protects retirement savings. Previously, 90%+ of people cashed out everything when changing jobs, arriving at retirement with nothing." } },
@@ -3129,7 +3129,7 @@ const RAW_COURSES: Course[] = [
                 { type: "fill-blank", title: "4% Rule Calculation", prompt: "You want R20 000/month in retirement. Using the 4% rule, you need R___ million saved. (Enter the number of millions)", correct: 6, feedback: { correct: "R20 000 × 12 = R240 000/year. R240 000 ÷ 0.04 = R6 000 000. You need R6 million.", incorrect: "R20 000/month = R240 000/year. R240 000 ÷ 4% = R6 million." } },
                 { type: "mcq", question: "Research shows the minimum contribution rate to retire comfortably (starting at your first job) is:", options: ["5% of income", "10% of income", "15% of income", "25% of income"], correct: 2, feedback: { correct: "15% total (typically 7.5% employee + 7.5% employer in pension funds). Starting late requires 20–30%. Most SA pension funds that default to 7.5% employer + 7.5% employee hit this target.", incorrect: "15% from your first job. Most formal SA pension funds achieve this through employer + employee contributions. Starting after 35 requires 20–25%." } },
                 { type: "true-false", statement: "Starting to save 15% of salary at 25 gives a better retirement outcome than saving 30% starting at 40.", correct: true, feedback: { correct: "Correct, 15 extra years of compounding at 15% beats doubling the contribution rate starting 15 years later. Time is the most powerful retirement tool.", incorrect: "Starting at 25 with 15% typically beats starting at 40 with 30%. The 15-year compounding advantage is more powerful than doubling the contribution rate." } },
-                { type: "scenario", question: "Nombuso is 42, earns R45 000/month, and has saved nothing. She starts contributing 15% (R6,750/month) at 10% annual return until 65. Approximately what will she have?", options: ["R2.8 million", "R6.8 million", "R14 million", "R1.2 million"], correct: 1, feedback: { correct: "R6,750/month for 23 years at 10% ≈ R6.8 million. At 4% withdrawal that's R272 000/year (R22,667/month). Better than nothing, but starting earlier would have been transformative.", incorrect: "R6,750/month × 23 years at 10% ≈ R6.8 million. This illustrates the cost of starting late, and why every year of delay is expensive." } },
+                { type: "scenario", question: "Nombuso is 42, earns R45 000/month, and has saved nothing. She starts contributing 15% (R6 750/month) at 10% annual return until 65. Approximately what will she have?", options: ["R2.8 million", "R6.8 million", "R14 million", "R1.2 million"], correct: 1, feedback: { correct: "R6 750/month for 23 years at 10% ≈ R6.8 million. At 4% withdrawal that's R272 000/year (R22 667/month). Better than nothing, but starting earlier would have been transformative.", incorrect: "R6 750/month × 23 years at 10% ≈ R6.8 million. This illustrates the cost of starting late, and why every year of delay is expensive." } },
               ] satisfies LessonStep[],
             },
           ],
@@ -3160,7 +3160,7 @@ const RAW_COURSES: Course[] = [
                 { type: "mcq", question: "The US Federal Reserve raises interest rates sharply. What typically happens to the rand?", options: ["Rand strengthens, US growth is good for trade", "Rand weakens, capital flows to USD for better yields", "No effect, markets are independent", "Rand strengthens, investors seek diversification"], correct: 1, feedback: { correct: "Rising US rates pull global capital toward USD. Money exits SA, rand demand drops, and the rand weakens, this is called capital flight.", incorrect: "Rising US rates make USD assets more attractive. Capital leaves SA, reducing rand demand. The rand weakens." } },
                 { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20–R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },
                 { type: "true-false", statement: "A weaker rand is always bad for all South Africans.", correct: false, feedback: { correct: "A weaker rand benefits exporters, SA's mining sector earns dollars and pays costs in rand. A weaker rand increases their rand revenue and employment in mining communities.", incorrect: "A weaker rand hurts importers and consumers but benefits exporters (mining, agriculture, tourism) who earn foreign currency." } },
-                { type: "scenario", question: "You invested R100 000 in a Satrix S&P 500 ETF when the rand was R17/$. The rand weakens to R20/$, but US shares didn't move. Your investment is now worth approximately:", options: ["R100 000", "R117,647", "R85 000", "R70 000"], correct: 1, feedback: { correct: "R100 000 ÷ R17 = $5 882. At R20/$: $5 882 × R20 = R117,647. Rand weakness created a 17.6% gain from currency alone, this is why offshore investments hedge against rand depreciation.", incorrect: "R100 000 at R17/$ = $5 882. At R20/$: $5 882 × R20 = R117,647. The rand's weakness boosted rand returns by 17.6% even without any share price movement." } },
+                { type: "scenario", question: "You invested R100 000 in a Satrix S&P 500 ETF when the rand was R17/$. The rand weakens to R20/$, but US shares didn't move. Your investment is now worth approximately:", options: ["R100 000", "R117 647", "R85 000", "R70 000"], correct: 1, feedback: { correct: "R100 000 ÷ R17 = $5 882. At R20/$: $5 882 × R20 = R117 647. Rand weakness created a 17.6% gain from currency alone, this is why offshore investments hedge against rand depreciation.", incorrect: "R100 000 at R17/$ = $5 882. At R20/$: $5 882 × R20 = R117 647. The rand's weakness boosted rand returns by 17.6% even without any share price movement." } },
                 { type: "mcq", question: "Which SA investment provides the best protection against rand depreciation?", options: ["SA government bonds (RSA Retail Bonds)", "A Satrix MSCI World ETF (global equities)", "A fixed deposit at a SA bank", "SA listed property"], correct: 1, feedback: { correct: "Global ETFs give you exposure to foreign currencies. When the rand weakens, your ETF gains in rand terms even if underlying shares haven't moved. This is the most accessible rand hedge for ordinary investors.", incorrect: "Global ETFs provide currency exposure. When rand weakens, foreign-denominated assets gain in rand value. SA bonds, fixed deposits, and local property are fully rand-denominated with no currency protection." } },
               ] satisfies LessonStep[],
             },
@@ -3225,7 +3225,7 @@ const RAW_COURSES: Course[] = [
                 { type: "info", title: "VAT, When You Must Register", content: "<p>VAT registration is mandatory when annual taxable turnover exceeds <strong>R1 million</strong>. You add 15% VAT to invoices, claim back VAT on business expenses, and pay SARS the net amount bi-monthly. The net formula: VAT collected − VAT paid on expenses = amount owed to SARS.</p>" },
                 { type: "fill-blank", title: "VAT Calculation", prompt: "You invoice R80 000 (ex-VAT) and paid R6 000 VAT on business expenses. VAT collected = R12 000. You owe SARS R___.", correct: 6000, feedback: { correct: "R12 000 VAT collected − R6 000 VAT paid = R6 000 net to SARS. VAT is a passthrough, you collect and net it.", incorrect: "VAT owed = VAT collected − VAT paid on inputs. R12 000 − R6 000 = R6 000." } },
                 { type: "info", title: "Provisional Tax", content: "<p>Self-employed people pay tax twice yearly: end of August and end of February. Under-estimate by more than 20% and SARS charges penalties plus interest.</p><p><strong>Rule of thumb:</strong> Set aside 25–35% of every payment received. This is your future tax bill.</p>" },
-                { type: "scenario", question: "Thabo earns R80 000/month consulting (R960 000/year) and spends everything. At year end SARS bills him R280 000. What should he have done?", options: ["Nothing, SARS shouldn't tax self-employed people", "Set aside ~30% monthly (≈R24 000) and paid provisional tax twice yearly", "Registered as a company to avoid tax", "Kept earnings below R95,750 tax threshold"], correct: 1, feedback: { correct: "R960 000 × 30% ≈ R288 000, very close to the actual bill. Provisional tax requires self-employed people to pay estimated tax bi-annually. R80 000/month × 30% = R24 000 set aside monthly.", incorrect: "Self-employed people must pay provisional tax twice yearly. 30% of each payment set aside prevents the catastrophic year-end surprise." } },
+                { type: "scenario", question: "Thabo earns R80 000/month consulting (R960 000/year) and spends everything. At year end SARS bills him R280 000. What should he have done?", options: ["Nothing, SARS shouldn't tax self-employed people", "Set aside ~30% monthly (≈R24 000) and paid provisional tax twice yearly", "Registered as a company to avoid tax", "Kept earnings below R95 750 tax threshold"], correct: 1, feedback: { correct: "R960 000 × 30% ≈ R288 000, very close to the actual bill. Provisional tax requires self-employed people to pay estimated tax bi-annually. R80 000/month × 30% = R24 000 set aside monthly.", incorrect: "Self-employed people must pay provisional tax twice yearly. 30% of each payment set aside prevents the catastrophic year-end surprise." } },
               ] satisfies LessonStep[],
             },
           ],

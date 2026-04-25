@@ -15,6 +15,8 @@ import {
 import {
   BarChart2,
   CheckCircle2,
+  ChevronDown,
+  ChevronUp,
   Clock,
   Info,
   Target,
@@ -62,6 +64,12 @@ function solveForInitial(base: CalcInputs, goal: number): number {
   return bisectSolver((p) => (calcGrowth({ ...base, principal: p }).at(-1)?.value ?? 0) - goal, 0, Math.max(goal * 2, 10_000_000));
 }
 
+function formatYAxis(v: number): string {
+  if (v >= 1_000_000) return `R${(v / 1_000_000).toFixed(1)}M`;
+  if (v >= 1_000) return `R${(v / 1_000).toFixed(0)}k`;
+  return `R${v}`;
+}
+
 function FieldTip({ text }: { text: string }) {
   const [open, setOpen] = useState(false);
   return (
@@ -95,12 +103,14 @@ function CalcNumberRow({
   value,
   onChange,
   step = "any",
+  min,
 }: {
   label: string;
   tooltip: string;
   value: number;
   onChange: (n: number) => void;
   step?: string;
+  min?: number;
 }) {
   const [str, setStr] = useState(String(value));
   useEffect(() => {
@@ -116,6 +126,7 @@ function CalcNumberRow({
       <input
         type="number"
         step={step}
+        min={min}
         value={str}
         onChange={(e) => setStr(e.target.value)}
         onBlur={() => {
@@ -124,8 +135,9 @@ function CalcNumberRow({
             setStr(String(value));
             return;
           }
-          onChange(n);
-          setStr(String(n));
+          const clamped = min !== undefined ? Math.max(min, n) : n;
+          onChange(clamped);
+          setStr(String(clamped));
         }}
         onKeyDown={(e) => e.key === "Enter" && (e.target as HTMLInputElement).blur()}
         style={{
@@ -141,6 +153,81 @@ function CalcNumberRow({
         }}
         aria-label={label}
       />
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Formulae accordion
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FormulaePanel() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 16, overflow: "hidden" }}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "none", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "var(--color-text-primary)" }}
+      >
+        <span>📐 Calculator Formulae (for comparison with Liberty Life / any calculator)</span>
+        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+      {open && (
+        <div style={{ padding: "0 16px 16px", fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.7 }}>
+
+          <div style={{ marginBottom: 12 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>🔢 Core simulation (what this calculator runs)</strong>
+            <p style={{ margin: "0 0 4px" }}>Every month, balance compounds and the contribution is added:</p>
+            <code style={{ display: "block", background: "var(--color-bg)", padding: "8px 10px", borderRadius: 8, fontSize: 12, marginBottom: 4 }}>
+              balance = balance × (1 + r / 12) + PMT
+            </code>
+            <p style={{ margin: 0 }}>Where <strong>r</strong> = annual rate (e.g. 10% → 0.10), <strong>PMT</strong> = monthly contribution (increases by escalation% each year).</p>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>📈 Closed-form equivalent (no escalation, lump sum only)</strong>
+            <code style={{ display: "block", background: "var(--color-bg)", padding: "8px 10px", borderRadius: 8, fontSize: 12, marginBottom: 4 }}>
+              FV = P × (1 + r/n)^(n×t)
+            </code>
+            <p style={{ margin: 0 }}>P = initial lump sum, n = 12 (monthly), t = years</p>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>📈 Closed-form (monthly contributions, no escalation)</strong>
+            <code style={{ display: "block", background: "var(--color-bg)", padding: "8px 10px", borderRadius: 8, fontSize: 12, marginBottom: 4 }}>
+              FV = P × (1 + r/12)^(12t) + PMT × [(1 + r/12)^(12t) − 1] / (r/12)
+            </code>
+            <p style={{ margin: 0 }}>Add lump sum growth + annuity growth. When escalation = 0%, this matches the simulation exactly.</p>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>📊 Annual escalation (growing annuity)</strong>
+            <p style={{ margin: "0 0 4px" }}>Contribution after year y: <code>PMT × (1 + g)^y</code> where g = escalation rate (e.g. 5% → 0.05)</p>
+            <p style={{ margin: "0 0 4px" }}>No simple closed-form when escalation is applied monthly — the simulation loop is the correct approach.</p>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>💰 Total contributions & interest</strong>
+            <code style={{ display: "block", background: "var(--color-bg)", padding: "8px 10px", borderRadius: 8, fontSize: 12, marginBottom: 4 }}>
+              {`Total Contributions = initial lump sum + Σ(monthly payments made)`}{"\n"}
+              {`Interest Earned = Final Value − Total Contributions`}{"\n"}
+              {`Return % = (Interest / Contributions) × 100`}
+            </code>
+          </div>
+
+          <div style={{ marginBottom: 4 }}>
+            <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>📝 Key assumptions</strong>
+            <ul style={{ margin: 0, paddingLeft: 20 }}>
+              <li>Rate is the gross annual return before fees/inflation</li>
+              <li>Monthly contributions are paid at end of each month (ordinary annuity)</li>
+              <li>Escalation applies once per year (at each year-end)</li>
+              <li>"Once-off" mode: only lump sum compounds, no monthly additions</li>
+              <li>"Annually" mode: 12 × monthly contribution added once per year (approximation)</li>
+            </ul>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -170,11 +257,15 @@ export function CalculatorView() {
     ...defaultInputs,
     rate: 7,
     monthly: 500,
+    years: 20,
   });
+  // How many years after "now" does Investor B start? (0 = starts same time as A)
+  const [startYearB, setStartYearB] = useState(0);
 
   const [hasCalculated, setHasCalculated] = useState(false);
   const [calcA, setCalcA] = useState<CalcInputs>(defaultInputs);
-  const [calcB, setCalcB] = useState<CalcInputs>({ ...defaultInputs, rate: 7, monthly: 500 });
+  const [calcB, setCalcB] = useState<CalcInputs>({ ...defaultInputs, rate: 7, monthly: 500, years: 20 });
+  const [calcStartYearB, setCalcStartYearB] = useState(0);
   const [projectionSaved, setProjectionSaved] = useState(false);
 
   // Load user's previously saved projection as default inputs
@@ -193,8 +284,6 @@ export function CalculatorView() {
   const handleCalculate = () => {
     const goal = parseFloat(goalTarget.replace(/[^0-9.]/g, "")) || 0;
 
-    // Build effective inputs for the chart - if solving for a variable,
-    // fill in the computed value so the chart still draws meaningfully.
     let effectiveA = { ...inputsA };
     let result: { label: string; value: string; sub?: string } | null = null;
 
@@ -229,10 +318,10 @@ export function CalculatorView() {
 
     setCalcA(effectiveA);
     setCalcB(inputsB);
+    setCalcStartYearB(startYearB);
     setHasCalculated(true);
     setProjectionSaved(false);
     setSolveResult(result);
-    // Analytics: track solve mode usage
     analytics.calculatorSolveModeUsed(solveMode, {
       monthly: inputsA.monthly,
       rate: inputsA.rate,
@@ -253,23 +342,30 @@ export function CalculatorView() {
   const finalA = hasCalculated && dataA.length > 0 ? dataA[dataA.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
   const finalB = hasCalculated && dataB.length > 0 ? dataB[dataB.length - 1] : { year: 0, value: 0, contributions: 0, interest: 0 };
 
-  const chartData: Record<string, number>[] = useMemo(
-    () =>
-      !hasCalculated
-        ? []
-        : mode === "single"
-          ? dataA.map((d) => ({
-              year: d.year,
-              "Portfolio Value": d.value,
-              "Total Contributions": d.contributions,
-            }))
-          : dataA.map((d, i) => ({
-              year: d.year,
-              "Investment A": d.value,
-              "Investment B": dataB[i]?.value ?? 0,
-            })),
-    [hasCalculated, mode, dataA, dataB]
-  );
+  // Chart data: spans max(A end, B end) years. B starts at calcStartYearB.
+  // Uses null for years where an investor hasn't started or has finished → line simply ends.
+  const chartData = useMemo(() => {
+    if (!hasCalculated) return [];
+    if (mode === "single") {
+      return dataA.map((d) => ({
+        year: d.year,
+        "Portfolio Value": d.value,
+        "Total Contributions": d.contributions,
+      }));
+    }
+    // Compare mode
+    const totalYears = Math.max(calcA.years, calcStartYearB + calcB.years);
+    const rows: Record<string, number | null>[] = [];
+    for (let y = 0; y <= totalYears; y++) {
+      // Investment A: data from year 0..calcA.years (null beyond)
+      const aVal: number | null = y <= calcA.years ? (dataA[y]?.value ?? null) : null;
+      // Investment B: starts at calcStartYearB, runs calcB.years more
+      const bIdx = y - calcStartYearB;
+      const bVal: number | null = bIdx >= 0 && bIdx <= calcB.years ? (dataB[bIdx]?.value ?? null) : null;
+      rows.push({ year: y, "Investment A": aVal, "Investment B": bVal });
+    }
+    return rows;
+  }, [hasCalculated, mode, dataA, dataB, calcA.years, calcB.years, calcStartYearB]);
 
   const ResultCard = ({
     label,
@@ -325,11 +421,17 @@ export function CalculatorView() {
     inputs,
     setInputs,
     hideField,
+    showStartYear,
+    startYear,
+    onStartYearChange,
   }: {
     label?: string;
     inputs: CalcInputs;
     setInputs: (i: CalcInputs) => void;
     hideField?: SolveMode;
+    showStartYear?: boolean;
+    startYear?: number;
+    onStartYearChange?: (n: number) => void;
   }) => (
     <div
       style={{
@@ -346,6 +448,17 @@ export function CalculatorView() {
         </div>
       )}
 
+      {showStartYear && onStartYearChange !== undefined && (
+        <CalcNumberRow
+          label="Starts how many years from now?"
+          tooltip="Set to 0 if this investor starts today. Set to 10 if they wait 10 years before starting."
+          value={startYear ?? 0}
+          min={0}
+          step="1"
+          onChange={onStartYearChange}
+        />
+      )}
+
       {hideField !== "initial" && (
         <CalcNumberRow label="Initial Amount (R)" tooltip="The lump sum you're starting with today." value={inputs.principal} onChange={(v) => setInputs({ ...inputs, principal: v })} />
       )}
@@ -357,7 +470,7 @@ export function CalculatorView() {
       )}
       <CalcNumberRow label="Annual Contribution Increase (%)" tooltip="How much you increase your monthly contribution each year (inflation hedge)." value={inputs.escalation} step="0.01" onChange={(v) => setInputs({ ...inputs, escalation: v })} />
       {hideField !== "time" && (
-        <CalcNumberRow label="Investment Period (years)" tooltip="How many years you plan to invest for." value={inputs.years} step="1" onChange={(v) => setInputs({ ...inputs, years: v })} />
+        <CalcNumberRow label="Investment Period (years)" tooltip="How many years you plan to invest for." value={inputs.years} step="1" min={1} onChange={(v) => setInputs({ ...inputs, years: v })} />
       )}
 
       <div style={{ marginBottom: 20 }}>
@@ -393,6 +506,9 @@ export function CalculatorView() {
         )}
       </div>
 
+      {/* ── Formulae ── */}
+      <FormulaePanel />
+
       {/* ── Solve For selector ── */}
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
         <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.8, marginBottom: 12 }}>What are you solving for?</div>
@@ -422,8 +538,22 @@ export function CalculatorView() {
       </div>
 
       <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 20 }}>
-        <InputPanel inputs={inputsA} setInputs={setInputsA} label={mode === "compare" && solveMode === "goal" ? "Investment A" : undefined} hideField={solveMode !== "goal" ? solveMode : undefined} />
-        {mode === "compare" && solveMode === "goal" && <InputPanel inputs={inputsB} setInputs={setInputsB} label="Investment B" />}
+        <InputPanel
+          inputs={inputsA}
+          setInputs={setInputsA}
+          label={mode === "compare" && solveMode === "goal" ? "Investment A (starts now)" : undefined}
+          hideField={solveMode !== "goal" ? solveMode : undefined}
+        />
+        {mode === "compare" && solveMode === "goal" && (
+          <InputPanel
+            inputs={inputsB}
+            setInputs={setInputsB}
+            label="Investment B"
+            showStartYear
+            startYear={startYearB}
+            onStartYearChange={setStartYearB}
+          />
+        )}
       </div>
 
       {/* Results + chart section (clean) */}
@@ -480,46 +610,80 @@ export function CalculatorView() {
       )}
 
       {hasCalculated && mode === "compare" && (
-        <div
-          style={{
-            marginBottom: 24,
-            background: "var(--color-surface)",
-            border: "1px solid var(--color-border)",
-            borderRadius: 16,
-            overflow: "hidden",
-          }}
-        >
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
-            <thead>
-              <tr style={{ background: "var(--color-bg)" }}>
-                <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "var(--color-text-secondary)" }}>
-                  Metric
-                </th>
-                <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>
-                  Investment A
-                </th>
-                <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>
-                  Investment B
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                ["Final Value", formatZAR(finalA.value), formatZAR(finalB.value)],
-                ["Contributions", formatZAR(finalA.contributions), formatZAR(finalB.contributions)],
-                ["Interest", formatZAR(finalA.interest), formatZAR(finalB.interest)],
-                ["Return %", `${calcReturnPct(finalA.value, finalA.contributions).toFixed(1)}%`, `${calcReturnPct(finalB.value, finalB.contributions).toFixed(1)}%`],
-                ["Term", `${inputsA.years} yrs`, `${inputsB.years} yrs`],
-              ].map(([metric, a, b]) => (
-                <tr key={metric} style={{ borderTop: "1px solid var(--color-border)" }}>
-                  <td style={{ padding: "12px 16px", color: "var(--color-text-secondary)", fontWeight: 600 }}>{metric}</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>{a}</td>
-                  <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>{b}</td>
+        <>
+          <div
+            style={{
+              marginBottom: 16,
+              background: "var(--color-surface)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 16,
+              overflow: "hidden",
+            }}
+          >
+            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14 }}>
+              <thead>
+                <tr style={{ background: "var(--color-bg)" }}>
+                  <th style={{ padding: "12px 16px", textAlign: "left", fontWeight: 700, color: "var(--color-text-secondary)" }}>
+                    Metric
+                  </th>
+                  <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>
+                    Investment A
+                  </th>
+                  <th style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>
+                    Investment B
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {[
+                  ["Final Value", formatZAR(finalA.value), formatZAR(finalB.value)],
+                  ["Contributions", formatZAR(finalA.contributions), formatZAR(finalB.contributions)],
+                  ["Interest", formatZAR(finalA.interest), formatZAR(finalB.interest)],
+                  ["Return %", `${calcReturnPct(finalA.value, finalA.contributions).toFixed(1)}%`, `${calcReturnPct(finalB.value, finalB.contributions).toFixed(1)}%`],
+                  ["Term", `${calcA.years} yrs`, `${calcB.years} yrs${calcStartYearB > 0 ? ` (starts yr ${calcStartYearB})` : ""}`],
+                  ["Ends at year", `${calcA.years}`, `${calcStartYearB + calcB.years}`],
+                ].map(([metric, a, b]) => (
+                  <tr key={metric} style={{ borderTop: "1px solid var(--color-border)" }}>
+                    <td style={{ padding: "12px 16px", color: "var(--color-text-secondary)", fontWeight: 600 }}>{metric}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-primary)" }}>{a}</td>
+                    <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-secondary)" }}>{b}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Difference callout */}
+          {(() => {
+            const diff = finalA.value - finalB.value;
+            const winner = diff > 0 ? "A" : diff < 0 ? "B" : null;
+            if (!winner) return null;
+            return (
+              <div style={{
+                marginBottom: 16, padding: "14px 16px", borderRadius: 12,
+                background: "rgba(0,122,77,0.08)", border: "1px solid rgba(0,122,77,0.2)",
+                fontSize: 14, fontWeight: 600, color: "var(--color-primary)", textAlign: "center",
+              }}>
+                {calcStartYearB > 0
+                  ? `Starting ${calcStartYearB} year${calcStartYearB > 1 ? "s" : ""} earlier is worth ${formatZAR(Math.abs(diff))} extra`
+                  : `Investment ${winner} ends ${formatZAR(Math.abs(diff))} ahead`}
+              </div>
+            );
+          })()}
+
+          <div style={{ marginBottom: 20 }}>
+            <ShareResultButton
+              data={{
+                type: "calculator",
+                headline: calcStartYearB > 0
+                  ? `Starting ${calcStartYearB} yrs earlier adds ${formatZAR(Math.abs(finalA.value - finalB.value))} to your wealth`
+                  : `Investment A: ${formatZAR(finalA.value)} vs Investment B: ${formatZAR(finalB.value)}`,
+                sub: `At ${calcA.rate}% vs ${calcB.rate}% p.a. · Calculated on Fundi Finance`,
+              }}
+              label="Share this comparison"
+            />
+          </div>
+        </>
       )}
 
       {hasCalculated && (
@@ -529,26 +693,31 @@ export function CalculatorView() {
             <LineChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
               <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} />
-              <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={50} />
+              <YAxis tickFormatter={formatYAxis} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={58} />
               <Tooltip
-                formatter={(v) => formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
+                formatter={(v) => v === null || v === undefined ? "—" : formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
                 labelFormatter={(l) => `Year ${l}`}
                 contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 13 }}
               />
               <Legend wrapperStyle={{ fontSize: 13 }} />
               {mode === "single" ? (
                 <>
-                  <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                  <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} connectNulls={false} />
+                  <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" connectNulls={false} />
                 </>
               ) : (
                 <>
-                  <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
-                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} />
+                  <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} connectNulls={false} />
+                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} connectNulls={false} />
                 </>
               )}
             </LineChart>
           </ResponsiveContainer>
+          {mode === "compare" && calcStartYearB > 0 && (
+            <div style={{ fontSize: 12, color: "var(--color-text-secondary)", textAlign: "center", marginTop: 8 }}>
+              Investment B (orange) begins at Year {calcStartYearB} and ends at Year {calcStartYearB + calcB.years}
+            </div>
+          )}
         </div>
       )}
 
