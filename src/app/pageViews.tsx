@@ -1886,14 +1886,14 @@ function useFundiState() {
     setTimeout(() => setXpToast(null), 2000);
   };
 
-  const completeLesson = (
+  const completeLesson = async (
     courseId: string,
     lessonId: string,
     xpEarned: number
-  ): number | null => {
+  ): Promise<number> => {
     progress.completeLesson(`${courseId}:${lessonId}`);
-    const newStreak = progress.applyStreakAfterLesson();
-    if (newStreak !== null) analytics.streakUpdated(newStreak);
+    const newStreak = await progress.applyStreakAfterLesson();
+    analytics.streakUpdated(newStreak);
     addXP(xpEarned);
     return newStreak;
   };
@@ -6436,7 +6436,7 @@ export default function Home() {
       }
     );
 
-    const streakAfterLesson = completeLesson(
+    const streakAfterLesson = await completeLesson(
       currentLessonState.courseId,
       currentLessonState.lessonId,
       totalXP

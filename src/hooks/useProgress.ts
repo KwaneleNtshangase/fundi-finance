@@ -137,28 +137,30 @@ export function useProgress() {
     });
   };
 
-  const applyStreakAfterLesson = (): number | null => {
-    if (!userId) return null;
-    void fetch("/api/progress/sync-streak", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    })
-      .then((r) => r.json())
-      .then((json) => {
-        if (!json?.ok) {
-          console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
-          return;
-        }
-        setState((prev) => ({
-          ...prev,
-          streak: json.streak,
-          longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
-          lastActivityDate: json.lastActivityDate,
-        }));
-      })
-      .catch((e) => console.warn("[applyStreakAfterLesson] fetch failed:", e));
-    return state.streak;
+  const applyStreakAfterLesson = async (): Promise<number> => {
+    if (!userId) return state.streak;
+    try {
+      const r = await fetch("/api/progress/sync-streak", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const json = await r.json();
+      if (!json?.ok) {
+        console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
+        return state.streak;
+      }
+      setState((prev) => ({
+        ...prev,
+        streak: json.streak,
+        longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
+        lastActivityDate: json.lastActivityDate,
+      }));
+      return json.streak as number;
+    } catch (e) {
+      console.warn("[applyStreakAfterLesson] fetch failed:", e);
+      return state.streak;
+    }
   };
 
   const buyStreakFreeze = (cost = 200): boolean => {
