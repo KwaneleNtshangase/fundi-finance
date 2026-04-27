@@ -4431,7 +4431,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                   border: top3[1].isYou ? "3px solid var(--color-primary)" : "3px solid #C0C0C0",
                 }}>{top3[1].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[1].name}</div>
-                {top3[1].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[1].ageRange}</div>}
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF" }}>{formatWithSpaces(top3[1].xp)} XP</div>
                 <div style={{ background: "#C0C0C0", borderRadius: "8px 8px 0 0", height: 60, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 22, fontWeight: 900, color: "white" }}>2</span>
@@ -4450,7 +4449,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                   boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
                 }}>{top3[0].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
-                {top3[0].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[0].ageRange}</div>}
                 <div style={{ fontSize: 12, fontWeight: 700, color: "#FFB612" }}>{formatWithSpaces(top3[0].xp)} XP</div>
                 <div style={{ background: "#FFB612", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 26, fontWeight: 900, color: "white" }}>1</span>
@@ -4465,7 +4463,6 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                   border: top3[2].isYou ? "3px solid var(--color-primary)" : "3px solid #CD7F32",
                 }}>{top3[2].name[0].toUpperCase()}</div>
                 <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[2].name}</div>
-                {top3[2].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[2].ageRange}</div>}
                 <div style={{ fontSize: 11, fontWeight: 600, color: "#CD7F32" }}>{formatWithSpaces(top3[2].xp)} XP</div>
                 <div style={{ background: "#CD7F32", borderRadius: "8px 8px 0 0", height: 44, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <span style={{ fontSize: 20, fontWeight: 900, color: "white" }}>3</span>
@@ -4479,37 +4476,24 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
             background: "var(--color-surface)", color: "var(--color-text-primary)",
             border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
           }}>
-            {/* Demotion zone divider - shown when ≥6 users, marks bottom 3 */}
-            {leaders.length >= 6 && (
-              <div style={{
-                background: "rgba(220,38,38,0.06)", borderBottom: "1.5px solid rgba(220,38,38,0.25)",
-                padding: "6px 16px", display: "flex", alignItems: "center", gap: 6,
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#dc2626", textTransform: "uppercase", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 4 }}>
-                  <AlertTriangle size={11} style={{ flexShrink: 0 }} />Demotion Zone - bottom {Math.min(3, restLeaders.length)} this week
-                </span>
-              </div>
-            )}
             {restLeaders.map((leader) => {
               const prevLeader = leaders[leader.rank - 2]; // person above
-              const inDemotionZone = leaders.length >= 6 && leader.rank > leaders.length - 3;
               return (
                 <div
                   key={leader.id}
                   className="leaderboard-row"
                   style={{
                     ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
-                    ...(inDemotionZone && !leader.isYou ? { background: "rgba(220,38,38,0.04)" } : {}),
                     display: "flex", alignItems: "center", padding: "12px 16px",
                     borderBottom: "1px solid var(--color-border)",
                   }}
                 >
                   <div style={{
                     width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
-                    color: inDemotionZone ? "#dc2626" : leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                    color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
                     flexShrink: 0,
                   }}>
-                    {inDemotionZone ? <AlertTriangle size={14} style={{ color: "#dc2626" }} /> : leader.rank}
+                    {leader.rank}
                   </div>
                   <div style={{
                     width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
@@ -4527,14 +4511,11 @@ function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp
                         <span style={{ fontSize: 10, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>You</span>
                       )}
                     </div>
-                    <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                      {leader.ageRange && (
-                        <span style={{ background: "var(--color-border)", borderRadius: 999, padding: "1px 6px", fontWeight: 600 }}>{leader.ageRange}</span>
-                      )}
-                      {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
-                        <span>{formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}</span>
-                      )}
-                    </div>
+                    {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        {formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}
+                      </div>
+                    )}
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
                     <div style={{
