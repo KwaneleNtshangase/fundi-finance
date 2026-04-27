@@ -12,6 +12,9 @@ jobs:
     name: Site health check
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      issues: write
+      contents: read
 
     steps:
       - name: Checkout
@@ -57,6 +60,7 @@ jobs:
 
       - name: Notify on failure (GitHub issue)
         if: failure()
+        continue-on-error: true
         uses: actions/github-script@v7
         with:
           script: |

@@ -5380,15 +5380,25 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    // Safety net: force sessionLoading=false after 8s so the splash never
+    // hangs indefinitely in CI / slow network environments.
+    const sessionTimeout = setTimeout(() => {
+      if (mounted) setSessionLoading(false);
+    }, 8_000);
+
     supabase.auth
       .getSession()
       .then(({ data }) => {
         if (!mounted) return;
+        clearTimeout(sessionTimeout);
         setSession(data.session ?? null);
         setSessionLoading(false);
       })
       .catch(() => {
-        if (mounted) setSessionLoading(false);
+        if (mounted) {
+          clearTimeout(sessionTimeout);
+          setSessionLoading(false);
+        }
       });
 
     const {
@@ -5399,6 +5409,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false;
+      clearTimeout(sessionTimeout);
       subscription.unsubscribe();
     };
   }, []);
