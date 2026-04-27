@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 type ProgressState = {
   xp: number;
   streak: number;
+  longestStreak: number;
   lastActivityDate: string | null;
   completedLessons: string[];
   freezeCount: number;
@@ -23,6 +24,7 @@ export type WeeklyCompletionsMap = Record<string, WeeklyCompletionEntry>;
 const DEFAULT_STATE: ProgressState = {
   xp: 0,
   streak: 0,
+  longestStreak: 0,
   lastActivityDate: null,
   completedLessons: [],
   freezeCount: 0,
@@ -71,13 +73,14 @@ export function useProgress() {
     (async () => {
       const { data } = await supabase
         .from("user_progress")
-        .select("xp,streak,last_activity_date,completed_lessons,freeze_count,weekly_xp,week_key")
+        .select("xp,streak,longest_streak,last_activity_date,completed_lessons,freeze_count,weekly_xp,week_key")
         .eq("user_id", userId)
         .maybeSingle();
       const wk = getCurrentWeekKey();
       setState({
         xp: data?.xp ?? 0,
         streak: data?.streak ?? 0,
+        longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
         completedLessons: (data?.completed_lessons ?? []) as string[],
         freezeCount: Math.max(0, Number(data?.freeze_count ?? 0)),
@@ -143,10 +146,18 @@ export function useProgress() {
     })
       .then((r) => r.json())
       .then((json) => {
-        if (!json?.ok) return;
-        setState((prev) => ({ ...prev, streak: json.streak, lastActivityDate: json.lastActivityDate }));
+        if (!json?.ok) {
+          console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
+          return;
+        }
+        setState((prev) => ({
+          ...prev,
+          streak: json.streak,
+          longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
+          lastActivityDate: json.lastActivityDate,
+        }));
       })
-      .catch(() => {});
+      .catch((e) => console.warn("[applyStreakAfterLesson] fetch failed:", e));
     return state.streak;
   };
 
@@ -199,6 +210,7 @@ export function useProgress() {
     userId,
     xp: state.xp,
     streak: state.streak,
+    longestStreak: state.longestStreak,
     lastActivityDate: state.lastActivityDate,
     completedLessons,
     freezeCount: state.freezeCount,

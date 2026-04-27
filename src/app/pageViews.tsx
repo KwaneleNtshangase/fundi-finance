@@ -752,6 +752,7 @@ type UserData = {
   xp: number;
   level: number;
   streak: number;
+  longestStreak: number;
   totalCompleted: number;
   dailyXP: number;
   dailyGoal: number;
@@ -1968,6 +1969,7 @@ function useFundiState() {
       xp: progress.xp,
       level: Math.floor(progress.xp / 500) + 1,
       streak: progress.streak,
+      longestStreak: progress.longestStreak,
       totalCompleted: progress.completedLessons.size,
       dailyXP,
       dailyGoal,
@@ -5934,12 +5936,14 @@ export default function Home() {
   const lessonStartTimeRef = useRef(0);
   const lessonHeartLostRef = useRef(false);
   const lessonStateRef = useRef(currentLessonState);
+  const isFinalizingRef = useRef(false);
   lessonStateRef.current = currentLessonState;
 
   const beginLessonSession = React.useCallback(
     (courseId: string, lessonId: string, lessonTitle: string) => {
       lessonStartTimeRef.current = Date.now();
       lessonHeartLostRef.current = false;
+      isFinalizingRef.current = false; // reset for fresh lesson
       analytics.lessonStarted(courseId, lessonId, lessonTitle);
     },
     []
@@ -6416,9 +6420,16 @@ export default function Home() {
   };
 
   const finalizeCurrentLesson = async (choice: "next" | "course") => {
+    // Prevent double-tap on Done from awarding XP multiple times
+    if (isFinalizingRef.current) return;
+    isFinalizingRef.current = true;
+
     const baseXP = 50;
     const totalXP = baseXP + currentLessonState.correctCount * 10;
-    if (!currentLessonState.courseId || !currentLessonState.lessonId) return;
+    if (!currentLessonState.courseId || !currentLessonState.lessonId) {
+      isFinalizingRef.current = false;
+      return;
+    }
 
     const totalQuestions = currentLessonState.steps.filter(
       (s) =>

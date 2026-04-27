@@ -975,10 +975,19 @@ export function ProfileView({
 
       {/* Personal Bests */}
       {(() => {
-        let longestStreak = userData.streak;
+        // longestStreak is now tracked in the DB via sync-streak and surfaced through userData
+        const longestStreak = Math.max(
+          userData.longestStreak ?? 0,
+          userData.streak,
+          typeof window !== "undefined" ? parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10) : 0
+        );
+        // Sync localStorage with DB value so it doesn't drift down
+        if (typeof window !== "undefined" && longestStreak > 0) {
+          const local = parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10);
+          if (longestStreak > local) localStorage.setItem("fundi-longest-streak", String(longestStreak));
+        }
         let bestDayXP = 0;
         if (typeof window !== "undefined") {
-          longestStreak = Math.max(longestStreak, parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10));
           for (let i = 0; i < 365; i++) {
             const d = new Date();
             d.setDate(d.getDate() - i);
@@ -986,10 +995,6 @@ export function ProfileView({
             const v = parseInt(localStorage.getItem(key) ?? "0", 10);
             if (v > bestDayXP) bestDayXP = v;
           }
-        }
-        if (typeof window !== "undefined" && userData.streak > longestStreak) {
-          localStorage.setItem("fundi-longest-streak", String(userData.streak));
-          longestStreak = userData.streak;
         }
         return (
           <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>

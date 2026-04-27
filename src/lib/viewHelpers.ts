@@ -273,6 +273,7 @@ export type UserData = {
   xp: number;
   level: number;
   streak: number;
+  longestStreak: number;
   totalCompleted: number;
   dailyXP: number;
   dailyGoal: number;
