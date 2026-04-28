@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { trackBehaviorEvent, BUDGET_RELATED_COURSE_IDS } from "@/lib/behaviorTracking";
 import { CONTENT_DATA } from "@/data/content";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import {
@@ -22,6 +23,7 @@ import {
 } from "@/lib/spaced-repetition";
 import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
+import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import {
   LineChart,
@@ -757,6 +759,7 @@ type UserData = {
   dailyXP: number;
   dailyGoal: number;
   badges: string[];
+  lessonsToday: number;
 };
 
 type Route =
@@ -1131,6 +1134,14 @@ function FundiCharacter({
 type SolveMode = "goal" | "time" | "monthly" | "rate" | "initial";
 
 export function CalculatorView() {
+  // Use useUserSettings for cross-device calc projection sync.
+  // userId is resolved internally by the hook.
+  const [calcViewUserId, setCalcViewUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setCalcViewUserId(data.user?.id ?? null)).catch(() => {});
+  }, []);
+  const calcViewSettings = useUserSettings(calcViewUserId);
+
   const defaultInputs: CalcInputs = {
     principal: 50000,
     monthly: 1000,
@@ -1159,16 +1170,18 @@ export function CalculatorView() {
   const [calcStartYearB, setCalcStartYearB] = useState(0);
   const [projectionSaved, setProjectionSaved] = useState(false);
 
-  // Load user's previously saved projection as default inputs
+  // Load user's previously saved projection — prefer Supabase, fall back to localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("fundi-calc-saved");
+    // Try Supabase-backed settings first when loaded
+    const remoteCalc = calcViewSettings.settings.calcSaved as Partial<CalcInputs> | null;
+    const localRaw = localStorage.getItem("fundi-calc-saved");
+    const saved: Partial<CalcInputs> | null = remoteCalc ?? (() => {
+      try { return localRaw ? JSON.parse(localRaw) as Partial<CalcInputs> : null; } catch { return null; }
+    })();
     if (saved) {
-      try {
-        const parsed = JSON.parse(saved) as Partial<CalcInputs>;
-        setInputsA((prev) => ({ ...prev, ...parsed }));
-        setCalcA((prev) => ({ ...prev, ...parsed }));
-      } catch { /* ignore */ }
+      setInputsA((prev) => ({ ...prev, ...saved }));
+      setCalcA((prev) => ({ ...prev, ...saved }));
     }
   }, []);
 
@@ -1227,6 +1240,8 @@ export function CalculatorView() {
   const handlePinProjection = () => {
     if (typeof window !== "undefined") {
       localStorage.setItem("fundi-calc-saved", JSON.stringify(inputsA));
+      // Also persist to Supabase via userSettings for cross-device access
+      void calcViewSettings.setCalcSaved(inputsA as Record<string, unknown>);
       setProjectionSaved(true);
     }
   };
@@ -1622,6 +1637,10 @@ export function CalculatorView() {
 
 function useFundiState() {
   const progress = useProgress();
+  // ── User settings (sound, dark mode, daily goal, calc saved) ─────────────
+  // Synced to Supabase user_settings for cross-device persistence.
+  const userSettings = useUserSettings(progress.userId);
+
   const [dailyXP, setDailyXP] = useState(0);
   const [dailyGoal, setDailyGoal] = useState<number>(() => {
     if (typeof window === "undefined") return 50;
@@ -1683,22 +1702,29 @@ function useFundiState() {
     [progress.userId]
   );
 
-  // Persist hearts to localStorage
+  // Persist hearts to localStorage (local cache) + Supabase
   useEffect(() => {
     localStorage.setItem("fundi-hearts", String(hearts));
   }, [hearts]);
   useEffect(() => {
     if (lastHeartLostAt !== null) {
       localStorage.setItem("fundi-last-heart-lost", String(lastHeartLostAt));
+      // Sync to Supabase so cross-device heart regen is accurate
+      if (progress.userId) {
+        void supabase
+          .from("user_progress")
+          .update({ last_heart_lost_at: lastHeartLostAt })
+          .eq("user_id", progress.userId);
+      }
     }
-  }, [lastHeartLostAt]);
+  }, [lastHeartLostAt, progress.userId]);
 
   useEffect(() => {
     if (!progress.userId) return;
     void (async () => {
       const { data } = await supabase
         .from("user_progress")
-        .select("hearts")
+        .select("hearts, last_heart_lost_at")
         .eq("user_id", progress.userId)
         .maybeSingle();
       const HEARTS_CAP = 5;
@@ -1710,6 +1736,12 @@ function useFundiState() {
       const mergedHearts = Math.min(localHearts, remoteHearts);
       setHearts(mergedHearts);
       localStorage.setItem("fundi-hearts", String(mergedHearts));
+      // Restore last_heart_lost_at from Supabase if localStorage was wiped (new device)
+      const remoteLastLost = (data as any)?.last_heart_lost_at as number | null | undefined;
+      if (remoteLastLost && !localStorage.getItem("fundi-last-heart-lost")) {
+        localStorage.setItem("fundi-last-heart-lost", String(remoteLastLost));
+        setLastHeartLostAt(remoteLastLost);
+      }
       if (mergedHearts !== remoteHearts) {
         await supabase
           .from("user_progress")
@@ -1848,6 +1880,13 @@ function useFundiState() {
     correctCount: 0,
   });
 
+  // ── Sync daily goal from Supabase when settings load ─────────────────────
+  useEffect(() => {
+    if (userSettings.loaded) {
+      setDailyGoal(userSettings.settings.dailyGoal);
+    }
+  }, [userSettings.loaded, userSettings.settings.dailyGoal]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncDailyXpFromStorage = () => {
@@ -1974,10 +2013,21 @@ function useFundiState() {
       dailyXP,
       dailyGoal,
       badges: userBadges,
+      lessonsToday: parseInt(
+        typeof window !== "undefined"
+          ? (localStorage.getItem(`fundi-daily-lessons-${new Date().toISOString().slice(0, 10)}`) ?? "0")
+          : "0",
+        10
+      ),
     } satisfies UserData,
     dailyXP,
     dailyGoal,
-    setDailyGoal,
+    setDailyGoal: (g: number) => {
+      setDailyGoal(g);
+      // Also persist to Supabase via userSettings
+      void userSettings.setDailyGoal(g);
+    },
+    userSettings,
     resetProgress: progress.resetProgress,
     route,
     setRoute,
@@ -4843,18 +4893,24 @@ function SettingsView({
   userData,
   setDailyGoal,
   resetProgress,
+  userSettings,
 }: {
   userData: UserData;
   setDailyGoal: (goal: number) => void;
   resetProgress: () => void;
+  userSettings: ReturnType<typeof useUserSettings>;
 }) {
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(() =>
-    typeof window === "undefined" ? true : localStorage.getItem("fundi-sound-enabled") !== "false"
-  );
-  const [selectedGoal, setSelectedGoal] = useState<number>(() => {
-    if (typeof window === "undefined") return 50;
-    return parseInt(localStorage.getItem("fundi-daily-goal") ?? "50", 10);
-  });
+  // Read initial values from Supabase-backed settings (with localStorage fallback)
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(userSettings.settings.soundEnabled);
+  const [selectedGoal, setSelectedGoal] = useState<number>(userSettings.settings.dailyGoal);
+
+  // Sync when remote settings load
+  useEffect(() => {
+    if (userSettings.loaded) {
+      setSoundEnabled(userSettings.settings.soundEnabled);
+      setSelectedGoal(userSettings.settings.dailyGoal);
+    }
+  }, [userSettings.loaded, userSettings.settings.soundEnabled, userSettings.settings.dailyGoal]);
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
 
@@ -4923,13 +4979,15 @@ function SettingsView({
   const handleSoundToggle = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
-    localStorage.setItem("fundi-sound-enabled", String(next));
+    // Persist to Supabase + localStorage via hook
+    void userSettings.setSoundEnabled(next);
   };
 
   const handleGoal = (g: number) => {
     setSelectedGoal(g);
     setDailyGoal(g);
-    localStorage.setItem("fundi-daily-goal", String(g));
+    // Persist to Supabase + localStorage via hook
+    void userSettings.setDailyGoal(g);
   };
 
   const Row = ({ icon, label, sub, children }: { icon: React.ReactNode; label: string; sub?: string; children?: React.ReactNode }) => (
@@ -5082,12 +5140,21 @@ function SettingsView({
   );
 }
 
-function DarkModeToggle() {
+function DarkModeToggle({ userSettings }: { userSettings: ReturnType<typeof useUserSettings> }) {
   const [dark, setDark] = useState<boolean>(() => {
     if (typeof window === "undefined") return false;
-    return localStorage.getItem("fundi-dark-mode") === "true" ||
-      (window.matchMedia("(prefers-color-scheme: dark)").matches && !localStorage.getItem("fundi-dark-mode"));
+    const stored = localStorage.getItem("fundi-dark-mode");
+    if (stored === "true") return true;
+    if (stored === "false") return false;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
+
+  // Sync from Supabase when settings load
+  useEffect(() => {
+    if (!userSettings.loaded) return;
+    const remote = userSettings.settings.darkMode;
+    if (remote !== null) setDark(remote);
+  }, [userSettings.loaded, userSettings.settings.darkMode]);
 
   useEffect(() => {
     if (dark) {
@@ -5114,7 +5181,12 @@ function DarkModeToggle() {
       <button
         role="switch"
         aria-checked={dark}
-        onClick={() => setDark(d => !d)}
+        onClick={() => {
+          const next = !dark;
+          setDark(next);
+          // Persist to Supabase + localStorage via hook
+          void userSettings.setDarkMode(next);
+        }}
         style={{
           width: 48, height: 28, borderRadius: 14,
           background: dark ? "var(--color-primary)" : "var(--color-border)",
@@ -5141,12 +5213,28 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
       <div className="stats-section">
         <h3>My Stats</h3>
         <div className="stat-item" style={{ position: "relative" }}>
-          <div className="stat-icon">
-            <Flame size={28} className="text-current" />
+          <div className="stat-icon" style={{ position: "relative" }}>
+            <Flame
+              size={28}
+              style={{
+                color: userData.lessonsToday > 0 ? "#FF9500" : undefined,
+                filter: userData.lessonsToday > 0 ? "none" : "grayscale(1) opacity(0.4)",
+                transition: "filter 0.3s, color 0.3s",
+              }}
+            />
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
-            <div className="stat-label">Day Streak</div>
-            <div className="stat-value" id="streakValue">
+            <div
+              className="stat-label"
+              style={{ color: userData.lessonsToday > 0 ? undefined : "var(--text-muted, #888)" }}
+            >
+              Day Streak
+            </div>
+            <div
+              className="stat-value"
+              id="streakValue"
+              style={{ color: userData.lessonsToday > 0 ? undefined : "var(--text-muted, #888)" }}
+            >
               {userData.streak}
             </div>
           </div>
@@ -5839,6 +5927,7 @@ export default function Home() {
     weeklyXp,
     lessonSummary,
     setLessonSummary,
+    userSettings,
   } = useFundiState();
   const [isDesktop, setIsDesktop] = useState(false);
 
@@ -6045,28 +6134,73 @@ export default function Home() {
   }, [route]);
 
   // Retention ping: fire once per cohort day after signup
+  // Uses Supabase profiles for cross-device deduplication, falls back to localStorage.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const signupStr = localStorage.getItem("fundi-signup-ts");
-    if (!signupStr) {
-      localStorage.setItem("fundi-signup-ts", String(Date.now()));
-      return;
-    }
-    const hoursSince = (Date.now() - parseInt(signupStr, 10)) / 3_600_000;
-    const fired = new Set((localStorage.getItem("fundi-retention-fired") ?? "").split(",").filter(Boolean));
-    if (hoursSince >= 1 && !fired.has("day1")) {
-      analytics.retentionPing(Math.floor(hoursSince / 24), "day1");
-      fired.add("day1");
-    }
-    if (hoursSince >= 168 && !fired.has("day7")) {
-      analytics.retentionPing(Math.floor(hoursSince / 24), "day7");
-      fired.add("day7");
-    }
-    if (hoursSince >= 720 && !fired.has("day30")) {
-      analytics.retentionPing(Math.floor(hoursSince / 24), "day30");
-      fired.add("day30");
-    }
-    localStorage.setItem("fundi-retention-fired", Array.from(fired).join(","));
+    const runRetentionPing = async () => {
+      let signupTs: number;
+      let firedStr: string;
+
+      // Try to get/set from Supabase first for cross-device accuracy
+      const { data: { user } } = await supabase.auth.getUser().catch(() => ({ data: { user: null } }));
+      if (user) {
+        const { data: prof } = await supabase
+          .from("profiles")
+          .select("signup_ts, retention_fired")
+          .eq("user_id", user.id)
+          .maybeSingle()
+          .then((r) => r, () => ({ data: null }));
+
+        if (prof?.signup_ts) {
+          signupTs = Number(prof.signup_ts);
+          localStorage.setItem("fundi-signup-ts", String(signupTs));
+        } else {
+          // First time: record signup in both places
+          signupTs = parseInt(localStorage.getItem("fundi-signup-ts") ?? "0", 10) || Date.now();
+          localStorage.setItem("fundi-signup-ts", String(signupTs));
+          await supabase.from("profiles")
+            .update({ signup_ts: signupTs, retention_fired: "" } as any)
+            .eq("user_id", user.id)
+            .then(() => {}, () => {});
+        }
+        firedStr = prof?.retention_fired ?? localStorage.getItem("fundi-retention-fired") ?? "";
+      } else {
+        const raw = localStorage.getItem("fundi-signup-ts");
+        if (!raw) {
+          localStorage.setItem("fundi-signup-ts", String(Date.now()));
+          return;
+        }
+        signupTs = parseInt(raw, 10);
+        firedStr = localStorage.getItem("fundi-retention-fired") ?? "";
+      }
+
+      const hoursSince = (Date.now() - signupTs) / 3_600_000;
+      const fired = new Set(firedStr.split(",").filter(Boolean));
+      let changed = false;
+      if (hoursSince >= 1 && !fired.has("day1")) {
+        analytics.retentionPing(Math.floor(hoursSince / 24), "day1");
+        fired.add("day1"); changed = true;
+      }
+      if (hoursSince >= 168 && !fired.has("day7")) {
+        analytics.retentionPing(Math.floor(hoursSince / 24), "day7");
+        fired.add("day7"); changed = true;
+      }
+      if (hoursSince >= 720 && !fired.has("day30")) {
+        analytics.retentionPing(Math.floor(hoursSince / 24), "day30");
+        fired.add("day30"); changed = true;
+      }
+      if (changed) {
+        const newFiredStr = Array.from(fired).join(",");
+        localStorage.setItem("fundi-retention-fired", newFiredStr);
+        if (user) {
+          await supabase.from("profiles")
+            .update({ retention_fired: newFiredStr } as any)
+            .eq("user_id", user.id)
+            .then(() => {}, () => {});
+        }
+      }
+    };
+    runRetentionPing().catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -6144,7 +6278,7 @@ export default function Home() {
 
       const { data } = await supabase
         .from("user_progress")
-        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges")
+        .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_lessons_today, daily_lessons_date, perfect_today, perfect_today_date, perfect_lessons_total, first_lesson_fired, milestone_cta_shown, weekly_challenge_progress, expense_today, expense_today_date, budget_visited_date")
         .eq("user_id", user.id)
         .single();
       if (!data) return;
@@ -6182,10 +6316,74 @@ export default function Home() {
         localStorage.setItem("fundi-earned-badges", JSON.stringify(mergedBadges));
         setCourseBadgeIds(mergedBadges);
       }
+
+      // Restore daily counters from Supabase if localStorage was wiped (new device)
+      const todayDate = new Date().toISOString().slice(0, 10);
+      if ((data as any).daily_lessons_date === todayDate) {
+        const remDailyLessons = Number((data as any).daily_lessons_today ?? 0);
+        const locDailyLessons = parseInt(localStorage.getItem(`fundi-lessons-today-${todayDate}`) ?? "0", 10);
+        if (remDailyLessons > locDailyLessons) {
+          localStorage.setItem(`fundi-lessons-today-${todayDate}`, String(remDailyLessons));
+          localStorage.setItem(`fundi-daily-lessons-${todayDate}`, String(remDailyLessons));
+        }
+      }
+      if ((data as any).perfect_today_date === todayDate) {
+        const remPerfectToday = Number((data as any).perfect_today ?? 0);
+        const locPerfectToday = parseInt(localStorage.getItem(`fundi-perfect-today-${todayDate}`) ?? "0", 10);
+        if (remPerfectToday > locPerfectToday) {
+          localStorage.setItem(`fundi-perfect-today-${todayDate}`, String(remPerfectToday));
+        }
+      }
+      if ((data as any).expense_today_date === todayDate) {
+        const remExpenseToday = Number((data as any).expense_today ?? 0);
+        const locExpenseToday = parseInt(localStorage.getItem(`fundi-expense-today-${todayDate}`) ?? "0", 10);
+        if (remExpenseToday > locExpenseToday) {
+          localStorage.setItem(`fundi-expense-today-${todayDate}`, String(remExpenseToday));
+        }
+      }
+      if ((data as any).budget_visited_date === todayDate) {
+        localStorage.setItem(`fundi-budget-visited-${todayDate}`, "1");
+      }
+      const remPerfectTotal = Number((data as any).perfect_lessons_total ?? 0);
+      const locPerfectTotal = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
+      if (remPerfectTotal > locPerfectTotal) {
+        localStorage.setItem("fundi-perfect-lessons", String(remPerfectTotal));
+      }
+
+      // Restore analytics flags (prevent re-firing on new device)
+      if ((data as any).first_lesson_fired) {
+        localStorage.setItem("fundi-first-lesson-fired", "1");
+      }
+      if ((data as any).milestone_cta_shown) {
+        localStorage.setItem("fundi-cta-milestone-shown", "1");
+      }
+
+      // Restore weekly challenge progress from Supabase
+      const remoteChallengeProgress = (data as any).weekly_challenge_progress as Record<string, unknown> | null;
+      if (remoteChallengeProgress) {
+        const wc = weeklyChallenge;
+        const remoteWcState = remoteChallengeProgress[wc.id] as {
+          lessonsCompleted?: number; xpEarned?: number; perfectLessons?: number;
+          dailyXp?: number; completed?: boolean;
+        } | undefined;
+        if (remoteWcState) {
+          const localRaw = localStorage.getItem(`fundi-wc-${wc.id}`);
+          let localWcState = { lessonsCompleted: 0, completed: false };
+          try { if (localRaw) localWcState = JSON.parse(localRaw); } catch { /* ignore */ }
+          // Take whichever has more progress
+          if ((remoteWcState.lessonsCompleted ?? 0) > localWcState.lessonsCompleted || remoteWcState.completed) {
+            localStorage.setItem(`fundi-wc-${wc.id}`, JSON.stringify(remoteWcState));
+            if (remoteWcState.completed) {
+              localStorage.setItem(`fundi-wc-claimed-${wc.id}`, "true");
+            }
+          }
+        }
+      }
+
       // Weekly XP is fully managed by useProgress hook - no cross-device sync needed here
     };
     syncFromSupabase().catch(() => {}); // silent fail, offline is fine
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const currentCourse =
     route.name === "course" || route.name === "lesson"
@@ -6203,6 +6401,9 @@ export default function Home() {
   // Ref to hold next lesson across async badge modal
   const nextLessonRef = React.useRef<Lesson | null>(null);
 
+  // Ref tracking the last completed lesson — used to detect budget-opens post-lesson
+  const lastCompletedLessonRef = React.useRef<{ courseId: string; lessonId: string } | null>(null);
+
   const handleNav = (name: Route["name"]) => {
     if (name === "learn") setRoute({ name: "learn" });
     if (name === "quests") setRoute({ name: "quests" });
@@ -6210,7 +6411,17 @@ export default function Home() {
     if (name === "profile") setRoute({ name: "profile" });
     if (name === "leaderboard") setRoute({ name: "leaderboard" });
     if (name === "settings") setRoute({ name: "settings" });
-    if (name === "budget") setRoute({ name: "budget" });
+    if (name === "budget") {
+      setRoute({ name: "budget" });
+      // Behavioral outcome: detect if user opens budget planner after a budget-related lesson
+      const last = lastCompletedLessonRef.current;
+      if (last && BUDGET_RELATED_COURSE_IDS.has(last.courseId)) {
+        analytics.budgetOpenedPostLesson(last.courseId, last.lessonId);
+        void trackBehaviorEvent("budget_opened_post_lesson");
+        // Clear so we don't double-fire on subsequent budget visits
+        lastCompletedLessonRef.current = null;
+      }
+    }
   };
 
   // ── Find the next playable lesson after the current one ──────────────────
@@ -6311,10 +6522,28 @@ export default function Home() {
             ? state.dailyXp >= wc.target
             : userData.streak >= wc.target;
 
+    // Persist weekly challenge progress to Supabase for cross-device sync
+    const syncWeeklyProgressToSupabase = (s: typeof state) => {
+      supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        const { data: row } = await supabase
+          .from("user_progress")
+          .select("weekly_challenge_progress")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const current = (row?.weekly_challenge_progress as Record<string, unknown> | null) ?? {};
+        await supabase.from("user_progress").upsert({
+          user_id: user.id,
+          weekly_challenge_progress: { ...current, [wc.id]: s },
+        }, { onConflict: "user_id" });
+      }).catch(() => {});
+    };
+
     if (meets && !state.completed) {
       analytics.challengeCompleted(wc.text, wc.xp);
       state.completed = true;
       localStorage.setItem(key, JSON.stringify(state));
+      syncWeeklyProgressToSupabase(state);
       setChallengeProgress(wc.target);
       void persistWeeklyChallengeCompletion(wc.id, wc.xp);
       const claimed = localStorage.getItem(`fundi-wc-claimed-${wc.id}`) === "true";
@@ -6327,6 +6556,7 @@ export default function Home() {
       }
     } else {
       localStorage.setItem(key, JSON.stringify(state));
+      syncWeeklyProgressToSupabase(state);
       setChallengeProgress(Math.min(progressVal, wc.target));
     }
     setWeeklyProgress({
@@ -6448,39 +6678,79 @@ export default function Home() {
     setSavedProgress(null);
     if (isPerfect) {
       const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
-      localStorage.setItem("fundi-perfect-lessons", String(prev + 1));
+      const newPerfectTotal = prev + 1;
+      localStorage.setItem("fundi-perfect-lessons", String(newPerfectTotal));
       if (hearts < maxHearts) gainHeart();
     }
     // Track daily challenge progress + first-lesson analytics
     if (typeof window !== "undefined") {
       const isoDay = new Date().toISOString().slice(0, 10);
+
+      // Daily lesson counter
       const lessonsKey = `fundi-lessons-today-${isoDay}`;
       const newLessonCount = (parseInt(localStorage.getItem(lessonsKey) ?? "0", 10)) + 1;
       localStorage.setItem(lessonsKey, String(newLessonCount));
-      // Fire first-lesson-completed analytics event once
-      if (!localStorage.getItem("fundi-first-lesson-fired")) {
-        const signupTs = parseInt(localStorage.getItem("fundi-signup-ts") ?? String(Date.now()), 10);
-        const hoursSince = (Date.now() - signupTs) / 3_600_000;
-        analytics.firstLessonCompleted(Math.round(hoursSince * 10) / 10, currentLessonState.courseId);
-        localStorage.setItem("fundi-first-lesson-fired", "1");
-      }
-      if (isPerfect) {
-        const perfKey = `fundi-perfect-today-${isoDay}`;
-        localStorage.setItem(perfKey, String((parseInt(localStorage.getItem(perfKey) ?? "0", 10)) + 1));
-      }
-      // Also write ISO-keyed daily XP (for challenge condition checks)
+
+      // Daily perfect counter
+      const perfTodayKey = `fundi-perfect-today-${isoDay}`;
+      const newPerfectToday = isPerfect
+        ? (parseInt(localStorage.getItem(perfTodayKey) ?? "0", 10)) + 1
+        : parseInt(localStorage.getItem(perfTodayKey) ?? "0", 10);
+      if (isPerfect) localStorage.setItem(perfTodayKey, String(newPerfectToday));
+
+      // Daily XP
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
       const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
       const newDailyXp = prev + totalXP;
       localStorage.setItem(xpIsoKey, String(newDailyXp));
-      // Persist daily XP to Supabase for cross-device / localStorage-loss recovery
+
+      // Perfect lessons lifetime total
+      const newPerfectTotal = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
+
+      // Persist all daily counters to Supabase for cross-device sync
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
-        await supabase.from("user_progress").upsert({
+        const supabasePatch: Record<string, unknown> = {
           user_id: user.id,
           daily_xp_today: newDailyXp,
           daily_xp_date: isoDay,
-        } as any, { onConflict: "user_id" });
+          daily_lessons_today: newLessonCount,
+          daily_lessons_date: isoDay,
+          perfect_today: newPerfectToday,
+          perfect_today_date: isoDay,
+          perfect_lessons_total: newPerfectTotal,
+        };
+
+        // First lesson analytics flag
+        if (!localStorage.getItem("fundi-first-lesson-fired")) {
+          supabasePatch.first_lesson_fired = true;
+        }
+
+        // Milestone CTA flag
+        const alreadyShownCta = localStorage.getItem("fundi-cta-milestone-shown");
+        if (alreadyShownCta) supabasePatch.milestone_cta_shown = true;
+
+        await supabase.from("user_progress").upsert(supabasePatch as any, { onConflict: "user_id" });
+
+        // Fire first-lesson-completed analytics event once (inside getUser callback so user.id is available)
+        if (!localStorage.getItem("fundi-first-lesson-fired")) {
+          const courseIdForAnalytics = currentLessonState.courseId ?? "";
+          void supabase.from("profiles").select("signup_ts").eq("user_id", user.id).maybeSingle().then(
+            ({ data }) => {
+              const signupTs = data?.signup_ts
+                ? Number(data.signup_ts)
+                : parseInt(localStorage.getItem("fundi-signup-ts") ?? String(Date.now()), 10);
+              const hoursSince = (Date.now() - signupTs) / 3_600_000;
+              analytics.firstLessonCompleted(Math.round(hoursSince * 10) / 10, courseIdForAnalytics);
+            },
+            () => {
+              const signupTs = parseInt(localStorage.getItem("fundi-signup-ts") ?? String(Date.now()), 10);
+              const hoursSince = (Date.now() - signupTs) / 3_600_000;
+              analytics.firstLessonCompleted(Math.round(hoursSince * 10) / 10, courseIdForAnalytics);
+            }
+          );
+          localStorage.setItem("fundi-first-lesson-fired", "1");
+        }
       });
     }
     bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect });
@@ -6625,6 +6895,13 @@ export default function Home() {
     // Show Duolingo-style lesson summary before navigating
     const elapsedSeconds = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
     const accuracy = totalQuestions > 0 ? Math.min(100, Math.round((currentLessonState.correctCount / totalQuestions) * 100)) : 0;
+    // Record last completed lesson so budget-open post-lesson can be detected
+    if (currentLessonState.courseId && currentLessonState.lessonId) {
+      lastCompletedLessonRef.current = {
+        courseId: currentLessonState.courseId,
+        lessonId: currentLessonState.lessonId,
+      };
+    }
     setLessonSummary({
       xpEarned: totalXP,
       timeSeconds: elapsedSeconds,
@@ -6772,8 +7049,15 @@ export default function Home() {
 
   const handleProfileSignOut = async () => {
     await supabase.auth.signOut();
-    setRoute({ name: "learn" });
+    // Wipe all fundi- localStorage keys so a second user on this device
+    // doesn't inherit the previous user's cached state
     if (typeof window !== "undefined") {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith("fundi-")) keysToRemove.push(k);
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
       window.location.href = "/";
     }
   };
@@ -7164,6 +7448,8 @@ export default function Home() {
             courseBadgeIds={courseBadgeIds}
             courses={CONTENT_DATA.courses}
             completedLessons={completedLessons}
+            calcSaved={userSettings.settings.calcSaved as any}
+            onClearCalcSaved={() => { localStorage.removeItem("fundi-calc-saved"); void userSettings.setCalcSaved(null); }}
           />
         )}
 
@@ -7176,6 +7462,7 @@ export default function Home() {
             userData={userData}
             setDailyGoal={setDailyGoal}
             resetProgress={handleResetProgress}
+            userSettings={userSettings}
           />
         )}
 

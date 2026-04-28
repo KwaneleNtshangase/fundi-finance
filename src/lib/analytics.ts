@@ -122,4 +122,17 @@ export const analytics = {
   // ── Share card generated ──────────────────────────────────────────────────
   shareCardGenerated: (cardType: "lesson" | "calculator") =>
     track("share_card_generated", { cardType }),
+
+  // ── Behavioral outcome events (real financial actions) ────────────────────
+  /** User opened the budget planner immediately after completing a budget-related lesson */
+  budgetOpenedPostLesson: (courseId: string, lessonId: string) =>
+    track("budget_opened_post_lesson", { courseId, lessonId }),
+
+  /** User set or updated a savings category target in the budget planner */
+  savingsGoalSet: (savingsAmount: number) =>
+    track("savings_goal_set", { savingsAmount }),
+
+  /** User logged an expense entry in the budget planner */
+  expenseLogged: (category: string, amount: number) =>
+    track("expense_logged", { category, amount }),
 };

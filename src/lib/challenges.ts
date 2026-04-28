@@ -109,14 +109,20 @@ export async function evaluateChallengeProgress(userId: string, event: string, p
   for (const r of rows as AssignmentRow[]) {
     const definition = fullBank.find((d) => d.id === r.challenge_code);
     if (!definition || definition.event !== event) continue;
-    const delta = Number(payload.value ?? payload.amount ?? 1) || 1;
+    // "set_max" mode: use max(current, value) for threshold checks like streak_count.
+    // Default mode "add" accumulates value (e.g. lesson count, XP earned).
+    const rawValue = Number(payload.value ?? payload.amount ?? 1) || 1;
+    const mode = String(payload.mode ?? "add");
     const { data: existing } = await supabase
       .from("user_challenge_progress")
       .select("current_value,target_value,is_complete")
       .eq("assignment_id", r.id)
       .maybeSingle();
     const progress = (existing ?? null) as ProgressRow;
-    const nextValue = Math.max(0, Number(progress?.current_value ?? 0) + delta);
+    const currentProgress = Number(progress?.current_value ?? 0);
+    const nextValue = mode === "set_max"
+      ? Math.max(currentProgress, rawValue)
+      : Math.max(0, currentProgress + rawValue);
     const target = Number(progress?.target_value ?? r.target_value ?? 1);
     const isComplete = nextValue >= target;
     await supabase.from("user_challenge_progress").upsert({

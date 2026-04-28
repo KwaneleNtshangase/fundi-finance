@@ -370,6 +370,8 @@ export function ProfileView({
   courseBadgeIds,
   courses = [],
   completedLessons = new Set(),
+  calcSaved: calcSavedProp = null,
+  onClearCalcSaved,
 }: {
   userData: UserData;
   onSignOut: () => void;
@@ -381,6 +383,10 @@ export function ProfileView({
   courseBadgeIds: string[];
   courses?: Course[];
   completedLessons?: Set<string>;
+  /** Saved calculator projection from Supabase (cross-device) */
+  calcSaved?: CalcInputs | null;
+  /** Callback to clear saved projection in Supabase */
+  onClearCalcSaved?: () => void;
 }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -415,16 +421,19 @@ export function ProfileView({
     if (typeof window === "undefined") return;
     setProfileGoal(localStorage.getItem("fundi-user-goal"));
     setProfileGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
-    const raw = localStorage.getItem("fundi-calc-saved");
-    if (raw) {
+    // Prefer Supabase-backed calcSaved prop; fall back to localStorage cache
+    const calcSource = calcSavedProp ?? (() => {
       try {
-        const parsed = JSON.parse(raw) as CalcInputs;
-        setSavedProjection(parsed);
-        const growth = calcGrowth(parsed);
-        if (growth.length > 0) setProjectionFinalValue(growth[growth.length - 1].value);
-      } catch { /* ignore */ }
+        const raw = localStorage.getItem("fundi-calc-saved");
+        return raw ? JSON.parse(raw) as CalcInputs : null;
+      } catch { return null; }
+    })();
+    if (calcSource) {
+      setSavedProjection(calcSource);
+      const growth = calcGrowth(calcSource);
+      if (growth.length > 0) setProjectionFinalValue(growth[growth.length - 1].value);
     }
-  }, []);
+  }, [calcSavedProp]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -697,7 +706,7 @@ export function ProfileView({
               <div style={{ fontSize: 17, fontWeight: 900, color: "var(--color-text-primary)" }}>{savedProjection.years} yrs</div>
             </div>
           </div>
-          <button type="button" onClick={() => { localStorage.removeItem("fundi-calc-saved"); setSavedProjection(null); setProjectionFinalValue(null); }}
+          <button type="button" onClick={() => { localStorage.removeItem("fundi-calc-saved"); setSavedProjection(null); setProjectionFinalValue(null); onClearCalcSaved?.(); }}
             style={{ marginTop: 12, width: "100%", padding: "9px", borderRadius: 10, border: "1.5px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.06)", color: "#dc2626", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <Trash2 size={14} /> Remove Projection
           </button>

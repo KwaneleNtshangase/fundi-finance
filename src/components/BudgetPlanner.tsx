@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import {
   LineChart,
   Line,
@@ -203,6 +204,14 @@ export function BudgetView() {
     if (typeof window !== "undefined") {
       const isoDay = new Date().toISOString().slice(0, 10);
       localStorage.setItem(`fundi-budget-visited-${isoDay}`, "1");
+      // Also sync to Supabase for cross-device daily challenge tracking
+      supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        await supabase.from("user_progress").upsert(
+          { user_id: user.id, budget_visited_date: isoDay } as any,
+          { onConflict: "user_id" }
+        );
+      }).catch(() => {});
     }
   }, []);
 
@@ -305,6 +314,12 @@ export function BudgetView() {
           .eq("user_id", user.id).eq("category", cat.id).eq("month_year", monthYear);
       }
     }
+    // Behavioral outcome: track if user set a savings target
+    const savingsDraft = Number(budgetDraft["savings"] ?? 0);
+    if (savingsDraft > 0) {
+      analytics.savingsGoalSet(savingsDraft);
+      void trackBehaviorEvent("savings_goal_set");
+    }
     setBudgetSaving(false);
     setShowSetBudget(false);
     loadBudgetTargets();
@@ -347,10 +362,24 @@ export function BudgetView() {
       }
     }
     analytics.budgetEntryAdded(addCategory, addType);
+    // Behavioral outcome: track expense logged
+    if (addType === "expense") {
+      analytics.expenseLogged(addCategory, Number(addAmount));
+      void trackBehaviorEvent("expense_logged");
+    }
     if (addType === "expense" && typeof window !== "undefined") {
       const isoDay = new Date().toISOString().slice(0, 10);
       const expKey = `fundi-expense-today-${isoDay}`;
-      localStorage.setItem(expKey, String((parseInt(localStorage.getItem(expKey) ?? "0", 10)) + 1));
+      const newExpenseCount = (parseInt(localStorage.getItem(expKey) ?? "0", 10)) + 1;
+      localStorage.setItem(expKey, String(newExpenseCount));
+      // Also sync to Supabase for cross-device daily challenge tracking
+      supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        await supabase.from("user_progress").upsert(
+          { user_id: user.id, expense_today: newExpenseCount, expense_today_date: isoDay } as any,
+          { onConflict: "user_id" }
+        );
+      }).catch(() => {});
     }
     setSaving(false); setShowAdd(false); setAddCategory(""); setAddAmount(""); setAddDesc("");
     setAddDate(now.toISOString().slice(0, 10));
