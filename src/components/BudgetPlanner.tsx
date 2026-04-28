@@ -171,6 +171,32 @@ export function BudgetView() {
   const [newCatIcon, setNewCatIcon] = useState("MoreHorizontal");
   const [savingCustomCat, setSavingCustomCat] = useState(false);
   const [benchmarks, setBenchmarks] = useState<Record<string, number>>({});
+  const [userGoalLabel, setUserGoalLabel] = useState<string | null>(null);
+
+  // Read the user's onboarding goal from localStorage to show as header context
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const GOAL_LABELS: Record<string, string> = {
+      "debt-free": "Get debt-free",
+      emergency: "Build emergency fund",
+      invest: "Start investing",
+      home: "Save for a home",
+      retire: "Plan for retirement",
+      business: "Grow my business",
+    };
+    const goalId = localStorage.getItem("fundi-user-goal");
+    const desc = localStorage.getItem("fundi-goal-description");
+    if (goalId) {
+      setUserGoalLabel(GOAL_LABELS[goalId] ?? desc ?? goalId);
+    }
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "fundi-user-goal" && e.newValue) {
+        setUserGoalLabel(GOAL_LABELS[e.newValue] ?? e.newValue);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const targetDate = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
   const year = targetDate.getFullYear();
@@ -459,7 +485,7 @@ export function BudgetView() {
   return (
     <main className="main-content main-with-stats budget-page">
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: userGoalLabel ? 8 : 16 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <div style={{ display: "flex", borderRadius: 10, border: "1px solid var(--color-border)", overflow: "hidden" }}>
@@ -477,6 +503,21 @@ export function BudgetView() {
           </button>
         </div>
       </div>
+
+      {/* Goal context banner */}
+      {userGoalLabel && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          marginBottom: 16, padding: "6px 12px",
+          background: "rgba(0,122,77,0.07)",
+          borderRadius: 8, border: "1px solid rgba(0,122,77,0.2)",
+        }}>
+          <Target size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-primary)" }}>
+            Your budget plan — {userGoalLabel}
+          </span>
+        </div>
+      )}
 
       {/* YEAR VIEW */}
       {viewMode === "year" && (

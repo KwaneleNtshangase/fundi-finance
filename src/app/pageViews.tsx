@@ -2585,7 +2585,6 @@ export function LearnView({
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
   const [goalDescription, setGoalDescription] = useState<string>("");
-  const [goalBannerDismissed, setGoalBannerDismissed] = useState(false);
   const [showGoalPicker, setShowGoalPicker] = useState(false);
   const [pickerGoalId, setPickerGoalId] = useState<string>("");
   const [pickerGoalDescription, setPickerGoalDescription] = useState<string>("");
@@ -2601,7 +2600,6 @@ export function LearnView({
     if (typeof window === "undefined") return;
     setUserGoal(localStorage.getItem("fundi-user-goal"));
     setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
-    setGoalBannerDismissed(localStorage.getItem("fundi-goal-banner-dismissed") === "1");
     // Listen for cross-device goal sync updates (dispatched by syncFromSupabase)
     const onStorage = (e: StorageEvent) => {
       if (e.key === "fundi-user-goal" && e.newValue) setUserGoal(e.newValue);
@@ -2702,46 +2700,36 @@ export function LearnView({
         />
       )}
 
-      {userGoal && !goalBannerDismissed && (
-        <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2 min-w-0">
-              <Target size={18} className="mt-0.5 shrink-0 text-green-600 dark:text-green-400" aria-hidden />
+      {userGoal && (
+        <div className="mb-4 rounded-xl border-2 border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/20">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="shrink-0 w-9 h-9 rounded-full bg-green-100 dark:bg-green-800 flex items-center justify-center">
+                <Target size={18} className="text-green-600 dark:text-green-400" aria-hidden />
+              </div>
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-green-600 dark:text-green-500">Your goal</p>
+                <p className="text-sm font-bold text-green-900 dark:text-green-200 leading-tight">
                   {GOAL_OPTIONS.find((g) => g.id === userGoal)?.label ?? userGoal}
                 </p>
                 {goalDescription && (
-                  <p className="mt-0.5 text-xs text-green-700 dark:text-green-400 opacity-90 break-words">
+                  <p className="mt-0.5 text-xs text-green-700 dark:text-green-400 opacity-80 break-words">
                     {goalDescription}
                   </p>
                 )}
               </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setPickerGoalId(userGoal);
-                  setPickerGoalDescription(goalDescription);
-                  setShowGoalPicker(true);
-                }}
-                className="text-xs font-semibold text-green-600 dark:text-green-400"
-              >
-                Edit
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setGoalBannerDismissed(true);
-                  localStorage.setItem("fundi-goal-banner-dismissed", "1");
-                }}
-                className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400"
-                aria-label="Dismiss goal banner"
-              >
-                ✕
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setPickerGoalId(userGoal);
+                setPickerGoalDescription(goalDescription);
+                setShowGoalPicker(true);
+              }}
+              className="shrink-0 rounded-lg border border-green-300 bg-white px-3 py-1.5 text-xs font-bold text-green-700 hover:bg-green-100 dark:border-green-700 dark:bg-transparent dark:text-green-400 dark:hover:bg-green-900/40"
+            >
+              Edit
+            </button>
           </div>
         </div>
       )}
@@ -2909,6 +2897,16 @@ export function LearnView({
                     <CourseIcon name={course.icon} size={48} />
                   </div>
                   <div className="course-title" style={{ color: colour.accent }}>{course.title}</div>
+                  {recommendedCourseIds.includes(course.id) && (
+                    <div style={{
+                      display: "inline-flex", alignItems: "center", gap: 3,
+                      background: "rgba(0,122,77,0.12)", borderRadius: 20,
+                      padding: "2px 8px", fontSize: 10, fontWeight: 700,
+                      color: "#007A4D", marginBottom: 4,
+                    }}>
+                      <Target size={9} aria-hidden /> Recommended for your goal
+                    </div>
+                  )}
                   <div className="course-description">{course.description}</div>
                 </div>
                 <div className="course-progress">
@@ -3003,7 +3001,6 @@ export function LearnView({
                   await persistUserGoalToStorageAndSupabase(pickerGoalId, desc);
                   setUserGoal(pickerGoalId);
                   setGoalDescription(desc ?? "");
-                  setGoalBannerDismissed(false);
                   setShowGoalPicker(false);
                 }}
               >
