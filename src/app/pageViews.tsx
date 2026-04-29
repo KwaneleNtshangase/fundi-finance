@@ -240,6 +240,33 @@ const GOAL_COURSE_MAP: Record<string, string[]> = {
   business: ["business-finance", "taxes", "money-basics"],
 };
 
+// Budget bridge: map "courseId:lessonId" → prompt shown on the lesson completion screen.
+// The user can tap the card to jump straight to the Budget Planner.
+const BUDGET_LESSON_BRIDGE: Record<string, { prompt: string; detail: string }> = {
+  // Money Basics – core budget lessons
+  "money-basics:lesson-2": {
+    prompt: "Apply the 50/30/20 Rule in your budget →",
+    detail: "Split your income into Needs (50%), Wants (30%) and Savings (20%) right now.",
+  },
+  "money-basics:lesson-3": {
+    prompt: "Build your budget now →",
+    detail: "Open the Budget Planner and give every rand a job before month-end.",
+  },
+  "money-basics:lesson-4": {
+    prompt: "Log today's spending →",
+    detail: "Track every rand in the Budget Planner to see exactly where your money goes.",
+  },
+  // Extra lessons
+  "money-basics:lesson-zero-based-budget": {
+    prompt: "Try zero-based budgeting in your planner →",
+    detail: "Allocate every rand until income minus expenses equals R0.",
+  },
+  "money-basics:lesson-cash-flow": {
+    prompt: "Calculate your monthly cash flow →",
+    detail: "Enter your income and expenses in the Budget Planner to find your real surplus.",
+  },
+};
+
 function generateShareText(
   type: "lesson" | "badge" | "streak",
   data: {
@@ -1861,6 +1888,7 @@ function useFundiState() {
     choice: "next" | "course";
     nextLessonId: string | null;
     courseId: string;
+    lessonId: string | null;
   } | null>(null);
   const [xpToast, setXpToast] = useState<{ amount: number; id: number } | null>(null);
 
@@ -6908,6 +6936,7 @@ export default function Home() {
       choice,
       nextLessonId: nextLesson?.id ?? null,
       courseId: currentLessonState.courseId,
+      lessonId: currentLessonState.lessonId,
     });
   };
 
@@ -7535,6 +7564,45 @@ export default function Home() {
                 <div style={{ fontSize: 11, fontWeight: 700, color: "#EA580C", textTransform: "uppercase", letterSpacing: 1 }}>Day Streak</div>
               </div>
             </div>
+
+            {/* Budget bridge card — shown for budget-relevant lessons */}
+            {(() => {
+              const bridgeKey = `${lessonSummary.courseId}:${lessonSummary.lessonId}`;
+              const bridge = BUDGET_LESSON_BRIDGE[bridgeKey];
+              if (!bridge) return null;
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLessonSummary(null);
+                    setRoute({ name: "budget" });
+                  }}
+                  style={{
+                    width: "100%", maxWidth: 360, marginBottom: 12,
+                    padding: "14px 16px", borderRadius: 16,
+                    background: "linear-gradient(135deg, #E8F5EE 0%, #D4EDDF 100%)",
+                    border: "2px solid #1A7C4E", cursor: "pointer",
+                    textAlign: "left", display: "flex", alignItems: "center", gap: 12,
+                  }}
+                >
+                  <div style={{
+                    width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                    background: "#1A7C4E", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 22 }}>💰</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 14, fontWeight: 800, color: "#1A7C4E", marginBottom: 2, lineHeight: 1.3 }}>
+                      {bridge.prompt}
+                    </div>
+                    <div style={{ fontSize: 12, color: "#2E7D5C", lineHeight: 1.4, fontWeight: 500 }}>
+                      {bridge.detail}
+                    </div>
+                  </div>
+                  <div style={{ fontSize: 18, color: "#1A7C4E", flexShrink: 0 }}>›</div>
+                </button>
+              );
+            })()}
 
             {/* Continue button */}
             <button
