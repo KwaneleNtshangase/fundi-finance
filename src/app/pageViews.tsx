@@ -1962,6 +1962,13 @@ function useFundiState() {
     const newStreak = await progress.applyStreakAfterLesson();
     analytics.streakUpdated(newStreak);
     addXP(xpEarned);
+    // Stamp last_lesson_at so the D+1 retention email cron knows when to fire.
+    if (progress.userId) {
+      void supabase
+        .from("user_progress")
+        .update({ last_lesson_at: new Date().toISOString() })
+        .eq("user_id", progress.userId);
+    }
     return newStreak;
   };
 
@@ -7165,6 +7172,19 @@ export default function Home() {
         await supabase.from("profiles").upsert(row, { onConflict: "user_id" });
       }
       await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
+    }
+    // Fire welcome email (non-blocking — user shouldn't wait for this).
+    void supabase.functions.invoke("send-email", { body: { type: "welcome" } });
+    // Auto-launch the first lesson of the user's goal course instead of
+    // showing the course list. This removes the extra friction step.
+    const firstCourseId = payload.goal ? (GOAL_COURSE_MAP[payload.goal]?.[0] ?? null) : null;
+    if (firstCourseId) {
+      const goalCourse = CONTENT_DATA.courses.find((c) => c.id === firstCourseId);
+      const firstLesson = goalCourse?.units?.[0]?.lessons?.[0];
+      if (firstLesson?.steps?.length) {
+        startLesson(firstCourseId, firstLesson);
+        return;
+      }
     }
     setRoute({ name: "learn" } as Route);
   };
