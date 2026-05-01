@@ -135,4 +135,77 @@ export const analytics = {
   /** User logged an expense entry in the budget planner */
   expenseLogged: (category: string, amount: number) =>
     track("expense_logged", { category, amount }),
+
+  // ── Onboarding funnel ─────────────────────────────────────────────────────
+  /** User landed on the app for the first time (no account yet) */
+  onboardingStarted: () =>
+    track("onboarding_started"),
+
+  /** User completed the goal selection step */
+  onboardingGoalSelected: (goal: string) =>
+    track("onboarding_goal_selected", { goal }),
+
+  /** User completed the age range / profile step */
+  onboardingProfileCompleted: (ageRange: string) =>
+    track("onboarding_profile_completed", { ageRange }),
+
+  /** User submitted the signup form successfully */
+  signupCompleted: (method: "email" | "google") =>
+    track("signup_completed", { method }),
+
+  // ── Paywall + subscription funnel ─────────────────────────────────────────
+  /** User encountered a locked lesson (freemium gate) */
+  paywallShown: (lessonId: string, courseId: string, trigger: "lesson_lock" | "feature_lock") =>
+    track("paywall_shown", { lessonId, courseId, trigger }),
+
+  /** User clicked the upgrade CTA on the paywall screen */
+  paywallCtaClicked: (plan: string) =>
+    track("paywall_cta_clicked", { plan }),
+
+  /** User entered the checkout / payment flow */
+  checkoutStarted: (plan: string, priceZar: number) =>
+    track("checkout_started", { plan, priceZar }),
+
+  /** User completed a subscription purchase */
+  subscriptionConverted: (plan: string, priceZar: number, method: "stripe" | "payfast") =>
+    track("subscription_converted", { plan, priceZar, method }),
+
+  /** User cancelled their subscription */
+  subscriptionCancelled: (plan: string, daysActive: number, reason?: string) =>
+    track("subscription_cancelled", { plan, daysActive, reason }),
+
+  // ── Streak freeze ─────────────────────────────────────────────────────────
+  /** User tapped "Use Freeze" to protect their streak */
+  streakFreezeUsed: (freezesRemaining: number, streakDays: number) =>
+    track("streak_freeze_used", { freezesRemaining, streakDays }),
+
+  /** User ran out of streak freeze tokens */
+  streakFreezeExhausted: (streakDays: number) =>
+    track("streak_freeze_exhausted", { streakDays }),
+
+  /** User lost their streak (no freeze available, missed day) */
+  streakBroken: (previousStreak: number) =>
+    track("streak_broken", { previousStreak }),
+
+  // ── PWA install ───────────────────────────────────────────────────────────
+  /** Browser install prompt was shown to the user */
+  pwaInstallPromptShown: (trigger: string) =>
+    track("pwa_install_prompt_shown", { trigger }),
+
+  /** User accepted the PWA install prompt */
+  pwaInstalled: () =>
+    track("pwa_installed"),
+
+  /** User dismissed the PWA install prompt */
+  pwaInstallDismissed: () =>
+    track("pwa_install_dismissed"),
+
+  // ── Content quality surveys ───────────────────────────────────────────────
+  /** 30-day in-app survey: how much has the app changed real financial decisions? */
+  contentImpactSurvey: (rating: 1 | 2 | 3 | 4 | 5, daysSinceSignup: number) =>
+    track("content_impact_survey", { rating, daysSinceSignup }),
+
+  /** User rated a specific lesson (thumbs up / down maps to 5 / 1) */
+  lessonRated: (lessonId: string, courseId: string, rating: 1 | 2 | 3 | 4 | 5) =>
+    track("lesson_rated", { lessonId, courseId, rating }),
 };
