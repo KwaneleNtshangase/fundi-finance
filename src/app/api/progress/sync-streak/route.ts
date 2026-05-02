@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await admin
     .from("user_progress")
-    .select("streak,last_activity_date,freeze_count,longest_streak")
+    .select("streak,last_activity_date,streak_freeze_count,longest_streak")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const yesterday = isoYesterday();
   const lastActive = data?.last_activity_date ? String(data.last_activity_date) : null;
   const current = Number(data?.streak ?? 0);
-  const freezeCount = Math.max(0, Number(data?.freeze_count ?? 0));
+  const freezeCount = Math.max(0, Number(data?.streak_freeze_count ?? 0));
   const prevLongest = Number(data?.longest_streak ?? 0);
 
   let nextStreak = current;
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
   const { error: upsertError } = await admin.from("user_progress").upsert({
     user_id: userId,
     streak: nextStreak,
-    freeze_count: nextFreezeCount,
+    streak_freeze_count: nextFreezeCount,
     longest_streak: nextLongest,
     last_activity_date: today,
   }, { onConflict: "user_id" });

@@ -2102,6 +2102,7 @@ function useFundiState() {
     persistWeeklyChallengeCompletion: progress.persistWeeklyChallengeCompletion,
     freezeCount: progress.freezeCount,
     buyStreakFreeze: progress.buyStreakFreeze,
+    useFreeze: progress.useFreeze,
     weeklyXp: progress.weeklyXp,
     addXP,
     setChallengeProgress,
@@ -5235,7 +5236,7 @@ function DarkModeToggle({ userSettings }: { userSettings: ReturnType<typeof useU
   );
 }
 
-function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBuyFreeze }: { userData: UserData; hearts?: number; maxHearts?: number; freezeCount?: number; onBuyFreeze?: () => void }) {
+function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBuyFreeze, onUseFreeze, freezeUsedToday = false }: { userData: UserData; hearts?: number; maxHearts?: number; freezeCount?: number; onBuyFreeze?: () => void; onUseFreeze?: () => void; freezeUsedToday?: boolean }) {
   const goalProgress = Math.min(
     (userData.dailyXP / userData.dailyGoal) * 100,
     100
@@ -5328,31 +5329,35 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
             <div className="stat-value" style={{ color: freezeCount > 0 ? "#3B82F6" : "var(--color-text-secondary)" }}>
               {freezeCount}
             </div>
-            {freezeCount === 0 && onBuyFreeze && (
+            {freezeCount > 0 && !freezeUsedToday && onUseFreeze && (
               <button
                 type="button"
-                onClick={onBuyFreeze}
+                onClick={onUseFreeze}
                 style={{
                   marginTop: 6,
-                  background: userData.xp >= 200 ? "#3B82F6" : "var(--color-border)",
-                  color: userData.xp >= 200 ? "#fff" : "var(--color-text-secondary)",
+                  background: "#3B82F6",
+                  color: "#fff",
                   border: "none",
                   borderRadius: 8,
                   padding: "5px 12px",
                   fontSize: 12,
                   fontWeight: 700,
-                  cursor: userData.xp >= 200 ? "pointer" : "not-allowed",
+                  cursor: "pointer",
                   width: "100%",
                 }}
-                disabled={userData.xp < 200}
-                title={userData.xp >= 200 ? "Buy a streak freeze for 200 XP" : "Need 200 XP"}
+                title="Protect your streak for today"
               >
-                Buy for 200 XP
+                🛡️ Use Freeze
               </button>
             )}
-            {freezeCount > 0 && (
+            {freezeUsedToday && (
+              <div style={{ fontSize: 11, color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>
+                ✓ Streak protected today
+              </div>
+            )}
+            {freezeCount === 0 && !freezeUsedToday && (
               <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 2 }}>
-                Auto-used if you miss a day
+                Resets every Monday
               </div>
             )}
           </div>
@@ -5956,6 +5961,7 @@ export default function Home() {
     persistWeeklyChallengeCompletion,
     freezeCount,
     buyStreakFreeze,
+    useFreeze,
     weeklyXp,
     lessonSummary,
     setLessonSummary,
@@ -5971,6 +5977,7 @@ export default function Home() {
   }, []);
 
   // Streak freeze - count-based, powered by useProgress hook
+  const [freezeUsedToday, setFreezeUsedToday] = useState(false);
 
   // ── Register service worker for offline support ───────────────────────────
   useEffect(() => {
@@ -8019,7 +8026,24 @@ export default function Home() {
         )}
 
         {isDesktop && (
-          <StatsPanel userData={userData} hearts={hearts} maxHearts={maxHearts} freezeCount={freezeCount} onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }} />
+          <StatsPanel
+            userData={userData}
+            hearts={hearts}
+            maxHearts={maxHearts}
+            freezeCount={freezeCount}
+            onBuyFreeze={() => { if (!buyStreakFreeze(200)) alert("Not enough XP! You need 200 XP to buy a streak freeze."); }}
+            freezeUsedToday={freezeUsedToday}
+            onUseFreeze={async () => {
+              const result = await useFreeze();
+              if (result.ok) {
+                setFreezeUsedToday(true);
+              } else if (result.reason === "no_freezes_left") {
+                alert("No streak freezes left. Resets every Monday.");
+              } else {
+                alert("Could not use freeze: " + (result.reason ?? "unknown error"));
+              }
+            }}
+          />
         )}
         {needsUsernamePrompt && (
           <div style={{ position: "fixed", inset: 0, zIndex: 900, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>

@@ -73,7 +73,7 @@ export function useProgress() {
     (async () => {
       const { data } = await supabase
         .from("user_progress")
-        .select("xp,streak,longest_streak,last_activity_date,completed_lessons,freeze_count,weekly_xp,week_key")
+        .select("xp,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
         .eq("user_id", userId)
         .maybeSingle();
       const wk = getCurrentWeekKey();
@@ -83,7 +83,7 @@ export function useProgress() {
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
         completedLessons: (data?.completed_lessons ?? []) as string[],
-        freezeCount: Math.max(0, Number(data?.freeze_count ?? 0)),
+        freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
       });
@@ -99,7 +99,7 @@ export function useProgress() {
       streak: next.streak,
       last_activity_date: next.lastActivityDate,
       completed_lessons: next.completedLessons,
-      freeze_count: next.freezeCount,
+      streak_freeze_count: next.freezeCount,
       weekly_xp: next.weeklyXp,
       week_key: next.weekKey || getCurrentWeekKey(),
       updated_at: new Date().toISOString(),
@@ -171,6 +171,23 @@ export function useProgress() {
     return true;
   };
 
+  // Consume one of the weekly streak_freeze_count tokens via DB RPC.
+  // Returns { ok, streak, freezesLeft } or { ok: false, reason }.
+  const useFreeze = async (): Promise<{ ok: boolean; streak?: number; freezesLeft?: number; reason?: string }> => {
+    if (!userId) return { ok: false, reason: "not_logged_in" };
+    if (state.freezeCount <= 0) return { ok: false, reason: "no_freezes_left" };
+    const { data, error } = await supabase.rpc("use_streak_freeze", { p_user_id: userId });
+    if (error) {
+      console.warn("[useFreeze] RPC error", error.message);
+      return { ok: false, reason: error.message };
+    }
+    const result = data as { ok: boolean; streak?: number; freezes_left?: number; reason?: string };
+    if (result.ok) {
+      setState((prev) => ({ ...prev, freezeCount: result.freezes_left ?? Math.max(0, prev.freezeCount - 1) }));
+    }
+    return { ok: result.ok, streak: result.streak, freezesLeft: result.freezes_left, reason: result.reason };
+  };
+
   const persistWeeklyChallengeCompletion = async (weeklyId: string, bonusXP: number) => {
     if (!userId) return;
     const { data: row } = await supabase
@@ -201,7 +218,7 @@ export function useProgress() {
         weekly_completions: {},
         weekly_xp: 0,
         week_key: getCurrentWeekKey(),
-        freeze_count: 0,
+        streak_freeze_count: 0,
       },
       { onConflict: "user_id" }
     );
@@ -223,6 +240,7 @@ export function useProgress() {
     completeLesson,
     applyStreakAfterLesson,
     buyStreakFreeze,
+    useFreeze,
     persistWeeklyChallengeCompletion,
     resetProgress,
   };
