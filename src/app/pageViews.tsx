@@ -5482,7 +5482,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => setSplashMinElapsed(true), 2500);
+    const t = setTimeout(() => setSplashMinElapsed(true), 1500);
     return () => clearTimeout(t);
   }, []);
 
@@ -5492,7 +5492,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     // hangs indefinitely in CI / slow network environments.
     const sessionTimeout = setTimeout(() => {
       if (mounted) setSessionLoading(false);
-    }, 8_000);
+    }, 4_000);
 
     supabase.auth
       .getSession()
