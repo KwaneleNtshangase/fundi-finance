@@ -1,5 +1,5 @@
 -- ============================================================
--- Auto Streak Freeze — nightly cron at 23:55 SAST (21:55 UTC)
+-- Auto Streak Freeze — nightly cron at midnight SAST (22:00 UTC)
 --
 -- For every user who:
 --   • Has an active streak (streak > 0)
@@ -32,11 +32,11 @@ END;
 $$;
 
 COMMENT ON FUNCTION auto_apply_streak_freezes IS
-  'Nightly job: automatically consumes one streak freeze for any user who missed today but still has freeze tokens. Runs at 23:55 SAST via pg_cron.';
+  'Nightly job: automatically consumes one streak freeze for any user who missed today but still has freeze tokens. Runs at midnight SAST (22:00 UTC) via pg_cron.';
 
--- Schedule: 21:55 UTC = 23:55 SAST (UTC+2), fires every night
+-- Schedule: 22:00 UTC = 00:00 SAST (UTC+2), fires every night at midnight SA time
 SELECT cron.schedule(
   'auto-streak-freeze-nightly',
-  '55 21 * * *',
+  '0 22 * * *',
   $$SELECT auto_apply_streak_freezes()$$
 );
