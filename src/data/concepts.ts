@@ -502,6 +502,248 @@ export const CONCEPTS: Concept[] = [
     courses: ["scams-fraud", "investing-basics"],
   },
 
+  // ── Property ─────────────────────────────────────────────────────────────
+  {
+    id: "bond-vs-rent",
+    name: "Bond vs Renting",
+    category: "Property",
+    reviewCard: {
+      question: "You can buy a R1.2M home with a R12 000/month bond or rent the same home for R9 500/month. What hidden costs make buying MORE expensive than the bond repayment alone?",
+      options: [
+        "There are no hidden costs — bond and rent are the only costs",
+        "Only transfer duties apply once",
+        "Rates, levies, maintenance, transfer duties, and bond initiation fees all add to the true cost of buying",
+        "VAT on the purchase price",
+      ],
+      correct: 2,
+      explanation: "Buying a home costs more than just the bond. Add: rates & taxes (~R800–R2 000/month), levy (R1 000+), maintenance, transfer duties (2–8% of purchase price), and bond initiation fees (~R6 500). These can add R3 000–R5 000/month on top of the bond repayment.",
+    },
+    courses: ["property"],
+  },
+  {
+    id: "transfer-duty",
+    name: "Transfer Duty",
+    category: "Property",
+    reviewCard: {
+      question: "You buy a property for R1 500 000. Transfer duty in SA is 0% on the first R1 100 000. What is the tax on the remaining R400 000 at 3%?",
+      options: ["R45 000", "R12 000", "R30 000", "R0 — first-time buyers are exempt"],
+      correct: 1,
+      explanation: "Transfer duty = R400 000 × 3% = R12 000. The first R1 100 000 is exempt. Rates rise to 6% above R1.5M, 8% above R2.25M, and 11% above R10M. This is a one-time government tax on property purchases (not VAT-registered sales).",
+    },
+    courses: ["property"],
+  },
+  {
+    id: "ltv-ratio",
+    name: "Loan-to-Value (LTV) Ratio",
+    category: "Property",
+    reviewCard: {
+      question: "A property costs R1 000 000. The bank lends R900 000. What is the LTV ratio, and what does a lower LTV mean for you?",
+      options: [
+        "LTV = 90%; lower LTV means higher monthly repayments",
+        "LTV = 90%; lower LTV means less risk for the bank → better interest rate for you",
+        "LTV = 10%; the bank only cares about the deposit",
+        "LTV = 100% whenever the bank approves the loan",
+      ],
+      correct: 1,
+      explanation: "LTV = loan ÷ property value = 90%. The lower your LTV (bigger deposit), the less risk for the bank — they reward this with a lower interest rate. A 90% LTV vs 80% LTV can mean 0.5–1% difference in your rate, saving thousands over 20 years.",
+    },
+    courses: ["property"],
+  },
+
+  // ── Capital Gains & Provisional Tax ──────────────────────────────────────
+  {
+    id: "capital-gains-tax",
+    name: "Capital Gains Tax (CGT)",
+    category: "Income & Tax",
+    reviewCard: {
+      question: "You sell shares for R200 000 that you bought for R120 000. After the R40 000 annual exclusion, how much of your gain is included in taxable income?",
+      options: ["R80 000", "R40 000", "R28 000 (40% inclusion of R40 000)", "R200 000"],
+      correct: 2,
+      explanation: "Gain = R80 000. Less annual exclusion R40 000 = R40 000 taxable gain. Only 40% of that is included in your income: R40 000 × 40% = R16 000 added to taxable income (taxed at your marginal rate). Your primary residence has a R2M exclusion.",
+    },
+    courses: ["taxes", "sa-investing"],
+  },
+  {
+    id: "provisional-tax",
+    name: "Provisional Tax",
+    category: "Income & Tax",
+    reviewCard: {
+      question: "Who is required to pay provisional tax in South Africa?",
+      options: [
+        "Only employees earning more than R1M per year",
+        "Everyone — it replaces PAYE for all taxpayers",
+        "People who earn income other than a salary (freelancers, rental income, investment income above R30 000)",
+        "Only registered companies",
+      ],
+      correct: 2,
+      explanation: "Provisional tax applies to anyone earning income not subject to PAYE — freelancers, landlords, business owners, and investors with investment income over R30 000. You pay two estimates (August and February) plus a top-up if needed, spreading the tax burden across the year.",
+    },
+    courses: ["taxes"],
+  },
+  {
+    id: "ra-tax-deduction",
+    name: "RA Tax Deduction",
+    category: "Income & Tax",
+    reviewCard: {
+      question: "Nomsa earns R480 000/year and contributes R60 000 to her RA. What is the maximum RA deduction SARS allows?",
+      options: [
+        "R60 000 (actual contribution)",
+        "R132 000 (27.5% of R480 000)",
+        "R350 000 (annual cap)",
+        "R96 000 (20% of income)",
+      ],
+      correct: 1,
+      explanation: "SARS allows 27.5% of the HIGHER of taxable income or remuneration, capped at R350 000/year. For Nomsa: 27.5% × R480 000 = R132 000. Her actual contribution of R60 000 is below this limit, so she deducts the full R60 000 — saving her ~R24 000 in tax at a 40% marginal rate.",
+    },
+    courses: ["taxes", "retirement", "sa-investing"],
+  },
+
+  // ── Business Finance ──────────────────────────────────────────────────────
+  {
+    id: "cash-flow-vs-profit",
+    name: "Cash Flow vs Profit",
+    category: "Business Finance",
+    reviewCard: {
+      question: "Your business made R80 000 profit this month but has R0 in the bank account. How is this possible?",
+      options: [
+        "It's impossible — profit always equals cash",
+        "You recorded sales but customers haven't paid yet (debtors), while you've already paid your suppliers",
+        "SARS took all the profit in VAT",
+        "The accountant made an error",
+      ],
+      correct: 1,
+      explanation: "Profit is accounting income (revenue minus costs). Cash flow is actual money in your bank. A business can be profitable but cash-poor when customers pay late (long debtor days) while you pay suppliers upfront. Many profitable businesses go insolvent because of cash flow problems.",
+    },
+    courses: ["business-finance"],
+  },
+  {
+    id: "break-even",
+    name: "Break-Even Point",
+    category: "Business Finance",
+    reviewCard: {
+      question: "Your product sells for R200. Variable cost per unit is R80. Fixed costs are R36 000/month. How many units must you sell to break even?",
+      options: ["180 units", "300 units", "450 units", "200 units"],
+      correct: 1,
+      explanation: "Contribution margin = R200 − R80 = R120 per unit. Break-even = Fixed costs ÷ Contribution margin = R36 000 ÷ R120 = 300 units. Below 300 units you make a loss; above 300 every unit generates pure profit (after covering variable costs).",
+    },
+    courses: ["business-finance"],
+  },
+  {
+    id: "vat-threshold",
+    name: "VAT Registration Threshold",
+    category: "Business Finance",
+    reviewCard: {
+      question: "At what annual turnover must a South African business register for VAT?",
+      options: ["R500 000", "R1 000 000", "R5 000 000", "Any business that sells products"],
+      correct: 1,
+      explanation: "SARS requires VAT registration once your annual taxable supplies exceed R1 000 000. Voluntary registration is possible from R50 000. Registered businesses charge 15% VAT on sales and can claim VAT back on business purchases — keeping the records straight is critical.",
+    },
+    courses: ["business-finance", "taxes"],
+  },
+
+  // ── Money Psychology ──────────────────────────────────────────────────────
+  {
+    id: "sunk-cost-fallacy",
+    name: "Sunk Cost Fallacy",
+    category: "Financial Behaviour",
+    reviewCard: {
+      question: "You paid R15 000 for a course that turns out to be useless. You've completed 30%. Should the R15 000 already spent influence your decision to continue?",
+      options: [
+        "Yes — you must finish to get value from your R15 000",
+        "No — the R15 000 is gone regardless; your decision should be based on future value, not past spend",
+        "Yes — quitting means admitting a mistake",
+        "No — but only if you can get a refund",
+      ],
+      correct: 1,
+      explanation: "The sunk cost fallacy is continuing with a bad decision to justify past spending. The R15 000 is gone whether you finish or not. Rational decisions focus on future costs and benefits only. Cutting losses early is often the smarter move.",
+    },
+    courses: ["money-psychology"],
+  },
+  {
+    id: "anchoring-bias",
+    name: "Anchoring Bias",
+    category: "Financial Behaviour",
+    reviewCard: {
+      question: "A shop marks a jacket 'WAS R3 000, NOW R1 500'. You weren't planning to buy a jacket. What cognitive bias makes R1 500 feel like a bargain?",
+      options: [
+        "Loss aversion — you fear missing the sale",
+        "Anchoring — your brain anchors to the R3 000 'original' price as the reference point",
+        "Confirmation bias — you believe jackets cost R3 000",
+        "Herding — everyone else is buying jackets",
+      ],
+      correct: 1,
+      explanation: "Anchoring happens when an initial number (the 'anchor') distorts your judgement of value. The R3 000 price — whether real or fabricated — makes R1 500 feel like a steal, even if the jacket's true market value is R900. Retailers deliberately use this tactic.",
+    },
+    courses: ["money-psychology"],
+  },
+
+  // ── Rand & Economy ────────────────────────────────────────────────────────
+  {
+    id: "repo-rate-effect",
+    name: "Repo Rate & Consumer Impact",
+    category: "Money & Economics",
+    reviewCard: {
+      question: "The SARB raises the repo rate by 0.5%. You have a R900 000 variable-rate home loan. Approximately how much more will you pay per month?",
+      options: ["About R50 more", "About R375 more", "About R1 000 more", "Nothing — fixed rates aren't affected"],
+      correct: 1,
+      explanation: "A 0.5% (50 basis points) increase on R900 000 over 20 years adds roughly R375/month. The prime rate rises by the same 0.5%, and your variable-rate bond tracks prime. Fixed-rate loans are unaffected until they reprice. Higher rates also mean savings accounts earn more.",
+    },
+    courses: ["rand-economy", "banking-debit"],
+  },
+  {
+    id: "inflation-types",
+    name: "Demand-Pull vs Cost-Push Inflation",
+    category: "Money & Economics",
+    reviewCard: {
+      question: "Fuel prices spike 30% due to global oil supply cuts. SA inflation rises. What type of inflation is this?",
+      options: [
+        "Demand-pull inflation — consumers are buying too much",
+        "Cost-push inflation — production costs rise and are passed to consumers",
+        "Hyperinflation — caused by money printing",
+        "Core inflation — excludes food and energy",
+      ],
+      correct: 1,
+      explanation: "Cost-push inflation occurs when production costs rise (oil, wages, imports) and businesses pass those costs to consumers. Demand-pull inflation comes from too much money chasing too few goods. SA frequently experiences cost-push inflation from rand weakness and global commodity prices.",
+    },
+    courses: ["rand-economy"],
+  },
+
+  // ── Bible & Money ─────────────────────────────────────────────────────────
+  {
+    id: "contentment-biblical",
+    name: "Contentment vs Greed",
+    category: "Biblical Finance",
+    reviewCard: {
+      question: "Proverbs 28:20 says 'a faithful man will be richly blessed, but one eager to get rich will not go unpunished.' What financial principle does this echo?",
+      options: [
+        "Never invest — all wealth is sinful",
+        "Get-rich-quick schemes and greed carry serious risk; patient, faithful stewardship builds lasting wealth",
+        "Only tithe once a year",
+        "Avoid all debt including a home loan",
+      ],
+      correct: 1,
+      explanation: "The Bible consistently warns against the love of money and shortcuts to wealth. Financially this maps to avoiding Ponzi schemes, gambling, and high-risk speculation. Patient, consistent saving and investing aligns with the biblical principle of diligent, faithful stewardship.",
+    },
+    courses: ["bible-money"],
+  },
+  {
+    id: "debt-biblical-view",
+    name: "Debt in Biblical Finance",
+    category: "Biblical Finance",
+    reviewCard: {
+      question: "Romans 13:8 says 'Owe no one anything except to love each other.' What does a Biblical approach to debt emphasise?",
+      options: [
+        "Never borrow money under any circumstances",
+        "Pay your debts faithfully, avoid unnecessary debt, and work toward financial freedom",
+        "Only debt owed to family is acceptable",
+        "Declare insolvency if debt becomes unmanageable",
+      ],
+      correct: 1,
+      explanation: "The Biblical view doesn't categorically ban all debt but strongly emphasises: paying what you owe, being cautious about taking on debt, and the freedom and peace that comes from being debt-free. Many financial coaches use this principle to motivate aggressive debt repayment.",
+    },
+    courses: ["bible-money"],
+  },
+
   // ── Crypto ────────────────────────────────────────────────────────────────
   {
     id: "crypto-basics",

@@ -24,6 +24,18 @@ import {
   CREDIT_SCORE_DEEP_LESSONS,
   PORTFOLIO_CONSTRUCTION_LESSONS,
 } from "./content-deep-batch";
+import {
+  APPLIED_INVESTING_LESSONS,
+  APPLIED_CREDIT_LESSONS,
+  APPLIED_SALARY_LESSONS,
+  APPLIED_PROPERTY_LESSONS,
+  APPLIED_TAX_LESSONS,
+  APPLIED_SCAMS_LESSONS,
+  APPLIED_BUSINESS_LESSONS,
+  APPLIED_RAND_ECONOMY_LESSONS,
+  APPLIED_PSYCHOLOGY_LESSONS,
+  APPLIED_EMERGENCY_LESSONS,
+} from "./content-applied";
 
 function pick(extra: Lesson[], id: string): Lesson {
   const l = extra.find((x) => x.id === id);
@@ -123,6 +135,7 @@ function mergeSalary(c: Course): Course {
           withId(uif, "lesson-3"),
           withId(ret, "lesson-4"),
           ...rest,
+          ...APPLIED_SALARY_LESSONS,
         ],
       },
     ],
@@ -186,6 +199,7 @@ function mergeCreditDebt(c: Course): Course {
           withId(store, "lesson-4"),
           ...rest,
           ...CREDIT_SCORE_DEEP_LESSONS,
+          ...APPLIED_CREDIT_LESSONS,
         ],
       },
       {
@@ -218,6 +232,7 @@ function mergeEmergencyFund(c: Course): Course {
           ...u1.lessons.filter((l) => l.id !== "lesson-4" && l.id !== "lesson-5"),
           withId(types, "lesson-4"),
           withId(rr, "lesson-5"),
+          ...APPLIED_EMERGENCY_LESSONS,
         ],
       },
     ],
@@ -285,6 +300,12 @@ function mergeInvestingBasics(c: Course): Course {
         description: "How bonds work, how to buy them, and how to use them in your portfolio",
         lessons: BONDS_DEEP_LESSONS,
       },
+      {
+        id: "unit-investing-applied",
+        title: "Applied Investing Decisions",
+        description: "Real SA scenarios: TFSAs, ETFs, and making your money work",
+        lessons: APPLIED_INVESTING_LESSONS,
+      },
     ],
   };
 }
@@ -334,12 +355,15 @@ function mergeProperty(c: Course): Course {
     units: [
       {
         ...u0,
-        lessons: u0.lessons.map((l) => {
-          if (l.id === "lesson-2") return withId(hl, "lesson-2");
-          if (l.id === "lesson-3") return withId(dep, "lesson-3");
-          if (l.id === "lesson-4") return withId(rvb, "lesson-4");
-          return l;
-        }),
+        lessons: [
+          ...u0.lessons.map((l) => {
+            if (l.id === "lesson-2") return withId(hl, "lesson-2");
+            if (l.id === "lesson-3") return withId(dep, "lesson-3");
+            if (l.id === "lesson-4") return withId(rvb, "lesson-4");
+            return l;
+          }),
+          ...APPLIED_PROPERTY_LESSONS,
+        ],
       },
       u2,
     ],
@@ -378,11 +402,14 @@ function mergeTaxes(c: Course): Course {
       },
       {
         ...u1,
-        lessons: u1.lessons.map((l) => {
-          if (l.id === "lesson-5") return withId(l5, "lesson-5");
-          if (l.id === "lesson-6") return withId(l6, "lesson-6");
-          return l;
-        }),
+        lessons: [
+          ...u1.lessons.map((l) => {
+            if (l.id === "lesson-5") return withId(l5, "lesson-5");
+            if (l.id === "lesson-6") return withId(l6, "lesson-6");
+            return l;
+          }),
+          ...APPLIED_TAX_LESSONS,
+        ],
       },
     ],
   };
@@ -419,6 +446,7 @@ function mergeScams(c: Course): Course {
           withId(guar, "lesson-5"),
           withId(what, "lesson-6"),
           ...rest,
+          ...APPLIED_SCAMS_LESSONS,
         ],
       },
     ],
@@ -457,6 +485,7 @@ function mergePsychology(c: Course): Course {
           withId(loss, "lesson-4"),
           ...rest,
           ...BEHAVIORAL_FINANCE_LESSONS,
+          ...APPLIED_PSYCHOLOGY_LESSONS,
         ],
       },
       {
@@ -481,7 +510,7 @@ function mergeRandEconomy(c: Course): Course {
   const u0 = c.units[0];
   return {
     ...c,
-    units: [{ ...u0, lessons: [...u0.lessons, ...RAND_ECONOMY_EXTRA, ...REPO_RATE_LESSONS] }],
+    units: [{ ...u0, lessons: [...u0.lessons, ...RAND_ECONOMY_EXTRA, ...REPO_RATE_LESSONS, ...APPLIED_RAND_ECONOMY_LESSONS] }],
   };
 }
 
@@ -497,6 +526,6 @@ function mergeBusinessFinance(c: Course): Course {
   const u0 = c.units[0];
   return {
     ...c,
-    units: [{ ...u0, lessons: [...u0.lessons, ...BUSINESS_FINANCE_EXTRA] }],
+    units: [{ ...u0, lessons: [...u0.lessons, ...BUSINESS_FINANCE_EXTRA, ...APPLIED_BUSINESS_LESSONS] }],
   };
 }
