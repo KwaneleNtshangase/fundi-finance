@@ -2210,7 +2210,7 @@ function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
   return shuffled.slice(0, 3);
 }
 
-function DailyChallenges({ streak = 0 }: { streak?: number }) {
+function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpClaimed?: (amount: number) => void }) {
   const today = new Date().toISOString().slice(0, 10);
   const storageKey = `fundi-daily-challenges-${today}`;
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
@@ -2266,15 +2266,28 @@ function DailyChallenges({ streak = 0 }: { streak?: number }) {
     setClaimed(next);
     localStorage.setItem(storageKey, JSON.stringify(next));
     analytics.dailyChallengeClaimed(challengeId, xp);
-    // Award XP via Supabase and sync challenge completion
+
+    // Update local weekly XP state so leaderboard reflects this immediately
+    onXpClaimed?.(xp);
+
+    // Award XP via Supabase — update BOTH total xp AND weekly_xp + week_key
+    // so the leaderboard correctly ranks this user.
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase.from("user_progress").select("xp").eq("user_id", user.id).single();
+      const { data } = await supabase
+        .from("user_progress")
+        .select("xp, weekly_xp, week_key")
+        .eq("user_id", user.id)
+        .single();
       if (data) {
+        const currentWeekKey = getLeaderboardWeekKey();
+        const existingWeeklyXp = data.week_key === currentWeekKey ? (data.weekly_xp ?? 0) : 0;
         await supabase.from("user_progress").update({
           xp: (data.xp ?? 0) + xp,
+          weekly_xp: existingWeeklyXp + xp,
+          week_key: currentWeekKey,
           daily_challenges_date: today,
-          daily_challenges_claimed: JSON.stringify(next)
+          daily_challenges_claimed: JSON.stringify(next),
         }).eq("user_id", user.id);
       }
     }
@@ -2611,6 +2624,7 @@ export function LearnView({
   onResumeLesson,
   streak = 0,
   showQuestSections = false,
+  addXP,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
@@ -2626,6 +2640,7 @@ export function LearnView({
   onResumeLesson?: (p: SavedLessonProgress) => void;
   streak?: number;
   showQuestSections?: boolean;
+  addXP?: (amount: number) => void;
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
@@ -2904,7 +2919,7 @@ export function LearnView({
       )}
 
       {/* Daily Challenges */}
-      {showQuestSections && <DailyChallenges streak={streak} />}
+      {showQuestSections && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
 
       {!contentLoaded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3069,6 +3084,7 @@ function QuestsView({
   challengeRewardClaimed,
   claimChallengeReward,
   streak,
+  addXP,
 }: {
   dailyXP: number;
   dailyGoal: number;
@@ -3079,6 +3095,7 @@ function QuestsView({
   challengeRewardClaimed?: boolean;
   claimChallengeReward?: () => void;
   streak: number;
+  addXP?: (amount: number) => void;
 }) {
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
   return (
@@ -3138,7 +3155,7 @@ function QuestsView({
           )}
         </div>
       )}
-      <DailyChallenges streak={streak} />
+      <DailyChallenges streak={streak} onXpClaimed={addXP} />
     </main>
   );
 }
@@ -7225,6 +7242,14 @@ export default function Home() {
 
   useEffect(() => {
     if (!progressReady || !userId || route.name === "onboarding") return;
+    // Check localStorage first — it's set synchronously during onboarding,
+    // so there's no race condition. Only hit Supabase for users who somehow
+    // arrived without going through onboarding (e.g. magic-link sign-in).
+    const localUsername = localStorage.getItem("fundi-username");
+    if (localUsername && localUsername.trim()) {
+      setNeedsUsernamePrompt(false);
+      return;
+    }
     void (async () => {
       const { data } = await supabase
         .from("profiles")
@@ -7232,10 +7257,12 @@ export default function Home() {
         .eq("user_id", userId)
         .maybeSingle();
       const username = data?.username ? String(data.username).trim() : "";
-      if (!username) {
-        setNeedsUsernamePrompt(true);
-      } else {
+      if (username) {
+        // Sync to localStorage so future checks don't need a DB round-trip
+        localStorage.setItem("fundi-username", username);
         setNeedsUsernamePrompt(false);
+      } else {
+        setNeedsUsernamePrompt(true);
       }
     })().catch(() => {});
   }, [progressReady, userId, route.name]);
@@ -7399,6 +7426,7 @@ export default function Home() {
             claimChallengeReward={claimChallengeReward}
             streak={userData.streak}
             showQuestSections={false}
+            addXP={addXP}
           />
         )}
 
@@ -7413,6 +7441,7 @@ export default function Home() {
             challengeRewardClaimed={challengeRewardClaimed}
             claimChallengeReward={claimChallengeReward}
             streak={userData.streak}
+            addXP={addXP}
           />
         )}
 

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  :root {
+    --phase0: #1a1a2e;
+    --phase1: #16213e;
+    --phase2: #0f3460;
+    --phase3: #533483;
+    --phase4: #e94560;
+    --phase5: #f5a623;
+    --text: #f0f0f0;
+    --muted: #aaa;
+    --card-bg: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0d0d1a;
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .subtitle {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 28px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .phase {
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .phase:hover { transform: translateX(4px); box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 18px;
+  }
+  .phase-dot {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    color: #fff;
+  }
+  .phase-meta { flex: 1; }
+  .phase-name { font-size: 0.95rem; font-weight: 700; }
+  .phase-window { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+  .phase-metric {
+    font-size: 0.68rem;
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 4px 10px;
+    color: #ddd;
+    text-align: right;
+    flex-shrink: 0;
+    max-width: 180px;
+    line-height: 1.3;
+  }
+  .phase-body {
+    padding: 0 18px 16px 68px;
+    font-size: 0.78rem;
+    color: #ccc;
+    line-height: 1.6;
+    display: none;
+  }
+  .phase-body.open { display: block; }
+  .phase-body ul { padding-left: 16px; }
+  .phase-body li { margin-bottom: 4px; }
+  .phase-body .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-size: 0.67rem;
+    margin: 2px 3px 2px 0;
+    color: #eee;
+  }
+  .expand-hint { font-size: 0.7rem; color: var(--muted); text-align: center; padding: 4px 0; }
+  .north-star {
+    background: linear-gradient(135deg, rgba(245,166,35,0.15), rgba(233,69,96,0.1));
+    border: 1px solid rgba(245,166,35,0.3);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 0.8rem;
+    color: #f5d78e;
+    line-height: 1.5;
+  }
+  .north-star strong { color: #f5a623; }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Fundi Finance Phased Roadmap — 6 phases from Day 1 to Year 2+, grounded in financial literacy outcomes</h2>
+
+<h1>Fundi Finance — Council Roadmap</h1>
+<div class="subtitle">6 Phases · 18 Months · Literacy is the North Star</div>
+
+<div class="north-star">
+  <strong>Governing constraint:</strong> Every feature earns its place by answering one question — does this cause a real person to make a better financial decision they would not have made otherwise? If it only improves session length, it ships last or not at all.
+</div>
+
+<div class="timeline" id="timeline"></div>
+
+<script>
+const phases = [
+  {
+    num: "0",
+    name: "Foundations",
+    window: "Days 1–7 · This Week",
+    color: "#4ade80",
+    metric: "Streak freeze live + D+7/D+14/D+30 emails drafted",
+    items: [
+      "Add streak_freeze_count INT DEFAULT 2 column to users table in Supabase — zero migration risk",
+      "Wire freeze button on streak-break screen: decrement freeze, skip penalty, log event to PostHog",
+      "Write D+7, D+14, D+30 re-engagement emails in Resend — reframe around specific lesson the user stopped on, not generic nudge",
+      "Install Vercel Web Analytics (already on Vercel stack) — zero code, instant page-level funnel",
+      "Audit and DELETE any feature that has <5% WAU engagement — ruthlessly reduce before adding",
+      "PostHog funnel: registration → first lesson → lesson 3 completion. Know your baseline dropout point.",
+      "RISK: Streak freeze can be gamed. Cap at 2 per 7 days. Log all uses. Review in 4 weeks."
+    ],
+    tags: ["Supabase", "Resend", "PostHog", "Vercel Analytics"]
+  },
+  {
+    num: "1",
+    name: "Literacy Engine",
+    window: "Weeks 2–8",
+    color: "#60a5fa",
+    metric: "≥40% of users who complete 5 lessons return for a 6th within 7 days",
+    items: [
+      "SM-2 Spaced Repetition: add ease_factor FLOAT DEFAULT 2.5 + interval_days INT + next_review_at TIMESTAMP to a lesson_reviews table. On lesson complete: compute next_review = today + interval_days. Homepage shows review queue above new content.",
+      "Algorithm: if score ≥ 4 → interval *= ease_factor; if score < 3 → interval = 1, ease_factor -= 0.2 (min 1.3). 20 lines of TypeScript, no library needed.",
+      "Behavior-change micro-commitments: at end of each lesson, show one concrete 48-hour challenge ('This week: move R200 to a separate savings wallet'). Store commitment in DB. Surface as a check-in 48h later via Resend.",
+      "Content quality audit (NOT new content): survey every user who completes a unit with 2 questions: 'Did you do something different with money this week because of this lesson? Y/N' and 'What?' — PostHog survey widget, 30 seconds to implement.",
+      "Reframe lesson count UX: never show '178 lessons remaining'. Show 'Unit 1 of 4 this week'. Progress must feel achievable, not infinite.",
+      "Load shedding resilience: implement Service Worker with Workbox (next-pwa package). Cache current unit's assets on first load. Offline banner shows 'You can still complete this lesson' — not an error.",
+      "RISK: SM-2 requires discipline on content tagging. Tag lessons by concept ID before launching review queue — otherwise reviews are meaningless repetition not spaced recall."
+    ],
+    tags: ["SM-2 Algorithm", "Workbox/next-pwa", "Resend", "PostHog Surveys", "Supabase"]
+  },
+  {
+    num: "2",
+    name: "Sustainability",
+    window: "Months 2–4",
+    color: "#a78bfa",
+    metric: "R5,000 MRR OR 200 paying users, whichever comes first",
+    items: [
+      "Stripe integration (Stripe.com — operates in SA, supports ZAR): R49/month individual. Use Stripe Checkout, not custom payment UI. Stripe Tax handles VAT automatically.",
+      "Freemium model: Units 1–3 free forever (this is the trust layer). Units 4–27 require subscription. Do not paywalled spaced repetition — that would punish engagement.",
+      "PWA installability: add manifest.json, service worker (already started with Workbox), install prompt on Android. Target: home screen icon. This is the distribution channel — SA Android users do not pay R49 for an app they access via browser bookmark.",
+      "Africa's Talking SMS: R0.15/SMS in SA. Send D+3 SMS for users who haven't opened the app since registration — single specific message: 'Hi [name], your R-budget challenge from Unit 2 is waiting. Tap: [short link]'. Do NOT use SMS as a generic notification channel — data cost skepticism kills trust.",
+      "Vercel OG social cards: when a user completes a unit, generate a dynamic OG image (/api/og?unit=3&user=Kwanele) using @vercel/og. Share button on completion screen. This is organic distribution at zero cost.",
+      "TRUST LAYER: Before any payment screen, show a plain-language privacy statement: 'Fundi does not sell your data. We do not share it with banks or employers. Ever.' This must appear before the paywall, not buried in T&Cs.",
+      "RISK: R49/month after teaching about debt is a values signal. Consider R29/month launch price with explicit mission framing: 'Your subscription funds free access for 3 users who can't afford it.' Tie revenue to mission publicly."
+    ],
+    tags: ["Stripe", "Africa's Talking", "@vercel/og", "next-pwa", "Supabase RLS"]
+  },
+  {
+    num: "3",
+    name: "Scale",
+    window: "Months 4–9",
+    color: "#f472b6",
+    metric: "≥30% of active users have linked a real financial decision to a lesson (survey-verified)",
+    items: [
+      "SMS bank transaction parsing: most SA mid-market users get SMS notifications from FNB, Capitec, Standard Bank, Nedbank, TymeBank. These follow predictable patterns. Build a regex + NLP parser: user forwards or pastes SMS text, Fundi extracts merchant, amount, category. NO bank API. NO Open Banking. Just text.",
+      "SMS parser example (Capitec): 'Capitec: R250.00 paid to CHECKERS 2025-04-30. Avail bal: R1,204.32' → {type:'debit', amount:250, merchant:'Checkers', category:'Groceries', balance:1204.32}. Build a corpus of 50 SA bank SMS formats. Test coverage first.",
+      "Link transactions to lessons: when user categorises a spend, surface the relevant lesson. Bought airtime? Show data budgeting lesson. Paid interest? Show compound interest unit. This is the core product insight — make illiteracy VISIBLE at the moment of the transaction.",
+      "Stokvel module: 11M SA stokvel participants, R50B annually managed informally. Build a group savings tracker — not a full stokvel app, just a lightweight group where each member sees contributions vs. target. Tie to Unit on 'Saving with others'. Leaderboard mechanics are PERFECT here — they belong in a group savings context, not solo competition.",
+      "Goal progress notifications: user sets a R10,000 emergency fund goal in onboarding. Every R500 milestone, send a Resend email with a lesson that's contextually relevant to their current savings rate.",
+      "RISK: SMS parsing will fail for unusual formats. Fail gracefully — 'We couldn't read this SMS, here's a manual entry form.' Never show a parsing error as an app error. Trust is fragile.",
+      "PDF import (limited): add as optional for users who explicitly request it. Target: Capitec and TymeBank statements only (most consistent PDF format). Use pdf-parse npm package. Frame as 'advanced' — do not make it the primary data entry path."
+    ],
+    tags: ["Africa's Talking", "pdf-parse", "Regex NLP", "Resend", "Supabase"]
+  },
+  {
+    num: "4",
+    name: "Infrastructure",
+    window: "Months 9–18",
+    color: "#fb923c",
+    metric: "B2B pilot signed with ≥1 employer OR ≥1 credit union with verifiable literacy outcome data",
+    items: [
+      "Verifiable literacy credentials: build a simple certificate system — on Unit completion, generate a signed PDF certificate (pdf-lib npm package) with a UUID, stored in Supabase Storage. Verification URL: fundi.co.za/verify/[uuid]. This costs nothing to build and is the B2B entry point.",
+      "B2B employer positioning: financial wellness is a compliance topic under SA's Financial Sector Conduct Authority (FSCA) framework. Position Fundi certificates as evidence of employee financial literacy training — not wellness perk. Target HR departments at companies with 50–500 employees. Pricing: R199/employee/year (vs. R49×12=R588 retail). Aggregate reporting dashboard per employer.",
+      "Credit union / stokvels partnership: approach NASASA (National Stokvel Association of SA) for a white-label or referral partnership. Fundi provides digital literacy layer; stokvel provides trust and distribution. Revenue share model: 30% of subscription revenue from referred users.",
+      "React Native (Expo): by month 12, if MRR exceeds R15,000/month, build a native Android app with Expo. Use the existing Next.js API routes as the backend — zero duplication. Offline-first with expo-sqlite for lesson progress sync. Target: Google Play Store listing provides legitimacy that drives B2B conversations.",
+      "FSCA engagement: register Fundi as a recognised financial literacy provider under the Financial Sector Regulation Act. This is free, takes 3 months of paperwork, and unlocks credibility with both B2B buyers and potential grant funding (National Treasury financial inclusion initiatives).",
+      "RISK: B2B lengthens sales cycles dramatically. Do not build B2B features until you have at least 3 warm employer conversations confirming they would pay. Build the employer dashboard only after first paid pilot."
+    ],
+    tags: ["pdf-lib", "Expo", "FSCA", "NASASA", "Supabase Storage", "B2B"]
+  },
+  {
+    num: "5",
+    name: "Institution",
+    window: "Year 2+",
+    color: "#f5a623",
+    metric: "Fundi data cited in one published financial inclusion outcome study OR partnership with ≥1 SA lender",
+    items: [
+      "Financial health score: aggregate lesson completion, SMS transaction behaviour, goal achievement, quiz performance into a literacy-weighted financial health score. This is NOT a credit score. It measures knowledge and behaviour change, not creditworthiness. Distinction is legally and ethically critical.",
+      "Lender partnership for thin-file borrowers: SA has 11M+ credit-invisible adults. A borrower who has completed Fundi's debt management and credit units, maintained a 90-day streak, and demonstrated spend categorisation behaviour is demonstrably lower risk than a thin-file average. Pilot with a microfinance lender (not a Big Four bank — they move too slowly). Propose a score-sharing API for opted-in users only, with explicit informed consent.",
+      "Open Banking (if available by 2027): SA's Intergovernmental Fintech Working Group (IFWG) has been developing an open banking framework since 2022. Monitor progress. If Capitec or TymeBank release developer APIs, integrate for opted-in users. Do not build toward this before it exists.",
+      "Content licensing: the 27-unit curriculum, once validated by behavioral outcome data, becomes licensable to NGOs, universities, and government financial literacy programs. Price per institution, not per user. This is the mission-maximising revenue channel.",
+      "Community peer learning: users who complete all 27 units become eligible to mentor others — verified, in-app, structured mentorship. One mentor, up to 5 mentees. This scales literacy without scaling content production cost.",
+      "RISK: A financial health score used in lending decisions — even with consent — creates regulatory exposure. Engage an SA fintech lawyer (try Bowmans or ENSafrica) before any lender conversation. Do not promise lenders any data access until legal structure is confirmed."
+    ],
+    tags: ["Financial Health Score", "Open Banking (post-2027)", "IFWG", "Lender API", "Content Licensing"]
+  }
+];
+
+const tl = document.getElementById('timeline');
+
+phases.forEach((p, i) => {
+  const div = document.createElement('div');
+  div.className = 'phase';
+  div.style.background = `linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))`;
+  div.style.borderLeft = `3px solid ${p.color}`;
+
+  const body_items = p.items.map(it => `<li>${it}</li>`).join('');
+  const tags = p.tags.map(t => `<span class="tag">${t}</span>`).join('');
+
+  div.innerHTML = `
+    <div class="phase-header" onclick="toggle(${i})">
+      <div class="phase-dot" style="background:${p.color}; color:#0d0d1a">${p.num}</div>
+      <div class="phase-meta">
+        <div class="phase-name">${p.name}</div>
+        <div class="phase-window">${p.window}</div>
+      </div>
+      <div class="phase-metric">${p.metric}</div>
+    </div>
+    <div class="phase-body" id="body-${i}">
+      <ul>${body_items}</ul>
+      <div style="margin-top:10px">${tags}</div>
+    </div>
+  `;
+  tl.appendChild(div);
+});
+
+function toggle(i) {
+  const body = document.getElementById('body-' + i);
+  body.classList.toggle('open');
+}
+
+// Open phase 0 by default
+document.getElementById('body-0').classList.add('open');
+</script>
+</body>
+</html>
