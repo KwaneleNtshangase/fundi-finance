@@ -125,6 +125,10 @@ type WeeklyProgressJSON = {
   perfectLessons: number;
   dailyXp: number;
   completed: boolean;
+  /** Number of distinct calendar days this week with ≥1 lesson completed (streak_days challenge) */
+  streakDaysThisWeek: number;
+  /** ISO date (YYYY-MM-DD) of the last day a lesson was recorded for this challenge */
+  lastLessonDay: string;
 };
 
 const EMPTY_WEEKLY_PROGRESS: WeeklyProgressJSON = {
@@ -133,6 +137,8 @@ const EMPTY_WEEKLY_PROGRESS: WeeklyProgressJSON = {
   perfectLessons: 0,
   dailyXp: 0,
   completed: false,
+  streakDaysThisWeek: 0,
+  lastLessonDay: "",
 };
 
 function parseWeeklyChallengeStorage(
@@ -153,6 +159,8 @@ function parseWeeklyChallengeStorage(
       perfectLessons: j.perfectLessons ?? 0,
       dailyXp: j.dailyXp ?? 0,
       completed: Boolean(j.completed),
+      streakDaysThisWeek: (j as any).streakDaysThisWeek ?? 0,
+      lastLessonDay: (j as any).lastLessonDay ?? "",
     };
   } catch {
     return null;
@@ -162,12 +170,13 @@ function parseWeeklyChallengeStorage(
 function progressNumberFromWeeklyState(
   wc: { unit: string },
   st: WeeklyProgressJSON,
-  streakDays: number
+  _streakDays?: number
 ): number {
   if (wc.unit === "lessons") return st.lessonsCompleted;
   if (wc.unit === "perfect") return st.perfectLessons;
   if (wc.unit === "daily_xp") return st.dailyXp;
-  if (wc.unit === "streak_days") return streakDays;
+  // Use distinct lesson-days tracked this week, NOT the user's total streak
+  if (wc.unit === "streak_days") return st.streakDaysThisWeek;
   return 0;
 }
 
@@ -2876,7 +2885,7 @@ export function LearnView({
                 {weeklyChallenge.unit === "daily_xp" &&
                   `${weeklyProgress.dailyXp} XP earned today (goal ${weeklyChallenge.target})`}
                 {weeklyChallenge.unit === "streak_days" &&
-                  `Uses your learning streak (goal: ${weeklyChallenge.target} days)`}
+                  `${weeklyProgress.streakDaysThisWeek} day${weeklyProgress.streakDaysThisWeek === 1 ? "" : "s"} with lessons this week (goal: ${weeklyChallenge.target})`}
               </div>
             )}
           </div>
@@ -3113,7 +3122,7 @@ function QuestsView({
                 {weeklyChallenge.unit === "lessons" && `${weeklyProgress.lessonsCompleted} lesson${weeklyProgress.lessonsCompleted === 1 ? "" : "s"} this week`}
                 {weeklyChallenge.unit === "perfect" && `${weeklyProgress.perfectLessons} perfect lesson${weeklyProgress.perfectLessons === 1 ? "" : "s"}`}
                 {weeklyChallenge.unit === "daily_xp" && `${weeklyProgress.dailyXp} XP earned today (goal ${weeklyChallenge.target})`}
-                {weeklyChallenge.unit === "streak_days" && `Uses your learning streak (goal: ${weeklyChallenge.target} days)`}
+                {weeklyChallenge.unit === "streak_days" && `${weeklyProgress.streakDaysThisWeek} day${weeklyProgress.streakDaysThisWeek === 1 ? "" : "s"} with lessons this week (goal: ${weeklyChallenge.target})`}
               </div>
             )}
           </div>
@@ -6511,6 +6520,8 @@ export default function Home() {
       perfectLessons: number;
       dailyXp: number;
       completed: boolean;
+      streakDaysThisWeek: number;
+      lastLessonDay: string;
     };
     let state: WCState = {
       lessonsCompleted: 0,
@@ -6518,6 +6529,8 @@ export default function Home() {
       perfectLessons: 0,
       dailyXp: 0,
       completed: false,
+      streakDaysThisWeek: 0,
+      lastLessonDay: "",
     };
     if (raw) {
       try {
@@ -6546,11 +6559,17 @@ export default function Home() {
     state.perfectLessons += payload.isPerfect ? 1 : 0;
     state.dailyXp = dailyXpSoFar;
 
+    // Track distinct lesson-days this week for streak_days challenge
+    if (state.lastLessonDay !== today) {
+      state.streakDaysThisWeek += 1;
+      state.lastLessonDay = today;
+    }
+
     let progressVal = 0;
     if (wc.unit === "lessons") progressVal = state.lessonsCompleted;
     else if (wc.unit === "perfect") progressVal = state.perfectLessons;
     else if (wc.unit === "daily_xp") progressVal = state.dailyXp;
-    else if (wc.unit === "streak_days") progressVal = userData.streak;
+    else if (wc.unit === "streak_days") progressVal = state.streakDaysThisWeek;
 
     const meets =
       wc.unit === "lessons"
@@ -6559,7 +6578,7 @@ export default function Home() {
           ? state.perfectLessons >= wc.target
           : wc.unit === "daily_xp"
             ? state.dailyXp >= wc.target
-            : userData.streak >= wc.target;
+            : state.streakDaysThisWeek >= wc.target;
 
     // Persist weekly challenge progress to Supabase for cross-device sync
     const syncWeeklyProgressToSupabase = (s: typeof state) => {
@@ -6604,6 +6623,8 @@ export default function Home() {
       perfectLessons: state.perfectLessons,
       dailyXp: state.dailyXp,
       completed: state.completed,
+      streakDaysThisWeek: state.streakDaysThisWeek,
+      lastLessonDay: state.lastLessonDay,
     });
   };
 

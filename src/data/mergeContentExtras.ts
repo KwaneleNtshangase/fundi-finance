@@ -17,6 +17,13 @@ import {
   CRYPTO_EXTRA,
   BUSINESS_FINANCE_EXTRA,
 } from "./content-extra";
+import {
+  REPO_RATE_LESSONS,
+  BEHAVIORAL_FINANCE_LESSONS,
+  BONDS_DEEP_LESSONS,
+  CREDIT_SCORE_DEEP_LESSONS,
+  PORTFOLIO_CONSTRUCTION_LESSONS,
+} from "./content-deep-batch";
 
 function pick(extra: Lesson[], id: string): Lesson {
   const l = extra.find((x) => x.id === id);
@@ -178,6 +185,7 @@ function mergeCreditDebt(c: Course): Course {
           withId(good, "lesson-3"),
           withId(store, "lesson-4"),
           ...rest,
+          ...CREDIT_SCORE_DEEP_LESSONS,
         ],
       },
       {
@@ -271,6 +279,12 @@ function mergeInvestingBasics(c: Course): Course {
           ...rest,
         ],
       },
+      {
+        id: "unit-bonds-deep",
+        title: "Bonds In Depth",
+        description: "How bonds work, how to buy them, and how to use them in your portfolio",
+        lessons: BONDS_DEEP_LESSONS,
+      },
     ],
   };
 }
@@ -299,6 +313,12 @@ function mergeSaInvesting(c: Course): Course {
           if (l.id === "lesson-6") return withId(pres, "lesson-6");
           return l;
         }),
+      },
+      {
+        id: "unit-portfolio",
+        title: "Building Your Portfolio",
+        description: "Asset allocation, rebalancing, and constructing a long-term investment portfolio for South Africans",
+        lessons: PORTFOLIO_CONSTRUCTION_LESSONS,
       },
     ],
   };
@@ -436,6 +456,7 @@ function mergePsychology(c: Course): Course {
           withId(herd, "lesson-3"),
           withId(loss, "lesson-4"),
           ...rest,
+          ...BEHAVIORAL_FINANCE_LESSONS,
         ],
       },
       {
@@ -460,7 +481,7 @@ function mergeRandEconomy(c: Course): Course {
   const u0 = c.units[0];
   return {
     ...c,
-    units: [{ ...u0, lessons: [...u0.lessons, ...RAND_ECONOMY_EXTRA] }],
+    units: [{ ...u0, lessons: [...u0.lessons, ...RAND_ECONOMY_EXTRA, ...REPO_RATE_LESSONS] }],
   };
 }
 
