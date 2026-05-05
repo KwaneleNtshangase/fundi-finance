@@ -5263,6 +5263,8 @@ function DarkModeToggle({ userSettings }: { userSettings: ReturnType<typeof useU
 }
 
 function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBuyFreeze, onUseFreeze, freezeUsedToday = false }: { userData: UserData; hearts?: number; maxHearts?: number; freezeCount?: number; onBuyFreeze?: () => void; onUseFreeze?: () => void; freezeUsedToday?: boolean }) {
+  // If the user already did a lesson today their streak is already safe — no need to use a freeze
+  const streakSafeToday = userData.lessonsToday > 0;
   const goalProgress = Math.min(
     (userData.dailyXP / userData.dailyGoal) * 100,
     100
@@ -5355,7 +5357,20 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
             <div className="stat-value" style={{ color: freezeCount > 0 ? "#3B82F6" : "var(--color-text-secondary)" }}>
               {freezeCount}
             </div>
-            {freezeCount > 0 && !freezeUsedToday && onUseFreeze && (
+            {/* Streak already safe — lesson done today */}
+            {streakSafeToday && (
+              <div style={{ fontSize: 11, color: "#22C55E", marginTop: 4, fontWeight: 600 }}>
+                ✓ Lesson done — streak safe
+              </div>
+            )}
+            {/* Freeze used manually or auto-applied overnight */}
+            {!streakSafeToday && freezeUsedToday && (
+              <div style={{ fontSize: 11, color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>
+                ✓ Streak protected today
+              </div>
+            )}
+            {/* Show Use Freeze button only when streak is at risk (no lesson yet today) */}
+            {!streakSafeToday && !freezeUsedToday && freezeCount > 0 && onUseFreeze && (
               <button
                 type="button"
                 onClick={onUseFreeze}
@@ -5371,17 +5386,12 @@ function StatsPanel({ userData, hearts = 5, maxHearts = 5, freezeCount = 0, onBu
                   cursor: "pointer",
                   width: "100%",
                 }}
-                title="Protect your streak for today"
+                title="Protect your streak for today if you can't do a lesson"
               >
                 🛡️ Use Freeze
               </button>
             )}
-            {freezeUsedToday && (
-              <div style={{ fontSize: 11, color: "#3B82F6", marginTop: 4, fontWeight: 600 }}>
-                ✓ Streak protected today
-              </div>
-            )}
-            {freezeCount === 0 && !freezeUsedToday && (
+            {!streakSafeToday && freezeCount === 0 && !freezeUsedToday && (
               <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 2 }}>
                 Resets every Monday
               </div>
