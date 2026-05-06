@@ -1110,6 +1110,7 @@ html.dark {
   --border-light: #30363D;
   --text-light: #8B949E;
   --text-dark: #E6EDF3;
+  --sidebar-bg: #1a2236;
   /* Bottom nav - ensure strong contrast in dark mode */
   --color-nav-bg: #111827;
   --color-nav-active: #4ade80;

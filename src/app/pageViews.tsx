@@ -4955,21 +4955,20 @@ export default function Home() {
         />
       </div>
       <div className="app-container">
-        <nav className="sidebar hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-64 md:flex-shrink-0 bg-gray-50 dark:bg-gray-900 border-r-2 border-gray-200 dark:border-gray-700 shadow-lg">
+        <nav className="sidebar hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-64 md:flex-shrink-0 border-r-2 shadow-lg" style={{ background: "var(--sidebar-bg, #1e2533)", borderRightColor: "#2d3748" }}>
           <div className="h-1 w-full bg-gradient-to-r from-green-600 to-yellow-400 flex-shrink-0" aria-hidden />
           <div className="logo" style={{ paddingTop: 16 }}>
-            <h1 className="inline-flex items-center gap-2">
-              <Wallet size={22} className="text-[var(--primary-green)]" />
+            <h1 className="inline-flex items-center gap-2" style={{ color: "#4ade80" }}>
+              <Wallet size={22} style={{ color: "#4ade80" }} />
               Fundi Finance
             </h1>
-            <p>Master Your Money</p>
+            <p style={{ color: "#94a3b8" }}>Master Your Money</p>
           </div>
           <ul className="nav-menu">
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "learn" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "learn" ? "active" : ""}`}
+                style={route.name !== "learn" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("learn")}
               >
                 <span className="nav-icon">
@@ -4980,9 +4979,8 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "profile" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "profile" ? "active" : ""}`}
+                style={route.name !== "profile" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("profile")}
               >
                 <span className="nav-icon">
@@ -4993,9 +4991,8 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "leaderboard" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
+                style={route.name !== "leaderboard" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("leaderboard")}
               >
                 <span className="nav-icon">
@@ -5006,9 +5003,8 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "budget" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "budget" ? "active" : ""}`}
+                style={route.name !== "budget" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("budget")}
               >
                 <span className="nav-icon">
@@ -5019,9 +5015,8 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "quests" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "quests" ? "active" : ""}`}
+                style={route.name !== "quests" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("quests")}
               >
                 <span className="nav-icon">
@@ -5032,9 +5027,8 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${
-                  route.name === "settings" ? "active" : ""
-                }`}
+                className={`nav-link ${route.name === "settings" ? "active" : ""}`}
+                style={route.name !== "settings" ? { color: "#e2e8f0" } : {}}
                 onClick={() => handleNav("settings")}
               >
                 <span className="nav-icon">
