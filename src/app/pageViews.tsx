@@ -4955,7 +4955,7 @@ export default function Home() {
         />
       </div>
       <div className="app-container">
-        <nav className="sidebar hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:z-30 md:w-64 md:flex-shrink-0 border-r-2 shadow-lg" style={{ background: "var(--sidebar-bg)", borderRightColor: "var(--color-border)" }}>
+        <nav className="sidebar" style={{ background: "var(--sidebar-bg)", borderRightColor: "var(--color-border)" }}>
           <div className="h-1 w-full bg-gradient-to-r from-green-600 to-yellow-400 flex-shrink-0" aria-hidden />
           <div className="logo" style={{ paddingTop: 16 }}>
             <h1 className="inline-flex items-center gap-2" style={{ color: "var(--color-primary)" }}>

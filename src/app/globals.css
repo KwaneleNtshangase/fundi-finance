@@ -98,15 +98,26 @@ body {
 }
 
 .sidebar {
+  /* Hidden on mobile */
+  display: none;
   width: 256px;
   background: #f9fafb;
   border-right: 2px solid #e5e7eb;
   padding: 0 0 24px;
   position: fixed;
+  top: 0;
+  left: 0;
   height: 100vh;
   overflow-y: auto;
   z-index: 30;
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 769px) {
+  .sidebar {
+    display: flex !important;
+    flex-direction: column;
+  }
 }
 
 .sidebar-brand-accent {
@@ -985,11 +996,7 @@ html.dark .nav-link.active {
 
 @media (max-width: 768px) {
   .sidebar {
-    width: 100%;
-    position: static;
-    height: auto;
-    border-right: none;
-    border-bottom: 2px solid var(--border-light);
+    display: none !important;
   }
 
   .main-content {
