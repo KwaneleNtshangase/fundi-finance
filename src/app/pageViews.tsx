@@ -1379,7 +1379,7 @@ function ReviewSession({ onClose }: { onClose: () => void }) {
   const optionLetters = ["A", "B", "C", "D"];
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-white dark:bg-gray-950">
+    <div className="fixed inset-0 z-[300] flex flex-col bg-white dark:bg-gray-950">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-safe-top pb-3 pt-4 border-b border-gray-100 dark:border-gray-800">
         <button
@@ -2297,10 +2297,10 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
         {parts[0]}
         {!isAnswered ? (
           <input
-            type="number"
-            inputMode="numeric"
+            type="text"
+            inputMode="decimal"
             value={val}
-            onChange={e => setVal(e.target.value.replace(/[^0-9.-]/g, ""))}
+            onChange={e => setVal(e.target.value.replace(/[^0-9.,]/g, ""))}
             onKeyDown={e => e.key === "Enter" && handleSubmit()}
             style={{
               display: "inline-block", width: 100, margin: "0 8px",
@@ -3101,7 +3101,7 @@ export function LessonView({
       <main className="main-content main-with-stats">
         <div className="lesson-player">
           {/* Back button + progress bar + exit (hearts only in FundiTopBar) */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, position: "sticky", top: 0, zIndex: 50, background: "var(--color-bg)", paddingTop: 8, paddingBottom: 8, marginTop: -8 }}>
             {goBack && (
               <button
                 onClick={() => setShowExitConfirm(true)}
@@ -5047,7 +5047,7 @@ export default function Home() {
         </nav>
 
         {/* keep content above bottom nav on mobile */}
-        <div className="pb-24 md:pb-8">
+        <div className="pb-24 md:pb-8 md:ml-64">
         {/* TopBar moved outside scroll area, see below */}
         {route.name === "learn" && (
           <LearnView

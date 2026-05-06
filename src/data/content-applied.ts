@@ -172,18 +172,22 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
         "Sipho earns a gross salary of R25 000/month. His payslip shows:\n\n• Gross salary: R25 000\n• RA contribution (employer): R1 250 (5%)\n• RA contribution (employee): R1 250 (5%)\n• Medical aid (employee): R800\n• PAYE: R3 142\n• UIF: R148.72 (capped at 1% of R14 872 UIF ceiling)\n• SDL (Skills Development Levy): R250 — paid by employer only\n\nNet pay = Gross − employee deductions.",
     },
     {
-      type: "fill-blank",
+      type: "scenario",
       title: "Calculate Sipho's net pay",
-      prompt:
-        "Sipho's employee deductions are: RA R1 250 + Medical R800 + PAYE R3 142 + UIF R148.72 = R5 340.72.\n\nHis net (take-home) pay is R ___.\n\nA) R25 000\nB) R19 659.28\nC) R21 858\nD) R22 500",
-      correct: 1,
-      explanation:
-        "B — R19 659.28. R25 000 − R5 340.72 = R19 659.28. His R1 250 RA contribution reduces his taxable income, which is why his PAYE is lower than it would be without the RA.",
+      question:
+        "Sipho's employee deductions total R5 340.72 (RA R1 250 + Medical R800 + PAYE R3 142 + UIF R148.72). What is his net (take-home) pay?",
+      options: [
+        "R22 801.28 — he forgot PAYE",
+        "R19 409.28 — SDL incorrectly included",
+        "R19 659.28 — employee deductions only",
+        "R19 558.00 — UIF calculated on full salary",
+      ],
+      correct: 2,
       feedback: {
         correct:
-          "Exactly. And notice: by contributing to his RA, Sipho is reducing his taxable income and saving for retirement simultaneously.",
+          "Exactly. R25 000 − R5 340.72 = R19 659.28. And by contributing to his RA, Sipho is reducing his taxable income and saving for retirement simultaneously.",
         incorrect:
-          "R19 659.28 is the answer. Add up all employee-side deductions (not SDL — that is employer-only) and subtract from gross.",
+          "The answer is R19 659.28. Subtract only employee deductions: RA R1 250 + Medical R800 + PAYE R3 142 + UIF R148.72 = R5 340.72. SDL (R250) is employer-only — never deducted from Sipho's pay.",
       },
     },
     {
