@@ -109,7 +109,7 @@ import {
 import confetti from "canvas-confetti";
 
 import type { Course, Unit, Lesson, LessonStep } from "@/data/content";
-import { ProfileView } from "@/components/ProfileView";
+import { ProfileView, LegalPage, FeedbackModal } from "@/components/ProfileView";
 import { BudgetView } from "@/components/BudgetPlanner";
 import { CalculatorView, CalcInputs, calcGrowth } from "@/components/CalculatorView";
 import { LeaderboardView, getLeaderboardWeekKey } from "@/components/LeaderboardView";
@@ -3252,12 +3252,23 @@ function SettingsView({
   setDailyGoal,
   resetProgress,
   userSettings,
+  onSignOut,
+  onDeleteAccount,
+  onDownloadData,
 }: {
   userData: UserData;
   setDailyGoal: (goal: number) => void;
   resetProgress: () => void;
   userSettings: ReturnType<typeof useUserSettings>;
+  onSignOut?: () => void;
+  onDeleteAccount?: () => Promise<void>;
+  onDownloadData?: () => void;
 }) {
+  const [showLegalPage, setShowLegalPage] = useState<"faq" | "privacy" | "terms" | null>(null);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   // Read initial values from Supabase-backed settings (with localStorage fallback)
   const [soundEnabled, setSoundEnabled] = useState<boolean>(userSettings.settings.soundEnabled);
   const [selectedGoal, setSelectedGoal] = useState<number>(userSettings.settings.dailyGoal);
@@ -3364,6 +3375,10 @@ function SettingsView({
       {children}
     </div>
   );
+
+  if (showLegalPage) {
+    return <LegalPage page={showLegalPage} onBack={() => setShowLegalPage(null)} onFeedback={() => { setShowLegalPage(null); setFeedbackOpen(true); }} />;
+  }
 
   return (
     <main className="main-content main-with-stats">
@@ -3494,6 +3509,85 @@ function SettingsView({
           Reset All Progress
         </button>
       </div>
+
+      {/* ── Help & Legal ── */}
+      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Help &amp; Legal</div>
+      <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 8, overflow: "hidden" }}>
+        {[
+          { label: "FAQ & Help", icon: <HelpCircle size={16} />, action: () => setShowLegalPage("faq") },
+          { label: "Privacy Policy", icon: <Shield size={16} />, action: () => setShowLegalPage("privacy") },
+          { label: "Terms of Service", icon: <FileText size={16} />, action: () => setShowLegalPage("terms") },
+          { label: "Send Feedback", icon: <MessageSquare size={16} />, action: () => setFeedbackOpen(true) },
+        ].map((item, i, arr) => (
+          <button key={item.label} type="button" onClick={item.action}
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", borderBottom: i < arr.length - 1 ? "1px solid var(--color-border)" : "none", cursor: "pointer", textAlign: "left" }}>
+            <span style={{ color: "var(--color-text-secondary)" }}>{item.icon}</span>
+            <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>{item.label}</span>
+            <ChevronRight size={14} style={{ color: "var(--color-text-secondary)" }} />
+          </button>
+        ))}
+      </div>
+
+      {/* ── Account ── */}
+      {onDeleteAccount && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Account &amp; Data</div>
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 8, overflow: "hidden" }}>
+            {onDownloadData && (
+              <button type="button" onClick={onDownloadData}
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", borderBottom: "1px solid var(--color-border)", cursor: "pointer", textAlign: "left" }}>
+                <FileText size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>Download My Data</div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Export your progress as a JSON file (POPIA right to access)</div>
+                </div>
+              </button>
+            )}
+            <button type="button" onClick={() => setShowDeleteModal(true)}
+              style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
+              <Trash2 size={16} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-danger)" }}>Delete My Data</div>
+                <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Permanently removes all your account data</div>
+              </div>
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* Sign out */}
+      {onSignOut && (
+        <button type="button" onClick={onSignOut} style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600, color: "var(--color-danger)", background: "none", border: "none", cursor: "pointer", padding: "8px 0", marginTop: 4, marginBottom: 32 }}>
+          <LogOut size={18} />
+          Sign Out
+        </button>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <div onClick={() => !deleting && setShowDeleteModal(false)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 500, display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--color-surface)", borderRadius: 20, padding: "28px 24px 24px", width: "100%", maxWidth: 380, textAlign: "center" }}>
+            <AlertTriangle size={40} style={{ color: "#E03C31", marginBottom: 12, display: "block", margin: "0 auto 12px" }} />
+            <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "var(--color-text-primary)" }}>Delete All My Data?</div>
+            <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
+              This permanently deletes your account, XP, progress, and all personal data from Fundi Finance. This cannot be undone.
+            </p>
+            <button type="button" disabled={deleting} onClick={async () => { setDeleting(true); try { if (onDeleteAccount) await onDeleteAccount(); } finally { setDeleting(false); } }}
+              style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "#E03C31", color: "#fff", fontWeight: 700, fontSize: 15, cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.6 : 1, marginBottom: 10 }}>
+              {deleting ? "Deleting..." : "Yes, Delete Everything"}
+            </button>
+            <button type="button" disabled={deleting} onClick={() => setShowDeleteModal(false)}
+              style={{ width: "100%", padding: "10px", borderRadius: 12, border: "1px solid var(--color-border)", background: "transparent", color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14, cursor: "pointer" }}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback modal */}
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </main>
   );
 }
@@ -4956,13 +5050,29 @@ export default function Home() {
       </div>
       <div className="app-container">
         <nav className="sidebar" style={{ background: "var(--sidebar-bg)", borderRightColor: "var(--color-border)" }}>
-          <div className="h-1 w-full bg-gradient-to-r from-green-600 to-yellow-400 flex-shrink-0" aria-hidden />
-          <div className="logo" style={{ paddingTop: 16 }}>
-            <h1 className="inline-flex items-center gap-2" style={{ color: "var(--color-primary)" }}>
-              <Wallet size={22} style={{ color: "var(--color-primary)" }} />
-              Fundi Finance
-            </h1>
-            <p style={{ color: "var(--color-text-secondary)" }}>Master Your Money</p>
+          {/* Branded sidebar header */}
+          <div style={{
+            padding: "20px 20px 16px",
+            borderBottom: "1px solid var(--color-border)",
+            marginBottom: 8,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+              <div style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                background: "var(--color-primary)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Wallet size={20} color="white" />
+              </div>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-text-primary)", lineHeight: 1.1 }}>
+                  Fundi Finance
+                </div>
+                <div style={{ fontSize: 11, color: "var(--color-text-secondary)", letterSpacing: "0.04em" }}>
+                  Master Your Money
+                </div>
+              </div>
+            </div>
           </div>
           <ul className="nav-menu">
             <li className="nav-item">
@@ -5023,18 +5133,6 @@ export default function Home() {
                   <Target size={20} className="text-current" />
                 </span>
                 Quests
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${route.name === "settings" ? "active" : ""}`}
-                style={route.name !== "settings" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("settings")}
-              >
-                <span className="nav-icon">
-                  <SettingsIcon size={20} className="text-current" />
-                </span>
-                Settings
               </button>
             </li>
           </ul>
@@ -5182,6 +5280,7 @@ export default function Home() {
             onSignOut={handleProfileSignOut}
             onDeleteAccount={handleDeleteAccount}
             onDownloadData={handleDownloadData}
+            onGoToSettings={() => setRoute({ name: "settings" })}
             currentUser={null}
             dailyGoal={dailyGoal}
             setDailyGoal={setDailyGoal}
@@ -5203,6 +5302,9 @@ export default function Home() {
             setDailyGoal={setDailyGoal}
             resetProgress={handleResetProgress}
             userSettings={userSettings}
+            onSignOut={handleProfileSignOut}
+            onDeleteAccount={handleDeleteAccount}
+            onDownloadData={handleDownloadData}
           />
         )}
 

@@ -137,7 +137,7 @@ async function isUsernameAvailable(username: string, excludeUserId?: string): Pr
 
 // ─── FeedbackModal ────────────────────────────────────────────────────────────
 
-function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [issueType, setIssueType] = useState("");
@@ -246,7 +246,7 @@ function FeedbackModal({ open, onClose }: { open: boolean; onClose: () => void }
 
 // ─── LegalPage ────────────────────────────────────────────────────────────────
 
-function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "terms" | "faq"; onBack: () => void; onFeedback: () => void }) {
+export function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "terms" | "faq"; onBack: () => void; onFeedback: () => void }) {
   const [openFaq, setOpenFaq] = useState<string | null>(null);
   const titles = { privacy: "Privacy Policy", terms: "Terms of Service", faq: "FAQ & Help" };
 
@@ -372,6 +372,7 @@ export function ProfileView({
   completedLessons = new Set(),
   calcSaved: calcSavedProp = null,
   onClearCalcSaved,
+  onGoToSettings,
 }: {
   userData: UserData;
   onSignOut: () => void;
@@ -387,6 +388,8 @@ export function ProfileView({
   calcSaved?: CalcInputs | null;
   /** Callback to clear saved projection in Supabase */
   onClearCalcSaved?: () => void;
+  /** Navigate to the Settings page */
+  onGoToSettings?: () => void;
 }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -580,8 +583,32 @@ export function ProfileView({
 
   return (
     <main className="main-content main-with-stats">
+      {/* Page header with gear icon */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+        <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--color-text-primary)" }}>Profile</h2>
+        {onGoToSettings && (
+          <button
+            type="button"
+            onClick={onGoToSettings}
+            aria-label="Settings"
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: 40, height: 40, borderRadius: 12,
+              background: "var(--color-surface)", border: "1px solid var(--color-border)",
+              cursor: "pointer", color: "var(--color-text-secondary)",
+              transition: "background 0.15s",
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </button>
+        )}
+      </div>
+
       {/* Avatar + name */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 0 16px" }}>
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "16px 0 16px" }}>
         <div style={{
           width: 72, height: 72, borderRadius: "50%", marginBottom: 12,
           background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))",
@@ -1092,61 +1119,6 @@ export function ProfileView({
           </div>
         )}
       </div>
-
-      {/* Help / Legal / Feedback row */}
-      <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 16, overflow: "hidden" }}>
-        {[
-          { label: "FAQ & Help", icon: <HelpCircle size={16} />, action: () => setShowLegalPage("faq") },
-          { label: "Privacy Policy", icon: <Shield size={16} />, action: () => setShowLegalPage("privacy") },
-          { label: "Terms of Service", icon: <FileText size={16} />, action: () => setShowLegalPage("terms") },
-          { label: "Send Feedback", icon: <MessageSquare size={16} />, action: () => setFeedbackOpen(true) },
-        ].map((item, i, arr) => (
-          <button key={item.label} type="button" onClick={item.action}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "none", border: "none", borderBottom: i < arr.length - 1 ? "1px solid var(--color-border)" : "none", cursor: "pointer", textAlign: "left" }}>
-            <span style={{ color: "var(--color-text-secondary)" }}>{item.icon}</span>
-            <span style={{ flex: 1, fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>{item.label}</span>
-            <ChevronRight size={14} style={{ color: "var(--color-text-secondary)" }} />
-          </button>
-        ))}
-      </div>
-
-      {/* Sign out */}
-      <button type="button" onClick={onSignOut} className="inline-flex items-center gap-2 text-sm font-semibold" style={{ color: "var(--color-danger)", marginBottom: 32 }}>
-        <LogOut size={18} className="text-current" />
-        Sign Out
-      </button>
-
-      {/* Danger zone */}
-      {onDeleteAccount && (
-        <div style={{ marginBottom: 32 }}>
-          <details style={{ borderRadius: 12, border: "1px solid var(--color-border)", overflow: "hidden" }}>
-            <summary style={{ padding: "12px 16px", cursor: "pointer", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", listStyle: "none", display: "flex", alignItems: "center", gap: 8, background: "var(--color-surface)" }}>
-              <AlertTriangle size={13} style={{ color: "var(--color-text-secondary)" }} />
-              Account &amp; Data
-            </summary>
-            <div style={{ padding: "8px 0", background: "var(--color-surface)", borderTop: "1px solid var(--color-border)" }}>
-              {onDownloadData && (
-                <button type="button" onClick={onDownloadData}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "none", border: "none", borderBottom: "1px solid var(--color-border)", cursor: "pointer", textAlign: "left" }}>
-                  <FileText size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>Download My Data</div>
-                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Export your progress as a JSON file (POPIA right to access)</div>
-                  </div>
-                </button>
-              )}
-              <button type="button" onClick={() => setShowDeleteModal(true)}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
-                <Trash2 size={16} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-danger)" }}>Delete My Data</div>
-                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Permanently removes all your account data</div>
-                </div>
-              </button>
-            </div>
-          </details>
-        </div>
-      )}
 
       {/* Delete confirmation modal */}
       {showDeleteModal && (
