@@ -217,10 +217,7 @@ html.dark .nav-link.active {
 @media (min-width: 768px) {
   .main-content {
     margin-left: 256px;
-    /* Center content within the middle column:
-       when the column is wider than 760px, add equal horizontal padding
-       so content stays at most 760px wide and is visually centered. */
-    padding: 32px max(32px, calc((100% - 760px) / 2));
+    padding: 32px;
   }
 }
 

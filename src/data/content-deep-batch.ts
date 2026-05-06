@@ -691,7 +691,7 @@ export const PORTFOLIO_CONSTRUCTION_LESSONS: Lesson[] = [
           correct:
             "Not always. If the gain is within your R40 000 annual exclusion, no CGT is owed. If it's inside a TFSA, never any CGT. Inside an RA, no CGT on growth. Tax-smart investors use these wrappers to rebalance without tax costs.",
           incorrect:
-            "CGT is only triggered on gains above the R40 000 annual exclusion. Inside a TFSA or RA, there is no CGT at all on rebalancing. Strategic use of tax wrappers makes rebalancing cost-free from a tax perspective.",
+            "CGT is only triggered on gains above the R50 000 annual exclusion. Inside a TFSA or RA, there is no CGT at all on rebalancing. Strategic use of tax wrappers makes rebalancing cost-free from a tax perspective.",
         },
       },
       {

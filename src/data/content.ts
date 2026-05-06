@@ -542,7 +542,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Build Wealth and Pay Less Tax",
-                  content: "<p>South Africa gives you a powerful incentive to save for retirement: <strong>tax deductions up to 27.5% of taxable income</strong> (capped at R350 000/year) on approved retirement fund contributions.</p><p><strong>Three main vehicles:</strong></p><ul><li><strong>Pension Fund:</strong> Provided by your employer. You contribute a set percentage, employer often matches.</li><li><strong>Provident Fund:</strong> Similar to pension but previously allowed a full lump sum at retirement. Now aligned to pension rules under the two-pot system.</li><li><strong>Retirement Annuity (RA):</strong> A private retirement fund you open yourself - ideal for self-employed people or those who want to save beyond their employer fund.</li></ul><p><strong>Two-Pot System (from 1 September 2024):</strong> Your retirement savings are now split into a Savings Pot (1/3, accessible once per year from age 55) and a Retirement Pot (2/3, locked until retirement). This prevents raiding your retirement savings while giving emergency access.</p><p>Example: If you earn R30 000/month (R360 000/year) and contribute R3 000/month to an RA, you save approximately R990/month in tax (assuming 33% marginal rate).</p>",
+                  content: "<p>South Africa gives you a powerful incentive to save for retirement: <strong>tax deductions up to 27.5% of taxable income</strong> (capped at R430 000/year) on approved retirement fund contributions.</p><p><strong>Three main vehicles:</strong></p><ul><li><strong>Pension Fund:</strong> Provided by your employer. You contribute a set percentage, employer often matches.</li><li><strong>Provident Fund:</strong> Similar to pension but previously allowed a full lump sum at retirement. Now aligned to pension rules under the two-pot system.</li><li><strong>Retirement Annuity (RA):</strong> A private retirement fund you open yourself - ideal for self-employed people or those who want to save beyond their employer fund.</li></ul><p><strong>Two-Pot System (from 1 September 2024):</strong> Your retirement savings are now split into a Savings Pot (1/3, accessible once per year from age 55) and a Retirement Pot (2/3, locked until retirement). This prevents raiding your retirement savings while giving emergency access.</p><p>Example: If you earn R30 000/month (R360 000/year) and contribute R3 000/month to an RA, you save approximately R990/month in tax (assuming 33% marginal rate).</p>",
                 },
                 {
                   type: "mcq",
@@ -550,8 +550,8 @@ const RAW_COURSES: Course[] = [
                   options: ["15%", "20%", "27.5%", "33%"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. SARS allows a deduction of up to 27.5% of the greater of taxable income or remuneration, capped at R350 000 per year.",
-                    incorrect: "The limit is 27.5% of taxable income, capped at R350 000 annually. This is one of SA's best legal tax breaks.",
+                    correct: "Correct. SARS allows a deduction of up to 27.5% of the greater of taxable income or remuneration, capped at R430 000 per year.",
+                    incorrect: "The limit is 27.5% of taxable income, capped at R430 000 annually. This is one of SA's best legal tax breaks.",
                   },
                 },
                 {
@@ -1921,7 +1921,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Save for Retirement AND Pay Less Tax",
-                  content: "<p>A Retirement Annuity (RA) is a long-term investment specifically for retirement. Contributions are <strong>tax-deductible</strong> up to 27.5% of your income (max R350 000/year).</p><p>Example: If you earn R50 000/month and contribute R5 000/month to an RA, you reduce your taxable income by R60 000/year, potentially saving R12 000–R18 000 in tax.</p>",
+                  content: "<p>A Retirement Annuity (RA) is a long-term investment specifically for retirement. Contributions are <strong>tax-deductible</strong> up to 27.5% of your income (max R430 000/year).</p><p>Example: If you earn R50 000/month and contribute R5 000/month to an RA, you reduce your taxable income by R60 000/year, potentially saving R12 000–R18 000 in tax.</p>",
                 },
                 {
                   type: "mcq",
@@ -1929,8 +1929,8 @@ const RAW_COURSES: Course[] = [
                   options: ["10%", "15%", "27.5%", "50%"],
                   correct: 2,
                   feedback: {
-                    correct: "27.5% of your income, capped at R350 000/year.",
-                    incorrect: "The limit is 27.5% of your income (up to R350 000/year). This is one of the most generous tax breaks in SA.",
+                    correct: "27.5% of your income, capped at R430 000/year.",
+                    incorrect: "The limit is 27.5% of your income (up to R430 000/year). This is one of the most generous tax breaks in SA.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -2340,7 +2340,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Legal Ways to Pay Less Tax",
-                  content: "<p>South Africans who know the rules can significantly reduce their tax bill legally. Key deductions:</p><p><strong>1. Retirement Annuity contributions:</strong> Up to 27.5% of taxable income (max R350 000/year). This is the single biggest legal tax reduction available to most people.</p><p><strong>2. Medical Aid credits:</strong> Not a deduction - a rand-for-rand credit off your tax. Main member: R364/month (2024). First dependant: R364/month. Each additional: R246/month. Out-of-pocket medical expenses above 7.5% of taxable income (after subtracting credits) can be added.</p><p><strong>3. Home office deduction:</strong> If you work from home and have a dedicated room used exclusively for work, you may deduct a proportion of your home costs (bond interest or rent, electricity, rates). The room must be specifically equipped for work and used regularly.</p><p><strong>4. Donations to PBOs:</strong> Donations to SARS-approved Public Benefit Organisations (Section 18A) are deductible up to 10% of your taxable income. Get a Section 18A certificate from the charity.</p>",
+                  content: "<p>South Africans who know the rules can significantly reduce their tax bill legally. Key deductions:</p><p><strong>1. Retirement Annuity contributions:</strong> Up to 27.5% of taxable income (max R430 000/year). This is the single biggest legal tax reduction available to most people.</p><p><strong>2. Medical Aid credits:</strong> Not a deduction - a rand-for-rand credit off your tax. Main member: R376/month (2026). First dependant: R376/month. Each additional: R254/month. Out-of-pocket medical expenses above 7.5% of taxable income (after subtracting credits) can be added.</p><p><strong>3. Home office deduction:</strong> If you work from home and have a dedicated room used exclusively for work, you may deduct a proportion of your home costs (bond interest or rent, electricity, rates). The room must be specifically equipped for work and used regularly.</p><p><strong>4. Donations to PBOs:</strong> Donations to SARS-approved Public Benefit Organisations (Section 18A) are deductible up to 10% of your taxable income. Get a Section 18A certificate from the charity.</p>",
                 },
                 {
                   type: "mcq",
@@ -2437,7 +2437,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Profit on Investments Is Not Tax-Free",
-                  content: "<p>When you sell an investment (shares, property, unit trusts, crypto) for more than you paid, the profit is called a <strong>capital gain</strong>. SARS taxes this via Capital Gains Tax (CGT).</p><p><strong>How CGT works for individuals:</strong></p><ul><li><strong>Annual exclusion:</strong> R40 000 of capital gains per year is excluded - you only pay tax above this.</li><li><strong>Inclusion rate:</strong> 40% of the net capital gain (above the exclusion) is included in your taxable income.</li><li><strong>Effective maximum rate:</strong> At the highest marginal rate (45%), CGT is 45% x 40% = 18% effective tax rate on the gain.</li></ul><p><strong>Primary residence exclusion:</strong> When selling your main home, the first R2 000 000 of capital gain is excluded from CGT. This is why most homeowners pay no CGT when they sell their house.</p><p><strong>Example:</strong> You bought shares for R50 000 and sold them for R120 000 - a R70 000 gain. Less the R40 000 annual exclusion = R30 000 net. 40% inclusion = R12 000 added to your income. At 31% marginal rate, you pay R3 720 in additional tax.</p>",
+                  content: "<p>When you sell an investment (shares, property, unit trusts, crypto) for more than you paid, the profit is called a <strong>capital gain</strong>. SARS taxes this via Capital Gains Tax (CGT).</p><p><strong>How CGT works for individuals:</strong></p><ul><li><strong>Annual exclusion:</strong> R50 000 of capital gains per year is excluded - you only pay tax above this.</li><li><strong>Inclusion rate:</strong> 40% of the net capital gain (above the exclusion) is included in your taxable income.</li><li><strong>Effective maximum rate:</strong> At the highest marginal rate (45%), CGT is 45% x 40% = 18% effective tax rate on the gain.</li></ul><p><strong>Primary residence exclusion:</strong> When selling your main home, the first R3 000 000 of capital gain is excluded (from 1 March 2026) from CGT. This is why most homeowners pay no CGT when they sell their house.</p><p><strong>Example:</strong> You bought shares for R50 000 and sold them for R120 000 - a R70 000 gain. Less the R50 000 annual exclusion = R20 000 net. 40% inclusion = R8 000 added to your income. At 31% marginal rate, you pay R3 720 in additional tax.</p>",
                 },
                 {
                   type: "mcq",
@@ -2445,17 +2445,17 @@ const RAW_COURSES: Course[] = [
                   options: ["100%", "66.6%", "40%", "18%"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Individuals include 40% of their net capital gain (after the R40 000 annual exclusion) in taxable income. This is then taxed at your marginal rate.",
+                    correct: "Correct. Individuals include 40% of their net capital gain (after the R50 000 annual exclusion) in taxable income. This is then taxed at your marginal rate.",
                     incorrect: "For individuals, only 40% of the net capital gain is included in taxable income. The effective maximum CGT rate is 18% (40% x 45% top marginal rate).",
                   },
                 },
                 {
                   type: "true-false",
-                  statement: "You must pay Capital Gains Tax when you sell your primary residence if the gain exceeds R2 million.",
+                  statement: "You must pay Capital Gains Tax when you sell your primary residence if the gain exceeds R3 million.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. The first R2 000 000 of gain on your primary residence is excluded. Only gains above R2 000 000 are subject to CGT - and even then, only 40% of that excess is included.",
-                    incorrect: "The primary residence exclusion is R2 000 000. Only gains above R2 million on your main home attract CGT.",
+                    correct: "Correct. The first R3 000 000 of gain on your primary residence is excluded. Only gains above R3 000 000 are subject to CGT - and even then, only 40% of that excess is included.",
+                    incorrect: "The primary residence exclusion is R3 000 000. Only gains above R3 million on your main home attract CGT.",
                   },
                 },
               ] satisfies LessonStep[],

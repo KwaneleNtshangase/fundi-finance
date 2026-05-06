@@ -204,7 +204,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. RA contributions up to 27.5% of gross income (max R350 000/year) are deductible from taxable income. Lower taxable income = lower PAYE. The government effectively subsidises your retirement savings.",
+          "Correct. RA contributions up to 27.5% of gross income (max R430 000/year) are deductible from taxable income. Lower taxable income = lower PAYE. The government effectively subsidises your retirement savings.",
         incorrect:
           "RA contributions are tax-deductible. By contributing R1 250/month, Sipho's taxable income drops by R1 250, which reduces the PAYE SARS calculates each month. It is a legal way to pay less tax while saving for retirement.",
       },
@@ -345,13 +345,13 @@ export const LESSON_SARS_ASSESSMENT: Lesson = {
       options: [
         "She pays no tax — shares held over 3 years are tax-free",
         "She pays 18% capital gains tax on the full R35 000",
-        "40% of the R35 000 is included in her taxable income (annual exclusion of R40 000 applies first)",
+        "40% of the R35 000 is included in her taxable income (annual exclusion of R50 000 applies first)",
         "She must pay CGT only if she earned above R1.5M total",
       ],
       correct: 2,
       feedback: {
         correct:
-          "Correct. South Africa's CGT works by including 40% of the net gain (after the annual R40 000 exclusion) in your taxable income. If Lerato's gain is R35 000 — which is below the R40 000 annual exclusion — she pays zero CGT this year. If her gain were R60 000, she would include 40% of R20 000 (above the exclusion) = R8 000 in taxable income.",
+          "Correct. South Africa's CGT works by including 40% of the net gain (after the annual R50 000 exclusion) in your taxable income. If Lerato's gain is R35 000 — which is below the R50 000 annual exclusion — she pays zero CGT this year. If her gain were R80 000, she would include 40% of R30 000 (above the exclusion) = R12 000 in taxable income.",
         incorrect:
           "CGT in SA uses inclusion rates: 40% of the net capital gain is added to your taxable income. Crucially, the first R40 000 of gains each year is excluded. Since Lerato's R35 000 gain is below the exclusion threshold, she owes no CGT this year.",
       },

@@ -970,41 +970,77 @@ export function ProfileView({
 
       {/* Weekly XP Chart */}
       {(() => {
+        const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+        // Recharts SVG does not resolve CSS variables — use explicit hex colours
+        const primaryColor = isDark ? "#3FB68B" : "#007A4D";
+        const pastColor = isDark ? "#2a4a3e" : "#c6e6d8";
+        const axisColor = isDark ? "#8B949E" : "#6B7280";
+        const tooltipBg = isDark ? "#161B22" : "#ffffff";
+        const tooltipBorder = isDark ? "#30363D" : "#D1E8DF";
+        const tooltipText = isDark ? "#ffffff" : "#111827";
+
         const today = new Date();
         const dayOfWeek = today.getDay();
-        const weekDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        // Build Mon–Sun week (ISO week feel: Mon first)
+        const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
         const weekData = weekDays.map((name, i) => {
-          const diff = i - dayOfWeek;
+          // Map Mon=1..Sun=7 → JS day 1..7(0)
+          const targetDay = i + 1 === 7 ? 0 : i + 1;
+          const diff = targetDay - dayOfWeek;
           const d = new Date(today);
           d.setDate(today.getDate() + diff);
-          const key = `fundi-daily-xp-${d.toISOString().slice(0, 10)}`;
-          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(key) ?? "0", 10) : 0;
-          return { name, xp, isToday: diff === 0 };
+          // Use local date string to avoid UTC-offset mismatches
+          const localIso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(`fundi-daily-xp-${localIso}`) ?? "0", 10) : 0;
+          const isFuture = diff > 0;
+          return { name, xp, isToday: diff === 0, isFuture };
         });
+
+        const weekTotal = weekData.reduce((s, d) => s + d.xp, 0);
+        const maxXp = Math.max(...weekData.map((d) => d.xp), 50); // min scale of 50 so empty week looks right
+
         return (
           <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <BarChart2 size={18} style={{ color: "var(--color-primary)" }} />
-              <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>This Week&apos;s XP</span>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <BarChart2 size={18} style={{ color: primaryColor }} />
+                <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>This Week&apos;s XP</span>
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 800, color: primaryColor }}>{weekTotal} XP</span>
             </div>
-            <ResponsiveContainer width="100%" height={160}>
-              <BarChart data={weekData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  formatter={(value: any) => [`${value} XP`, "XP"]}
-                  contentStyle={{ borderRadius: 8, fontSize: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
-                  labelStyle={{ color: "var(--color-text-primary)", fontWeight: 700 }}
-                  itemStyle={{ color: "var(--color-text-primary)" }}
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart data={weekData} margin={{ top: 4, right: 4, left: -28, bottom: 0 }} barCategoryGap="25%">
+                <XAxis
+                  dataKey="name"
+                  tick={{ fontSize: 11, fill: axisColor, fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
                 />
-                <Bar dataKey="xp" radius={[6, 6, 0, 0]} maxBarSize={36}>
-                  {weekData.map((entry, i) => (<Cell key={i} fill={entry.isToday ? "var(--color-primary)" : "rgba(0,122,77,0.3)"} />))}
+                <YAxis
+                  tick={{ fontSize: 10, fill: axisColor }}
+                  axisLine={false}
+                  tickLine={false}
+                  domain={[0, maxXp]}
+                  tickCount={4}
+                />
+                <Tooltip
+                  cursor={{ fill: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}
+                  formatter={(value: any) => [`${value} XP`, ""]}
+                  contentStyle={{ borderRadius: 10, fontSize: 12, border: `1px solid ${tooltipBorder}`, background: tooltipBg, color: tooltipText, boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
+                  labelStyle={{ color: tooltipText, fontWeight: 700, marginBottom: 2 }}
+                  itemStyle={{ color: primaryColor, fontWeight: 700 }}
+                />
+                <Bar dataKey="xp" radius={[6, 6, 2, 2]} maxBarSize={40}>
+                  {weekData.map((entry, i) => (
+                    <Cell
+                      key={i}
+                      fill={entry.isFuture ? (isDark ? "#1e2d27" : "#e8f4ef") : entry.isToday ? primaryColor : pastColor}
+                      opacity={entry.isFuture ? 0.5 : 1}
+                    />
+                  ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
-            <div style={{ textAlign: "center", fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
-              Week total: {weekData.reduce((s, d) => s + d.xp, 0)} XP
-            </div>
           </div>
         );
       })()}
