@@ -1,27 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { AlertTriangle, RefreshCcw, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
-import { formatNumberWithSpaces } from "@/lib/currency";
+import { formatWithSpaces } from "@/lib/formatters";
 
-const LOADING_TIPS = [
-  "Tip: At 10% growth, money roughly doubles every 7 years.",
-  "Small wins count. One lesson today is better than none.",
-  "Track your spending weekly, not only at month-end.",
-  "Pay yourself first. Save before you spend.",
-  "Emergency funds beat emergency loans.",
-  "Automating savings makes consistency easier.",
-  "A budget gives your money a job.",
-  "Debt interest can snowball fast. Extra payments help.",
-  "Consistency beats intensity with money habits.",
-];
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatWithSpaces(value: number) {
-  return formatNumberWithSpaces(value, 0);
-}
-
-function getLeaderboardWeekKey(): string {
+export function getLeaderboardWeekKey(): string {
   const now = new Date();
   const sunday = new Date(now);
   sunday.setDate(now.getDate() - now.getDay());
@@ -31,6 +17,7 @@ function getLeaderboardWeekKey(): string {
   return `fundi-week-${y}-${m}-${d}`;
 }
 
+/** Next Saturday midnight (end of current week) for the countdown */
 function getWeekResetDate(): Date {
   const now = new Date();
   const saturday = new Date(now);
@@ -39,13 +26,26 @@ function getWeekResetDate(): Date {
   return saturday;
 }
 
-export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; weeklyXp?: number; currentUserId?: string }) {
-  const [leaders, setLeaders] = useState<{ id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[]>([]);
+// ─── LeaderboardView ──────────────────────────────────────────────────────────
+
+export function LeaderboardView({
+  xp,
+  weeklyXp,
+  currentUserId,
+}: {
+  xp: number;
+  weeklyXp?: number;
+  currentUserId?: string;
+}) {
+  const [leaders, setLeaders] = useState<
+    { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
 
+  // Countdown to Saturday midnight reset
   useEffect(() => {
     const tick = () => {
       const now = new Date();
@@ -70,25 +70,68 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
         const { data: { user } } = await supabase.auth.getUser();
         const myId = user?.id ?? currentUserId ?? null;
         const currentWeekKey = getLeaderboardWeekKey();
-        const { data: rpcRows, error: rpcError } = await supabase.rpc("get_leaderboard");
 
-        if (rpcError) {
+        // 1. Fetch ALL profiles (every registered user, even brand-new ones)
+        const { data: profileRows, error: profileError } = await supabase
+          .from("profiles")
+          .select("user_id, username, full_name, age_range")
+          .limit(200);
+
+        if (profileError) {
           setLoadError(true);
           setLoading(false);
           return;
         }
 
+        // 2. Fetch progress rows (weekly_xp + week_key + total xp)
+        const { data: progressRows } = await supabase
+          .from("user_progress")
+          .select("user_id, xp, weekly_xp, week_key")
+          .limit(200);
+
+        // Build lookup maps
+        const profileMap: Record<string, { name: string; ageRange?: string }> = {};
+        (profileRows ?? []).forEach((p: any) => {
+          const username = p.username ? String(p.username).trim() : "";
+          const fullName = p.full_name ? String(p.full_name).trim() : "";
+          profileMap[p.user_id] = {
+            name: username || (fullName ? fullName.split(" ")[0] : ""),
+            ageRange: p.age_range ?? undefined,
+          };
+        });
+
+        const progressMap: Record<string, { xp: number; weeklyXp: number; weekKey: string }> = {};
+        (progressRows ?? []).forEach((r: any) => {
+          progressMap[r.user_id] = {
+            xp: r.xp ?? 0,
+            weeklyXp: r.weekly_xp ?? 0,
+            weekKey: r.week_key ?? "",
+          };
+        });
+
+        // 3. Union of all user IDs from both tables
+        const allIds = new Set([
+          ...Object.keys(profileMap),
+          ...Object.keys(progressMap),
+        ]);
+
+        // 4. Build rows - weekly XP only counts if week_key matches current week
         const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[] = [];
 
-        (rpcRows ?? []).forEach((r: any) => {
-          const uid = r.user_id;
-          const isCurrentWeek = (r.week_key ?? "") === currentWeekKey;
-          const thisWeekXp = isCurrentWeek ? (r.weekly_xp ?? 0) : 0;
-          const totalXp = r.xp ?? 0;
+        allIds.forEach((uid) => {
+          const profile = profileMap[uid];
+          const progress = progressMap[uid];
+          const isCurrentWeek = progress?.weekKey === currentWeekKey;
+          const thisWeekXp = isCurrentWeek ? (progress?.weeklyXp ?? 0) : 0;
+          const totalXp = progress?.xp ?? 0;
           const isYou = uid === myId;
-          const displayWeeklyXp = isYou ? Math.max(thisWeekXp, weeklyXp ?? 0) : thisWeekXp;
-          const username = r.username ? String(r.username).trim() : "";
-          const rawName = username || (r.full_name ? String(r.full_name).split(" ")[0] : "");
+
+          // Merge: current user's local weekly XP takes priority (most up-to-date)
+          const displayWeeklyXp = isYou
+            ? Math.max(thisWeekXp, weeklyXp ?? 0)
+            : thisWeekXp;
+
+          const rawName = profile?.name ?? "";
           const name = isYou ? "You" : (rawName || "Learner " + uid.slice(0, 4).toUpperCase());
 
           rows.push({
@@ -98,35 +141,27 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
             totalXp,
             isYou,
             rank: 0,
-            ageRange: r.age_range ?? undefined,
+            ageRange: profile?.ageRange,
           });
         });
 
-        if (myId && !rows.some((r) => r.id === myId)) {
-          rows.push({
-            id: myId,
-            name: "You",
-            xp: weeklyXp ?? 0,
-            totalXp: xp ?? 0,
-            isYou: true,
-            rank: 0,
-          });
-        }
-
+        // Sort by this week's XP descending
         rows.sort((a, b) => b.xp - a.xp || b.totalXp - a.totalXp);
         rows.forEach((r, i) => { r.rank = i + 1; });
+
         setLeaders(rows);
       } finally {
         setLoading(false);
       }
     }
-    void load();
+    load();
   }, [xp, weeklyXp, currentUserId, retryCount]);
 
   const myRank = leaders.find((l) => l.isYou);
   const myIndex = leaders.findIndex((l) => l.isYou);
   const aheadOfMe = myIndex > 0 ? leaders[myIndex - 1] : null;
   const xpToNext = aheadOfMe && myRank ? aheadOfMe.xp - myRank.xp : null;
+
   const top3 = leaders.slice(0, 3);
   const restLeaders = leaders.slice(3);
 
@@ -141,9 +176,11 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
             </div>
           )}
         </div>
-        <p style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>
+        <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 14 }}>
           This week&apos;s XP - everyone starts fresh every Sunday
         </p>
+
+        {/* Your rank summary card */}
         {myRank && !loading && (
           <div style={{
             background: "linear-gradient(135deg, rgba(0,122,77,0.1) 0%, rgba(255,182,18,0.06) 100%)",
@@ -187,7 +224,7 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
 
         {loading ? (
           <div style={{ textAlign: "center", padding: 40 }}>
-            <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>Loading leaderboard... {LOADING_TIPS[Math.floor(Math.random() * LOADING_TIPS.length)]}</div>
+            <div style={{ color: "var(--color-text-secondary)", marginBottom: 8 }}>Loading leaderboard...</div>
             <div style={{ width: "100%", height: 6, background: "var(--color-border)", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ height: "100%", width: "60%", background: "var(--color-primary)", borderRadius: 3, animation: "slide-right 1.2s ease-in-out infinite" }} />
             </div>
@@ -199,7 +236,7 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
             </div>
             <div style={{ fontWeight: 700, marginBottom: 4 }}>Could not load leaderboard</div>
             <div style={{ color: "var(--color-text-secondary)", marginBottom: 16, fontSize: 14 }}>Check your connection and try again.</div>
-            <button className="btn btn-primary" onClick={() => setRetryCount((n) => n + 1)}>Retry</button>
+            <button className="btn btn-primary" onClick={() => setRetryCount(n => n + 1)}>Retry</button>
           </div>
         ) : leaders.length === 0 ? (
           <div style={{ textAlign: "center", padding: 40, color: "var(--color-text-secondary)" }}>
@@ -207,8 +244,10 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
           </div>
         ) : (
           <>
+            {/* Top 3 podium */}
             {top3.length >= 3 && (
               <div style={{ display: "flex", justifyContent: "center", alignItems: "flex-end", gap: 10, marginBottom: 24 }}>
+                {/* 2nd place */}
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{
                     width: 52, height: 52, borderRadius: "50%", margin: "0 auto 6px",
@@ -217,12 +256,12 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
                     border: top3[1].isYou ? "3px solid var(--color-primary)" : "3px solid #C0C0C0",
                   }}>{top3[1].name[0].toUpperCase()}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[1].name}</div>
-                  {top3[1].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[1].ageRange}</div>}
                   <div style={{ fontSize: 11, fontWeight: 600, color: "#9CA3AF" }}>{formatWithSpaces(top3[1].xp)} XP</div>
                   <div style={{ background: "#C0C0C0", borderRadius: "8px 8px 0 0", height: 60, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 22, fontWeight: 900, color: "white" }}>2</span>
                   </div>
                 </div>
+                {/* 1st place */}
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
                     <Trophy size={20} style={{ color: "#FFB612" }} />
@@ -235,12 +274,12 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
                     boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
                   }}>{top3[0].name[0].toUpperCase()}</div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
-                  {top3[0].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[0].ageRange}</div>}
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#FFB612" }}>{formatWithSpaces(top3[0].xp)} XP</div>
                   <div style={{ background: "#FFB612", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 26, fontWeight: 900, color: "white" }}>1</span>
                   </div>
                 </div>
+                {/* 3rd place */}
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{
                     width: 48, height: 48, borderRadius: "50%", margin: "0 auto 6px",
@@ -249,7 +288,6 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
                     border: top3[2].isYou ? "3px solid var(--color-primary)" : "3px solid #CD7F32",
                   }}>{top3[2].name[0].toUpperCase()}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-primary)" }}>{top3[2].name}</div>
-                  {top3[2].ageRange && <div style={{ fontSize: 10, color: "var(--color-text-secondary)" }}>{top3[2].ageRange}</div>}
                   <div style={{ fontSize: 11, fontWeight: 600, color: "#CD7F32" }}>{formatWithSpaces(top3[2].xp)} XP</div>
                   <div style={{ background: "#CD7F32", borderRadius: "8px 8px 0 0", height: 44, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 20, fontWeight: 900, color: "white" }}>3</span>
@@ -258,74 +296,63 @@ export function LeaderboardView({ xp, weeklyXp, currentUserId }: { xp: number; w
               </div>
             )}
 
-            {restLeaders.length > 0 && (
-              <div style={{
-                background: "var(--color-surface)", color: "var(--color-text-primary)",
-                border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
-              }}>
-                {restLeaders.map((leader) => {
-                  const prevLeader = leaders[leader.rank - 2];
-                  return (
-                    <div
-                      key={leader.id}
-                      className="leaderboard-row"
-                      style={{
-                        ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
-                        display: "flex", alignItems: "center", padding: "12px 16px",
-                        borderBottom: "1px solid var(--color-border)",
-                      }}
-                    >
+            {/* Rest of leaderboard */}
+            <div style={{
+              background: "var(--color-surface)", color: "var(--color-text-primary)",
+              border: "1px solid var(--color-border)", borderRadius: 16, overflow: "hidden",
+            }}>
+              {restLeaders.map((leader) => {
+                const prevLeader = leaders[leader.rank - 2];
+                return (
+                  <div
+                    key={leader.id}
+                    className="leaderboard-row"
+                    style={{
+                      ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
+                      display: "flex", alignItems: "center", padding: "12px 16px",
+                      borderBottom: "1px solid var(--color-border)",
+                    }}
+                  >
+                    <div style={{
+                      width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
+                      color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
+                      flexShrink: 0,
+                    }}>
+                      {leader.rank}
+                    </div>
+                    <div style={{
+                      width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
+                      background: leader.isYou ? "var(--color-primary)" : "#eee",
+                      color: leader.isYou ? "white" : "#555",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 14, fontWeight: 800, flexShrink: 0,
+                    }}>
+                      {leader.name[0].toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
+                        {leader.name}
+                        {leader.isYou && (
+                          <span style={{ fontSize: 10, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>You</span>
+                        )}
+                      </div>
+                      {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
+                        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                          {formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
                       <div style={{
-                        width: 32, textAlign: "center", fontSize: 14, fontWeight: 800,
+                        fontWeight: 800, fontSize: 14,
                         color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
-                        flexShrink: 0,
                       }}>
-                        {leader.rank}
-                      </div>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: "50%", marginLeft: 10, marginRight: 12,
-                        background: leader.isYou ? "var(--color-primary)" : "#eee",
-                        color: leader.isYou ? "white" : "#555",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 14, fontWeight: 800, flexShrink: 0,
-                      }}>
-                        {leader.name[0].toUpperCase()}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 700, fontSize: 14, display: "flex", alignItems: "center", gap: 6 }}>
-                          {leader.name}
-                          {leader.isYou && (
-                            <span style={{ fontSize: 10, background: "var(--color-primary)", color: "white", borderRadius: 999, padding: "2px 8px", fontWeight: 700 }}>You</span>
-                          )}
-                        </div>
-                        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2, display: "flex", alignItems: "center", gap: 6 }}>
-                          {leader.ageRange && (
-                            <span style={{ background: "var(--color-border)", borderRadius: 999, padding: "1px 6px", fontWeight: 600 }}>{leader.ageRange}</span>
-                          )}
-                          {leader.isYou && prevLeader && prevLeader.xp > leader.xp && (
-                            <span>{formatWithSpaces(prevLeader.xp - leader.xp)} XP to #{leader.rank - 1}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 3, flexShrink: 0 }}>
-                        <div style={{
-                          fontWeight: 800, fontSize: 14,
-                          color: leader.isYou ? "var(--color-primary)" : "var(--color-text-secondary)",
-                        }}>
-                          {formatWithSpaces(leader.xp)} XP
-                        </div>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)" }}>
-                          {formatWithSpaces(leader.totalXp)} total
-                        </span>
+                        {formatWithSpaces(leader.xp)} XP
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-
-            <div style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: "var(--color-text-secondary)" }}>
-              {leaders.length} {leaders.length === 1 ? "learner" : "learners"} competing this week
+                  </div>
+                );
+              })}
             </div>
           </>
         )}
