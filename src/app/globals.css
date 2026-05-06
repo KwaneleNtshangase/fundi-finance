@@ -212,13 +212,15 @@ html.dark .nav-link.active {
   flex: 1;
   margin-left: 0;
   padding: 16px;
-  max-width: 1400px;
 }
 
 @media (min-width: 768px) {
   .main-content {
     margin-left: 256px;
-    padding: 32px;
+    /* Center content within the middle column:
+       when the column is wider than 760px, add equal horizontal padding
+       so content stays at most 760px wide and is visually centered. */
+    padding: 32px max(32px, calc((100% - 760px) / 2));
   }
 }
 
@@ -1110,16 +1112,16 @@ html.dark {
   --color-bg: #0D1117;
   --color-surface: #161B22;
   --color-border: #30363D;
-  --color-text-primary: #E6EDF3;
-  --color-text-secondary: #8B949E;
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #A8B4C0;
   --color-primary: #3FB68B;
   --color-secondary: #FFB612;
   --bg-gray: #0D1117;
   --border-light: #30363D;
-  --text-light: #8B949E;
-  --text-dark: #E6EDF3;
+  --text-light: #A8B4C0;
+  --text-dark: #ffffff;
   --sidebar-bg: #1a2236;
-  --nav-link-color: #e2e8f0;
+  --nav-link-color: #ffffff;
   /* Bottom nav - ensure strong contrast in dark mode */
   --color-nav-bg: #111827;
   --color-nav-active: #4ade80;
@@ -1127,7 +1129,36 @@ html.dark {
 
 html.dark body {
   background: #0D1117;
-  color: #E6EDF3;
+  color: #ffffff;
+}
+
+/* Force all text in dark mode to be clearly readable */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark span:not(.nav-icon),
+html.dark label,
+html.dark div {
+  color: inherit;
+}
+
+html.dark [style*="color: #111827"],
+html.dark [style*="color:#111827"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color:#1f2937"],
+html.dark [style*="color: #374151"],
+html.dark [style*="color:#374151"],
+html.dark [style*="color: #4B5563"],
+html.dark [style*="color:#4B5563"],
+html.dark [style*="color: #6B7280"],
+html.dark [style*="color:#6B7280"],
+html.dark [style*="color: black"],
+html.dark [style*="color:black"] {
+  color: #ffffff !important;
 }
 
 /* ── Bottom nav - always clearly visible ────────────────────────────────── */
