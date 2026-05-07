@@ -444,8 +444,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               </button>
             </div>
             {error && <p style={{ color: "var(--error-red)", fontSize: 13, margin: 0 }}>{error}</p>}
-            <button className="btn btn-primary" style={{ width: "100%", marginTop: 4 }}
-              onClick={mode === "signin" ? handleSignIn : handleSignUp}>
+            <button
+              data-testid="auth-submit"
+              className="btn btn-primary"
+              style={{ width: "100%", marginTop: 4 }}
+              onClick={mode === "signin" ? handleSignIn : handleSignUp}
+            >
               {mode === "signin" ? "Sign In" : "Create Account"}
             </button>
             {mode === "signin" && (

@@ -22,7 +22,8 @@ export async function signIn(page: Page) {
   await emailInput.waitFor({ state: "visible", timeout: 10_000 });
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
-  await page.locator('button[type="submit"]').click();
+  // Click the primary sign-in/up submit button (has data-testid="auth-submit")
+  await page.locator('[data-testid="auth-submit"]').click();
   // Wait for nav bar (Learn tab) — means auth succeeded and app loaded
   await expect(page.locator("text=Learn").first()).toBeVisible({
     timeout: 20_000,

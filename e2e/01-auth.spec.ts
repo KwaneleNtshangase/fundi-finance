@@ -26,7 +26,7 @@ test.describe("Authentication", () => {
     await page.waitForTimeout(2000);
     await page.locator('input[type="email"]').first().fill("wrong@example.com");
     await page.locator('input[type="password"]').first().fill("wrongpassword");
-    await page.locator('button[type="submit"]').click();
+    await page.locator('[data-testid="auth-submit"]').click();
     // Error message or still on auth screen
     await page.waitForTimeout(3000);
     const stillOnAuth = await page.locator('input[type="email"]').isVisible();
