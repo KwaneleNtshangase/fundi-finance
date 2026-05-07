@@ -484,6 +484,7 @@ export function BudgetView() {
 
   return (
     <main className="main-content main-with-stats budget-page">
+      <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: userGoalLabel ? 8 : 16 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
@@ -1089,6 +1090,7 @@ export function BudgetView() {
           </div>
         </div>
       )}
+      </div>
     </main>
   );
 }

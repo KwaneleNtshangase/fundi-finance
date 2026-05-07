@@ -1967,7 +1967,8 @@ function QuestsView({
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
   return (
     <main className="main-content main-with-stats">
-      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Quests</h2>
+      <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
+      <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <Target size={16} className="text-[var(--color-primary)]" aria-hidden />
@@ -2023,6 +2024,7 @@ function QuestsView({
         </div>
       )}
       <DailyChallenges streak={streak} onXpClaimed={addXP} />
+      </div>
     </main>
   );
 }
@@ -5132,7 +5134,7 @@ export default function Home() {
                 <span className="nav-icon">
                   <Target size={20} className="text-current" />
                 </span>
-                Quests
+                Goals
               </button>
             </li>
           </ul>
@@ -5899,7 +5901,7 @@ export default function Home() {
           },
           {
             key: "quests",
-            label: "Quests",
+            label: "Goals",
             icon: <Target size={20} className="text-current" />,
             isActive: route.name === "quests",
             onClick: () => handleNav("quests"),
