@@ -110,13 +110,19 @@ export function useProgress() {
   const addXP = (amount: number) => {
     setState((prev) => {
       const wk = getCurrentWeekKey();
-      const next = {
-        ...prev,
-        xp: Math.max(0, prev.xp + amount),
-        weeklyXp: prev.weekKey === wk ? prev.weeklyXp + amount : amount,
-        weekKey: wk,
-      };
-      void persist(next);
+      const newXp = Math.max(0, prev.xp + amount);
+      const newWeeklyXp = prev.weekKey === wk ? prev.weeklyXp + amount : amount;
+      const next = { ...prev, xp: newXp, weeklyXp: newWeeklyXp, weekKey: wk };
+      // Targeted update for only XP columns to avoid race with completeLesson's
+      // targeted update for completed_lessons — never overwrite each other.
+      if (userId) {
+        void supabase
+          .from("user_progress")
+          .upsert(
+            { user_id: userId, xp: newXp, weekly_xp: newWeeklyXp, week_key: wk, updated_at: new Date().toISOString() },
+            { onConflict: "user_id" }
+          );
+      }
       return next;
     });
   };
@@ -125,14 +131,28 @@ export function useProgress() {
     if (state.xp < amount) return false;
     const nextXp = Math.max(0, state.xp - amount);
     setState((prev) => ({ ...prev, xp: nextXp }));
-    void persist({ xp: nextXp });
+    // Targeted update — only xp, not weekly_xp, to avoid stale overwrites
+    if (userId) {
+      void supabase
+        .from("user_progress")
+        .update({ xp: nextXp, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    }
     return true;
   };
 
   const completeLesson = (id: string) => {
     setState((prev) => {
       const nextLessons = prev.completedLessons.includes(id) ? prev.completedLessons : [...prev.completedLessons, id];
-      void persist({ completedLessons: nextLessons });
+      // Use a targeted update for only completed_lessons to avoid a race condition
+      // where a full upsert (which includes weekly_xp) overwrites the XP written
+      // by the concurrent addXP → persist call.
+      if (userId) {
+        void supabase
+          .from("user_progress")
+          .update({ completed_lessons: nextLessons, updated_at: new Date().toISOString() })
+          .eq("user_id", userId);
+      }
       return { ...prev, completedLessons: nextLessons };
     });
   };
@@ -167,7 +187,13 @@ export function useProgress() {
     if (!tryDeductXp(cost)) return false;
     const next = state.freezeCount + 1;
     setState((prev) => ({ ...prev, freezeCount: next }));
-    void persist({ freezeCount: next });
+    // Targeted update — only freezeCount, xp already handled by tryDeductXp
+    if (userId) {
+      void supabase
+        .from("user_progress")
+        .update({ streak_freeze_count: next, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+    }
     return true;
   };
 
