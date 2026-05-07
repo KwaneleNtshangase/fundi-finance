@@ -902,6 +902,8 @@ function useFundiState() {
         if (profile?.goal) localStorage.setItem("fundi-user-goal", profile.goal);
         if (profile?.goal_description) localStorage.setItem("fundi-goal-description", profile.goal_description);
         if (profile?.age_range) localStorage.setItem("fundi-age-range", profile.age_range);
+        // Sync username so the duplicate-username-prompt check skips the DB round-trip
+        if (profile?.username) localStorage.setItem("fundi-username", profile.username);
         setRoute({ name: "learn" });
       }
     })().catch(() => {});
@@ -4990,12 +4992,28 @@ export default function Home() {
       return;
     }
     void (async () => {
-      const { data } = await supabase
+      // Check profiles.username first
+      const { data: profileData } = await supabase
         .from("profiles")
         .select("username")
         .eq("user_id", userId)
         .maybeSingle();
-      const username = data?.username ? String(data.username).trim() : "";
+      let username = profileData?.username ? String(profileData.username).trim() : "";
+      // Fallback: some older accounts only have display_name in user_progress
+      if (!username) {
+        const { data: progressData } = await supabase
+          .from("user_progress")
+          .select("display_name")
+          .eq("user_id", userId)
+          .maybeSingle();
+        username = progressData?.display_name ? String(progressData.display_name).trim() : "";
+        // If found in progress, back-fill profiles for future checks
+        if (username) {
+          void supabase
+            .from("profiles")
+            .upsert({ user_id: userId, username }, { onConflict: "user_id" });
+        }
+      }
       if (username) {
         // Sync to localStorage so future checks don't need a DB round-trip
         localStorage.setItem("fundi-username", username);
