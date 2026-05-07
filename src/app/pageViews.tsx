@@ -5141,7 +5141,7 @@ export default function Home() {
         </nav>
 
         {/* keep content above bottom nav on mobile */}
-        <div className="pb-24 md:pb-8">
+        <div className="pb-24 md:pb-8" style={{ flex: 1, minWidth: 0 }}>
         {/* TopBar moved outside scroll area, see below */}
         {route.name === "learn" && (
           <LearnView
