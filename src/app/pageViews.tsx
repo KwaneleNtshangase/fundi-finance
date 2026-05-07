@@ -3480,40 +3480,6 @@ function SettingsView({
         </Row>
       </a>
 
-      {/* ── About ── */}
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>About</div>
-      <div style={{
-        background: "var(--color-surface)", border: "1px solid var(--color-border)",
-        borderRadius: 12, padding: "20px 16px", textAlign: "center", marginBottom: 8,
-      }}>
-        <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 8 }}>
-          <span style={{ color: "var(--color-primary)" }}>Fundi </span>
-          <span style={{ color: "var(--color-secondary)" }}>Finance</span>
-        </div>
-        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", lineHeight: 1.55, marginBottom: 8 }}>
-          A Duolingo-style financial literacy app for South Africans.
-        </p>
-        <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 4 }}>Version 1.0.0</div>
-      </div>
-
-      {/* ── Data management ── */}
-      <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Data</div>
-      <div style={{
-        background: "var(--color-surface)", border: "1px solid var(--color-border)",
-        borderRadius: 12, padding: "14px 16px", marginBottom: 8,
-      }}>
-        <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 13 }}>
-          Warning: This will permanently delete all your progress.
-        </p>
-        <button
-          className="btn btn-secondary"
-          style={{ background: "var(--error-red)", color: "white", border: "none" }}
-          onClick={resetProgress}
-        >
-          Reset All Progress
-        </button>
-      </div>
-
       {/* ── Help & Legal ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Help &amp; Legal</div>
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 8, overflow: "hidden" }}>
