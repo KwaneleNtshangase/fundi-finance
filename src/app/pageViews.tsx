@@ -154,7 +154,6 @@ function OnboardingView({
 }) {
   const [screen, setScreen] = React.useState(0);
   const [selectedGoal, setSelectedGoal] = React.useState("");
-  const [selectedAgeRange, setSelectedAgeRange] = React.useState("");
   const [goalDescription, setGoalDescription] = React.useState("");
   const [ageConfirmed, setAgeConfirmed] = React.useState(false);
   const [username, setUsername] = React.useState("");
@@ -163,7 +162,7 @@ function OnboardingView({
   const [usernameAvailable, setUsernameAvailable] = React.useState(false);
 
   React.useEffect(() => {
-    if (screen !== 3) return;
+    if (screen !== 1) return;
     const normalized = normalizeUsername(username);
     if (!normalized) {
       setUsernameError("Username is required.");
@@ -196,46 +195,22 @@ function OnboardingView({
     };
   }, [screen, username]);
 
-  const screenCount = 5;
+  // 2-screen onboarding: goal → username → first lesson
+  const screenCount = 2;
   const screensMeta = [
     {
-      title: "Welcome to Fundi Finance",
-      body: "Master your money in minutes a day. Short, SA-specific lessons that actually make sense, from budgeting to investing to what the Bible says about money.",
-      cta: "Let's go",
+      title: "What's your money goal?",
+      body: "We'll drop you straight into lessons that match. Skip if you prefer.",
+      cta: "Next",
       action: () => { if (ageConfirmed) setScreen(1); },
     },
     {
-      title: "What's your money goal?",
-      body: "We'll personalise tips based on what matters most to you. Optional - skip if you prefer.",
-      cta: "Next",
-      action: () => {
-        if (selectedGoal) setScreen(2);
-      },
-    },
-    {
-      title: "Your age range",
-      body: "Helps us keep examples relevant. Optional - skip if you prefer.",
-      cta: "Next",
-      action: () => {
-        setScreen(3);
-      },
-    },
-    {
-      title: "Choose your leaderboard username",
-      body: "This is your public name on the leaderboard. It must be unique.",
-      cta: "Next",
-      action: () => {
-        if (usernameAvailable) setScreen(4);
-      },
-    },
-    {
-      title: "How it works",
-      body: "Earn XP for every lesson. Build streaks. Unlock badges. Compete on the leaderboard. Every lesson takes less than 3 minutes.",
-      cta: "Start learning",
+      title: "Choose your username",
+      body: "Your public name on the leaderboard. It must be unique.",
+      cta: "Start learning →",
       action: () =>
         onComplete({
           goal: selectedGoal || undefined,
-          ageRange: selectedAgeRange || undefined,
           goalDescription: goalDescription.trim() || undefined,
           username: normalizeUsername(username),
         }),
@@ -272,33 +247,6 @@ function OnboardingView({
       </div>
 
       <div style={{ maxWidth: 360, width: "100%", textAlign: "center" }}>
-        {screen === 0 && (
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <Flag size={64} strokeWidth={1.5} style={{ color: "var(--color-primary)" }} aria-hidden />
-          </div>
-        )}
-        {screen === 4 && (
-          <div style={{ display: "flex", justifyContent: "center", gap: 12, marginBottom: 20 }}>
-            {[Target, Zap, Trophy].map((IconComp, i) => (
-              <div
-                key={i}
-                style={{
-                  width: 52,
-                  height: 52,
-                  borderRadius: "50%",
-                  background: "var(--color-surface)",
-                  border: "1px solid var(--color-border)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <IconComp size={24} style={{ color: "var(--color-primary)" }} />
-              </div>
-            ))}
-          </div>
-        )}
-
         <h1 style={{ fontSize: 26, fontWeight: 900, marginBottom: 12, color: "var(--color-text-primary)" }}>
           {current.title}
         </h1>
@@ -306,28 +254,7 @@ function OnboardingView({
           {current.body}
         </p>
 
-        {/* Age confirmation - screen 0 only */}
         {screen === 0 && (
-          <label style={{
-            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24,
-            textAlign: "left", cursor: "pointer",
-            padding: "14px 16px", borderRadius: 12,
-            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
-            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
-          }}>
-            <input
-              type="checkbox"
-              checked={ageConfirmed}
-              onChange={(e) => setAgeConfirmed(e.target.checked)}
-              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
-            />
-            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-              I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
-            </span>
-          </label>
-        )}
-
-        {screen === 1 && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 12, textAlign: "left" }}>
               {ONBOARDING_GOAL_OPTIONS.map((g) => (
@@ -403,36 +330,29 @@ function OnboardingView({
           </>
         )}
 
-        {screen === 2 && (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16, textAlign: "left" }}>
-            {ONBOARDING_AGE_RANGES.map((a) => (
-              <button
-                key={a.id}
-                type="button"
-                onClick={() => setSelectedAgeRange(a.id)}
-                style={{
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  cursor: "pointer",
-                  border: `2px solid ${selectedAgeRange === a.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                  background: selectedAgeRange === a.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  fontWeight: 600,
-                  fontSize: 13,
-                  color: "var(--color-text-primary)",
-                  transition: "all 0.15s",
-                }}
-              >
-                <a.Icon size={18} className="shrink-0" style={{ color: "var(--color-primary)" }} aria-hidden />
-                {a.label}
-              </button>
-            ))}
-          </div>
+        {/* Age confirmation + skip — screen 0 (goal screen) */}
+        {screen === 0 && (
+          <label style={{
+            display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20,
+            textAlign: "left", cursor: "pointer",
+            padding: "14px 16px", borderRadius: 12,
+            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+            border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
+          }}>
+            <input
+              type="checkbox"
+              checked={ageConfirmed}
+              onChange={(e) => setAgeConfirmed(e.target.checked)}
+              style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
+            />
+            <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
+              I confirm I am <strong>18 or older</strong>. Fundi Finance is a financial education platform for adults.
+            </span>
+          </label>
         )}
 
-        {screen === 3 && (
+        {/* Username input — screen 1 */}
+        {screen === 1 && (
           <div style={{ marginBottom: 16, textAlign: "left" }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
               Username
@@ -462,8 +382,8 @@ function OnboardingView({
                 : usernameError
                   ? usernameError
                   : usernameAvailable
-                    ? "Username is available."
-                    : "3-20 chars: lowercase letters, numbers, underscores."}
+                    ? "✓ Username is available."
+                    : "3–20 chars: letters, numbers, underscores."}
             </div>
           </div>
         )}
@@ -474,46 +394,26 @@ function OnboardingView({
           onClick={current.action}
           disabled={
             (screen === 0 && !ageConfirmed) ||
-            (screen === 1 && (!selectedGoal || (selectedGoal === "other" && !goalDescription.trim()))) ||
-            (screen === 3 && (!usernameAvailable || usernameChecking))
+            (screen === 1 && (!usernameAvailable || usernameChecking))
           }
         >
           {current.cta}
         </button>
 
-        {screen === 1 && (
+        {/* Skip goal — allowed once age is confirmed */}
+        {screen === 0 && (
           <button
             type="button"
-            onClick={() => setScreen(2)}
+            onClick={() => { if (ageConfirmed) setScreen(1); }}
+            disabled={!ageConfirmed}
             style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
-              width: "100%",
+              marginTop: 12, background: "none", border: "none",
+              color: ageConfirmed ? "var(--color-text-secondary)" : "var(--color-border)",
+              cursor: ageConfirmed ? "pointer" : "default",
+              fontSize: 14, width: "100%",
             }}
           >
-            Skip
-          </button>
-        )}
-
-        {screen === 2 && (
-          <button
-            type="button"
-            onClick={() => setScreen(3)}
-            style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
-              width: "100%",
-            }}
-          >
-            Skip
+            Skip goal →
           </button>
         )}
 
@@ -522,15 +422,11 @@ function OnboardingView({
             type="button"
             onClick={() => setScreen((s) => s - 1)}
             style={{
-              marginTop: 12,
-              background: "none",
-              border: "none",
-              color: "var(--color-text-secondary)",
-              cursor: "pointer",
-              fontSize: 14,
+              marginTop: 12, background: "none", border: "none",
+              color: "var(--color-text-secondary)", cursor: "pointer", fontSize: 14,
             }}
           >
-            Back
+            ← Back
           </button>
         )}
       </div>
@@ -4630,7 +4526,17 @@ export default function Home() {
           };
         }
         setMilestoneCtaContent(ctaContent);
-        setTimeout(() => setShowMilestoneCta(true), 1500);
+        // Award a milestone XP bonus and fire confetti
+        addXP(50);
+        setTimeout(() => {
+          confetti({
+            particleCount: 150,
+            spread: 80,
+            origin: { y: 0.6 },
+            zIndex: 999,
+          });
+          setShowMilestoneCta(true);
+        }, 1500);
         analytics.advisorCtaShown("lesson_milestone_5");
       }
     }
@@ -5503,7 +5409,7 @@ export default function Home() {
                 <Target size={48} strokeWidth={1.5} />
               </div>
               <p className="text-xs font-bold uppercase tracking-widest text-green-600 mb-2">
-                You&apos;re making real progress
+                🎉 You&apos;re on a roll! +50 XP bonus
               </p>
               <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {milestoneCtaContent.headline}
