@@ -32,6 +32,41 @@ const DEFAULT_STATE: ProgressState = {
   weekKey: "",
 };
 
+// ── Offline-first cache ────────────────────────────────────────────────────────
+// Write-through localStorage cache so the app loads instantly even on
+// poor / no connectivity (SA users on prepaid data and during load-shedding).
+// Supabase remains the source of truth — cache is overwritten on every
+// successful Supabase read; it only fills the gap while waiting for network.
+const PROGRESS_CACHE_KEY = "fundi-progress-v1";
+
+function readProgressCache(): ProgressState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(PROGRESS_CACHE_KEY);
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<ProgressState>;
+    return {
+      xp: Number(p.xp ?? 0),
+      streak: Number(p.streak ?? 0),
+      longestStreak: Number(p.longestStreak ?? 0),
+      lastActivityDate: p.lastActivityDate ?? null,
+      completedLessons: Array.isArray(p.completedLessons) ? p.completedLessons : [],
+      freezeCount: Number(p.freezeCount ?? 0),
+      weeklyXp: Number(p.weeklyXp ?? 0),
+      weekKey: p.weekKey ?? "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+function writeProgressCache(s: ProgressState): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(PROGRESS_CACHE_KEY, JSON.stringify(s));
+  } catch { /* ignore quota errors — cache is best-effort */ }
+}
+
 function getCurrentWeekKey(): string {
   const now = new Date();
   const sunday = new Date(now);
@@ -43,7 +78,8 @@ function getCurrentWeekKey(): string {
 }
 
 export function useProgress() {
-  const [state, setState] = useState<ProgressState>(DEFAULT_STATE);
+  // Seed from cache immediately (shows last-known XP/streak before Supabase responds)
+  const [state, setState] = useState<ProgressState>(() => readProgressCache() ?? DEFAULT_STATE);
   const [ready, setReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const completedLessons = useMemo(() => new Set(state.completedLessons), [state.completedLessons]);
@@ -77,7 +113,7 @@ export function useProgress() {
         .eq("user_id", userId)
         .maybeSingle();
       const wk = getCurrentWeekKey();
-      setState({
+      const fresh: ProgressState = {
         xp: data?.xp ?? 0,
         streak: data?.streak ?? 0,
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
@@ -86,7 +122,10 @@ export function useProgress() {
         freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
-      });
+      };
+      setState(fresh);
+      // Update the offline-first cache so next load is instant even without network
+      writeProgressCache(fresh);
     })().catch((e) => console.warn("load progress failed", e));
   }, [userId]);
 
@@ -123,6 +162,7 @@ export function useProgress() {
             { onConflict: "user_id" }
           );
       }
+      writeProgressCache(next);
       return next;
     });
   };
@@ -130,7 +170,11 @@ export function useProgress() {
   const tryDeductXp = (amount: number): boolean => {
     if (state.xp < amount) return false;
     const nextXp = Math.max(0, state.xp - amount);
-    setState((prev) => ({ ...prev, xp: nextXp }));
+    setState((prev) => {
+      const next = { ...prev, xp: nextXp };
+      writeProgressCache(next);
+      return next;
+    });
     // Targeted update — only xp, not weekly_xp, to avoid stale overwrites
     if (userId) {
       void supabase
@@ -144,6 +188,8 @@ export function useProgress() {
   const completeLesson = (id: string) => {
     setState((prev) => {
       const nextLessons = prev.completedLessons.includes(id) ? prev.completedLessons : [...prev.completedLessons, id];
+      const next = { ...prev, completedLessons: nextLessons };
+      writeProgressCache(next);
       // Use a targeted update for only completed_lessons to avoid a race condition
       // where a full upsert (which includes weekly_xp) overwrites the XP written
       // by the concurrent addXP → persist call.
@@ -153,7 +199,7 @@ export function useProgress() {
           .update({ completed_lessons: nextLessons, updated_at: new Date().toISOString() })
           .eq("user_id", userId);
       }
-      return { ...prev, completedLessons: nextLessons };
+      return next;
     });
   };
 
