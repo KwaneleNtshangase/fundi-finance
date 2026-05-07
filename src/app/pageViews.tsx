@@ -5111,6 +5111,18 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
+                className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
+                style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("calculator")}
+              >
+                <span className="nav-icon">
+                  <BarChart2 size={20} className="text-current" />
+                </span>
+                Calculate
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
                 className={`nav-link ${route.name === "quests" ? "active" : ""}`}
                 style={route.name !== "quests" ? { color: "var(--nav-link-color)" } : {}}
                 onClick={() => handleNav("quests")}
