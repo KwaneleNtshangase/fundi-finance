@@ -452,7 +452,18 @@ export function ProfileView({
         .maybeSingle();
       const row = prof as { full_name?: string; age?: number | null; investor_profile?: string | null; username?: string | null } | null;
       if (row?.age != null) setEditAge(String(row.age));
-      if (row?.investor_profile) setInvestorProfileLabel(row.investor_profile);
+      if (row?.investor_profile) {
+        setInvestorProfileLabel(row.investor_profile);
+        // Write-back to localStorage so a new device doesn't flash "Take quiz"
+        // while the Supabase fetch is in-flight on the next visit.
+        try {
+          const existing = JSON.parse(localStorage.getItem("fundi-investor-profile") ?? "{}");
+          localStorage.setItem(
+            "fundi-investor-profile",
+            JSON.stringify({ ...existing, profile: row.investor_profile })
+          );
+        } catch { /* ignore */ }
+      }
       if (row?.username) setEditUsername(String(row.username));
       const nameFromProfile = row?.full_name?.trim();
       const display = nameFromProfile || fullName;

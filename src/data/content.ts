@@ -1,5 +1,6 @@
 // Extra lessons & daily facts live in `content-extra.ts` and are merged via `mergeContentExtras.ts`.
 import { mergeContentExtras } from "./mergeContentExtras";
+import { LEVEL_3_COURSES } from "./content-level3";
 
 export type LessonStep =
   | {
@@ -3235,6 +3236,11 @@ const RAW_COURSES: Course[] = [
 
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+// LEVEL 3: Advanced Tax, Estate Planning, Advanced Investing, Business Advanced
+// ─────────────────────────────────────────────────────────────────────────────
+const ALL_COURSES = [...RAW_COURSES, ...LEVEL_3_COURSES];
+
 export const CONTENT_DATA: { courses: Course[] } = {
-  courses: mergeContentExtras(RAW_COURSES),
+  courses: mergeContentExtras(ALL_COURSES),
 };

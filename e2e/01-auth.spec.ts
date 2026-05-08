@@ -16,14 +16,15 @@ test.describe("Authentication", () => {
 
   test("1.2 — Sign-in form is visible before login", async ({ page }) => {
     await page.goto(BASE_URL);
-    await page.waitForTimeout(2000); // let splash finish
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('input[type="password"]').first()).toBeVisible({ timeout: 5_000 });
+    // Splash can take 20-25s on CI mobile runners — wait for the form directly.
+    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator('input[type="password"]').first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("1.3 — Wrong password shows error", async ({ page }) => {
     await page.goto(BASE_URL);
-    await page.waitForTimeout(2000);
+    // Wait for splash to finish before interacting
+    await page.locator('input[type="email"]').first().waitFor({ state: "visible", timeout: 30_000 });
     await page.locator('input[type="email"]').first().fill("wrong@example.com");
     await page.locator('input[type="password"]').first().fill("wrongpassword");
     await page.locator('[data-testid="auth-submit"]').click();

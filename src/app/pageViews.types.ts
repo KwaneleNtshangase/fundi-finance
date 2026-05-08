@@ -82,13 +82,16 @@ export function parseWeeklyChallengeStorage(
 
 export function progressNumberFromWeeklyState(
   wc: { unit: string },
-  st: WeeklyProgressJSON,
+  st: WeeklyProgressJSON & { budgetDaysThisWeek?: number; calculatorDaysThisWeek?: number; advancedLessonsThisWeek?: number },
   _streakDays?: number
 ): number {
   if (wc.unit === "lessons") return st.lessonsCompleted;
   if (wc.unit === "perfect") return st.perfectLessons;
   if (wc.unit === "daily_xp") return st.dailyXp;
   if (wc.unit === "streak_days") return st.streakDaysThisWeek;
+  if (wc.unit === "budget_days") return st.budgetDaysThisWeek ?? 0;
+  if (wc.unit === "calculator_days") return st.calculatorDaysThisWeek ?? 0;
+  if (wc.unit === "advanced_lesson") return st.advancedLessonsThisWeek ?? 0;
   return 0;
 }
 
@@ -141,29 +144,47 @@ export function getLessonTitle(
 // ── Sharing ───────────────────────────────────────────────────────────────────
 
 export function generateShareText(
-  type: "lesson" | "badge" | "streak",
+  type: "lesson" | "badge" | "streak" | "level",
   data: {
     lessonTitle?: string;
     badgeName?: string;
     streakDays?: number;
     xp?: number;
+    level?: number;
+    investorProfile?: string;
   }
 ): string {
   if (type === "lesson") {
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
-    return `I just completed "${t}"${xpPart} on Fundi Finance 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
+    // Curiosity hook: "what would YOU score?"
+    return `I just completed "${t}"${xpPart} on Fundi Finance 🇿🇦\n\nFree South African money lessons — no jargon, 5 min a day. How would you score on this topic?\n👇 fundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just earned the "${n}" badge on Fundi Finance 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
+    return `I just unlocked the "${n}" badge on Fundi Finance 🏅\n\nBuilding real SA financial knowledge. Quiz: do you know the difference between CGT and income tax?\n👇 fundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d}-day learning streak on Fundi Finance 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
+    return `${d} days straight learning about money 🔥\n\nFundi Finance — free SA financial lessons. Most people can't answer 3 basic money questions. Can you?\n👇 fundiapp.co.za`;
+  }
+  if (type === "level") {
+    const l = data.level ?? 1;
+    const profile = data.investorProfile ? ` My investor profile: ${data.investorProfile}.` : "";
+    return `I just hit Level ${l} on Fundi Finance 🚀${profile}\n\nDo you know YOUR investor profile? Takes 2 min — most South Africans get it wrong.\n👇 fundiapp.co.za`;
   }
   return "";
 }
+
+// ── Course level requirements ─────────────────────────────────────────────────
+// Advanced courses are gated behind XP levels. Level = Math.floor(xp / 500) + 1.
+// This gives XP real utility: it unlocks content worth knowing.
+export const COURSE_LEVEL_REQUIREMENTS: Record<string, { level: number; label: string }> = {
+  "advanced-investing":       { level: 5,  label: "Level 5 — Intermediate Investor" },
+  "advanced-tax":             { level: 7,  label: "Level 7 — Serious Learner" },
+  "business-finance-advanced":{ level: 7,  label: "Level 7 — Serious Learner" },
+  "estate-planning":          { level: 10, label: "Level 10 — Advanced" },
+};
 
 // ── Goal / course mapping ─────────────────────────────────────────────────────
 

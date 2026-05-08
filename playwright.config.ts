@@ -7,13 +7,16 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1,
   reporter: [["html", { open: "never" }], ["list"]],
+  // Splash screen + Supabase auth can take 20-25s in CI on mobile browsers.
+  // These globals cover every expect() / waitFor() / action without touching each test.
+  expect: { timeout: 30_000 },
   use: {
     baseURL: process.env.BASE_URL ?? "https://fundiapp.co.za",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
     trace: "retain-on-failure",
-    // Give Supabase calls time to respond
-    actionTimeout: 15_000,
+    // Give Supabase calls + splash screen time to complete on slow CI runners
+    actionTimeout: 30_000,
     navigationTimeout: 30_000,
   },
   projects: [

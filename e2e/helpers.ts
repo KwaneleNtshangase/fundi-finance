@@ -15,11 +15,9 @@ export const BASE_URL =
 /** Sign in with email/password, wait for the app shell to appear */
 export async function signIn(page: Page) {
   await page.goto(BASE_URL);
-  // Dismiss splash if present
-  await page.waitForTimeout(1500);
-  // Look for sign-in form
+  // Splash animation can take 20-25s on slow CI runners — wait for the form directly.
   const emailInput = page.locator('input[type="email"]').first();
-  await emailInput.waitFor({ state: "visible", timeout: 10_000 });
+  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
   // Click the primary sign-in/up submit button (has data-testid="auth-submit")
