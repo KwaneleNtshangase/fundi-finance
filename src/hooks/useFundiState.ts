@@ -202,9 +202,22 @@ export function useFundiState() {
     { id: "wc-calculator-2",     text: "Use the Investment Calculator twice this week",          target: 2,   unit: "calculator_days",   xp: 175 },
     { id: "wc-advanced-lesson",  text: "Complete a lesson in any Advanced course",              target: 1,   unit: "advanced_lesson",   xp: 300 },
   ];
+  // Returns "YYYY-MM-DD" of the most recent Sunday (week anchor)
+  const getSundayKey = () => {
+    const now = new Date();
+    const day = now.getDay(); // 0 = Sunday
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - day);
+    return sunday.toISOString().slice(0, 10);
+  };
   const getWeeklyChallenge = () => {
-    const weekNum = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
-    return WEEKLY_CHALLENGES[weekNum % WEEKLY_CHALLENGES.length];
+    // Use the Sunday date string as a stable, deterministic seed — resets only on Sunday
+    const weekKey = getSundayKey();
+    let seed = 0;
+    for (let i = 0; i < weekKey.length; i++) seed = ((seed << 5) - seed + weekKey.charCodeAt(i)) | 0;
+    seed = Math.abs(seed);
+    const idx = seed % WEEKLY_CHALLENGES.length;
+    return { ...WEEKLY_CHALLENGES[idx], weekKey };
   };
   const weeklyChallenge = getWeeklyChallenge();
   const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgressJSON>(
@@ -216,13 +229,13 @@ export function useFundiState() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const wc = weeklyChallenge;
-    const raw = localStorage.getItem(`fundi-wc-${wc.id}`);
+    const raw = localStorage.getItem(`fundi-wc-${wc.weekKey}-${wc.id}`);
     const parsed = parseWeeklyChallengeStorage(raw) ?? EMPTY_WEEKLY_PROGRESS;
     setWeeklyProgress(parsed);
     const n = progressNumberFromWeeklyState(wc, parsed, progress.streak);
     setChallengeProgress(Math.min(n, wc.target));
     setChallengeRewardClaimed(
-      localStorage.getItem(`fundi-wc-claimed-${wc.id}`) === "true"
+      localStorage.getItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`) === "true"
     );
   }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready]);
 
@@ -444,14 +457,14 @@ export function useFundiState() {
     challengeRewardClaimed,
     setChallengeRewardClaimed,
     claimChallengeReward: () => {
-      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.id}`) === "true") {
+      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`) === "true") {
         return;
       }
       if (challengeComplete && !challengeRewardClaimed) {
         progress.addXP(weeklyChallenge.xp);
         setDailyXP((v) => v + weeklyChallenge.xp);
         setChallengeRewardClaimed(true);
-        localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.id}`, "true");
+        localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
         void progress.persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);
       }
     },

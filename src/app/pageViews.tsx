@@ -3258,14 +3258,14 @@ export default function Home() {
           dailyXp?: number; completed?: boolean;
         } | undefined;
         if (remoteWcState) {
-          const localRaw = localStorage.getItem(`fundi-wc-${wc.id}`);
+          const localRaw = localStorage.getItem(`fundi-wc-${wc.weekKey}-${wc.id}`);
           let localWcState = { lessonsCompleted: 0, completed: false };
           try { if (localRaw) localWcState = JSON.parse(localRaw); } catch { /* ignore */ }
           // Take whichever has more progress
           if ((remoteWcState.lessonsCompleted ?? 0) > localWcState.lessonsCompleted || remoteWcState.completed) {
-            localStorage.setItem(`fundi-wc-${wc.id}`, JSON.stringify(remoteWcState));
+            localStorage.setItem(`fundi-wc-${wc.weekKey}-${wc.id}`, JSON.stringify(remoteWcState));
             if (remoteWcState.completed) {
-              localStorage.setItem(`fundi-wc-claimed-${wc.id}`, "true");
+              localStorage.setItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`, "true");
             }
           }
         }
@@ -3302,7 +3302,7 @@ export default function Home() {
    */
   const bumpBehaviorChallengeProgress = (unit: "budget_days" | "calculator_days") => {
     if (weeklyChallenge.unit !== unit) return; // Only track when this week's challenge matches
-    const key = `fundi-wc-${weeklyChallenge.id}`;
+    const key = `fundi-wc-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`;
     const today = new Date().toISOString().slice(0, 10);
     const storageKey = unit === "budget_days" ? `fundi-budget-visited-${today}` : `fundi-calc-visited-${today}`;
     // Only count once per day
@@ -3321,8 +3321,8 @@ export default function Home() {
       localStorage.setItem(key, JSON.stringify(state));
       analytics.challengeCompleted(weeklyChallenge.text, weeklyChallenge.xp);
       void persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);
-      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.id}`) !== "true") {
-        localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.id}`, "true");
+      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`) !== "true") {
+        localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
         setChallengeRewardClaimed(true);
         setWeeklyChallengeCelebration({ bonusXP: weeklyChallenge.xp, description: weeklyChallenge.text });
         addXP(weeklyChallenge.xp);
@@ -3399,11 +3399,11 @@ export default function Home() {
   };
 
   const bumpWeeklyChallengeProgress = (
-    wc: { id: string; unit: string; target: number; xp: number; text: string },
+    wc: { id: string; unit: string; target: number; xp: number; text: string; weekKey: string },
     payload: { xpEarned: number; isPerfect: boolean; courseId?: string }
   ) => {
     if (typeof window === "undefined") return;
-    const key = `fundi-wc-${wc.id}`;
+    const key = `fundi-wc-${wc.weekKey}-${wc.id}`;
     const raw = localStorage.getItem(key);
     type WCState = {
       lessonsCompleted: number;
@@ -3503,9 +3503,9 @@ export default function Home() {
       syncWeeklyProgressToSupabase(state);
       setChallengeProgress(wc.target);
       void persistWeeklyChallengeCompletion(wc.id, wc.xp);
-      const claimed = localStorage.getItem(`fundi-wc-claimed-${wc.id}`) === "true";
+      const claimed = localStorage.getItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`) === "true";
       if (!claimed) {
-        localStorage.setItem(`fundi-wc-claimed-${wc.id}`, "true");
+        localStorage.setItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`, "true");
         setChallengeRewardClaimed(true);
         setWeeklyChallengeCelebration({ bonusXP: wc.xp, description: wc.text });
         addXP(wc.xp);
@@ -4790,7 +4790,7 @@ export default function Home() {
                 type="button"
                 className="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl font-bold"
                 onClick={() => {
-                  localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.id}`, "true");
+                  localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
                   setWeeklyChallengeCelebration(null);
                 }}
               >
