@@ -158,7 +158,7 @@ export function generateShareText(
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
     // Curiosity hook: "what would YOU score?"
-    return `I just completed "${t}"${xpPart} on Fundi Finance 🇿🇦\n\nFree South African money lessons — no jargon, 5 min a day. How would you score on this topic?\n👇 fundiapp.co.za`;
+    return `I just completed "${t}"${xpPart} on Fundi Finance 🇿🇦\n\nFree South African money lessons, no jargon, 5 min a day. How would you score on this topic?\n👇 fundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
@@ -166,12 +166,12 @@ export function generateShareText(
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d} days straight learning about money 🔥\n\nFundi Finance — free SA financial lessons. Most people can't answer 3 basic money questions. Can you?\n👇 fundiapp.co.za`;
+    return `${d} days straight learning about money 🔥\n\nFundi Finance, free SA financial lessons. Most people can't answer 3 basic money questions. Can you?\n👇 fundiapp.co.za`;
   }
   if (type === "level") {
     const l = data.level ?? 1;
     const profile = data.investorProfile ? ` My investor profile: ${data.investorProfile}.` : "";
-    return `I just hit Level ${l} on Fundi Finance 🚀${profile}\n\nDo you know YOUR investor profile? Takes 2 min — most South Africans get it wrong.\n👇 fundiapp.co.za`;
+    return `I just hit Level ${l} on Fundi Finance 🚀${profile}\n\nDo you know YOUR investor profile? Takes 2 min, most South Africans get it wrong.\n👇 fundiapp.co.za`;
   }
   return "";
 }
@@ -180,10 +180,10 @@ export function generateShareText(
 // Advanced courses are gated behind XP levels. Level = Math.floor(xp / 500) + 1.
 // This gives XP real utility: it unlocks content worth knowing.
 export const COURSE_LEVEL_REQUIREMENTS: Record<string, { level: number; label: string }> = {
-  "advanced-investing":       { level: 5,  label: "Level 5 — Intermediate Investor" },
-  "advanced-tax":             { level: 7,  label: "Level 7 — Serious Learner" },
-  "business-finance-advanced":{ level: 7,  label: "Level 7 — Serious Learner" },
-  "estate-planning":          { level: 10, label: "Level 10 — Advanced" },
+  "advanced-investing":       { level: 5,  label: "Level 5, Intermediate Investor" },
+  "advanced-tax":             { level: 7,  label: "Level 7, Serious Learner" },
+  "business-finance-advanced":{ level: 7,  label: "Level 7, Serious Learner" },
+  "estate-planning":          { level: 10, label: "Level 10, Advanced" },
 };
 
 // ── Goal / course mapping ─────────────────────────────────────────────────────

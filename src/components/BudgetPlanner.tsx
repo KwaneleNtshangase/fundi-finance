@@ -515,7 +515,7 @@ export function BudgetView() {
         }}>
           <Target size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-primary)" }}>
-            Your budget plan — {userGoalLabel}
+            Your budget plan, {userGoalLabel}
           </span>
         </div>
       )}

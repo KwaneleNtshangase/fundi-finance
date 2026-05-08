@@ -121,7 +121,7 @@ export function StatsPanel({
             </div>
             {streakSafeToday && (
               <div style={{ fontSize: 11, color: "#22C55E", marginTop: 4, fontWeight: 600 }}>
-                ✓ Lesson done — streak safe
+                ✓ Lesson done. Streak safe!
               </div>
             )}
             {!streakSafeToday && freezeUsedToday && (

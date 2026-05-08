@@ -23,7 +23,7 @@ const SLIDES = [
       </div>
     ),
     title: "What is XP?",
-    body: "Every question you answer earns you XP — experience points. The more XP you earn, the higher your level climbs. Reaching higher levels unlocks advanced courses on tax, investing, and running a business.",
+    body: "Every question you answer earns you XP (experience points). The more you earn, the higher your level. Higher levels unlock advanced courses on tax, investing, and running a business.",
     tip: "Level 1 → 5 each unlock a new advanced course.",
   },
   {
@@ -45,7 +45,7 @@ const SLIDES = [
       </div>
     ),
     title: "What's a streak?",
-    body: "Your streak counts how many days in a row you've completed at least one lesson. Consistent daily practice is the single biggest predictor of learning outcomes — it's more important than long sessions.",
+    body: "Your streak counts how many days in a row you've completed at least one lesson. Daily practice, even short sessions, beats cramming every time. Miss a day and it resets to zero.",
     tip: "Miss a day and the streak resets. Even 5 minutes counts.",
   },
   {
@@ -76,7 +76,7 @@ const SLIDES = [
       </div>
     ),
     title: "What are hearts for?",
-    body: "You start every session with 5 hearts. Getting an answer wrong costs one heart. Run out and you'll need to wait — hearts refill automatically, one per hour. Think of them as a reason to slow down and think.",
+    body: "You start with 5 hearts. A wrong answer costs one. If you run out, take a break: hearts refill on their own, one per hour. Think of them as a nudge to slow down before you tap.",
     tip: "All 5 hearts refill within 5 hours. No purchase needed.",
   },
 ];
@@ -228,7 +228,7 @@ export function OnboardingTooltips({ onDone }: { onDone: () => void }) {
           className="btn btn-primary"
           style={{ width: "100%", fontSize: 16, padding: "14px 0", borderRadius: 12 }}
         >
-          {isLast ? "Got it — let's go! 🚀" : "Next →"}
+          {isLast ? "Got it, let's go! 🚀" : "Next →"}
         </button>
 
         {/* Skip link */}

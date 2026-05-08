@@ -510,7 +510,7 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "You can buy a R1.2M home with a R12 000/month bond or rent the same home for R9 500/month. What hidden costs make buying MORE expensive than the bond repayment alone?",
       options: [
-        "There are no hidden costs — bond and rent are the only costs",
+        "There are no hidden costs, bond and rent are the only costs",
         "Only transfer duties apply once",
         "Rates, levies, maintenance, transfer duties, and bond initiation fees all add to the true cost of buying",
         "VAT on the purchase price",
@@ -526,7 +526,7 @@ export const CONCEPTS: Concept[] = [
     category: "Property",
     reviewCard: {
       question: "You buy a property for R1 500 000. Transfer duty in SA is 0% on the first R1 100 000. What is the tax on the remaining R400 000 at 3%?",
-      options: ["R45 000", "R12 000", "R30 000", "R0 — first-time buyers are exempt"],
+      options: ["R45 000", "R12 000", "R30 000", "R0: first-time buyers are exempt"],
       correct: 1,
       explanation: "Transfer duty = R400 000 × 3% = R12 000. The first R1 100 000 is exempt. Rates rise to 6% above R1.5M, 8% above R2.25M, and 11% above R10M. This is a one-time government tax on property purchases (not VAT-registered sales).",
     },
@@ -545,7 +545,7 @@ export const CONCEPTS: Concept[] = [
         "LTV = 100% whenever the bank approves the loan",
       ],
       correct: 1,
-      explanation: "LTV = loan ÷ property value = 90%. The lower your LTV (bigger deposit), the less risk for the bank — they reward this with a lower interest rate. A 90% LTV vs 80% LTV can mean 0.5–1% difference in your rate, saving thousands over 20 years.",
+      explanation: "LTV = loan ÷ property value = 90%. The lower your LTV (bigger deposit), the less risk for the bank, they reward this with a lower interest rate. A 90% LTV vs 80% LTV can mean 0.5–1% difference in your rate, saving thousands over 20 years.",
     },
     courses: ["property"],
   },
@@ -571,12 +571,12 @@ export const CONCEPTS: Concept[] = [
       question: "Who is required to pay provisional tax in South Africa?",
       options: [
         "Only employees earning more than R1M per year",
-        "Everyone — it replaces PAYE for all taxpayers",
+        "Everyone, it replaces PAYE for all taxpayers",
         "People who earn income other than a salary (freelancers, rental income, investment income above R30 000)",
         "Only registered companies",
       ],
       correct: 2,
-      explanation: "Provisional tax applies to anyone earning income not subject to PAYE — freelancers, landlords, business owners, and investors with investment income over R30 000. You pay two estimates (August and February) plus a top-up if needed, spreading the tax burden across the year.",
+      explanation: "Provisional tax applies to anyone earning income not subject to PAYE, freelancers, landlords, business owners, and investors with investment income over R30 000. You pay two estimates (August and February) plus a top-up if needed, spreading the tax burden across the year.",
     },
     courses: ["taxes"],
   },
@@ -593,7 +593,7 @@ export const CONCEPTS: Concept[] = [
         "R96 000 (20% of income)",
       ],
       correct: 1,
-      explanation: "SARS allows 27.5% of the HIGHER of taxable income or remuneration, capped at R430 000/year. For Nomsa: 27.5% × R480 000 = R132 000. Her actual contribution of R60 000 is below this limit, so she deducts the full R60 000 — saving her ~R24 000 in tax at a 40% marginal rate.",
+      explanation: "SARS allows 27.5% of the HIGHER of taxable income or remuneration, capped at R430 000/year. For Nomsa: 27.5% × R480 000 = R132 000. Her actual contribution of R60 000 is below this limit, so she deducts the full R60 000: saving her ~R24 000 in tax at a 40% marginal rate.",
     },
     courses: ["taxes", "retirement", "sa-investing"],
   },
@@ -606,7 +606,7 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "Your business made R80 000 profit this month but has R0 in the bank account. How is this possible?",
       options: [
-        "It's impossible — profit always equals cash",
+        "It's impossible, profit always equals cash",
         "You recorded sales but customers haven't paid yet (debtors), while you've already paid your suppliers",
         "SARS took all the profit in VAT",
         "The accountant made an error",
@@ -636,7 +636,7 @@ export const CONCEPTS: Concept[] = [
       question: "At what annual turnover must a South African business register for VAT?",
       options: ["R500 000", "R1 000 000", "R5 000 000", "Any business that sells products"],
       correct: 1,
-      explanation: "SARS requires VAT registration once your annual taxable supplies exceed R1 000 000. Voluntary registration is possible from R50 000. Registered businesses charge 15% VAT on sales and can claim VAT back on business purchases — keeping the records straight is critical.",
+      explanation: "SARS requires VAT registration once your annual taxable supplies exceed R1 000 000. Voluntary registration is possible from R50 000. Registered businesses charge 15% VAT on sales and can claim VAT back on business purchases, keeping the records straight is critical.",
     },
     courses: ["business-finance", "taxes"],
   },
@@ -649,10 +649,10 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "You paid R15 000 for a course that turns out to be useless. You've completed 30%. Should the R15 000 already spent influence your decision to continue?",
       options: [
-        "Yes — you must finish to get value from your R15 000",
-        "No — the R15 000 is gone regardless; your decision should be based on future value, not past spend",
-        "Yes — quitting means admitting a mistake",
-        "No — but only if you can get a refund",
+        "Yes, you must finish to get value from your R15 000",
+        "No, the R15 000 is gone regardless; your decision should be based on future value, not past spend",
+        "Yes, quitting means admitting a mistake",
+        "No, but only if you can get a refund",
       ],
       correct: 1,
       explanation: "The sunk cost fallacy is continuing with a bad decision to justify past spending. The R15 000 is gone whether you finish or not. Rational decisions focus on future costs and benefits only. Cutting losses early is often the smarter move.",
@@ -666,13 +666,13 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "A shop marks a jacket 'WAS R3 000, NOW R1 500'. You weren't planning to buy a jacket. What cognitive bias makes R1 500 feel like a bargain?",
       options: [
-        "Loss aversion — you fear missing the sale",
-        "Anchoring — your brain anchors to the R3 000 'original' price as the reference point",
-        "Confirmation bias — you believe jackets cost R3 000",
-        "Herding — everyone else is buying jackets",
+        "Loss aversion, you fear missing the sale",
+        "Anchoring, your brain anchors to the R3 000 'original' price as the reference point",
+        "Confirmation bias, you believe jackets cost R3 000",
+        "Herding, everyone else is buying jackets",
       ],
       correct: 1,
-      explanation: "Anchoring happens when an initial number (the 'anchor') distorts your judgement of value. The R3 000 price — whether real or fabricated — makes R1 500 feel like a steal, even if the jacket's true market value is R900. Retailers deliberately use this tactic.",
+      explanation: "Anchoring happens when an initial number (the 'anchor') distorts your judgement of value. The R3 000 price, whether real or fabricated, makes R1 500 feel like a steal, even if the jacket's true market value is R900. Retailers deliberately use this tactic.",
     },
     courses: ["money-psychology"],
   },
@@ -684,7 +684,7 @@ export const CONCEPTS: Concept[] = [
     category: "Money & Economics",
     reviewCard: {
       question: "The SARB raises the repo rate by 0.5%. You have a R900 000 variable-rate home loan. Approximately how much more will you pay per month?",
-      options: ["About R50 more", "About R375 more", "About R1 000 more", "Nothing — fixed rates aren't affected"],
+      options: ["About R50 more", "About R375 more", "About R1 000 more", "Nothing, fixed rates aren't affected"],
       correct: 1,
       explanation: "A 0.5% (50 basis points) increase on R900 000 over 20 years adds roughly R375/month. The prime rate rises by the same 0.5%, and your variable-rate bond tracks prime. Fixed-rate loans are unaffected until they reprice. Higher rates also mean savings accounts earn more.",
     },
@@ -697,10 +697,10 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "Fuel prices spike 30% due to global oil supply cuts. SA inflation rises. What type of inflation is this?",
       options: [
-        "Demand-pull inflation — consumers are buying too much",
-        "Cost-push inflation — production costs rise and are passed to consumers",
-        "Hyperinflation — caused by money printing",
-        "Core inflation — excludes food and energy",
+        "Demand-pull inflation, consumers are buying too much",
+        "Cost-push inflation, production costs rise and are passed to consumers",
+        "Hyperinflation, caused by money printing",
+        "Core inflation, excludes food and energy",
       ],
       correct: 1,
       explanation: "Cost-push inflation occurs when production costs rise (oil, wages, imports) and businesses pass those costs to consumers. Demand-pull inflation comes from too much money chasing too few goods. SA frequently experiences cost-push inflation from rand weakness and global commodity prices.",
@@ -716,7 +716,7 @@ export const CONCEPTS: Concept[] = [
     reviewCard: {
       question: "Proverbs 28:20 says 'a faithful man will be richly blessed, but one eager to get rich will not go unpunished.' What financial principle does this echo?",
       options: [
-        "Never invest — all wealth is sinful",
+        "Never invest, all wealth is sinful",
         "Get-rich-quick schemes and greed carry serious risk; patient, faithful stewardship builds lasting wealth",
         "Only tithe once a year",
         "Avoid all debt including a home loan",

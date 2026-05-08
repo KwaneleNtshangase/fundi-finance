@@ -231,7 +231,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             letterSpacing: 2, textTransform: "uppercase", fontWeight: 500,
             position: "relative", zIndex: 1,
           }}>
-            Your Financial Journey Starts Here
+            Real money skills, built one lesson at a time
           </div>
         </div>
       </>

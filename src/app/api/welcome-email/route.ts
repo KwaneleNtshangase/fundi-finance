@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       from: "Fundi Finance <hello@fundiapp.co.za>",
       to: [to],
-      subject: "Welcome to Fundi - your financial journey starts now 🚀",
+      subject: "Welcome to Fundi. Your first lesson is waiting 🚀",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.5;color:#1f2937">
           <h2>Welcome to Fundi, ${username} 👋</h2>

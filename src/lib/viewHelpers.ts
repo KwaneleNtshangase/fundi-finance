@@ -598,7 +598,7 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
 
       ctx.fillStyle = "rgba(255,255,255,0.25)";
       ctx.font = `500 28px -apple-system, BlinkMacSystemFont, sans-serif`;
-      ctx.fillText("Your financial journey starts here", W / 2, H - 110);
+      ctx.fillText("Real money skills. Start free at fundiapp.co.za", W / 2, H - 110);
 
       resolve(canvas.toDataURL("image/png"));
     } catch (err) {

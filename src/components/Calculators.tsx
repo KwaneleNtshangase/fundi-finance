@@ -204,7 +204,7 @@ function FormulaePanel() {
           <div style={{ marginBottom: 12 }}>
             <strong style={{ color: "var(--color-text-primary)", display: "block", marginBottom: 4 }}>📊 Annual escalation (growing annuity)</strong>
             <p style={{ margin: "0 0 4px" }}>Contribution after year y: <code>PMT × (1 + g)^y</code> where g = escalation rate (e.g. 5% → 0.05)</p>
-            <p style={{ margin: "0 0 4px" }}>No simple closed-form when escalation is applied monthly — the simulation loop is the correct approach.</p>
+            <p style={{ margin: "0 0 4px" }}>There's no simple closed-form when escalation is applied monthly. The simulation loop handles this correctly.</p>
           </div>
 
           <div style={{ marginBottom: 12 }}>
