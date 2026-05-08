@@ -508,27 +508,37 @@ type SavedLessonProgress = {
 // ─── Daily Challenges ────────────────────────────────────────────────────────
 
 const DAILY_CHALLENGE_POOL = [
-  { id: "complete-lesson",    text: "Complete a lesson",              icon: <BookOpen size={16} />,    xp: 15 },
-  { id: "log-expense",        text: "Log an expense",                 icon: <CreditCard size={16} />,  xp: 10 },
-  { id: "check-budget",       text: "Check your budget",              icon: <Wallet size={16} />,      xp: 10 },
-  { id: "earn-50xp",          text: "Earn 50 XP today",               icon: <Zap size={16} />,         xp: 20 },
-  { id: "perfect-quiz",       text: "Get a perfect quiz score",       icon: <Trophy size={16} />,      xp: 25 },
-  { id: "complete-2-lessons", text: "Complete 2 lessons today",       icon: <BookOpen size={16} />,    xp: 15 },
-  // Behavior-linked: connects learning to real money actions
-  { id: "use-calculator",     text: "Run a scenario in the Calculator", icon: <Calculator size={16} />,  xp: 15 },
-  { id: "visit-budget",       text: "Open the Budget Planner today",  icon: <Target size={16} />,      xp: 10 },
+  { id: "complete-lesson",    text: "Complete a lesson",                     icon: <BookOpen size={16} />,    xp: 15 },
+  { id: "log-expense",        text: "Log an expense",                        icon: <CreditCard size={16} />,  xp: 10 },
+  { id: "check-budget",       text: "Open the Budget Planner",               icon: <Wallet size={16} />,      xp: 10 },
+  { id: "earn-50xp",          text: "Earn 50 XP today",                      icon: <Zap size={16} />,         xp: 20 },
+  { id: "perfect-quiz",       text: "Get a perfect quiz score",              icon: <Trophy size={16} />,      xp: 25 },
+  { id: "complete-2-lessons", text: "Finish 2 lessons today",                icon: <BookOpen size={16} />,    xp: 20 },
+  { id: "use-calculator",     text: "Run a scenario in the Calculator",      icon: <Calculator size={16} />,  xp: 15 },
+  { id: "visit-budget",       text: "Review your spending categories",       icon: <Target size={16} />,      xp: 10 },
+  { id: "earn-100xp",         text: "Earn 100 XP in a single session",       icon: <Sparkles size={16} />,   xp: 30 },
+  { id: "no-wrong-answers",   text: "Answer 5 questions without a mistake",  icon: <Flame size={16} />,       xp: 25 },
+  { id: "complete-3-lessons", text: "Complete 3 lessons today",              icon: <TrendingUp size={16} />,  xp: 30 },
+  { id: "log-2-expenses",     text: "Log 2 expenses today",                  icon: <PiggyBank size={16} />,   xp: 15 },
+  { id: "concept-review",     text: "Review a flashcard concept",            icon: <Brain size={16} />,       xp: 10 },
+  { id: "share-milestone",    text: "Share your progress with someone",      icon: <Share2 size={16} />,      xp: 15 },
+  { id: "earn-75xp",          text: "Earn 75 XP today",                      icon: <Zap size={16} />,         xp: 25 },
 ];
 
 function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
-  // Deterministic daily selection using date as seed
+  // Deterministic daily selection — different every day, same for all users on same day
   const today = new Date().toISOString().slice(0, 10);
   let seed = 0;
   for (let i = 0; i < today.length; i++) seed = ((seed << 5) - seed + today.charCodeAt(i)) | 0;
-  const shuffled = [...DAILY_CHALLENGE_POOL].sort((a, b) => {
-    const ha = ((seed * 31 + a.id.charCodeAt(0)) & 0x7fffffff) % 1000;
-    const hb = ((seed * 31 + b.id.charCodeAt(0)) & 0x7fffffff) % 1000;
-    return ha - hb;
-  });
+  seed = Math.abs(seed);
+
+  // Fisher-Yates shuffle driven by a Linear Congruential Generator seeded on the date
+  const shuffled = [...DAILY_CHALLENGE_POOL];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    seed = (seed * 1664525 + 1013904223) & 0x7fffffff;
+    const j = seed % (i + 1);
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
   return shuffled.slice(0, 3);
 }
 
@@ -542,15 +552,25 @@ function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpCla
   // Reload conditions every 5 seconds so UI updates as user completes actions
   const refreshConditions = React.useCallback(() => {
     if (typeof window === "undefined") return;
+    const dailyLessons = parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0");
+    const dailyXp      = parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0");
+    const dailyExpense = parseInt(localStorage.getItem(`fundi-expense-today-${today}`) ?? "0");
     setConditions({
-      "complete-lesson":    parseInt(localStorage.getItem(`fundi-lessons-today-${today}`) ?? "0") >= 1,
-      "log-expense":        parseInt(localStorage.getItem(`fundi-expense-today-${today}`) ?? "0") >= 1,
+      "complete-lesson":    dailyLessons >= 1,
+      "log-expense":        dailyExpense >= 1,
       "check-budget":       localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
-      "earn-50xp":          parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0") >= 50,
+      "earn-50xp":          dailyXp >= 50,
+      "earn-75xp":          dailyXp >= 75,
+      "earn-100xp":         dailyXp >= 100,
       "perfect-quiz":       parseInt(localStorage.getItem(`fundi-perfect-today-${today}`) ?? "0") >= 1,
-      "complete-2-lessons": parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0") >= 2,
+      "complete-2-lessons": dailyLessons >= 2,
+      "complete-3-lessons": dailyLessons >= 3,
       "use-calculator":     localStorage.getItem(`fundi-calc-visited-${today}`) === "1",
       "visit-budget":       localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
+      "log-2-expenses":     dailyExpense >= 2,
+      "concept-review":     localStorage.getItem(`fundi-concept-reviewed-${today}`) === "1",
+      "share-milestone":    localStorage.getItem(`fundi-shared-today-${today}`) === "1",
+      "no-wrong-answers":   parseInt(localStorage.getItem(`fundi-correct-streak-today-${today}`) ?? "0") >= 5,
     });
   }, [today, streak]);
 
