@@ -39,7 +39,7 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. Thabo already has his emergency fund covered, so he can afford to lock money away for the long term. A TFSA equity ETF gives him JSE market exposure, all growth is tax-free, and he has 36 years of compounding ahead of him. Bitcoin is speculation, not investing. A fixed deposit at 4.5% likely loses to inflation after tax.",
+          "Thabo already has his emergency fund covered, so he can afford to lock money away for the long term. A TFSA equity ETF gives him JSE market exposure, all growth is tax-free, and he has 36 years of compounding ahead of him. Bitcoin is speculation, not investing. A fixed deposit at 4.5% likely loses to inflation after tax.",
         incorrect:
           "Think about Thabo's full picture: he already has 3 months' emergency fund, 36 years to retirement, and no debt. That situation calls for long-term, tax-efficient growth, not liquidity or speculation.",
       },
@@ -72,7 +72,7 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. The annual TFSA contribution limit is R36 000 (lifetime limit R500 000). Zanele maxes it out in one year. Thabo uses only R6 000 of his allowance, he can increase contributions later without penalty as long as he stays within the annual and lifetime limits.",
+          "Exactly. The annual TFSA contribution limit is R36 000 (lifetime limit R500 000). Zanele maxes it out in one year. Thabo uses only R6 000 of his allowance, he can increase contributions later without penalty as long as he stays within the annual and lifetime limits.",
         incorrect:
           "The TFSA annual limit is R36 000. Zanele's R3 000/month = R36 000/year exactly hits it. Thabo's R500/month = R6 000/year is well within the limit. Exceeding the annual limit triggers a 40% SARS penalty tax.",
       },
@@ -132,7 +132,7 @@ export const LESSON_PERSONAL_LOAN_TRAP: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. Option B costs R800 now and saves R2 216 in interest. Option D is the worst, 72 months of financing a depreciating asset at high interest is a wealth trap many South Africans fall into.",
+          "That's right. Option B costs R800 now and saves R2 216 in interest. Option D is the worst, 72 months of financing a depreciating asset at high interest is a wealth trap many South Africans fall into.",
         incorrect:
           "Option B is the win. The loan costs R2 216 extra. Saving for 20 months and paying cash means Nomsa keeps that money. Credit cards at 24% would cost even more.",
       },
@@ -204,7 +204,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. RA contributions up to 27.5% of gross income (max R430 000/year) are deductible from taxable income. Lower taxable income = lower PAYE. The government effectively subsidises your retirement savings.",
+          "Spot on. RA contributions up to 27.5% of gross income (max R430 000/year) are deductible from taxable income. Lower taxable income = lower PAYE. The government effectively subsidises your retirement savings.",
         incorrect:
           "RA contributions are tax-deductible. By contributing R1 250/month, Sipho's taxable income drops by R1 250, which reduces the PAYE SARS calculates each month. It is a legal way to pay less tax while saving for retirement.",
       },
@@ -216,7 +216,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
       correct: true,
       feedback: {
         correct:
-          "Correct. UIF (Unemployment Insurance Fund) is a safety net. You cannot cash it out, it only pays out in qualifying events. Both you and your employer contribute 1% each of your salary (capped at the UIF ceiling).",
+          "Yes. UIF (Unemployment Insurance Fund) is a safety net. You cannot cash it out, it only pays out in qualifying events. Both you and your employer contribute 1% each of your salary (capped at the UIF ceiling).",
         incorrect:
           "This is actually true. UIF only pays out when you become unemployed, take maternity leave, or are ill and cannot work. It is mandatory and a vital protection, but it is not a savings account you can access freely.",
       },
@@ -251,7 +251,7 @@ export const LESSON_BUY_OR_RENT: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. Owning costs Zanele R6 850 more per month in this scenario, and that does not include maintenance (budget 1% of property value per year = R13 500/year), unexpected repairs, or the opportunity cost of the R135 000 deposit invested elsewhere.",
+          "Exactly. Owning costs Zanele R6 850 more per month in this scenario, and that does not include maintenance (budget 1% of property value per year = R13 500/year), unexpected repairs, or the opportunity cost of the R135 000 deposit invested elsewhere.",
         incorrect:
           "R16 350 (own) − R9 500 (rent) = R6 850 more per month to own. Property ownership has many hidden costs that make the real cost much higher than just the bond payment.",
       },
@@ -320,7 +320,7 @@ export const LESSON_SARS_ASSESSMENT: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. Always review your auto-assessment before accepting it. Section 18 of the Income Tax Act allows medical aid contributions and out-of-pocket medical expenses above the 7.5% threshold to reduce your tax liability. Lerato may actually be due a refund once her full medical deductions are captured.",
+          "Always review your auto-assessment before accepting it. Section 18 of the Income Tax Act allows medical aid contributions and out-of-pocket medical expenses above the 7.5% threshold to reduce your tax liability. Lerato may actually be due a refund once her full medical deductions are captured.",
         incorrect:
           "The correct step is to review the assessment yourself on eFiling before paying or ignoring it. You have 40 business days to respond. Missing this window means accepting whatever SARS calculated, even if it is wrong.",
       },
@@ -351,7 +351,7 @@ export const LESSON_SARS_ASSESSMENT: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. South Africa's CGT works by including 40% of the net gain (after the annual R50 000 exclusion) in your taxable income. If Lerato's gain is R35 000, which is below the R50 000 annual exclusion, she pays zero CGT this year. If her gain were R80 000, she would include 40% of R30 000 (above the exclusion) = R12 000 in taxable income.",
+          "That's right. South Africa's CGT works by including 40% of the net gain (after the annual R50 000 exclusion) in your taxable income. If Lerato's gain is R35 000, which is below the R50 000 annual exclusion, she pays zero CGT this year. If her gain were R80 000, she would include 40% of R30 000 (above the exclusion) = R12 000 in taxable income.",
         incorrect:
           "CGT in SA uses inclusion rates: 40% of the net capital gain is added to your taxable income. The first R40 000 of gains each year is excluded. Since Lerato's R35 000 gain is below that threshold, she owes no CGT this year.",
       },
@@ -386,7 +386,7 @@ export const LESSON_WHATSAPP_SCHEME: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. Three red flags: guaranteed returns (illegal to promise in SA), no risk (every real investment carries some risk), and 15% monthly = 180% per year (the JSE averages 10-12% per year). Classic Ponzi pattern: early investors get paid with new investor money, not actual returns.",
+          "Three red flags: guaranteed returns (illegal to promise in SA), no risk (every real investment carries some risk), and 15% monthly = 180% per year (the JSE averages 10-12% per year). Classic Ponzi pattern: early investors get paid with new investor money, not actual returns.",
         incorrect:
           "Option B has the clearest red flags. '15% monthly returns' = 180%/year (impossibly high). 'No risk, fully guaranteed' is illegal to promise in SA. These three promises together almost perfectly describe a Ponzi scheme. The WhatsApp channel and the friend's involvement are red flags, but not proof of fraud on their own.",
       },
@@ -401,7 +401,7 @@ export const LESSON_WHATSAPP_SCHEME: Lesson = {
         "B: the FSCA. Go to fsca.co.za and search the FSP register. If 'Wealth Masters SA' or any entity connected to this scheme is not licensed, stop. Even if they are listed, check what they are licensed FOR, a licence to sell insurance does not authorise them to offer investment products.",
       feedback: {
         correct:
-          "Correct. FSCA.co.za is where you verify. A 30-second check can save your life savings.",
+          "Spot on. FSCA.co.za is where you verify. A 30-second check can save your life savings.",
         incorrect:
           "The FSCA (Financial Sector Conduct Authority) licenses and regulates financial service providers in SA. Always verify at fsca.co.za before investing a single rand with any unfamiliar entity.",
       },
@@ -465,7 +465,7 @@ export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. This is a working capital gap, one of the most common reasons profitable small businesses fail in South Africa. The R60 000 is in her income statement as revenue but not in her bank account yet. Cash flow and profit are completely different things.",
+          "This is a working capital gap, one of the most common reasons profitable small businesses fail in South Africa. The R60 000 is in her income statement as revenue but not in her bank account yet. Cash flow and profit are completely different things.",
         incorrect:
           "This is a working capital gap. Her business is genuinely profitable, but profit is an accounting concept, not cash in the bank. She has earned the money but has not collected it. Many SA businesses collapse at this point by confusing accounting profit with available cash.",
       },
@@ -499,7 +499,7 @@ export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. A 3% discount on R60 000 costs Lebo R1 800 and solves the crisis immediately with no new debt. The 3% monthly loan would cost roughly R660 for one month, cheaper in cash terms, but takes time to approve. Option C also strengthens the client relationship. Option D is the worst long-term choice, damaged supplier trust leads to lost credit terms permanently.",
+          "Exactly. A 3% discount on R60 000 costs Lebo R1 800 and solves the crisis immediately with no new debt. The 3% monthly loan would cost roughly R660 for one month, cheaper in cash terms, but takes time to approve. Option C also strengthens the client relationship. Option D is the worst long-term choice, damaged supplier trust leads to lost credit terms permanently.",
         incorrect:
           "Option C is the winner. A 3% discount to collect early costs R1 800 on a R60 000 invoice and requires no bank involvement, no new debt, and no damaged relationships. Managing cash flow through smart collection is a core small business skill.",
       },
@@ -561,7 +561,7 @@ export const LESSON_REPO_RATE_IMPACT: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. Higher repo rate → higher prime rate → higher savings rates on money market accounts and fixed deposits. If you have no debt and keep savings in a money market fund, a rate hike makes your cash work harder. This is why SARB rate decisions affect wealth strategy differently depending on whether you are a borrower or a saver.",
+          "Higher repo rate → higher prime rate → higher savings rates on money market accounts and fixed deposits. If you have no debt and keep savings in a money market fund, a rate hike makes your cash work harder. This is why SARB rate decisions affect wealth strategy differently depending on whether you are a borrower or a saver.",
         incorrect:
           "Savers win when rates rise. Money market accounts and fixed deposits pay out higher interest when the repo rate increases. Borrowers with variable-rate debt lose. Fixed-rate borrowers are unaffected for the duration of their fixed period.",
       },
@@ -625,7 +625,7 @@ export const LESSON_SUNK_COST_INVESTING: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Correct. The R45 original price is a sunk cost. It's gone and cannot be recovered. The only rational question is: given R4 400 today, where does this money work best going forward? What you paid in the past is irrelevant to what happens next. This is hard emotionally, but it's the foundation of sound investing.",
+          "That's right. The R45 original price is a sunk cost. It's gone and cannot be recovered. The only rational question is: given R4 400 today, where does this money work best going forward? What you paid in the past is irrelevant to what happens next. This is hard emotionally, but it's the foundation of sound investing.",
         incorrect:
           "Option C is the rational question. The original R45 price is a sunk cost, irrelevant to the forward-looking decision. Holding a bad investment because you 'need to get your money back' means the company holds your emotions hostage. The question is always: given TODAY's price, is this the best place for this money?",
       },
@@ -706,7 +706,7 @@ export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "Correct. An emergency fund needs to be liquid (accessible quickly) and stable (not subject to market crashes). A money market account or 32-day notice account pays 7–9% per year currently and is accessible within days. A TFSA equity ETF is the wrong choice, it can fall 30% right when you need the money most. Paying into a bond is smart for other savings, but an emergency fund must be instantly accessible.",
+          "An emergency fund needs to be liquid (accessible quickly) and stable (not subject to market crashes). A money market account or 32-day notice account pays 7–9% per year currently and is accessible within days. A TFSA equity ETF is the wrong choice, it can fall 30% right when you need the money most. Paying into a bond is smart for other savings, but an emergency fund must be instantly accessible.",
         incorrect:
           "Option B is correct. An emergency fund has two requirements: safety (no market risk) and accessibility (within days, not months). A money market or 32-day notice account meets both. An equity ETF in a TFSA can lose 40% in a crash, exactly when you are most likely to need emergency funds.",
       },

@@ -131,7 +131,7 @@ const RAW_COURSES: Course[] = [
                   options: ["It can buy more things next year", "It stays exactly the same", "It can buy less things next year", "It doubles in value"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct! With 5% inflation, your R1000 will only buy what R950 could buy today.",
+                    correct: "With 5% inflation, your R1000 will only buy what R950 could buy today.",
                     incorrect: "If prices go up 5%, your R1000 buys less than before. That's how inflation erodes cash.",
                   },
                 },
@@ -244,7 +244,7 @@ const RAW_COURSES: Course[] = [
                   statement: "True or False: You should cover all fixed (non-negotiable) expenses like rent, insurance, and loan repayments before allocating money to wants or discretionary spending.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Non-negotiable expenses first, then budget the rest.",
+                    correct: "Exactly. Non-negotiable expenses first, then budget the rest.",
                     incorrect: "Fixed expenses are non-negotiable. They must be covered first.",
                   },
                 },
@@ -451,7 +451,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R30 000", "R25 500", "R20 000", "R23 700"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct! R30 000 - R4 500 - R300 - R2 200 - R3 000 = R20 000.",
+                    correct: "That's right. R30 000 - R4 500 - R300 - R2 200 - R3 000 = R20 000.",
                     incorrect: "Add all deductions: R4 500 + R300 + R2 200 + R3 000 = R10 000. R30 000 - R10 000 = R20 000.",
                   },
                 },
@@ -460,7 +460,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You should always budget based on your gross salary.",
                   correct: false,
                   feedback: {
-                    correct: "Correct! Always budget on NET. You can't spend money that's already been deducted.",
+                    correct: "Spot on. Always budget on NET. You can't spend money that's already been deducted.",
                     incorrect: "Never budget on gross. Your budget must reflect what actually lands in your account.",
                   },
                 },
@@ -481,7 +481,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Work fewer hours", "Contribute to a Retirement Annuity (RA)", "Ask your employer nicely", "Move to a different province"],
                   correct: 1,
                   feedback: {
-                    correct: "RA contributions are tax-deductible, this is one of the most powerful legal tax tools available to South Africans.",
+                    correct: "RA contributions are tax-deductible, this is the most powerful legal tax tool available to South Africans.",
                     incorrect: "Contributing to a Retirement Annuity (RA) is one of the best legal ways to reduce your PAYE.",
                   },
                 },
@@ -490,7 +490,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Your employer is legally required to deduct PAYE from your salary every month.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. PAYE is a statutory requirement, employers have no choice.",
+                    correct: "Yes. PAYE is a statutory requirement, employers have no choice.",
                     incorrect: "PAYE deduction is mandatory by law. Employers must deduct and pay it to SARS monthly.",
                   },
                 },
@@ -511,7 +511,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R400", "R200", "R100", "R500"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. UIF is 1% of gross salary, so R20 000 x 1% = R200. Your employer matches this.",
+                    correct: "Exactly. UIF is 1% of gross salary, so R20 000 x 1% = R200. Your employer matches this.",
                     incorrect: "UIF is exactly 1% of your gross salary. R20 000 x 1% = R200.",
                   },
                 },
@@ -520,7 +520,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You can claim UIF if you resign voluntarily from your job.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. UIF claims are for retrenchment, dismissal, maternity, illness, or adoption - not voluntary resignation.",
+                    correct: "UIF claims are for retrenchment, dismissal, maternity, illness, or adoption - not voluntary resignation.",
                     incorrect: "Voluntary resignation does not qualify for UIF. You must have been retrenched, dismissed, or qualify on other grounds.",
                   },
                 },
@@ -530,7 +530,7 @@ const RAW_COURSES: Course[] = [
                   options: ["The employee only", "The employer only", "Both employee and employer equally", "SARS deducts it automatically"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. SDL is purely an employer cost - 1% of total payroll. It does not appear as a deduction on your payslip.",
+                    correct: "That's right. SDL is purely an employer cost - 1% of total payroll. It does not appear as a deduction on your payslip.",
                     incorrect: "SDL is paid entirely by the employer at 1% of total payroll. It does not come out of your take-home pay.",
                   },
                 },
@@ -551,7 +551,7 @@ const RAW_COURSES: Course[] = [
                   options: ["15%", "20%", "27.5%", "33%"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. SARS allows a deduction of up to 27.5% of the greater of taxable income or remuneration, capped at R430 000 per year.",
+                    correct: "SARS allows a deduction of up to 27.5% of the greater of taxable income or remuneration, capped at R430 000 per year.",
                     incorrect: "The limit is 27.5% of taxable income, capped at R430 000 annually. This is one of SA's best legal tax breaks.",
                   },
                 },
@@ -560,7 +560,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Under the Two-Pot System, you can access your entire retirement savings once per year for emergencies.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Only 1/3 of new contributions go to the Savings Pot. The Retirement Pot (2/3) is locked until retirement.",
+                    correct: "Spot on. Only 1/3 of new contributions go to the Savings Pot. The Retirement Pot (2/3) is locked until retirement.",
                     incorrect: "Only the Savings Pot (1/3 of contributions) is accessible - once per tax year, minimum R2 000 withdrawal, subject to tax.",
                   },
                 },
@@ -609,7 +609,7 @@ const RAW_COURSES: Course[] = [
                   statement: "TymeBank and Capitec typically charge lower monthly fees than traditional big four banks.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Digital-first banks like TymeBank often have zero monthly fees.",
+                    correct: "Digital-first banks like TymeBank often have zero monthly fees.",
                     incorrect: "Actually, TymeBank and Capitec are known for significantly lower fees than traditional banks.",
                   },
                 },
@@ -651,7 +651,7 @@ const RAW_COURSES: Course[] = [
                   options: ["More ATMs than traditional banks", "Zero or very low monthly fees with no branches", "Better forex rates for international travel", "Government-backed deposit guarantees traditional banks don't have"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Digital banks eliminate branch overhead, passing the saving to you as zero or very low monthly fees.",
+                    correct: "Exactly. Digital banks eliminate branch overhead, passing the saving to you as zero or very low monthly fees.",
                     incorrect: "The main advantage is zero or very low fees. They have fewer ATMs but operate through existing retail partners like PicknPay.",
                   },
                 },
@@ -660,7 +660,7 @@ const RAW_COURSES: Course[] = [
                   statement: "All South African bank accounts are covered by the same government deposit protection scheme.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. South Africa does not have a universal deposit insurance scheme like the FDIC in the USA. Banks are regulated by the FSCA and Prudential Authority but your deposits are not government-guaranteed.",
+                    correct: "South Africa does not have a universal deposit insurance scheme like the FDIC in the USA. Banks are regulated by the FSCA and Prudential Authority but your deposits are not government-guaranteed.",
                     incorrect: "SA does not have universal deposit insurance. Your money is protected through bank regulation, not an explicit government guarantee per account.",
                   },
                 },
@@ -708,7 +708,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Get a lawyer to send a letter", "Cancel your bank account", "Cancel the underlying contract or debt with the company", "Wait 40 days for it to expire automatically"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists - cancel it separately.",
+                    correct: "That's right. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists - cancel it separately.",
                     incorrect: "Stopping a debit order without cancelling the contract means you'll still legally owe the money. Always settle or cancel the underlying agreement first.",
                   },
                 },
@@ -717,7 +717,7 @@ const RAW_COURSES: Course[] = [
                   statement: "DebiCheck debit orders require your upfront digital approval before they can collect from your account.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. DebiCheck is SA's mandated authentication system - you must approve the mandate on your banking app before any deductions can begin.",
+                    correct: "DebiCheck is SA's mandated authentication system - you must approve the mandate on your banking app before any deductions can begin.",
                     incorrect: "DebiCheck requires your explicit digital consent before any collection. This is a major consumer protection improvement over old debit order systems.",
                   },
                 },
@@ -738,7 +738,7 @@ const RAW_COURSES: Course[] = [
                   options: ["7 days", "14 days", "40 days", "90 days"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. You have 40 days from the debit date to report it as unauthorized and claim a reversal from your bank.",
+                    correct: "Spot on. You have 40 days from the debit date to report it as unauthorized and claim a reversal from your bank.",
                     incorrect: "The dispute window is 40 days from the transaction date. After that, reversals are at the bank's discretion.",
                   },
                 },
@@ -747,7 +747,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The Banking Ombudsman charges a fee to investigate your complaint against a bank.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. The Banking Ombudsman (also called the Ombudsman for Banking Services) is a free service for consumers.",
+                    correct: "The Banking Ombudsman (also called the Ombudsman for Banking Services) is a free service for consumers.",
                     incorrect: "The Banking Ombudsman is completely free for consumers. Call 0860 800 900 or visit ombud.co.za at no cost.",
                   },
                 },
@@ -979,7 +979,7 @@ const RAW_COURSES: Course[] = [
                   options: ["The new loan always has a higher interest rate", "Paying off credit cards with the loan then running them up again", "Debt consolidation is illegal in South Africa", "Banks always refuse consolidation applications"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. The most common trap is clearing revolving credit (credit cards, store accounts) via consolidation and then accumulating new balances - ending up with double the debt.",
+                    correct: "The most common trap is clearing revolving credit (credit cards, store accounts) via consolidation and then accumulating new balances - ending up with double the debt.",
                     incorrect: "The biggest risk is clearing revolving credit then re-spending. Many people end up in more debt than before because their cards are now empty again.",
                   },
                 },
@@ -988,7 +988,7 @@ const RAW_COURSES: Course[] = [
                   statement: "A debt counsellor registered with the NCR can protect you from legal action by creditors while your debts are being restructured.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Formal debt review under the NCA creates a legal shield - creditors cannot sue or repossess assets while you are under debt review and making payments.",
+                    correct: "Exactly. Formal debt review under the NCA creates a legal shield - creditors cannot sue or repossess assets while you are under debt review and making payments.",
                     incorrect: "NCR-registered debt counselling does provide this protection under the National Credit Act. This is one of its key benefits.",
                   },
                 },
@@ -1060,7 +1060,7 @@ const RAW_COURSES: Course[] = [
                   title: "Real-World Action",
                   challenge: "Calculate your monthly essential expenses right now (rent + food + transport + utilities). Write down the total.",
                   successMessage: "Now multiply that by 3 - that's your emergency fund target. You've just set your first real financial goal.",
-                  skipMessage: "This is one of the most important numbers in personal finance. Come back to it when you can.",
+                  skipMessage: "This is the most important number in your personal finances. Come back to it when you can.",
                 },
               ] satisfies LessonStep[],
             },
@@ -1354,8 +1354,8 @@ const RAW_COURSES: Course[] = [
                   options: ["Only when you die from the illness", "When you are diagnosed with a covered condition, whether you survive or not", "Only if you are permanently disabled", "At retirement age regardless of illness"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Dread disease pays upon diagnosis - not death. You can use the money while you are alive and fighting the illness.",
-                    incorrect: "Dread disease cover pays upon diagnosis of a covered condition. You do not need to die - the payout is designed to help you live through the illness.",
+                    correct: "That's right. Dread disease pays upon diagnosis - not death. You can use the money while you are alive and fighting the illness.",
+                    incorrect: "Dread disease cover pays upon diagnosis of a covered condition. You do not need to die - the payout is there so you can get through the illness.",
                   },
                 },
                 {
@@ -1363,7 +1363,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The lump sum payout from a dread disease policy is subject to income tax in South Africa.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Proceeds from a life or dread disease policy are generally not subject to income tax - they are capital in nature.",
+                    correct: "Spot on. Proceeds from a life or dread disease policy are generally not subject to income tax - they are capital in nature.",
                     incorrect: "Dread disease payouts are tax-free in SA. This is one reason they are so valuable compared to accessing savings or investments that may have tax implications.",
                   },
                 },
@@ -1384,7 +1384,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R250 000", "R1 500 000", "R3 000 000", "R5 000 000"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. R25 000 x 12 months = R300 000/year. R300 000 x 10 = R3 000 000. This is a starting benchmark, not a ceiling.",
+                    correct: "Yes. R25 000 x 12 months = R300 000/year. R300 000 x 10 = R3 000 000. This is a starting benchmark, not a ceiling.",
                     incorrect: "Annual salary = R25 000 x 12 = R300 000. Multiply by 10 = R3 000 000. The 10x rule is a common starting benchmark.",
                   },
                 },
@@ -1393,7 +1393,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Once you set up a life insurance policy you should leave the cover amount unchanged for the duration of the policy.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Your cover needs change as your salary, debt, and family change. Review your cover at least every 2–3 years or after major life events.",
+                    correct: "Exactly. Your cover needs change as your salary, debt, and family change. Review your cover at least every 2–3 years or after major life events.",
                     incorrect: "Cover needs change constantly. Salary increases, new debts, more children, and paying off loans all affect how much cover you need. Review regularly.",
                   },
                 },
@@ -1442,7 +1442,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Contents insurance for all residents", "Buildings insurance for the structure only", "Both buildings and contents for all owners", "No insurance - each owner is fully responsible"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. The body corporate insures the building structure. You are responsible for insuring your own contents and any personal liability.",
+                    correct: "The body corporate insures the building structure. You are responsible for insuring your own contents and any personal liability.",
                     incorrect: "Body corporate buildings insurance covers the structure. Your furniture, appliances, and valuables require a separate contents policy in your name.",
                   },
                 },
@@ -1451,7 +1451,7 @@ const RAW_COURSES: Course[] = [
                   statement: "A home insurance policy typically covers damage from gradual wear and tear over time.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Insurance covers sudden, unexpected events - not gradual deterioration. Leaking pipes that develop slowly over months are typically excluded.",
+                    correct: "That's right. Insurance covers sudden, unexpected events - not gradual deterioration. Leaking pipes that develop slowly over months are typically excluded.",
                     incorrect: "Wear and tear is almost universally excluded from home insurance. Insurance is for sudden, unexpected events - not aging or maintenance failures.",
                   },
                 },
@@ -2113,7 +2113,7 @@ const RAW_COURSES: Course[] = [
                   options: ["How long you have until the loan is paid off", "The ratio of your loan amount to the property value", "Your monthly repayment amount", "The interest rate charged by the bank"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. LTV is the loan amount divided by the property value. A lower LTV (bigger deposit) typically earns a better interest rate.",
+                    correct: "LTV is the loan amount divided by the property value. A lower LTV (bigger deposit) typically earns a better interest rate.",
                     incorrect: "LTV = loan amount divided by property value. A R800 000 loan on a R1 000 000 property = 80% LTV.",
                   },
                 },
@@ -2122,7 +2122,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The FLISP subsidy is available to all South African home buyers regardless of income.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. FLISP is specifically for first-time buyers earning between R3 501 and R22 000/month. It is income-tested and cannot be used if you have previously owned property.",
+                    correct: "Spot on. FLISP is specifically for first-time buyers earning between R3 501 and R22 000/month. It is income-tested and cannot be used if you have previously owned property.",
                     incorrect: "FLISP is means-tested - only for first-time buyers earning between R3 501 and R22 000/month who meet other qualifying criteria.",
                   },
                 },
@@ -2152,7 +2152,7 @@ const RAW_COURSES: Course[] = [
                   statement: "An Approval in Principle (AIP) from a bank is a guarantee that your home loan application will be approved.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. An AIP is a preliminary assessment based on your declared income and credit profile. Full approval depends on the specific property valuation and verified documentation.",
+                    correct: "An AIP is a preliminary assessment based on your declared income and credit profile. Full approval depends on the specific property valuation and verified documentation.",
                     incorrect: "An AIP is an indication only - not a guarantee. The bank still does a full assessment once you make an offer on a specific property.",
                   },
                 },
@@ -2173,7 +2173,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Municipal rates", "Monthly levies", "Transfer duty", "Bond insurance premium"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Transfer duty is a once-off government tax paid at purchase. Municipal rates and levies are ongoing monthly costs.",
+                    correct: "Exactly. Transfer duty is a once-off government tax paid at purchase. Municipal rates and levies are ongoing monthly costs.",
                     incorrect: "Transfer duty is paid once when you take ownership. Municipal rates and levies are recurring monthly costs.",
                   },
                 },
@@ -2182,7 +2182,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Transfer duty in South Africa is payable on all property purchases regardless of price.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Properties up to R1 100 000 (as of 2024) are exempt from transfer duty. Only the amount above this threshold attracts the tax.",
+                    correct: "Properties up to R1 100 000 (as of 2024) are exempt from transfer duty. Only the amount above this threshold attracts the tax.",
                     incorrect: "Transfer duty has a threshold - in 2024 properties up to R1 100 000 are exempt. The tax applies on a sliding scale above that.",
                   },
                 },
@@ -2210,7 +2210,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Property values always fall over 2 years", "Transaction costs (transfer duty, agent fees) may exceed any price growth", "Bond interest rates are fixed so you overpay", "You cannot rent out the property during that time"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Buying and selling costs (transfer duty, bond registration, agent commission of 5–6%) can easily total R100 000–R200 000. Property must appreciate significantly just to break even.",
+                    correct: "That's right. Buying and selling costs (transfer duty, bond registration, agent commission of 5–6%) can easily total R100 000–R200 000. Property must appreciate significantly just to break even.",
                     incorrect: "The break-even problem is transaction costs. Transfer duty, registration, and agent fees can consume all of a 2-year property gain and more.",
                   },
                 },
@@ -2219,7 +2219,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Paying rent every month means you have nothing to show for it financially.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Rent buys you housing, flexibility, and the ability to invest your deposit capital elsewhere - potentially earning more than property appreciation.",
+                    correct: "Rent buys you housing, flexibility, and the ability to invest your deposit capital elsewhere - potentially earning more than property appreciation.",
                     incorrect: "Renting provides real value: housing, location flexibility, no maintenance costs, and the freedom to invest capital in higher-returning assets.",
                   },
                 },
@@ -2240,7 +2240,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Interest rates always fall", "The renter spends rather than invests the monthly savings", "Property always grows at 10%+ per year", "Rental prices never increase"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. The buying argument wins only if the renter spends the monthly saving rather than investing it. A disciplined investor who rents can build equal or greater wealth.",
+                    correct: "Spot on. The buying argument wins only if the renter spends the monthly saving rather than investing it. A disciplined investor who rents can build equal or greater wealth.",
                     incorrect: "The rent-and-invest strategy only underperforms if you don't actually invest the savings. Discipline is the key variable.",
                   },
                 },
@@ -2249,7 +2249,7 @@ const RAW_COURSES: Course[] = [
                   statement: "In South Africa, property has historically outperformed equity (JSE) as a long-term investment.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. The JSE All Share Index has historically returned 12–14% per year over 20-year periods, significantly outperforming residential property's 6–8% average appreciation.",
+                    correct: "The JSE All Share Index has historically returned 12–14% per year over 20-year periods, significantly outperforming residential property's 6–8% average appreciation.",
                     incorrect: "The JSE has historically outperformed residential property. Property's appeal is leverage, lifestyle, and tangibility - not raw investment return.",
                   },
                 },
@@ -2319,7 +2319,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Yes, all South Africans must file annually", "No, if SARS does not request it they are auto-assessed or exempt", "Only if they earn over R1 million", "Yes, but only every second year"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Employees with a single income source below the threshold may be auto-assessed or exempt from filing. SARS will notify you if a return is needed.",
+                    correct: "Employees with a single income source below the threshold may be auto-assessed or exempt from filing. SARS will notify you if a return is needed.",
                     incorrect: "Salaried employees with a single income source may be auto-assessed by SARS or exempt from filing. You only must file if SARS requests it or your situation triggers filing requirements.",
                   },
                 },
@@ -2328,7 +2328,7 @@ const RAW_COURSES: Course[] = [
                   statement: "If you earn freelance or side income of more than R30 000 per year, you need to register as a provisional taxpayer.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Provisional tax applies to any taxpayer earning more than R30 000 from sources other than a salary (freelance, rental, side business).",
+                    correct: "Exactly. Provisional tax applies to any taxpayer earning more than R30 000 from sources other than a salary (freelance, rental, side business).",
                     incorrect: "R30 000 is the threshold. Above that, you must register for provisional tax and submit estimates in August and February.",
                   },
                 },
@@ -2349,7 +2349,7 @@ const RAW_COURSES: Course[] = [
                   options: ["R930", "R310", "R3 000", "R150"],
                   correct: 0,
                   feedback: {
-                    correct: "Correct. R3 000 x 31% = R930/month in tax saved. Over a year that is R11 160 - money that compounds in your RA instead of going to SARS.",
+                    correct: "That's right. R3 000 x 31% = R930/month in tax saved. Over a year that is R11 160 - money that compounds in your RA instead of going to SARS.",
                     incorrect: "Tax saving = contribution x marginal rate. R3 000 x 31% = R930/month. This is essentially the government co-contributing to your retirement.",
                   },
                 },
@@ -2358,7 +2358,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Medical aid credits in South Africa reduce your taxable income by the credit amount.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Medical aid credits are deducted directly from your tax liability - not from your taxable income. This makes them more valuable than a deduction.",
+                    correct: "Spot on. Medical aid credits are deducted directly from your tax liability - not from your taxable income. This makes them more valuable than a deduction.",
                     incorrect: "Medical credits reduce your tax bill directly (rand for rand), not your taxable income. This is actually more beneficial than a deduction.",
                   },
                 },
@@ -2379,7 +2379,7 @@ const RAW_COURSES: Course[] = [
                   options: ["IRP5", "IT3(a)", "IT3(b)", "IT3(c)"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. The IT3(b) is issued by banks and investment accounts to report interest income. IT3(c) covers capital gains.",
+                    correct: "Yes. The IT3(b) is issued by banks and investment accounts to report interest income. IT3(c) covers capital gains.",
                     incorrect: "IT3(b) = interest income from banks and investments. IRP5/IT3(a) = employment income. IT3(c) = capital gains from investments.",
                   },
                 },
@@ -2388,7 +2388,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Your employer is legally required to provide you with an IRP5 certificate at the end of each tax year.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Employers are legally obligated to issue IRP5 certificates to employees. If yours doesn't, you can report them to SARS.",
+                    correct: "Exactly. Employers are legally obligated to issue IRP5 certificates to employees. If yours doesn't, you can report them to SARS.",
                     incorrect: "Yes, IRP5 issuance is a legal requirement. If your employer fails to provide one, escalate to HR, then to SARS if necessary.",
                   },
                 },
@@ -2416,7 +2416,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Chocolate bars", "Restaurant meals", "Brown bread", "Soft drinks"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Brown bread is zero-rated because it is a basic food staple. Chocolate, restaurant meals, and cold drinks are all subject to 15% VAT.",
+                    correct: "Brown bread is zero-rated because it is a basic food staple. Chocolate, restaurant meals, and cold drinks are all subject to 15% VAT.",
                     incorrect: "Brown bread is on the zero-rated list. Chocolate, restaurant meals, and fizzy drinks are all standard-rated at 15% VAT.",
                   },
                 },
@@ -2425,7 +2425,7 @@ const RAW_COURSES: Course[] = [
                   statement: "A small business with annual turnover of R800 000 is required to register for VAT.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. VAT registration is only compulsory once your annual taxable turnover exceeds R1 000 000. Below that, registration is voluntary.",
+                    correct: "That's right. VAT registration is only compulsory once your annual taxable turnover exceeds R1 000 000. Below that, registration is voluntary.",
                     incorrect: "The compulsory VAT registration threshold is R1 000 000 in annual taxable turnover. R800 000 is below that threshold.",
                   },
                 },
@@ -2446,7 +2446,7 @@ const RAW_COURSES: Course[] = [
                   options: ["100%", "66.6%", "40%", "18%"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Individuals include 40% of their net capital gain (after the R50 000 annual exclusion) in taxable income. This is then taxed at your marginal rate.",
+                    correct: "Individuals include 40% of their net capital gain (after the R50 000 annual exclusion) in taxable income. This is then taxed at your marginal rate.",
                     incorrect: "For individuals, only 40% of the net capital gain is included in taxable income. The effective maximum CGT rate is 18% (40% x 45% top marginal rate).",
                   },
                 },
@@ -2455,7 +2455,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You must pay Capital Gains Tax when you sell your primary residence if the gain exceeds R3 million.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. The first R3 000 000 of gain on your primary residence is excluded. Only gains above R3 000 000 are subject to CGT - and even then, only 40% of that excess is included.",
+                    correct: "Spot on. The first R3 000 000 of gain on your primary residence is excluded. Only gains above R3 000 000 are subject to CGT - and even then, only 40% of that excess is included.",
                     incorrect: "The primary residence exclusion is R3 000 000. Only gains above R3 million on your main home attract CGT.",
                   },
                 },
@@ -2658,7 +2658,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "No Investment Can Guarantee a Fixed Return",
-                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is one of the most reliable indicators of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk - which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
+                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is the most reliable sign of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk - which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
                 },
                 {
                   type: "mcq",
@@ -2675,7 +2675,7 @@ const RAW_COURSES: Course[] = [
                   statement: "You can verify whether an investment company is legally licensed to operate in South Africa by checking the FSCA register.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. The FSCA (Financial Sector Conduct Authority) maintains a public register of all licensed financial services providers at fsca.co.za. Always check before investing.",
+                    correct: "The FSCA (Financial Sector Conduct Authority) maintains a public register of all licensed financial services providers at fsca.co.za. Always check before investing.",
                     incorrect: "Yes, the FSCA register at fsca.co.za lists every legitimately licensed FSP. If a company is not on the register, you should not invest with them.",
                   },
                 },
@@ -2850,7 +2850,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The Bible teaches you should give only after all your expenses are paid.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Proverbs 3:9 says 'firstfruits', give first, not from the leftovers.",
+                    correct: "Exactly. Proverbs 3:9 says 'firstfruits', give first, not from the leftovers.",
                     incorrect: "'Firstfruits' means the first portion, off the top. Giving from what's left is not the biblical model.",
                   },
                 },
@@ -2895,7 +2895,7 @@ const RAW_COURSES: Course[] = [
                   statement: "The Bible teaches that being debt-free is part of financial and personal freedom.",
                   correct: true,
                   feedback: {
-                    correct: "Correct. Romans 13:8 (NLT) says 'Owe nothing to anyone.' Freedom from debt is a biblical principle of good stewardship.",
+                    correct: "Romans 13:8 (NLT) says 'Owe nothing to anyone.' Freedom from debt is a biblical principle of good stewardship.",
                     incorrect: "Romans 13:8 (NLT), 'Owe nothing to anyone.' The Bible consistently points toward freedom from financial obligation.",
                   },
                 },
@@ -2986,7 +2986,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Buy immediately so you don't miss the gains", "Check how many people have bought before deciding", "Research the asset independently and understand how it works before investing", "Ask your friends how much they made"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Independent research - understanding what you are buying and why it should increase in value - is the only sound basis for an investment decision.",
+                    correct: "That's right. Independent research - understanding what you are buying and why it should increase in value - is the only sound basis for an investment decision.",
                     incorrect: "The number of buyers is irrelevant to whether an investment is sound. Doing your own research and understanding the asset is the only protection against herd-driven losses.",
                   },
                 },
@@ -2995,7 +2995,7 @@ const RAW_COURSES: Course[] = [
                   statement: "When many people are buying an investment, it is usually a sign that the price is at its lowest point.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Mass participation is often a sign that an asset has already experienced significant price appreciation. By the time everyone is talking about it, early buyers are usually selling.",
+                    correct: "Mass participation is often a sign that an asset has already experienced significant price appreciation. By the time everyone is talking about it, early buyers are usually selling.",
                     incorrect: "In reality, mass buying typically occurs after prices have already risen significantly. The herd often arrives at the top, not the bottom.",
                   },
                 },
@@ -3016,7 +3016,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Sell immediately and accept the loss", "Hold indefinitely hoping to get back to R10 000", "Buy more shares to lower your average cost", "Switch to a different company at a loss"],
                   correct: 1,
                   feedback: {
-                    correct: "Correct. Loss aversion causes investors to hold losing positions far too long, anchored to the original price rather than evaluating the investment on its current merits.",
+                    correct: "Spot on. Loss aversion causes investors to hold losing positions far too long, anchored to the original price rather than evaluating the investment on its current merits.",
                     incorrect: "Loss aversion causes holding - the pain of selling at a loss feels worse than the pain of continuing to hold. The rational approach is to evaluate whether you would buy the shares today at R4 000.",
                   },
                 },
@@ -3025,7 +3025,7 @@ const RAW_COURSES: Course[] = [
                   statement: "When deciding whether to sell an investment, the price you originally paid for it should be the primary factor in your decision.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Your purchase price is irrelevant to the future performance of the investment. The question is: based on current information, is this still the best use of this capital?",
+                    correct: "Your purchase price is irrelevant to the future performance of the investment. The question is: based on current information, is this still the best use of this capital?",
                     incorrect: "Purchase price is irrelevant to future performance. This anchoring to original cost is a cognitive bias. Sell or hold based on current and future prospects, not past price.",
                   },
                 },
@@ -3073,7 +3073,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Finance a similar car so you don't fall behind", "Assume they are in debt and feel better about yourself", "Focus on your own financial goals and net worth progress", "Ask them how they can afford it and try to match their strategy"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct. Your financial trajectory is measured against your own goals - not against what others display publicly. Their visible consumption tells you nothing about their financial health.",
+                    correct: "Your financial trajectory is measured against your own goals - not against what others display publicly. Their visible consumption tells you nothing about their financial health.",
                     incorrect: "Focusing on your own goals and tracking your own net worth is the only comparison that is financially meaningful. What others display publicly reveals nothing about their financial health.",
                   },
                 },
@@ -3082,7 +3082,7 @@ const RAW_COURSES: Course[] = [
                   statement: "People who post about luxury purchases and travel on social media are almost always in a strong financial position.",
                   correct: false,
                   feedback: {
-                    correct: "Correct. Research consistently shows that visible wealth and actual wealth are poorly correlated. Conspicuous consumption is often funded by debt, not savings.",
+                    correct: "Exactly. Research consistently shows that visible wealth and actual wealth are poorly correlated. Conspicuous consumption is often funded by debt, not savings.",
                     incorrect: "Visible spending and financial security are poorly correlated. Many of the most financially secure people live modestly. Conspicuous display is often funded by credit.",
                   },
                 },
@@ -3156,7 +3156,7 @@ const RAW_COURSES: Course[] = [
               id: "why-rand-weakens",
               title: "Why the Rand Weakens",
               steps: [
-                { type: "info", title: "A Volatile Emerging Market Currency", content: "<p>The rand is one of the most traded and most volatile emerging market currencies. When global investors get nervous, they sell 'risky' assets, including rand, and buy 'safe' assets like the US dollar. This happens even when nothing has changed inside South Africa.</p>" },
+                { type: "info", title: "A Volatile Emerging Market Currency", content: "<p>The rand is one of the most traded and most volatile emerging-market currencies. When global investors get nervous, they sell 'risky' assets, including rand, and buy 'safe' assets like the US dollar. This happens even when nothing has changed inside South Africa.</p>" },
                 { type: "info", title: "What Drives Rand Weakness", content: "<ul><li><strong>Load shedding:</strong> Destroys growth forecasts, scares investors</li><li><strong>Political uncertainty:</strong> Unpredictable policy = capital flight</li><li><strong>US Fed rate hikes:</strong> Money moves from SA to USD for better yields</li><li><strong>Trade deficit:</strong> SA imports more than it exports</li><li><strong>FATF greylisting:</strong> Increased friction for foreign investment</li></ul>" },
                 { type: "mcq", question: "The US Federal Reserve raises interest rates sharply. What typically happens to the rand?", options: ["Rand strengthens, US growth is good for trade", "Rand weakens, capital flows to USD for better yields", "No effect, markets are independent", "Rand strengthens, investors seek diversification"], correct: 1, feedback: { correct: "Rising US rates pull global capital toward USD. Money exits SA, rand demand drops, and the rand weakens, this is called capital flight.", incorrect: "Rising US rates make USD assets more attractive. Capital leaves SA, reducing rand demand. The rand weakens." } },
                 { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20–R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },

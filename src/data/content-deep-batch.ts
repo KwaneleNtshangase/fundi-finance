@@ -47,7 +47,7 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         correct: 1,
         feedback: {
           correct:
-            "Correct. A 0.25% repo cut → 0.25% prime cut → your variable rate drops by 0.25%. On a R1m bond, that's roughly R140/month saved.",
+            "A 0.25% repo cut → 0.25% prime cut → your variable rate drops by 0.25%. On a R1m bond, that's roughly R140/month saved.",
           incorrect:
             "Variable-rate debt moves in lockstep with prime, which moves in lockstep with repo. A 0.25% repo cut = 0.25% rate drop on your variable bond.",
         },
@@ -65,7 +65,7 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         correct: true,
         feedback: {
           correct:
-            "Correct. Higher repo → higher prime → banks compete for deposits at higher rates. Money market funds, 32-day notice accounts, and fixed deposits all offer better returns when rates rise.",
+            "Exactly. Higher repo → higher prime → banks compete for deposits at higher rates. Money market funds, 32-day notice accounts, and fixed deposits all offer better returns when rates rise.",
           incorrect:
             "True, rising repo rate increases both lending rates AND deposit rates. The 2022–2024 rate hike cycle raised SA money market fund rates from ~3.5% to ~8.5%, making cash deposits significantly more attractive.",
         },
@@ -160,7 +160,7 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         correct: false,
         feedback: {
           correct:
-            "Correct. If savings rates lag inflation over long periods, cash savings lose purchasing power. Over 20 years at 2% real return vs 6% in equities, the gap in final wealth is enormous. 'Safe' cash is silently losing value.",
+            "That's right. If savings rates lag inflation over long periods, cash savings lose purchasing power. Over 20 years at 2% real return vs 6% in equities, the gap in final wealth is enormous. 'Safe' cash is silently losing value.",
           incorrect:
             "Cash is only 'safe' from volatility. Inflation risk is real, if your savings account earns less than inflation, your purchasing power shrinks. Over 20 years, inflation risk destroys more wealth than market volatility for most savers.",
         },
@@ -183,7 +183,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         type: "info",
         title: "The Psychology of Loss",
         content:
-          "<p><strong>Loss aversion</strong> is one of the most powerful forces in behavioral finance. Psychologists Kahneman and Tversky found that the emotional pain of losing R100 is approximately <strong>twice as strong</strong> as the pleasure of gaining R100.</p><p>This asymmetry causes rational people to make irrational financial decisions:</p><ul><li>Holding onto losing investments too long, hoping to 'break even' before selling</li><li>Selling winning investments too early to 'lock in' gains before they disappear</li><li>Avoiding volatile assets entirely, even when long-term returns would be superior</li><li>Not rebalancing a portfolio because it means realising losses</li></ul>",
+          "<p><strong>Loss aversion</strong> is the single biggest force in behavioral finance. Psychologists Kahneman and Tversky found that the emotional pain of losing R100 is approximately <strong>twice as strong</strong> as the pleasure of gaining R100.</p><p>This asymmetry causes rational people to make irrational financial decisions:</p><ul><li>Holding onto losing investments too long, hoping to 'break even' before selling</li><li>Selling winning investments too early to 'lock in' gains before they disappear</li><li>Avoiding volatile assets entirely, even when long-term returns would be superior</li><li>Not rebalancing a portfolio because it means realising losses</li></ul>",
       },
       {
         type: "mcq",
@@ -216,7 +216,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         correct: false,
         feedback: {
           correct:
-            "Correct. The purchase price is a sunk cost, psychologically real but financially irrelevant. While you wait, the capital is tied up earning nothing (or losing further). The rational question: would I buy this today at the current price?",
+            "Spot on. The purchase price is a sunk cost, psychologically real but financially irrelevant. While you wait, the capital is tied up earning nothing (or losing further). The rational question: would I buy this today at the current price?",
           incorrect:
             "The 'break-even' strategy is driven by loss aversion, not logic. Your purchase price is a sunk cost. Rational investing asks: what will this investment do from here? Not: how do I get back to where I started?",
         },
@@ -327,7 +327,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         correct: true,
         feedback: {
           correct:
-            "Correct. This strategy, called rand-cost averaging, removes behavioural bias from the equation. You buy more units when prices are low, fewer when high, and never let emotion override the system. Long-term it outperforms most market-timing attempts.",
+            "Yes. This strategy, called rand-cost averaging, removes behavioural bias from the equation. You buy more units when prices are low, fewer when high, and never let emotion override the system. Long-term it outperforms most market-timing attempts.",
           incorrect:
             "Rand-cost averaging (fixed monthly investing regardless of conditions) is proven to outperform emotional market timing for most investors. Consistency beats cleverness over long periods.",
         },
@@ -396,7 +396,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         correct: false,
         feedback: {
           correct:
-            "Correct. RSA Retail Bonds are backed by the South African sovereign, the full creditworthiness of the national government. A bank fixed deposit is backed by the bank's balance sheet plus the SARB implicit backstop. For most practical purposes, RSA Retail Bonds are the safest rand investment available.",
+            "Exactly. RSA Retail Bonds are backed by the South African sovereign, the full creditworthiness of the national government. A bank fixed deposit is backed by the bank's balance sheet plus the SARB implicit backstop. For most practical purposes, RSA Retail Bonds are the safest rand investment available.",
           incorrect:
             "RSA Retail Bonds are backed by sovereign guarantee, the SA government cannot default without a systemic collapse affecting all SA financial institutions. They are effectively the safest rand-denominated investment, slightly safer than a bank deposit.",
         },
@@ -418,7 +418,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Bond Price Paradox",
         content:
-          "<p>Here is one of the most misunderstood concepts in investing: <strong>when interest rates rise, existing bond prices fall. When rates fall, bond prices rise.</strong></p><p><strong>Why this happens:</strong> Imagine you own a R10 000 bond paying 8% (R800/year). Interest rates then rise to 10%. New bonds now pay R1 000/year on the same R10 000. Your 8% bond is less attractive, who would pay R10 000 for it when they can get R1 000/year from a new bond? Your bond's market price must drop until its yield matches the new market rate.</p><p>This matters for bond ETFs and unit trusts, they hold bonds that are marked to market. During SA's 2022–2024 rate hike cycle, bond funds lost value even though the underlying coupons were still being paid.</p>",
+          "<p>Here is something most investors get wrong: <strong>when interest rates rise, existing bond prices fall. When rates fall, bond prices rise.</strong></p><p><strong>Why this happens:</strong> Imagine you own a R10 000 bond paying 8% (R800/year). Interest rates then rise to 10%. New bonds now pay R1 000/year on the same R10 000. Your 8% bond is less attractive, who would pay R10 000 for it when they can get R1 000/year from a new bond? Your bond's market price must drop until its yield matches the new market rate.</p><p>This matters for bond ETFs and unit trusts, they hold bonds that are marked to market. During SA's 2022–2024 rate hike cycle, bond funds lost value even though the underlying coupons were still being paid.</p>",
       },
       {
         type: "mcq",
@@ -451,7 +451,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         correct: true,
         feedback: {
           correct:
-            "Correct. RSA Retail Bonds are held to maturity. You receive your coupon payments and principal back regardless of what happens to interest rates. No mark-to-market. This is why RSA Retail Bonds are ideal for conservative investors or those approaching retirement.",
+            "RSA Retail Bonds are held to maturity. You receive your coupon payments and principal back regardless of what happens to interest rates. No mark-to-market. This is why RSA Retail Bonds are ideal for conservative investors or those approaching retirement.",
           incorrect:
             "This is true. RSA Retail Bonds are not traded on the secondary market. You buy, earn coupons, and receive your principal at maturity. The rate paid at purchase is locked in, rising rates elsewhere don't affect you.",
         },

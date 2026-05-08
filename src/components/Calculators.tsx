@@ -751,7 +751,7 @@ export function CalculatorView() {
           <span className="text-xs font-semibold uppercase tracking-wide text-green-100/90">Available</span>
         </div>
         <p className="text-green-100 text-sm leading-relaxed mb-4">
-          See how your investments could grow with a personalised plan built around your numbers.
+          See how your investments could grow with projections built around your numbers.
         </p>
         <button
           type="button"

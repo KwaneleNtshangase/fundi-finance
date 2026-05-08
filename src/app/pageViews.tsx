@@ -2870,7 +2870,7 @@ export default function Home() {
     button: string;
   }>({
     headline: "5 Lessons Completed",
-    body: "You now know more about your money than most South Africans. Want a personalised plan to reach your first R10k emergency fund or start investing?",
+    body: "You now know more about your money than most South Africans. Want a plan to reach your first R10k emergency fund or start investing?",
     button: "Get Your Free R10k Savings Plan",
   });
   const [savedProgress, setSavedProgress] = useState<SavedLessonProgress | null>(null);
@@ -3743,7 +3743,7 @@ export default function Home() {
         const ctaMap: Record<string, { headline: string; body: string; button: string }> = {
           "debt-free": {
             headline: "You're Serious About Getting Debt-Free",
-            body: "You've built real knowledge. Let's turn it into a step-by-step debt-freedom plan tailored to your situation.",
+            body: "You've built real knowledge. Let's turn it into a step-by-step debt-freedom plan built around your situation.",
             button: "Get Your Free Debt Plan",
           },
           emergency: {
@@ -3753,7 +3753,7 @@ export default function Home() {
           },
           invest: {
             headline: "You're Ready to Start Investing",
-            body: "You've learned the foundations. Get a personalised investment plan built around your income and timeline.",
+            body: "You've learned the foundations. Get an investment plan built around your income and timeline.",
             button: "Get Your Free Investment Plan",
           },
           home: {
@@ -3781,7 +3781,7 @@ export default function Home() {
           else if (investCourses.includes(courseId)) ctaContent = ctaMap["invest"];
           else ctaContent = {
             headline: "5 Lessons Completed",
-            body: "You now know more about your money than most South Africans. Want a personalised plan to reach your first R10k emergency fund or start investing?",
+            body: "You now know more about your money than most South Africans. Want a plan to reach your first R10k emergency fund or start investing?",
             button: "Get Your Free R10k Savings Plan",
           };
         }

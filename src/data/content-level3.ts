@@ -149,7 +149,7 @@ export const ADVANCED_TAX_COURSE: Course = {
               correct: true,
               feedback: {
                 correct:
-                  "Correct. Dividends Tax is a withholding tax. The company deducts it before paying you the dividend. You receive the net amount; it does not affect your personal income tax brackets.",
+                  "Dividends Tax is a withholding tax. The company deducts it before paying you the dividend. You receive the net amount; it does not affect your personal income tax brackets.",
                 incorrect:
                   "Dividends Tax is a withholding tax, the company deducts 20% before payment. The net dividend you receive is tax-free in your hands and does not affect your income tax calculation.",
               },
@@ -402,7 +402,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
               type: "info",
               title: "How Estate Duty Works in SA",
               content:
-                "<p>Estate duty is a tax on the total value of your estate when you die. It is one of the most significant wealth transfer taxes South Africans face, and one of the least understood.</p><p><strong>2024/25 rates:</strong></p><ul><li>20% on dutiable estate up to R30 million</li><li>25% on dutiable estate above R30 million</li></ul><p><strong>The R3.5 million abatement:</strong> Every individual gets a R3.5 million deduction before estate duty applies. Your first R3.5 million passes estate-duty-free.</p><p><strong>Spousal rollover:</strong> Assets left to a surviving spouse are fully exempt from estate duty, the tax is deferred to when the surviving spouse dies. Unused abatement from the first death rolls over to the surviving spouse (portability of abatement).</p>",
+                "<p>Estate duty is a tax on the total value of your estate when you die. It is a significant wealth transfer tax, and probably the least understood.</p><p><strong>2024/25 rates:</strong></p><ul><li>20% on dutiable estate up to R30 million</li><li>25% on dutiable estate above R30 million</li></ul><p><strong>The R3.5 million abatement:</strong> Every individual gets a R3.5 million deduction before estate duty applies. Your first R3.5 million passes estate-duty-free.</p><p><strong>Spousal rollover:</strong> Assets left to a surviving spouse are fully exempt from estate duty, the tax is deferred to when the surviving spouse dies. Unused abatement from the first death rolls over to the surviving spouse (portability of abatement).</p>",
             } satisfies LessonStep,
             {
               type: "fill-blank",
@@ -451,7 +451,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
               type: "info",
               title: "Estate Duty Planning Strategies",
               content:
-                "<p><strong>1. Inter vivos trust:</strong> Transfer appreciating assets into a trust now. Future growth falls outside your estate. The transfer triggers CGT now (one-time cost) but removes ongoing growth from estate duty calculations.</p><p><strong>2. Life assurance (Section 3(3)(a)):</strong> A life policy where the estate is the beneficiary is included in the dutiable estate but the insurer pays the duty. These policies are specifically designed to fund estate duty, premiums are effectively pre-paying your estate duty in installments.</p><p><strong>3. Spousal bequests to maximise portability:</strong> Structuring your will so the full estate goes to your spouse defers all duty to the second death, by which time abatements may have changed, or the surviving spouse's estate may be structured differently.</p><p><strong>4. Donations during lifetime:</strong> Gifts of up to R100 000/year are free from Donations Tax. Over 20 years, R2 million can be transferred outside your estate, saving R400 000 in estate duty.</p>",
+                "<p><strong>1. Inter vivos trust:</strong> Transfer appreciating assets into a trust now. Future growth falls outside your estate. The transfer triggers CGT now (one-time cost) but removes ongoing growth from estate duty calculations.</p><p><strong>2. Life assurance (Section 3(3)(a)):</strong> A life policy where the estate is the beneficiary is included in the dutiable estate but the insurer pays the duty. These policies are built to fund estate duty, premiums are effectively pre-paying your estate duty in installments.</p><p><strong>3. Spousal bequests to maximise portability:</strong> Structuring your will so the full estate goes to your spouse defers all duty to the second death, by which time abatements may have changed, or the surviving spouse's estate may be structured differently.</p><p><strong>4. Donations during lifetime:</strong> Gifts of up to R100 000/year are free from Donations Tax. Over 20 years, R2 million can be transferred outside your estate, saving R400 000 in estate duty.</p>",
             } satisfies LessonStep,
           ],
         },
@@ -502,7 +502,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
               correct: true,
               feedback: {
                 correct:
-                  "Correct. Stale nominations are one of the most common estate planning failures. A nomination made before a divorce can direct your pension to your ex-spouse. Most fund administrators allow annual online updates. Treat this as an annual financial hygiene task.",
+                  "Exactly. Stale nominations are one of the most common estate planning failures. A nomination made before a divorce can direct your pension to your ex-spouse. Most fund administrators allow annual online updates. Treat this as an annual financial hygiene task.",
                 incorrect:
                   "This is best practice, not optional. Stale nominations have caused devastating outcomes, assets to ex-spouses, funds to deceased nominees (going intestate), and minor children's inheritances managed by the state. Review annually.",
               },
@@ -671,7 +671,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
               type: "info",
               title: "Why You Must Have Offshore Exposure",
               content:
-                "<p>The JSE All Share Index represents approximately 0.4% of global market capitalisation. South Africa has a population of 60 million vs a global population of 8 billion. SA GDP is roughly 0.4% of world GDP.</p><p>A 100% SA equity portfolio is one of the most concentrated, idiosyncratic bets any investor can make. You are exposed to:</p><ul><li>Load shedding disrupting corporate earnings</li><li>Political risk and policy uncertainty</li><li>Rand depreciation eroding purchasing power</li><li>A commodity-heavy index (mining ~20%) with low tech and healthcare exposure</li></ul><p>Global equities give you: US tech (Apple, Microsoft, Nvidia), European healthcare (Novartis, AstraZeneca), Asian growth, and <strong>rand hedging</strong>. When the rand weakens, your offshore investments are worth more in rand terms.</p>",
+                "<p>The JSE All Share Index represents approximately 0.4% of global market capitalisation. South Africa has a population of 60 million vs a global population of 8 billion. SA GDP is roughly 0.4% of world GDP.</p><p>A 100% SA equity portfolio is one of the most concentrated bets any investor can make. You are exposed to:</p><ul><li>Load shedding disrupting corporate earnings</li><li>Political risk and policy uncertainty</li><li>Rand depreciation eroding purchasing power</li><li>A commodity-heavy index (mining ~20%) with low tech and healthcare exposure</li></ul><p>Global equities give you: US tech (Apple, Microsoft, Nvidia), European healthcare (Novartis, AstraZeneca), Asian growth, and <strong>rand hedging</strong>. When the rand weakens, your offshore investments are worth more in rand terms.</p>",
             } satisfies LessonStep,
             {
               type: "info",
