@@ -4,6 +4,19 @@ import React, { useState, useEffect } from "react";
 import { Mail, KeyRound } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
+// Detect in-app browsers (Facebook, Instagram, WhatsApp, TikTok, Snapchat, etc.)
+// Google OAuth returns 403 disallowed_useragent in all of these.
+function detectWebView(): boolean {
+  if (typeof window === "undefined") return false;
+  const ua = window.navigator.userAgent;
+  if (/FBAN|FBAV|Instagram|Snapchat|MicroMessenger|Line\/|TikTok/i.test(ua)) return true;
+  // Android WebView flag
+  if (/wv/.test(ua) && /Android/.test(ua)) return true;
+  // iOS WebView: has AppleWebKit but no Safari in UA string
+  if (/iPhone|iPad/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua)) return true;
+  return false;
+}
+
 // Disposable / obviously-fake email domains to block at signup
 const BLOCKED_EMAIL_DOMAINS = new Set([
   "mailinator.com","guerrillamail.com","guerrillamail.net","guerrillamail.org",
@@ -50,6 +63,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [forgotSent, setForgotSent] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
   const [verificationEmail, setVerificationEmail] = useState("");
+  const [inWebView, setInWebView] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   const handleForgotPassword = async () => {
     if (!forgotEmail.trim()) { setError("Please enter your email."); return; }
@@ -64,6 +79,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const t = setTimeout(() => setSplashMinElapsed(true), 1500);
     return () => clearTimeout(t);
+  }, []);
+
+  useEffect(() => {
+    setInWebView(detectWebView());
   }, []);
 
   useEffect(() => {
@@ -358,18 +377,61 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             ))}
           </div>
 
+          {/* ── WebView warning banner ── */}
+          {inWebView && (
+            <div style={{
+              background: "#FFF8E1", border: "1.5px solid #F59E0B", borderRadius: 12,
+              padding: "14px 16px", marginBottom: 14,
+            }}>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 4px" }}>
+                Open in your browser to sign in with Google
+              </p>
+              <p style={{ fontSize: 12, color: "#78350F", margin: "0 0 10px", lineHeight: 1.5 }}>
+                Google blocks sign-in inside apps like Instagram, WhatsApp, and Facebook. Open this page in Chrome or Safari first.
+              </p>
+              <button
+                onClick={() => {
+                  const url = typeof window !== "undefined" ? window.location.href : "https://fundiapp.co.za";
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(() => {
+                      setLinkCopied(true);
+                      setTimeout(() => setLinkCopied(false), 2500);
+                    });
+                  }
+                }}
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: 8,
+                  border: "1.5px solid #F59E0B", background: linkCopied ? "#F59E0B" : "white",
+                  color: linkCopied ? "white" : "#92400E", fontWeight: 700, fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                {linkCopied ? "Link copied! Paste in Chrome or Safari" : "Copy link to open in browser"}
+              </button>
+            </div>
+          )}
+
           {/* ── Social sign-in buttons ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 4 }}>
             <button
-              onClick={() => supabase.auth.signInWithOAuth({
-                provider: "google",
-                options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
-              })}
+              onClick={() => {
+                if (inWebView) return;
+                supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
+                });
+              }}
+              disabled={inWebView}
+              title={inWebView ? "Open in Chrome or Safari to use Google sign-in" : undefined}
               style={{
                 width: "100%", padding: "11px 16px", borderRadius: 10,
-                border: "1.5px solid var(--color-border)", background: "var(--color-surface)",
-                color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14,
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                border: "1.5px solid var(--color-border)",
+                background: inWebView ? "#f5f5f5" : "var(--color-surface)",
+                color: inWebView ? "#aaa" : "var(--color-text-primary)",
+                fontWeight: 600, fontSize: 14,
+                cursor: inWebView ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                opacity: inWebView ? 0.6 : 1,
               }}
             >
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -381,18 +443,27 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               Continue with Google
             </button>
             <button
-              onClick={() => supabase.auth.signInWithOAuth({
-                provider: "facebook",
-                options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
-              })}
+              onClick={() => {
+                if (inWebView) return;
+                supabase.auth.signInWithOAuth({
+                  provider: "facebook",
+                  options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
+                });
+              }}
+              disabled={inWebView}
+              title={inWebView ? "Open in Chrome or Safari to use Facebook sign-in" : undefined}
               style={{
                 width: "100%", padding: "11px 16px", borderRadius: 10,
-                border: "1.5px solid var(--color-border)", background: "var(--color-surface)",
-                color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14,
-                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                border: "1.5px solid var(--color-border)",
+                background: inWebView ? "#f5f5f5" : "var(--color-surface)",
+                color: inWebView ? "#aaa" : "var(--color-text-primary)",
+                fontWeight: 600, fontSize: 14,
+                cursor: inWebView ? "not-allowed" : "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                opacity: inWebView ? 0.6 : 1,
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill={inWebView ? "#aaa" : "#1877F2"} aria-hidden="true">
                 <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.93-1.956 1.886v2.288h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
               </svg>
               Continue with Facebook
