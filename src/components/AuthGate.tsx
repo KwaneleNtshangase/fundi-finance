@@ -4,29 +4,13 @@ import React, { useState, useEffect } from "react";
 import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
-// Returns true only for browsers where Google OAuth is CONFIRMED blocked.
-//
-// Instagram and Facebook on iOS use Apple's SFSafariViewController when
-// opening external OAuth URLs — Google accepts that, so they work fine.
-// LinkedIn, Android WebViews, Twitter/X, Snapchat, and TikTok use their own
-// custom browsers that Google's policy rejects.
-function isOAuthDefinitelyBlocked(): boolean {
+// Google OAuth is blocked only in LinkedIn's in-app browser.
+// All other in-app browsers (Instagram, Facebook, WhatsApp, etc.) either use
+// SFSafariViewController or handle the redirect acceptably.
+// Facebook OAuth works everywhere — no restrictions.
+function isLinkedInBrowser(): boolean {
   if (typeof window === "undefined") return false;
-  const ua = window.navigator.userAgent;
-  // LinkedIn in-app browser (confirmed blocked, does NOT use SFSafariViewController)
-  if (/\[LinkedInApp\]/i.test(ua)) return true;
-  // Android WebView marker
-  if (/\bwv\b/.test(ua) && /Android/.test(ua)) return true;
-  // Other confirmed-blocked browsers
-  if (/Twitter\/|Snapchat|MicroMessenger|Line\/|TikTok|GSA\//i.test(ua)) return true;
-  // Generic iOS WebView (no Safari/ AND not Instagram/Facebook which use SFSafariViewController)
-  if (
-    /iPhone|iPad/.test(ua) &&
-    /AppleWebKit/.test(ua) &&
-    !/Safari\//.test(ua) &&
-    !/FBAN|FBAV|Instagram/i.test(ua)
-  ) return true;
-  return false;
+  return /\[LinkedInApp\]/i.test(window.navigator.userAgent);
 }
 
 // Disposable / obviously-fake email domains to block at signup
@@ -95,7 +79,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setInWebView(isOAuthDefinitelyBlocked());
+    setInWebView(isLinkedInBrowser());
   }, []);
 
   useEffect(() => {
@@ -156,11 +140,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     else setError(null);
   };
 
-  // When inside a WebView, Google OAuth will always be blocked — no workaround exists.
-  // Instead of letting the user hit Google's error screen, intercept immediately
-  // and show clear instructions to open in their real browser.
+  // Facebook works everywhere — no restrictions.
+  // Google is blocked only inside LinkedIn's in-app browser; everywhere else it works.
   const handleOAuthSignIn = async (provider: "google" | "facebook") => {
-    if (inWebView) {
+    if (provider === "google" && inWebView) {
       setOauthBlocked(true);
       return;
     }
@@ -275,7 +258,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             letterSpacing: 2, textTransform: "uppercase", fontWeight: 500,
             position: "relative", zIndex: 1,
           }}>
-            Real money skills, built one lesson at a time
+            Your financial journey starts here
           </div>
         </div>
       </>
@@ -412,10 +395,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                 <AlertTriangle size={18} style={{ color: "#D97706", flexShrink: 0, marginTop: 1 }} />
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 3px" }}>
-                    Google sign-in requires your browser
+                    Google sign-in is blocked in LinkedIn
                   </p>
                   <p style={{ fontSize: 12, color: "#78350F", margin: 0, lineHeight: 1.55 }}>
-                    This in-app browser blocks Google sign-in. Copy the link and open it in Chrome or Safari to continue.
+                    LinkedIn&apos;s browser blocks Google. Use Facebook, email, or copy the link and open it in Chrome or Safari.
                   </p>
                 </div>
               </div>
