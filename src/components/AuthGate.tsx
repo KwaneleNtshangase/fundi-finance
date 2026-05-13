@@ -1,21 +1,31 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Mail, KeyRound } from "lucide-react";
+import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
-// Detect in-app browsers where Google OAuth will always be blocked.
-// This includes LinkedIn, Instagram, Facebook, WhatsApp, TikTok, Snapchat, Twitter/X,
-// Gmail, Outlook, and any generic Android WebView.
-function detectWebView(): boolean {
+// Returns true only for browsers where Google OAuth is CONFIRMED blocked.
+//
+// Instagram and Facebook on iOS use Apple's SFSafariViewController when
+// opening external OAuth URLs — Google accepts that, so they work fine.
+// LinkedIn, Android WebViews, Twitter/X, Snapchat, and TikTok use their own
+// custom browsers that Google's policy rejects.
+function isOAuthDefinitelyBlocked(): boolean {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent;
-  // Named app browsers
-  if (/FBAN|FBAV|Instagram|Snapchat|MicroMessenger|Line\/|TikTok|LinkedInApp|Twitter|Outlook|GSA/i.test(ua)) return true;
-  // Android WebView flag
-  if (/wv/.test(ua) && /Android/.test(ua)) return true;
-  // iOS WebView: has AppleWebKit but no Safari/ in UA string
-  if (/iPhone|iPad/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua)) return true;
+  // LinkedIn in-app browser (confirmed blocked, does NOT use SFSafariViewController)
+  if (/\[LinkedInApp\]/i.test(ua)) return true;
+  // Android WebView marker
+  if (/\bwv\b/.test(ua) && /Android/.test(ua)) return true;
+  // Other confirmed-blocked browsers
+  if (/Twitter\/|Snapchat|MicroMessenger|Line\/|TikTok|GSA\//i.test(ua)) return true;
+  // Generic iOS WebView (no Safari/ AND not Instagram/Facebook which use SFSafariViewController)
+  if (
+    /iPhone|iPad/.test(ua) &&
+    /AppleWebKit/.test(ua) &&
+    !/Safari\//.test(ua) &&
+    !/FBAN|FBAV|Instagram/i.test(ua)
+  ) return true;
   return false;
 }
 
@@ -85,7 +95,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    setInWebView(detectWebView());
+    setInWebView(isOAuthDefinitelyBlocked());
   }, []);
 
   useEffect(() => {
@@ -392,57 +402,66 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             ))}
           </div>
 
-          {/* ── WebView banner: shown proactively OR after button tap ── */}
+          {/* ── Copy-link banner: only shown for browsers that block Google OAuth ── */}
           {(inWebView || oauthBlocked) && (
             <div style={{
-              background: "#FFF8E1", border: "1.5px solid #F59E0B", borderRadius: 12,
-              padding: "16px", marginBottom: 14,
+              background: "#FFFBEB", border: "1.5px solid #F59E0B", borderRadius: 12,
+              padding: "14px 16px", marginBottom: 14,
             }}>
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-                <span style={{ fontSize: 20, lineHeight: 1 }}>⚠️</span>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 12 }}>
+                <AlertTriangle size={18} style={{ color: "#D97706", flexShrink: 0, marginTop: 1 }} />
                 <div>
-                  <p style={{ fontSize: 13, fontWeight: 800, color: "#92400E", margin: "0 0 3px" }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 3px" }}>
                     Google sign-in requires your browser
                   </p>
                   <p style={{ fontSize: 12, color: "#78350F", margin: 0, lineHeight: 1.55 }}>
-                    You are inside an in-app browser (LinkedIn, Instagram, etc.) where Google blocks sign-in.
-                    Tap <strong>Copy link</strong> then open it in Chrome or Safari.
+                    This in-app browser blocks Google sign-in. Copy the link and open it in Chrome or Safari to continue.
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => {
                   const url = typeof window !== "undefined" ? window.location.href : "https://fundiapp.co.za";
+                  const doCopy = () => {
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 3000);
+                  };
                   if (navigator.clipboard) {
-                    navigator.clipboard.writeText(url).then(() => {
-                      setLinkCopied(true);
-                      setTimeout(() => setLinkCopied(false), 3000);
+                    navigator.clipboard.writeText(url).then(doCopy).catch(() => {
+                      const el = document.createElement("textarea");
+                      el.value = url;
+                      document.body.appendChild(el);
+                      el.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(el);
+                      doCopy();
                     });
                   } else {
-                    // Fallback for older browsers without clipboard API
                     const el = document.createElement("textarea");
                     el.value = url;
                     document.body.appendChild(el);
                     el.select();
                     document.execCommand("copy");
                     document.body.removeChild(el);
-                    setLinkCopied(true);
-                    setTimeout(() => setLinkCopied(false), 3000);
+                    doCopy();
                   }
                 }}
                 style={{
-                  width: "100%", padding: "11px 12px", borderRadius: 8,
+                  width: "100%", padding: "10px 12px", borderRadius: 8,
                   border: "none",
-                  background: linkCopied ? "#16A34A" : "#F59E0B",
+                  background: linkCopied ? "#16A34A" : "#D97706",
                   color: "white", fontWeight: 700, fontSize: 14,
                   cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                   transition: "background 0.2s",
                 }}
               >
-                {linkCopied ? "✓ Link copied — paste in Chrome or Safari" : "📋 Copy link to open in your browser"}
+                {linkCopied
+                  ? <><CheckCircle size={16} /> Link copied &mdash; paste in Chrome or Safari</>
+                  : <><ClipboardCopy size={16} /> Copy link to open in your browser</>
+                }
               </button>
-              <p style={{ fontSize: 11, color: "#92400E", margin: "8px 0 0", textAlign: "center", opacity: 0.75 }}>
-                Or use the email and password option below instead
+              <p style={{ fontSize: 11, color: "#92400E", margin: "8px 0 0", textAlign: "center", opacity: 0.7 }}>
+                Or sign in with email and password below
               </p>
             </div>
           )}
