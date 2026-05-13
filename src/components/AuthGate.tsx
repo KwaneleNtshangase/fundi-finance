@@ -277,50 +277,59 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       return (
         <div style={{
           minHeight: "100dvh", display: "flex", flexDirection: "column",
-          alignItems: "center", background: "#ffffff",
-          padding: "0 24px",
+          alignItems: "center", justifyContent: "space-between",
+          background: "#ffffff", padding: "0 28px",
         }}>
+          {/* Spacer top */}
+          <div style={{ flex: "0 0 auto", height: 0 }} />
+
           {/* Hero */}
           <div style={{
             flex: 1, display: "flex", flexDirection: "column",
             alignItems: "center", justifyContent: "center",
-            paddingTop: 48, paddingBottom: 32,
+            paddingTop: 56, paddingBottom: 40, gap: 0,
           }}>
             <img
               src="/fundi-logo.png"
               alt="Fundi Finance"
-              style={{ width: 180, height: 180, objectFit: "contain", marginBottom: 28 }}
+              style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 32 }}
             />
-            <h1 style={{
-              fontSize: 30, fontWeight: 900, color: "#111827",
-              textAlign: "center", margin: "0 0 14px", lineHeight: 1.2,
-              maxWidth: 320,
+            <p style={{
+              fontSize: 11, fontWeight: 700, color: "#007A4D",
+              textAlign: "center", letterSpacing: 3, textTransform: "uppercase",
+              margin: "0 0 10px",
             }}>
               Your financial journey starts here
-            </h1>
+            </p>
             <p style={{
-              fontSize: 15, color: "#6B7280", textAlign: "center",
-              lineHeight: 1.65, maxWidth: 300, margin: 0,
+              fontSize: 13, color: "#9CA3AF", textAlign: "center",
+              lineHeight: 1.6, maxWidth: 260, margin: 0,
             }}>
               Learn how money works, build real habits, and take control of your finances.
             </p>
           </div>
 
           {/* CTAs */}
-          <div style={{ width: "100%", maxWidth: 420, paddingBottom: 40, display: "flex", flexDirection: "column", gap: 12 }}>
+          <div style={{
+            width: "100%", maxWidth: 400, paddingBottom: 48,
+            display: "flex", flexDirection: "column", gap: 12,
+          }}>
             <button
               onClick={() => setMode("signup")}
-              className="btn btn-primary"
-              style={{ width: "100%", padding: "16px", fontSize: 16, fontWeight: 700, borderRadius: 12, letterSpacing: 0.3 }}
+              style={{
+                width: "100%", padding: "17px", fontSize: 16, fontWeight: 700,
+                background: "#007A4D", color: "#ffffff", border: "none",
+                borderRadius: 14, cursor: "pointer", letterSpacing: 0.4,
+              }}
             >
               Get Started
             </button>
             <button
               onClick={() => setMode("signin")}
               style={{
-                width: "100%", padding: "15px", fontSize: 15, fontWeight: 600,
-                background: "transparent", border: "2px solid #E5E7EB",
-                borderRadius: 12, cursor: "pointer", color: "var(--color-primary)",
+                width: "100%", padding: "16px", fontSize: 15, fontWeight: 600,
+                background: "transparent", border: "2px solid #D1FAE5",
+                borderRadius: 14, cursor: "pointer", color: "#007A4D",
                 letterSpacing: 0.2,
               }}
             >
