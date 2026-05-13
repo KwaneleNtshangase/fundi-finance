@@ -4,15 +4,17 @@ import React, { useState, useEffect } from "react";
 import { Mail, KeyRound } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 
-// Detect in-app browsers (Facebook, Instagram, WhatsApp, TikTok, Snapchat, etc.)
-// Google OAuth returns 403 disallowed_useragent in all of these.
+// Detect in-app browsers where Google OAuth will always be blocked.
+// This includes LinkedIn, Instagram, Facebook, WhatsApp, TikTok, Snapchat, Twitter/X,
+// Gmail, Outlook, and any generic Android WebView.
 function detectWebView(): boolean {
   if (typeof window === "undefined") return false;
   const ua = window.navigator.userAgent;
-  if (/FBAN|FBAV|Instagram|Snapchat|MicroMessenger|Line\/|TikTok/i.test(ua)) return true;
+  // Named app browsers
+  if (/FBAN|FBAV|Instagram|Snapchat|MicroMessenger|Line\/|TikTok|LinkedInApp|Twitter|Outlook|GSA/i.test(ua)) return true;
   // Android WebView flag
   if (/wv/.test(ua) && /Android/.test(ua)) return true;
-  // iOS WebView: has AppleWebKit but no Safari in UA string
+  // iOS WebView: has AppleWebKit but no Safari/ in UA string
   if (/iPhone|iPad/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua)) return true;
   return false;
 }
@@ -144,44 +146,16 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     else setError(null);
   };
 
-  // When inside a WebView, get the OAuth URL first (skipBrowserRedirect),
-  // then try window.open('...', '_blank') which most iOS in-app browsers
-  // route to Safari. For Android, fall back to Chrome intent:// URL.
+  // When inside a WebView, Google OAuth will always be blocked — no workaround exists.
+  // Instead of letting the user hit Google's error screen, intercept immediately
+  // and show clear instructions to open in their real browser.
   const handleOAuthSignIn = async (provider: "google" | "facebook") => {
-    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
-
-    if (!inWebView) {
-      await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
-      return;
-    }
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo, skipBrowserRedirect: true },
-    });
-
-    if (error || !data?.url) {
+    if (inWebView) {
       setOauthBlocked(true);
       return;
     }
-
-    const oauthUrl = data.url;
-
-    // Try to open in system browser via _blank (works on iOS in-app browsers)
-    const newWin = window.open(oauthUrl, "_blank", "noopener,noreferrer");
-
-    if (!newWin || newWin.closed || typeof newWin.closed === "undefined") {
-      // Popup was blocked — try Android Chrome intent URL as fallback
-      const isAndroid = /Android/.test(navigator.userAgent);
-      if (isAndroid) {
-        const intentUrl = oauthUrl.replace(/^https?:\/\//, "intent://") +
-          "#Intent;scheme=https;package=com.android.chrome;end";
-        window.location.href = intentUrl;
-      } else {
-        // Nothing worked — show the manual copy-link banner
-        setOauthBlocked(true);
-      }
-    }
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+    await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
   };
 
   const handleSignUp = async () => {
@@ -418,37 +392,58 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             ))}
           </div>
 
-          {/* ── WebView fallback banner — only shown if automatic system-browser open failed ── */}
-          {oauthBlocked && (
+          {/* ── WebView banner: shown proactively OR after button tap ── */}
+          {(inWebView || oauthBlocked) && (
             <div style={{
               background: "#FFF8E1", border: "1.5px solid #F59E0B", borderRadius: 12,
-              padding: "14px 16px", marginBottom: 14,
+              padding: "16px", marginBottom: 14,
             }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 4px" }}>
-                Google sign-in needs your browser
-              </p>
-              <p style={{ fontSize: 12, color: "#78350F", margin: "0 0 10px", lineHeight: 1.5 }}>
-                Copy the link below and paste it into Chrome or Safari, then tap Continue with Google from there.
-              </p>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+                <span style={{ fontSize: 20, lineHeight: 1 }}>⚠️</span>
+                <div>
+                  <p style={{ fontSize: 13, fontWeight: 800, color: "#92400E", margin: "0 0 3px" }}>
+                    Google sign-in requires your browser
+                  </p>
+                  <p style={{ fontSize: 12, color: "#78350F", margin: 0, lineHeight: 1.55 }}>
+                    You are inside an in-app browser (LinkedIn, Instagram, etc.) where Google blocks sign-in.
+                    Tap <strong>Copy link</strong> then open it in Chrome or Safari.
+                  </p>
+                </div>
+              </div>
               <button
                 onClick={() => {
                   const url = typeof window !== "undefined" ? window.location.href : "https://fundiapp.co.za";
                   if (navigator.clipboard) {
                     navigator.clipboard.writeText(url).then(() => {
                       setLinkCopied(true);
-                      setTimeout(() => setLinkCopied(false), 2500);
+                      setTimeout(() => setLinkCopied(false), 3000);
                     });
+                  } else {
+                    // Fallback for older browsers without clipboard API
+                    const el = document.createElement("textarea");
+                    el.value = url;
+                    document.body.appendChild(el);
+                    el.select();
+                    document.execCommand("copy");
+                    document.body.removeChild(el);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 3000);
                   }
                 }}
                 style={{
-                  width: "100%", padding: "9px 12px", borderRadius: 8,
-                  border: "1.5px solid #F59E0B", background: linkCopied ? "#F59E0B" : "white",
-                  color: linkCopied ? "white" : "#92400E", fontWeight: 700, fontSize: 13,
-                  cursor: "pointer",
+                  width: "100%", padding: "11px 12px", borderRadius: 8,
+                  border: "none",
+                  background: linkCopied ? "#16A34A" : "#F59E0B",
+                  color: "white", fontWeight: 700, fontSize: 14,
+                  cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  transition: "background 0.2s",
                 }}
               >
-                {linkCopied ? "Copied! Paste in Chrome or Safari" : "Copy link"}
+                {linkCopied ? "✓ Link copied — paste in Chrome or Safari" : "📋 Copy link to open in your browser"}
               </button>
+              <p style={{ fontSize: 11, color: "#92400E", margin: "8px 0 0", textAlign: "center", opacity: 0.75 }}>
+                Or use the email and password option below instead
+              </p>
             </div>
           )}
 
