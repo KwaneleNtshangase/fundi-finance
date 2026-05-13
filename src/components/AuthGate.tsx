@@ -43,7 +43,7 @@ function isValidEmailFormat(emailAddr: string): boolean {
 }
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"landing" | "signin" | "signup">("landing");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [age, setAge] = useState("");
@@ -272,6 +272,65 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   if (!session) {
+    // ── Welcome / landing screen ─────────────────────────────────────────────
+    if (mode === "landing") {
+      return (
+        <div style={{
+          minHeight: "100dvh", display: "flex", flexDirection: "column",
+          alignItems: "center", background: "#ffffff",
+          padding: "0 24px",
+        }}>
+          {/* Hero */}
+          <div style={{
+            flex: 1, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+            paddingTop: 48, paddingBottom: 32,
+          }}>
+            <img
+              src="/fundi-logo.png"
+              alt="Fundi Finance"
+              style={{ width: 180, height: 180, objectFit: "contain", marginBottom: 28 }}
+            />
+            <h1 style={{
+              fontSize: 30, fontWeight: 900, color: "#111827",
+              textAlign: "center", margin: "0 0 14px", lineHeight: 1.2,
+              maxWidth: 320,
+            }}>
+              Your financial journey starts here
+            </h1>
+            <p style={{
+              fontSize: 15, color: "#6B7280", textAlign: "center",
+              lineHeight: 1.65, maxWidth: 300, margin: 0,
+            }}>
+              Learn how money works, build real habits, and take control of your finances.
+            </p>
+          </div>
+
+          {/* CTAs */}
+          <div style={{ width: "100%", maxWidth: 420, paddingBottom: 40, display: "flex", flexDirection: "column", gap: 12 }}>
+            <button
+              onClick={() => setMode("signup")}
+              className="btn btn-primary"
+              style={{ width: "100%", padding: "16px", fontSize: 16, fontWeight: 700, borderRadius: 12, letterSpacing: 0.3 }}
+            >
+              Get Started
+            </button>
+            <button
+              onClick={() => setMode("signin")}
+              style={{
+                width: "100%", padding: "15px", fontSize: 15, fontWeight: 600,
+                background: "transparent", border: "2px solid #E5E7EB",
+                borderRadius: 12, cursor: "pointer", color: "var(--color-primary)",
+                letterSpacing: 0.2,
+              }}
+            >
+              I Already Have an Account
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     // ── Email verification pending screen ────────────────────────────────────
     if (awaitingVerification) {
       return (
