@@ -2,7 +2,7 @@
 // Handles four types:
 //   "welcome"    — sent immediately after onboarding (called from client)
 //   "d1-batch"   — hourly cron; users 20-48h since last lesson
-//   "drip-batch" — daily cron; fires D+7, D+14, D+30 milestone emails
+//   "drip-batch" — daily cron; fires D+7, D+14, D+30 milestone emails (inline HTML)
 //
 // Env vars (set in Dashboard -> Edge Functions -> Secrets):
 //   RESEND_API_KEY            — Resend API key
@@ -12,9 +12,7 @@
 // Resend Templates (edit at resend.com/templates):
 //   fundi-welcome         — a599bf54-7f17-4ed6-8f27-cdb058e0ae5d
 //   fundi-d1-retention    — 14f12c73-516c-4649-bf18-048c8891b535
-//   fundi-d7-milestone    — (set D7_TEMPLATE_ID after creating in Resend)
-//   fundi-d14-milestone   — (set D14_TEMPLATE_ID after creating in Resend)
-//   fundi-d30-milestone   — (set D30_TEMPLATE_ID after creating in Resend)
+//   fundi-d7/d14/d30      — sent as inline HTML (no template ID required)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -24,13 +22,10 @@ const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 const FROM = "Fundi Finance <hello@fundiapp.co.za>";
+const APP_URL = "https://fundiapp.co.za";
 
 const WELCOME_TEMPLATE_ID  = "a599bf54-7f17-4ed6-8f27-cdb058e0ae5d";
 const D1_TEMPLATE_ID       = "14f12c73-516c-4649-bf18-048c8891b535";
-// Create these three templates in Resend, then paste their IDs below:
-const D7_TEMPLATE_ID       = Deno.env.get("D7_TEMPLATE_ID")  ?? "";
-const D14_TEMPLATE_ID      = Deno.env.get("D14_TEMPLATE_ID") ?? "";
-const D30_TEMPLATE_ID      = Deno.env.get("D30_TEMPLATE_ID") ?? "";
 
 // ── Goal -> human-readable label + encouragement ───────────────────────────────
 
@@ -66,43 +61,62 @@ function streakBadge(streak: number): string {
   </div>`;
 }
 
-// ── Drip milestone copy ────────────────────────────────────────────────────────
+// ── Inline HTML builder for drip milestone emails ──────────────────────────────
 
-interface DripMilestone {
-  templateId:    string;
-  fired:         string;   // key stored in retention_fired
-  daysMin:       number;
-  daysMax:       number;
-  subjectFn:     (username: string, streak: number) => string;
+interface MilestoneVars {
+  username: string;
+  headline: string;
+  subhead: string;
+  body: string;
+  streakBadgeHtml: string;
+  goalEmoji: string;
+  goalLabel: string;
+  goalLine: string;
+  ctaText: string;
 }
 
-const DRIP_MILESTONES: DripMilestone[] = [
-  {
-    templateId: D7_TEMPLATE_ID,
-    fired:      "d7",
-    daysMin:    7,
-    daysMax:    8,
-    subjectFn:  (u, s) => s > 0
-      ? `${u}, one week in and ${s} days strong 🔥`
-      : `${u}, one week in. You started something real.`,
-  },
-  {
-    templateId: D14_TEMPLATE_ID,
-    fired:      "d14",
-    daysMin:    14,
-    daysMax:    16,
-    subjectFn:  (u, _s) => `${u}, two weeks of building a better financial future 💪`,
-  },
-  {
-    templateId: D30_TEMPLATE_ID,
-    fired:      "d30",
-    daysMin:    30,
-    daysMax:    33,
-    subjectFn:  (u, _s) => `${u}, 30 days. You are not the same person who signed up. 🏆`,
-  },
-];
+function buildMilestoneEmail(v: MilestoneVars): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f5f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f5f5f5;padding:40px 20px">
+    <tr><td>
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#6B46C1,#9333EA);padding:32px 32px 28px;text-align:center">
+          <div style="color:rgba(255,255,255,0.75);font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Fundi Finance</div>
+          ${v.streakBadgeHtml}
+          <h1 style="color:#fff;font-size:28px;font-weight:800;margin:14px 0 8px;line-height:1.2">${v.headline}</h1>
+          <p style="color:rgba(255,255,255,0.85);font-size:16px;margin:0;line-height:1.5">${v.subhead}</p>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:32px">
+          <p style="color:#374151;font-size:16px;line-height:1.7;margin:0 0 20px">Hi ${v.username},</p>
+          <p style="color:#374151;font-size:16px;line-height:1.7;margin:0 0 28px">${v.body}</p>
+          <!-- Goal chip -->
+          <div style="background:#F3F0FF;border-radius:12px;padding:16px 20px;margin-bottom:28px">
+            <span style="font-size:22px">${v.goalEmoji}</span>
+            <span style="color:#6B46C1;font-weight:700;font-size:15px;margin-left:10px">${v.goalLabel}</span>
+            <p style="color:#6B46C1;font-size:14px;margin:6px 0 0;opacity:0.8">${v.goalLine}</p>
+          </div>
+          <!-- CTA -->
+          <div style="text-align:center;margin:32px 0 8px">
+            <a href="${APP_URL}" style="display:inline-block;background:linear-gradient(135deg,#6B46C1,#9333EA);color:#fff;text-decoration:none;font-weight:700;font-size:16px;padding:15px 36px;border-radius:50px">${v.ctaText}</a>
+          </div>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background:#F9FAFB;padding:20px 32px;text-align:center;border-top:1px solid #F3F4F6">
+          <p style="color:#9CA3AF;font-size:13px;margin:0">Fundi Finance &middot; <a href="mailto:hello@fundiapp.co.za" style="color:#9CA3AF">hello@fundiapp.co.za</a></p>
+          <p style="color:#D1D5DB;font-size:12px;margin:6px 0 0">You are receiving this because you signed up for Fundi Finance.</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
 
-// ── Resend helper ─────────────────────────────────────────────────────────────
+// ── Resend helpers ─────────────────────────────────────────────────────────────
 
 async function sendViaTemplate(
   to:         string,
@@ -137,6 +151,99 @@ async function sendViaTemplate(
     return { ok: false, error: String(err) };
   }
 }
+
+async function sendViaHTML(
+  to:      string,
+  subject: string,
+  html:    string,
+): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${RESEND_API_KEY}`,
+        "Content-Type":  "application/json",
+      },
+      body: JSON.stringify({ from: FROM, to, subject, html }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      return { ok: false, error: txt };
+    }
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+// ── Drip milestone config ──────────────────────────────────────────────────────
+
+interface DripMilestone {
+  fired:     string;
+  daysMin:   number;
+  daysMax:   number;
+  subjectFn: (username: string, streak: number) => string;
+  buildHtml: (vars: { username: string; streak: number; xp: number; goalEmoji: string; goalLabel: string; goalLine: string }) => string;
+}
+
+const DRIP_MILESTONES: DripMilestone[] = [
+  {
+    fired:    "d7",
+    daysMin:  7,
+    daysMax:  8,
+    subjectFn: (u, s) => s > 0
+      ? `${u}, one week in and ${s} days strong 🔥`
+      : `${u}, one week in. You started something real.`,
+    buildHtml: ({ username, streak, goalEmoji, goalLabel, goalLine }) =>
+      buildMilestoneEmail({
+        username,
+        headline: "One week in.",
+        subhead: "That is further than most people ever get.",
+        body: `Seven days ago you decided to take control of your money. Most people talk about it and never start. You started. That matters more than you realise.`,
+        streakBadgeHtml: streakBadge(streak),
+        goalEmoji,
+        goalLabel,
+        goalLine,
+        ctaText: "Keep the Streak Going",
+      }),
+  },
+  {
+    fired:    "d14",
+    daysMin:  14,
+    daysMax:  16,
+    subjectFn: (u) => `${u}, two weeks of building a better financial future 💪`,
+    buildHtml: ({ username, streak, goalEmoji, goalLabel, goalLine }) =>
+      buildMilestoneEmail({
+        username,
+        headline: "Two weeks strong.",
+        subhead: "You are building a habit that will last.",
+        body: `Two weeks in and you are still here. Most people quit after day three. You did not. Every lesson you have completed is compounding, just like the money habits you are building.`,
+        streakBadgeHtml: streakBadge(streak),
+        goalEmoji,
+        goalLabel,
+        goalLine,
+        ctaText: "Continue Learning",
+      }),
+  },
+  {
+    fired:    "d30",
+    daysMin:  30,
+    daysMax:  33,
+    subjectFn: (u) => `${u}, 30 days. You are not the same person who signed up. 🏆`,
+    buildHtml: ({ username, streak, xp, goalEmoji, goalLabel, goalLine }) =>
+      buildMilestoneEmail({
+        username,
+        headline: "30 days.",
+        subhead: `${xp > 0 ? xp + " XP earned. " : ""}You are not the same person who signed up.`,
+        body: `A full month of lessons, streaks, and honest conversations about money. That takes real consistency. Look back at where you started, then keep going. The hardest part was the beginning and you are well past that.`,
+        streakBadgeHtml: streakBadge(streak),
+        goalEmoji,
+        goalLabel,
+        goalLine,
+        ctaText: "See How Far You've Come",
+      }),
+  },
+];
 
 // ── Main handler ──────────────────────────────────────────────────────────────
 
@@ -259,21 +366,13 @@ serve(async (req) => {
   }
 
   // ── D+7 / D+14 / D+30 DRIP BATCH ───────────────────────────────────────────
-  // Called by a daily pg_cron job. Checks profiles.created_at to find users
-  // at exactly the right day window, then sends the appropriate milestone email.
   if (body.type === "drip-batch") {
     const allResults: Array<{ userId: string; milestone: string; status: string }> = [];
 
     for (const milestone of DRIP_MILESTONES) {
-      if (!milestone.templateId) {
-        allResults.push({ userId: "ALL", milestone: milestone.fired, status: "skipped_template_not_set" });
-        continue;
-      }
-
       const minDate = new Date(Date.now() - milestone.daysMax * 24 * 60 * 60 * 1000).toISOString();
       const maxDate = new Date(Date.now() - milestone.daysMin * 24 * 60 * 60 * 1000).toISOString();
 
-      // Get users whose account was created in the target day window
       const { data: authUsers, error: listErr } = await supabase.auth.admin.listUsers({ perPage: 1000 });
       if (listErr) {
         allResults.push({ userId: "ALL", milestone: milestone.fired, status: `query_error: ${listErr.message}` });
@@ -310,18 +409,19 @@ serve(async (req) => {
         const xp       = (progress?.xp as number) ?? 0;
         const g        = goalInfo(profile?.goal);
 
-        const emailResult = await sendViaTemplate(
+        const html = milestone.buildHtml({
+          username,
+          streak,
+          xp,
+          goalEmoji: g.emoji,
+          goalLabel: g.label,
+          goalLine:  g.line,
+        });
+
+        const emailResult = await sendViaHTML(
           authUser.email!,
           milestone.subjectFn(username, streak),
-          milestone.templateId,
-          {
-            username,
-            streak_badge: streakBadge(streak),
-            streak_line:  streakLine(streak),
-            goal_emoji:   g.emoji,
-            goal_label:   g.label,
-            xp_total:     String(xp),
-          },
+          html,
         );
 
         if (emailResult.ok) {
