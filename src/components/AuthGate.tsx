@@ -65,6 +65,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [verificationEmail, setVerificationEmail] = useState("");
   const [inWebView, setInWebView] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [oauthBlocked, setOauthBlocked] = useState(false);
 
   const handleForgotPassword = async () => {
     if (!forgotEmail.trim()) { setError("Please enter your email."); return; }
@@ -141,6 +142,46 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     const { error: e } = await supabase.auth.resend({ type: "signup", email: verificationEmail });
     if (e) setError(e.message);
     else setError(null);
+  };
+
+  // When inside a WebView, get the OAuth URL first (skipBrowserRedirect),
+  // then try window.open('...', '_blank') which most iOS in-app browsers
+  // route to Safari. For Android, fall back to Chrome intent:// URL.
+  const handleOAuthSignIn = async (provider: "google" | "facebook") => {
+    const redirectTo = typeof window !== "undefined" ? window.location.origin : undefined;
+
+    if (!inWebView) {
+      await supabase.auth.signInWithOAuth({ provider, options: { redirectTo } });
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: { redirectTo, skipBrowserRedirect: true },
+    });
+
+    if (error || !data?.url) {
+      setOauthBlocked(true);
+      return;
+    }
+
+    const oauthUrl = data.url;
+
+    // Try to open in system browser via _blank (works on iOS in-app browsers)
+    const newWin = window.open(oauthUrl, "_blank", "noopener,noreferrer");
+
+    if (!newWin || newWin.closed || typeof newWin.closed === "undefined") {
+      // Popup was blocked — try Android Chrome intent URL as fallback
+      const isAndroid = /Android/.test(navigator.userAgent);
+      if (isAndroid) {
+        const intentUrl = oauthUrl.replace(/^https?:\/\//, "intent://") +
+          "#Intent;scheme=https;package=com.android.chrome;end";
+        window.location.href = intentUrl;
+      } else {
+        // Nothing worked — show the manual copy-link banner
+        setOauthBlocked(true);
+      }
+    }
   };
 
   const handleSignUp = async () => {
@@ -377,17 +418,17 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             ))}
           </div>
 
-          {/* ── WebView warning banner ── */}
-          {inWebView && (
+          {/* ── WebView fallback banner — only shown if automatic system-browser open failed ── */}
+          {oauthBlocked && (
             <div style={{
               background: "#FFF8E1", border: "1.5px solid #F59E0B", borderRadius: 12,
               padding: "14px 16px", marginBottom: 14,
             }}>
               <p style={{ fontSize: 13, fontWeight: 700, color: "#92400E", margin: "0 0 4px" }}>
-                Open in your browser to sign in with Google
+                Google sign-in needs your browser
               </p>
               <p style={{ fontSize: 12, color: "#78350F", margin: "0 0 10px", lineHeight: 1.5 }}>
-                Google blocks sign-in inside apps like Instagram, WhatsApp, and Facebook. Open this page in Chrome or Safari first.
+                Copy the link below and paste it into Chrome or Safari, then tap Continue with Google from there.
               </p>
               <button
                 onClick={() => {
@@ -406,7 +447,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
                   cursor: "pointer",
                 }}
               >
-                {linkCopied ? "Link copied! Paste in Chrome or Safari" : "Copy link to open in browser"}
+                {linkCopied ? "Copied! Paste in Chrome or Safari" : "Copy link"}
               </button>
             </div>
           )}
@@ -414,24 +455,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           {/* ── Social sign-in buttons ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 4 }}>
             <button
-              onClick={() => {
-                if (inWebView) return;
-                supabase.auth.signInWithOAuth({
-                  provider: "google",
-                  options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
-                });
-              }}
-              disabled={inWebView}
-              title={inWebView ? "Open in Chrome or Safari to use Google sign-in" : undefined}
+              onClick={() => handleOAuthSignIn("google")}
               style={{
                 width: "100%", padding: "11px 16px", borderRadius: 10,
-                border: "1.5px solid var(--color-border)",
-                background: inWebView ? "#f5f5f5" : "var(--color-surface)",
-                color: inWebView ? "#aaa" : "var(--color-text-primary)",
-                fontWeight: 600, fontSize: 14,
-                cursor: inWebView ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                opacity: inWebView ? 0.6 : 1,
+                border: "1.5px solid var(--color-border)", background: "var(--color-surface)",
+                color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
               }}
             >
               <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
@@ -443,27 +472,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               Continue with Google
             </button>
             <button
-              onClick={() => {
-                if (inWebView) return;
-                supabase.auth.signInWithOAuth({
-                  provider: "facebook",
-                  options: { redirectTo: typeof window !== "undefined" ? window.location.origin : undefined },
-                });
-              }}
-              disabled={inWebView}
-              title={inWebView ? "Open in Chrome or Safari to use Facebook sign-in" : undefined}
+              onClick={() => handleOAuthSignIn("facebook")}
               style={{
                 width: "100%", padding: "11px 16px", borderRadius: 10,
-                border: "1.5px solid var(--color-border)",
-                background: inWebView ? "#f5f5f5" : "var(--color-surface)",
-                color: inWebView ? "#aaa" : "var(--color-text-primary)",
-                fontWeight: 600, fontSize: 14,
-                cursor: inWebView ? "not-allowed" : "pointer",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                opacity: inWebView ? 0.6 : 1,
+                border: "1.5px solid var(--color-border)", background: "var(--color-surface)",
+                color: "var(--color-text-primary)", fontWeight: 600, fontSize: 14,
+                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
               }}
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill={inWebView ? "#aaa" : "#1877F2"} aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true">
                 <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.93-1.956 1.886v2.288h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
               </svg>
               Continue with Facebook
