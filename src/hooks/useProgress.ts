@@ -113,12 +113,34 @@ export function useProgress() {
         .eq("user_id", userId)
         .maybeSingle();
       const wk = getCurrentWeekKey();
+      const dbLessons = (data?.completed_lessons ?? []) as string[];
+
+      // Merge: take the union of DB lessons and any cached lessons.
+      // This recovers lessons that were saved locally but whose DB write failed
+      // (e.g. row didn't exist yet when .update() fired, poor connectivity, etc.)
+      const cache = readProgressCache();
+      const cacheLessons = cache?.completedLessons ?? [];
+      const offlineLessons = cacheLessons.filter((l) => !dbLessons.includes(l));
+      const mergedLessons = offlineLessons.length > 0
+        ? [...dbLessons, ...offlineLessons]
+        : dbLessons;
+
+      // Write any recovered lessons back to Supabase immediately
+      if (offlineLessons.length > 0 && userId) {
+        void supabase
+          .from("user_progress")
+          .upsert(
+            { user_id: userId, completed_lessons: mergedLessons, updated_at: new Date().toISOString() },
+            { onConflict: "user_id" }
+          );
+      }
+
       const fresh: ProgressState = {
         xp: data?.xp ?? 0,
         streak: data?.streak ?? 0,
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
-        completedLessons: (data?.completed_lessons ?? []) as string[],
+        completedLessons: mergedLessons,
         freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
@@ -190,14 +212,17 @@ export function useProgress() {
       const nextLessons = prev.completedLessons.includes(id) ? prev.completedLessons : [...prev.completedLessons, id];
       const next = { ...prev, completedLessons: nextLessons };
       writeProgressCache(next);
-      // Use a targeted update for only completed_lessons to avoid a race condition
-      // where a full upsert (which includes weekly_xp) overwrites the XP written
-      // by the concurrent addXP → persist call.
+      // Use upsert (not update) so that if the row doesn't exist yet — e.g. the
+      // sync-streak call that creates it hasn't landed yet — the lesson is still
+      // persisted. Only completed_lessons + updated_at are specified so no other
+      // column (xp, streak, weekly_xp) gets touched or reset.
       if (userId) {
         void supabase
           .from("user_progress")
-          .update({ completed_lessons: nextLessons, updated_at: new Date().toISOString() })
-          .eq("user_id", userId);
+          .upsert(
+            { user_id: userId, completed_lessons: nextLessons, updated_at: new Date().toISOString() },
+            { onConflict: "user_id" }
+          );
       }
       return next;
     });
