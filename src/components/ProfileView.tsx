@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { sastOffset } from "@/lib/dates";
 import {
   COURSE_BADGES,
   getInvestorProfile,
@@ -990,19 +991,20 @@ export function ProfileView({
         const tooltipBorder = isDark ? "#30363D" : "#D1E8DF";
         const tooltipText = isDark ? "#ffffff" : "#111827";
 
-        const today = new Date();
-        const dayOfWeek = today.getDay();
-        // Build Mon–Sun week (ISO week feel: Mon first)
+        // Build Mon–Sun week using SAST dates so keys match stored XP
+        const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
+        const todaySAST = new Date(Date.now() + SAST_OFFSET_MS);
+        const dayOfWeek = todaySAST.getUTCDay(); // 0=Sun in SAST-shifted time
         const weekDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
         const weekData = weekDays.map((name, i) => {
-          // Map Mon=1..Sun=7 → JS day 1..7(0)
           const targetDay = i + 1 === 7 ? 0 : i + 1;
           const diff = targetDay - dayOfWeek;
-          const d = new Date(today);
-          d.setDate(today.getDate() + diff);
-          // Use local date string to avoid UTC-offset mismatches
-          const localIso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(`fundi-daily-xp-${localIso}`) ?? "0", 10) : 0;
+          const shifted = new Date(todaySAST.getTime() + diff * 86_400_000);
+          const y = shifted.getUTCFullYear();
+          const m = String(shifted.getUTCMonth() + 1).padStart(2, "0");
+          const d = String(shifted.getUTCDate()).padStart(2, "0");
+          const sastIso = `${y}-${m}-${d}`;
+          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(`fundi-daily-xp-${sastIso}`) ?? "0", 10) : 0;
           const isFuture = diff > 0;
           return { name, xp, isToday: diff === 0, isFuture };
         });
@@ -1072,9 +1074,7 @@ export function ProfileView({
         let bestDayXP = 0;
         if (typeof window !== "undefined") {
           for (let i = 0; i < 365; i++) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            const key = `fundi-daily-xp-${d.toISOString().slice(0, 10)}`;
+            const key = `fundi-daily-xp-${sastOffset(-i)}`;
             const v = parseInt(localStorage.getItem(key) ?? "0", 10);
             if (v > bestDayXP) bestDayXP = v;
           }

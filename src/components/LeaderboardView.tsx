@@ -4,26 +4,22 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, RefreshCcw, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatWithSpaces } from "@/lib/formatters";
+import { sastWeekKey } from "@/lib/dates";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 export function getLeaderboardWeekKey(): string {
-  const now = new Date();
-  const sunday = new Date(now);
-  sunday.setDate(now.getDate() - now.getDay());
-  const y = sunday.getFullYear();
-  const m = String(sunday.getMonth() + 1).padStart(2, "0");
-  const d = String(sunday.getDate()).padStart(2, "0");
-  return `fundi-week-${y}-${m}-${d}`;
+  return sastWeekKey();
 }
 
-/** Next Saturday midnight (end of current week) for the countdown */
+/** Next Saturday midnight in SAST (end of current week) for the countdown */
 function getWeekResetDate(): Date {
-  const now = new Date();
-  const saturday = new Date(now);
-  saturday.setDate(now.getDate() + (6 - now.getDay()));
-  saturday.setHours(23, 59, 59, 0);
-  return saturday;
+  const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
+  const nowSAST = new Date(Date.now() + SAST_OFFSET_MS);
+  const daysUntilSat = (6 - nowSAST.getUTCDay() + 7) % 7 || 7;
+  const sat = new Date(nowSAST.getTime() + daysUntilSat * 86_400_000);
+  sat.setUTCHours(21, 59, 59, 0); // 23:59:59 SAST = 21:59:59 UTC
+  return new Date(sat.getTime() - SAST_OFFSET_MS); // back to UTC for JS Date
 }
 
 // ─── LeaderboardView ──────────────────────────────────────────────────────────

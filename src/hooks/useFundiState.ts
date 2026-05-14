@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { sastToday, sastSundayDate, sastWeekKey } from "@/lib/dates";
 import { CONTENT_DATA } from "@/data/content";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
@@ -202,14 +203,8 @@ export function useFundiState() {
     { id: "wc-calculator-2",     text: "Use the Investment Calculator twice this week",          target: 2,   unit: "calculator_days",   xp: 175 },
     { id: "wc-advanced-lesson",  text: "Complete a lesson in any Advanced course",              target: 1,   unit: "advanced_lesson",   xp: 300 },
   ];
-  // Returns "YYYY-MM-DD" of the most recent Sunday (week anchor)
-  const getSundayKey = () => {
-    const now = new Date();
-    const day = now.getDay(); // 0 = Sunday
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - day);
-    return sunday.toISOString().slice(0, 10);
-  };
+  // Returns "YYYY-MM-DD" of the most recent Sunday (week anchor) in SAST
+  const getSundayKey = () => sastSundayDate();
   const getWeeklyChallenge = () => {
     // Use the Sunday date string as a stable, deterministic seed — resets only on Sunday
     const weekKey = getSundayKey();
@@ -287,7 +282,7 @@ export function useFundiState() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncDailyXpFromStorage = () => {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = sastToday();
       const key = `fundi-daily-xp-${today}`;
       const val = parseInt(localStorage.getItem(key) ?? "0", 10);
       setDailyXP(Number.isNaN(val) ? 0 : val);
@@ -309,7 +304,7 @@ export function useFundiState() {
   const addXP = (amount: number) => {
     progress.addXP(amount);
     if (typeof window !== "undefined") {
-      const today = new Date().toISOString().slice(0, 10);
+      const today = sastToday();
       const key = `fundi-daily-xp-${today}`;
       const prev = parseInt(localStorage.getItem(key) ?? "0", 10);
       const next = (Number.isNaN(prev) ? 0 : prev) + amount;
@@ -421,7 +416,7 @@ export function useFundiState() {
       badges: userBadges,
       lessonsToday: parseInt(
         typeof window !== "undefined"
-          ? (localStorage.getItem(`fundi-daily-lessons-${new Date().toISOString().slice(0, 10)}`) ?? "0")
+          ? (localStorage.getItem(`fundi-daily-lessons-${sastToday()}`) ?? "0")
           : "0",
         10
       ),
@@ -461,8 +456,8 @@ export function useFundiState() {
         return;
       }
       if (challengeComplete && !challengeRewardClaimed) {
-        progress.addXP(weeklyChallenge.xp);
-        setDailyXP((v) => v + weeklyChallenge.xp);
+        // Use the wrapped addXP so the XP toast fires and daily XP counter updates
+        addXP(weeklyChallenge.xp);
         setChallengeRewardClaimed(true);
         localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
         void progress.persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);

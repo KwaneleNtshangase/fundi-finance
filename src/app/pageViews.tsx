@@ -145,6 +145,7 @@ import {
   COURSE_LEVEL_REQUIREMENTS,
 } from "@/app/pageViews.types";
 import { formatWithSpaces, formatRand, formatZAR } from "@/lib/formatters";
+import { sastToday } from "@/lib/dates";
 import { useFundiState } from "@/hooks/useFundiState";
 import { SettingsView } from "@/components/SettingsView";
 
@@ -527,7 +528,7 @@ const DAILY_CHALLENGE_POOL = [
 
 function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
   // Deterministic daily selection — different every day, same for all users on same day
-  const today = new Date().toISOString().slice(0, 10);
+  const today = sastToday();
   let seed = 0;
   for (let i = 0; i < today.length; i++) seed = ((seed << 5) - seed + today.charCodeAt(i)) | 0;
   seed = Math.abs(seed);
@@ -543,7 +544,7 @@ function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
 }
 
 function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpClaimed?: (amount: number) => void }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = sastToday();
   const storageKey = `fundi-daily-challenges-${today}`;
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
   const [conditions, setConditions] = useState<Record<string, boolean>>({});
@@ -3183,7 +3184,7 @@ export default function Home() {
         localStorage.setItem("fundi-streak", String(data.streak));
       }
       // Restore today's XP from Supabase if localStorage was wiped
-      const todayIso = new Date().toISOString().slice(0, 10);
+      const todayIso = sastToday();
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
       if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
         localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
@@ -3209,7 +3210,7 @@ export default function Home() {
       }
 
       // Restore daily counters from Supabase if localStorage was wiped (new device)
-      const todayDate = new Date().toISOString().slice(0, 10);
+      const todayDate = sastToday();
       if ((data as any).daily_lessons_date === todayDate) {
         const remDailyLessons = Number((data as any).daily_lessons_today ?? 0);
         const locDailyLessons = parseInt(localStorage.getItem(`fundi-lessons-today-${todayDate}`) ?? "0", 10);
@@ -3303,19 +3304,23 @@ export default function Home() {
   const bumpBehaviorChallengeProgress = (unit: "budget_days" | "calculator_days") => {
     if (weeklyChallenge.unit !== unit) return; // Only track when this week's challenge matches
     const key = `fundi-wc-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = sastToday();
     const storageKey = unit === "budget_days" ? `fundi-budget-visited-${today}` : `fundi-calc-visited-${today}`;
     // Only count once per day
     if (localStorage.getItem(storageKey) === "1") return;
     localStorage.setItem(storageKey, "1");
-    // Read and bump the challenge counter
-    let state: { daysThisWeek: number; lastDay: string; completed: boolean } = { daysThisWeek: 0, lastDay: "", completed: false };
+    // Read existing state using the same field names as WeeklyProgressJSON
+    const dayField = unit === "budget_days" ? "budgetDaysThisWeek" : "calculatorDaysThisWeek";
+    let state: { budgetDaysThisWeek: number; calculatorDaysThisWeek: number; lastDay: string; completed: boolean } = {
+      budgetDaysThisWeek: 0, calculatorDaysThisWeek: 0, lastDay: "", completed: false,
+    };
     const raw = localStorage.getItem(key);
     try { if (raw) state = { ...state, ...JSON.parse(raw) }; } catch { /* ignore */ }
     if (state.lastDay === today || state.completed) return;
-    state.daysThisWeek += 1;
+    const currentDays = state[dayField] ?? 0;
+    state[dayField] = currentDays + 1;
     state.lastDay = today;
-    const meets = state.daysThisWeek >= weeklyChallenge.target;
+    const meets = state[dayField] >= weeklyChallenge.target;
     if (meets && !state.completed) {
       state.completed = true;
       localStorage.setItem(key, JSON.stringify(state));
@@ -3330,7 +3335,7 @@ export default function Home() {
       setChallengeProgress(weeklyChallenge.target);
     } else {
       localStorage.setItem(key, JSON.stringify(state));
-      setChallengeProgress(Math.min(state.daysThisWeek, weeklyChallenge.target));
+      setChallengeProgress(Math.min(state[dayField], weeklyChallenge.target));
     }
   };
 
@@ -3340,7 +3345,7 @@ export default function Home() {
     if (name === "calculator") {
       setRoute({ name: "calculator" });
       // Mark calculator as visited today (daily challenge + weekly challenge tracking)
-      const today = new Date().toISOString().slice(0, 10);
+      const today = sastToday();
       localStorage.setItem(`fundi-calc-visited-${today}`, "1");
       // Bump the behavior-linked weekly challenge progress if applicable
       bumpBehaviorChallengeProgress("calculator_days");
@@ -3414,6 +3419,8 @@ export default function Home() {
       streakDaysThisWeek: number;
       lastLessonDay: string;
       advancedLessonsThisWeek: number;
+      budgetDaysThisWeek: number;
+      calculatorDaysThisWeek: number;
     };
     let state: WCState = {
       lessonsCompleted: 0,
@@ -3424,6 +3431,8 @@ export default function Home() {
       streakDaysThisWeek: 0,
       lastLessonDay: "",
       advancedLessonsThisWeek: 0,
+      budgetDaysThisWeek: 0,
+      calculatorDaysThisWeek: 0,
     };
     if (raw) {
       try {
@@ -3437,7 +3446,7 @@ export default function Home() {
         /* ignore */
       }
     }
-    const today = new Date().toISOString().slice(0, 10); // ISO format: YYYY-MM-DD
+    const today = sastToday(); // ISO format: YYYY-MM-DD
     const dailyKey = `fundi-daily-xp-${today}`;
     const dailyXpSoFar =
       parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
@@ -3525,7 +3534,9 @@ export default function Home() {
       streakDaysThisWeek: state.streakDaysThisWeek,
       lastLessonDay: state.lastLessonDay,
       advancedLessonsThisWeek: state.advancedLessonsThisWeek,
-    } as WeeklyProgressJSON & { advancedLessonsThisWeek: number });
+      budgetDaysThisWeek: state.budgetDaysThisWeek ?? 0,
+      calculatorDaysThisWeek: state.calculatorDaysThisWeek ?? 0,
+    });
   };
 
   const getAwardedBadgeIds = async (): Promise<Set<string>> => {
@@ -3644,7 +3655,7 @@ export default function Home() {
     }
     // Track daily challenge progress + first-lesson analytics
     if (typeof window !== "undefined") {
-      const isoDay = new Date().toISOString().slice(0, 10);
+      const isoDay = sastToday();
 
       // Daily lesson counter
       const lessonsKey = `fundi-lessons-today-${isoDay}`;
@@ -4066,7 +4077,7 @@ export default function Home() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `fundi-finance-data-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `fundi-finance-data-${sastToday()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

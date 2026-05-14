@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
+import { sastToday } from "@/lib/dates";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import {
   LineChart,
@@ -228,7 +229,7 @@ export function BudgetView() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const isoDay = new Date().toISOString().slice(0, 10);
+      const isoDay = sastToday();
       localStorage.setItem(`fundi-budget-visited-${isoDay}`, "1");
       // Also sync to Supabase for cross-device daily challenge tracking
       supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -394,7 +395,7 @@ export function BudgetView() {
       void trackBehaviorEvent("expense_logged");
     }
     if (addType === "expense" && typeof window !== "undefined") {
-      const isoDay = new Date().toISOString().slice(0, 10);
+      const isoDay = sastToday();
       const expKey = `fundi-expense-today-${isoDay}`;
       const newExpenseCount = (parseInt(localStorage.getItem(expKey) ?? "0", 10)) + 1;
       localStorage.setItem(expKey, String(newExpenseCount));

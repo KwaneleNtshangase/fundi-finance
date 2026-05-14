@@ -44,6 +44,12 @@ export type WeeklyProgressJSON = {
   streakDaysThisWeek: number;
   /** ISO date (YYYY-MM-DD) of the last day a lesson was recorded */
   lastLessonDay: string;
+  /** Distinct days the Budget Planner was opened this week */
+  budgetDaysThisWeek: number;
+  /** Distinct days the Calculator was used this week */
+  calculatorDaysThisWeek: number;
+  /** Advanced-course lessons completed this week */
+  advancedLessonsThisWeek: number;
 };
 
 export const EMPTY_WEEKLY_PROGRESS: WeeklyProgressJSON = {
@@ -54,6 +60,9 @@ export const EMPTY_WEEKLY_PROGRESS: WeeklyProgressJSON = {
   completed: false,
   streakDaysThisWeek: 0,
   lastLessonDay: "",
+  budgetDaysThisWeek: 0,
+  calculatorDaysThisWeek: 0,
+  advancedLessonsThisWeek: 0,
 };
 
 export function parseWeeklyChallengeStorage(
@@ -74,6 +83,9 @@ export function parseWeeklyChallengeStorage(
       completed: Boolean(j.completed),
       streakDaysThisWeek: (j as any).streakDaysThisWeek ?? 0,
       lastLessonDay: (j as any).lastLessonDay ?? "",
+      budgetDaysThisWeek: (j as any).budgetDaysThisWeek ?? 0,
+      calculatorDaysThisWeek: (j as any).calculatorDaysThisWeek ?? 0,
+      advancedLessonsThisWeek: (j as any).advancedLessonsThisWeek ?? 0,
     };
   } catch {
     return null;
@@ -82,7 +94,7 @@ export function parseWeeklyChallengeStorage(
 
 export function progressNumberFromWeeklyState(
   wc: { unit: string },
-  st: WeeklyProgressJSON & { budgetDaysThisWeek?: number; calculatorDaysThisWeek?: number; advancedLessonsThisWeek?: number },
+  st: WeeklyProgressJSON,
   _streakDays?: number
 ): number {
   if (wc.unit === "lessons") return st.lessonsCompleted;

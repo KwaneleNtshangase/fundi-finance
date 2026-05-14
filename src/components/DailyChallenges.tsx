@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { assignChallengesForUser, lookupChallenge, rerollChallenge } from "@/lib/challenges";
+import { sastToday, sastSundayDate } from "@/lib/dates";
 
 type ChallengeAssignmentRow = {
   id: string;
@@ -27,11 +28,8 @@ export function DailyChallenges() {
     const user = userRes.user;
     if (!user) return;
     await assignChallengesForUser(user.id);
-    const today = new Date().toISOString().slice(0, 10);
-    const now = new Date();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay());
-    const week = `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+    const today = sastToday();
+    const week = sastSundayDate();
 
     const { data: assignments } = await supabase
       .from("user_challenge_assignments")

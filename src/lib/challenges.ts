@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabaseClient";
 import { DAILY_CHALLENGE_BANK, type ChallengeBankItem, type ChallengeDifficulty, type ChallengeType, WEEKLY_CHALLENGE_BANK } from "@/lib/challengeBank";
+import { sastToday, sastSundayDate } from "@/lib/dates";
 
 type AssignmentKeyRow = {
   id: string;
@@ -22,14 +23,11 @@ type ProgressRow = {
 } | null;
 
 function getTodayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return sastToday();
 }
 
 function getWeekKey() {
-  const now = new Date();
-  const sunday = new Date(now);
-  sunday.setDate(now.getDate() - now.getDay());
-  return `${sunday.getFullYear()}-${String(sunday.getMonth() + 1).padStart(2, "0")}-${String(sunday.getDate()).padStart(2, "0")}`;
+  return sastSundayDate();
 }
 
 function difficultyPool(lessons: number): ChallengeDifficulty[] {

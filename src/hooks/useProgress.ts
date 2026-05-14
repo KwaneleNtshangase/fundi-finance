@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { sastWeekKey } from "@/lib/dates";
 
 type ProgressState = {
   xp: number;
@@ -68,13 +69,7 @@ function writeProgressCache(s: ProgressState): void {
 }
 
 function getCurrentWeekKey(): string {
-  const now = new Date();
-  const sunday = new Date(now);
-  sunday.setDate(now.getDate() - now.getDay());
-  const y = sunday.getFullYear();
-  const m = String(sunday.getMonth() + 1).padStart(2, "0");
-  const d = String(sunday.getDate()).padStart(2, "0");
-  return `fundi-week-${y}-${m}-${d}`;
+  return sastWeekKey();
 }
 
 export function useProgress() {
