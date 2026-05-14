@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+// South Africa Standard Time is UTC+2 with no daylight saving.
+// All streak dates must be computed in SAST — not UTC — or a lesson done
+// between 22:00 and 23:59 SA time gets stamped with the next UTC date,
+// causing false streak gaps or frozen counts the following day.
+function sastDate(offsetDays = 0): string {
+  const SAST_OFFSET_MS = 2 * 60 * 60 * 1000; // UTC+2, no DST
+  const d = new Date(Date.now() + SAST_OFFSET_MS + offsetDays * 24 * 60 * 60 * 1000);
+  return d.toISOString().split("T")[0];
+}
+
 function isoToday() {
-  return new Date().toISOString().split("T")[0];
+  return sastDate(0);
 }
 
 function isoYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toISOString().split("T")[0];
+  return sastDate(-1);
 }
 
 export async function POST(req: NextRequest) {
