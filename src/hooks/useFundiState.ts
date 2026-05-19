@@ -228,10 +228,12 @@ export function useFundiState() {
     const parsed = parseWeeklyChallengeStorage(raw) ?? EMPTY_WEEKLY_PROGRESS;
     setWeeklyProgress(parsed);
     const n = progressNumberFromWeeklyState(wc, parsed, progress.streak);
-    setChallengeProgress(Math.min(n, wc.target));
-    setChallengeRewardClaimed(
-      localStorage.getItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`) === "true"
-    );
+    const isClaimed =
+      localStorage.getItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`) === "true";
+    // If the reward was already claimed, always show the full bar (target reached).
+    // Without this, a stale dailyXp in localStorage causes the bar to show < target.
+    setChallengeProgress(isClaimed ? wc.target : Math.min(n, wc.target));
+    setChallengeRewardClaimed(isClaimed);
   }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready]);
 
   const challengeComplete =

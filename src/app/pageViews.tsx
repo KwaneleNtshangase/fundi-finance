@@ -3448,9 +3448,9 @@ export default function Home() {
     }
     const today = sastToday(); // ISO format: YYYY-MM-DD
     const dailyKey = `fundi-daily-xp-${today}`;
-    const dailyXpSoFar =
-      parseInt(localStorage.getItem(dailyKey) ?? "0", 10) + payload.xpEarned;
-    localStorage.setItem(dailyKey, String(dailyXpSoFar));
+    // addXP (called before bumpWeeklyChallengeProgress) already wrote xpEarned
+    // to this key. Reading it here avoids double-counting.
+    const dailyXpSoFar = parseInt(localStorage.getItem(dailyKey) ?? "0", 10);
 
     const dailyLessonsKey = `fundi-daily-lessons-${today}`;
     const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
@@ -4241,6 +4241,24 @@ export default function Home() {
           hearts={hearts}
           maxHearts={maxHearts}
           heartsRegenInfo={heartsRegenInfo}
+          freezeCount={freezeCount}
+          freezeUsedToday={freezeUsedToday}
+          lessonsToday={userData.lessonsToday}
+          onBuyFreeze={() => {
+            if (!buyStreakFreeze(200)) {
+              alert("Not enough XP! You need 200 XP to buy a streak freeze.");
+            }
+          }}
+          onUseFreeze={async () => {
+            const result = await useFreeze();
+            if (result.ok) {
+              setFreezeUsedToday(true);
+            } else if (result.reason === "no_freezes_left") {
+              alert("No streak freezes left. Buy more with XP.");
+            } else {
+              alert("Could not use freeze: " + (result.reason ?? "unknown error"));
+            }
+          }}
         />
       </div>
       <div className="app-container">
@@ -4252,13 +4270,13 @@ export default function Home() {
             marginBottom: 8,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-              <div style={{
-                width: 36, height: 36, borderRadius: 10, flexShrink: 0,
-                background: "var(--color-primary)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Wallet size={20} color="white" />
-              </div>
+              <img
+                src="/Fundi_Finance_logo.png"
+                alt="Fundi Finance"
+                width={36}
+                height={36}
+                style={{ borderRadius: 8, flexShrink: 0, objectFit: "contain" }}
+              />
               <div>
                 <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-text-primary)", lineHeight: 1.1 }}>
                   Fundi Finance
@@ -5035,7 +5053,7 @@ export default function Home() {
               if (result.ok) {
                 setFreezeUsedToday(true);
               } else if (result.reason === "no_freezes_left") {
-                alert("No streak freezes left. Resets every Monday.");
+                alert("No streak freezes left. Buy more with XP.");
               } else {
                 alert("Could not use freeze: " + (result.reason ?? "unknown error"));
               }
