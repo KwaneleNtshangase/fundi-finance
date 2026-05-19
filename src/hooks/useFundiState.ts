@@ -460,6 +460,8 @@ export function useFundiState() {
       if (challengeComplete && !challengeRewardClaimed) {
         // Use the wrapped addXP so the XP toast fires and daily XP counter updates
         addXP(weeklyChallenge.xp);
+        // Force the bar to 100% so it renders complete after manual claim
+        setChallengeProgress(weeklyChallenge.target);
         setChallengeRewardClaimed(true);
         localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
         void progress.persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);

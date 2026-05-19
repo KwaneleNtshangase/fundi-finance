@@ -3669,11 +3669,11 @@ export default function Home() {
         : parseInt(localStorage.getItem(perfTodayKey) ?? "0", 10);
       if (isPerfect) localStorage.setItem(perfTodayKey, String(newPerfectToday));
 
-      // Daily XP
+      // Daily XP — addXP (called via completeLesson above) already wrote the
+      // correct cumulative value. Read it back for the Supabase sync; do NOT
+      // add totalXP again or we double-count every lesson's XP.
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
-      const prev = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
-      const newDailyXp = prev + totalXP;
-      localStorage.setItem(xpIsoKey, String(newDailyXp));
+      const newDailyXp = parseInt(localStorage.getItem(xpIsoKey) ?? "0", 10);
 
       // Perfect lessons lifetime total
       const newPerfectTotal = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
