@@ -116,7 +116,7 @@ export function LearnView({
     if (!q) return true;
     if (t.includes(q)) return true;
     // Check if any word in t starts with q (prefix match)
-    if (t.split(/s+/).some(w => w.startsWith(q))) return true;
+    if (t.split(/\s+/).some(w => w.startsWith(q))) return true;
     // Levenshtein distance <= 1 for short queries (<=5 chars)
     if (q.length <= 5) {
       const levenshtein = (a: string, b: string): number => {
@@ -129,7 +129,7 @@ export function LearnView({
         return dp[a.length][b.length];
       };
       // Check each word in the text
-      const words = t.split(/s+/);
+      const words = t.split(/\s+/);
       if (words.some(w => levenshtein(w.slice(0, q.length + 1), q) <= 1)) return true;
     }
     return false;

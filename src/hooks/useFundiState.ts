@@ -109,25 +109,53 @@ export function useFundiState() {
         .select("hearts, last_heart_lost_at")
         .eq("user_id", progress.userId)
         .maybeSingle();
-      const HEARTS_CAP = 5;
-      const localHearts = Math.max(0, Math.min(HEARTS_CAP, parseInt(localStorage.getItem("fundi-hearts") ?? String(HEARTS_CAP), 10) || HEARTS_CAP));
+      const HEARTS_CAP = MAX_HEARTS;
+      const heartsWithRegen = (count: number, lastLostMs: number | null): number => {
+        const base = Math.max(0, Math.min(HEARTS_CAP, count));
+        if (base >= HEARTS_CAP || !lastLostMs) return base;
+        const regained = Math.floor((Date.now() - lastLostMs) / HEART_REGEN_MS);
+        return Math.min(HEARTS_CAP, base + regained);
+      };
+
+      const localHeartsRaw = parseInt(localStorage.getItem("fundi-hearts") ?? String(HEARTS_CAP), 10);
+      const localHearts = Number.isNaN(localHeartsRaw) ? HEARTS_CAP : localHeartsRaw;
+      const localLastLostRaw = localStorage.getItem("fundi-last-heart-lost");
+      const localLastLost = localLastLostRaw ? parseInt(localLastLostRaw, 10) : null;
+
       const remoteHeartsRaw = Number((data as any)?.hearts);
-      const remoteHearts = Number.isFinite(remoteHeartsRaw)
-        ? Math.max(0, Math.min(HEARTS_CAP, remoteHeartsRaw))
-        : HEARTS_CAP;
-      const mergedHearts = Math.min(localHearts, remoteHearts);
+      const remoteHearts = Number.isFinite(remoteHeartsRaw) ? remoteHeartsRaw : HEARTS_CAP;
+      const remoteLastLost = (data as any)?.last_heart_lost_at as number | null | undefined;
+
+      const localEffective = heartsWithRegen(localHearts, localLastLost);
+      const remoteEffective = heartsWithRegen(remoteHearts, remoteLastLost ?? null);
+      const mergedHearts = Math.max(localEffective, remoteEffective);
+
       setHearts(mergedHearts);
       localStorage.setItem("fundi-hearts", String(mergedHearts));
-      // Restore last_heart_lost_at from Supabase if localStorage was wiped (new device)
-      const remoteLastLost = (data as any)?.last_heart_lost_at as number | null | undefined;
-      if (remoteLastLost && !localStorage.getItem("fundi-last-heart-lost")) {
-        localStorage.setItem("fundi-last-heart-lost", String(remoteLastLost));
-        setLastHeartLostAt(remoteLastLost);
+
+      let mergedLastLost: number | null = null;
+      if (mergedHearts >= HEARTS_CAP) {
+        localStorage.removeItem("fundi-last-heart-lost");
+        setLastHeartLostAt(null);
+      } else {
+        mergedLastLost =
+          localLastLost && remoteLastLost
+            ? Math.min(localLastLost, remoteLastLost)
+            : localLastLost ?? remoteLastLost ?? null;
+        if (mergedLastLost) {
+          localStorage.setItem("fundi-last-heart-lost", String(mergedLastLost));
+          setLastHeartLostAt(mergedLastLost);
+        }
       }
-      if (mergedHearts !== remoteHearts) {
+
+      const remoteLastLostNorm = remoteLastLost ?? null;
+      if (mergedHearts !== remoteEffective || mergedLastLost !== remoteLastLostNorm) {
         await supabase
           .from("user_progress")
-          .update({ hearts: mergedHearts })
+          .update({
+            hearts: mergedHearts,
+            last_heart_lost_at: mergedLastLost,
+          })
           .eq("user_id", progress.userId);
       }
     })().catch(() => {});
@@ -145,9 +173,14 @@ export function useFundiState() {
           if (next !== h) {
             void syncHeartsToSupabase(next);
           }
+          if (next >= MAX_HEARTS) {
+            localStorage.removeItem("fundi-last-heart-lost");
+            setLastHeartLostAt(null);
+          } else {
+            setLastHeartLostAt(Date.now() - (elapsed % HEART_REGEN_MS));
+          }
           return next;
         });
-        setLastHeartLostAt(Date.now() - (elapsed % HEART_REGEN_MS));
       }
     }, 30000);
     return () => clearInterval(interval);
@@ -234,7 +267,7 @@ export function useFundiState() {
     // Without this, a stale dailyXp in localStorage causes the bar to show < target.
     setChallengeProgress(isClaimed ? wc.target : Math.min(n, wc.target));
     setChallengeRewardClaimed(isClaimed);
-  }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready]);
+  }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready, dailyXP]);
 
   const challengeComplete =
     weeklyProgress.completed || challengeProgress >= weeklyChallenge.target;
@@ -324,16 +357,23 @@ export function useFundiState() {
     lessonId: string,
     xpEarned: number
   ): Promise<number> => {
-    progress.completeLesson(`${courseId}:${lessonId}`);
-    const newStreak = await progress.applyStreakAfterLesson();
-    analytics.streakUpdated(newStreak);
-    addXP(xpEarned);
-    // Stamp last_lesson_at so the D+1 retention email cron knows when to fire.
-    if (progress.userId) {
-      void supabase
-        .from("user_progress")
-        .update({ last_lesson_at: new Date().toISOString() })
-        .eq("user_id", progress.userId);
+    const lessonKey = `${courseId}:${lessonId}`;
+    const alreadyDone = progress.completedLessons.has(lessonKey);
+    if (!alreadyDone) {
+      progress.completeLesson(lessonKey);
+    }
+    const newStreak = alreadyDone
+      ? progress.streak
+      : await progress.applyStreakAfterLesson();
+    if (!alreadyDone) {
+      analytics.streakUpdated(newStreak);
+      addXP(xpEarned);
+      if (progress.userId) {
+        void supabase
+          .from("user_progress")
+          .update({ last_lesson_at: new Date().toISOString() })
+          .eq("user_id", progress.userId);
+      }
     }
     return newStreak;
   };

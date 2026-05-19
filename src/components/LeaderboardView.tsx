@@ -12,14 +12,16 @@ export function getLeaderboardWeekKey(): string {
   return sastWeekKey();
 }
 
-/** Next Saturday midnight in SAST (end of current week) for the countdown */
+/** Next Sunday 00:00 SAST — weekly XP resets when the new week starts (Sunday-anchored). */
 function getWeekResetDate(): Date {
   const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
   const nowSAST = new Date(Date.now() + SAST_OFFSET_MS);
-  const daysUntilSat = (6 - nowSAST.getUTCDay() + 7) % 7 || 7;
-  const sat = new Date(nowSAST.getTime() + daysUntilSat * 86_400_000);
-  sat.setUTCHours(21, 59, 59, 0); // 23:59:59 SAST = 21:59:59 UTC
-  return new Date(sat.getTime() - SAST_OFFSET_MS); // back to UTC for JS Date
+  let daysUntilSun = (7 - nowSAST.getUTCDay()) % 7;
+  if (daysUntilSun === 0) daysUntilSun = 7;
+  const resetSAST = new Date(nowSAST);
+  resetSAST.setUTCDate(resetSAST.getUTCDate() + daysUntilSun);
+  resetSAST.setUTCHours(0, 0, 0, 0);
+  return new Date(resetSAST.getTime() - SAST_OFFSET_MS);
 }
 
 // ─── LeaderboardView ──────────────────────────────────────────────────────────
@@ -41,7 +43,7 @@ export function LeaderboardView({
   const [retryCount, setRetryCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
 
-  // Countdown to Saturday midnight reset
+  // Countdown to Sunday midnight SAST (new weekly XP period)
   useEffect(() => {
     const tick = () => {
       const now = new Date();

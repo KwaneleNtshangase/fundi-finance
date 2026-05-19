@@ -149,7 +149,7 @@ export function BudgetView() {
   const [addCategory, setAddCategory] = useState("");
   const [addAmount, setAddAmount] = useState("");
   const [addDesc, setAddDesc] = useState("");
-  const [addDate, setAddDate] = useState(() => now.toISOString().slice(0, 10));
+  const [addDate, setAddDate] = useState(() => sastToday());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editEntry, setEditEntry] = useState<BudgetEntry | null>(null);
@@ -382,10 +382,18 @@ export function BudgetView() {
       const pct = (catSpent / limit) * 100;
       if (pct >= 80) {
         const catLabel = BUDGET_EXPENSE_CATS.find(c => c.id === addCategory)?.label ?? addCategory;
-        fetch(`${window.location.origin}/api/budget-alert`, {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user.id, category: catLabel, pct }),
-        }).catch(() => {});
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          const token = session?.access_token;
+          if (!token) return;
+          fetch(`${window.location.origin}/api/budget-alert`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ user_id: user.id, category: catLabel, pct }),
+          }).catch(() => {});
+        });
       }
     }
     analytics.budgetEntryAdded(addCategory, addType);
@@ -409,7 +417,7 @@ export function BudgetView() {
       }).catch(() => {});
     }
     setSaving(false); setShowAdd(false); setAddCategory(""); setAddAmount(""); setAddDesc("");
-    setAddDate(now.toISOString().slice(0, 10));
+    setAddDate(sastToday());
     loadEntries();
   };
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getUserFromRequest } from "@/lib/apiAuth";
 
 export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
@@ -6,10 +7,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, skipped: true });
   }
 
+  const user = await getUserFromRequest(req);
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { to, username } = (await req.json()) as { to?: string; username?: string };
   if (!to || !username) {
     return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
   }
+
+  if (user.email && to.toLowerCase() !== user.email.toLowerCase()) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const safeUsername = String(username).slice(0, 40);
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -23,7 +35,7 @@ export async function POST(req: NextRequest) {
       subject: "Welcome to Fundi. Your first lesson is waiting 🚀",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.5;color:#1f2937">
-          <h2>Welcome to Fundi, ${username} 👋</h2>
+          <h2>Welcome to Fundi, ${safeUsername} 👋</h2>
           <p>You're in. One small lesson a day can change how you handle money.</p>
           <p>Start now, build your streak, and keep stacking wins.</p>
           <p><a href="https://fundiapp.co.za" style="display:inline-block;padding:10px 16px;background:#007A4D;color:#fff;text-decoration:none;border-radius:8px">Complete your first lesson</a></p>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getUserFromRequest } from "@/lib/apiAuth";
 
 // South Africa Standard Time is UTC+2 with no daylight saving.
 // All streak dates must be computed in SAST — not UTC — or a lesson done
@@ -25,9 +26,17 @@ export async function POST(req: NextRequest) {
   if (!serviceKey || !url) {
     return NextResponse.json({ ok: false, error: "Missing Supabase server credentials." }, { status: 500 });
   }
+  const sessionUser = await getUserFromRequest(req);
+  if (!sessionUser) {
+    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   const admin = createClient(url, serviceKey);
   const { userId } = (await req.json()) as { userId?: string };
   if (!userId) return NextResponse.json({ ok: false, error: "Missing userId" }, { status: 400 });
+  if (userId !== sessionUser.id) {
+    return NextResponse.json({ ok: false, error: "Forbidden" }, { status: 403 });
+  }
 
   const { data, error } = await admin
     .from("user_progress")

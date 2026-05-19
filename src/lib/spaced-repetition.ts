@@ -32,6 +32,7 @@ export type MasteryRecord = {
  */
 export type ReviewQuality = 0 | 1 | 2 | 3 | 4 | 5;
 import { supabase } from "@/lib/supabaseClient";
+import { sastToday } from "@/lib/dates";
 
 const MIN_EASE = 1.3;
 
@@ -103,7 +104,7 @@ export function createMasteryRecord(conceptId: string): MasteryRecord {
 
 /** Returns true if the card is due for review today or overdue */
 export function isDue(record: MasteryRecord): boolean {
-  return record.next_review_date <= toDateString(new Date());
+  return record.next_review_date <= sastToday();
 }
 
 /** Format a Date as YYYY-MM-DD */

@@ -152,7 +152,7 @@ export function StatsPanel({
             )}
             {!streakSafeToday && freezeCount === 0 && !freezeUsedToday && (
               <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 2 }}>
-                Resets every Monday
+                Buy with XP to protect your streak
               </div>
             )}
           </div>

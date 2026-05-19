@@ -151,7 +151,8 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
     e.preventDefault();
     setSending(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user ?? null;
       // Generate id client-side so we can pass it to the email route for logging
       const feedbackId = crypto.randomUUID();
       // 1. Save to Supabase for records
@@ -163,9 +164,13 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
         issue_type: issueType,
       });
       // 2. Send email to support@fundiapp.co.za via Resend
+      const token = session?.access_token;
       await fetch("/api/feedback-email", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({
           subject,
           description,
@@ -829,7 +834,7 @@ export function ProfileView({
             style={{ width: "100%", padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, marginBottom: 8, boxSizing: "border-box" as const }} />
           <div style={{ marginBottom: 8 }}>
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)" }}>Daily XP goal</label>
-            <select value={dailyGoal} onChange={(e) => { const v = parseInt(e.target.value, 10); setDailyGoal(v); localStorage.setItem("fundi-daily-goal", String(v)); }}
+            <select value={dailyGoal} onChange={(e) => { const v = parseInt(e.target.value, 10); setDailyGoal(v); }}
               style={{ width: "100%", marginTop: 4, padding: "8px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13 }}>
               {[25, 50, 100, 150, 200].map((g) => (<option key={g} value={g}>{g} XP / day</option>))}
             </select>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Share2 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
+import { markSharedToday } from "@/lib/dailyChallengeFlags";
 import { generateShareText } from "@/app/pageViews.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -204,6 +205,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
         shared = true;
       }
       setStatus("done");
+      markSharedToday();
     } catch {
       setStatus("error");
     }
@@ -250,6 +252,7 @@ export function ShareButton({
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       try {
         await navigator.share({ text });
+        markSharedToday();
         return;
       } catch {
         /* dismissed or unavailable */
@@ -257,6 +260,7 @@ export function ShareButton({
     }
     const encoded = encodeURIComponent(text);
     window.open(`https://wa.me/?text=${encoded}`, "_blank", "noopener,noreferrer");
+    markSharedToday();
   };
 
   return (

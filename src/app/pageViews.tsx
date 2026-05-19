@@ -146,6 +146,11 @@ import {
 } from "@/app/pageViews.types";
 import { formatWithSpaces, formatRand, formatZAR } from "@/lib/formatters";
 import { sastToday } from "@/lib/dates";
+import {
+  bumpCorrectAnswerStreakToday,
+  markConceptReviewedToday,
+  resetCorrectAnswerStreakToday,
+} from "@/lib/dailyChallengeFlags";
 import { useFundiState } from "@/hooks/useFundiState";
 import { SettingsView } from "@/components/SettingsView";
 
@@ -615,26 +620,13 @@ function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpCla
     // Update local weekly XP state so leaderboard reflects this immediately
     onXpClaimed?.(xp);
 
-    // Award XP via Supabase — update BOTH total xp AND weekly_xp + week_key
-    // so the leaderboard correctly ranks this user.
+    // Persist claim state only — onXpClaimed → addXP already updates xp + weekly_xp in DB.
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      const { data } = await supabase
-        .from("user_progress")
-        .select("xp, weekly_xp, week_key")
-        .eq("user_id", user.id)
-        .single();
-      if (data) {
-        const currentWeekKey = getLeaderboardWeekKey();
-        const existingWeeklyXp = data.week_key === currentWeekKey ? (data.weekly_xp ?? 0) : 0;
-        await supabase.from("user_progress").update({
-          xp: (data.xp ?? 0) + xp,
-          weekly_xp: existingWeeklyXp + xp,
-          week_key: currentWeekKey,
-          daily_challenges_date: today,
-          daily_challenges_claimed: JSON.stringify(next),
-        }).eq("user_id", user.id);
-      }
+      await supabase.from("user_progress").update({
+        daily_challenges_date: today,
+        daily_challenges_claimed: JSON.stringify(next),
+      }).eq("user_id", user.id);
     }
   };
 
@@ -818,6 +810,7 @@ function ReviewSession({ onClose }: { onClose: () => void }) {
   if (isDone) {
     if (typeof window !== "undefined") {
       localStorage.removeItem(REVIEW_SESSION_KEY);
+      markConceptReviewedToday();
     }
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
@@ -2706,7 +2699,6 @@ function DarkModeToggle({ userSettings }: { userSettings: ReturnType<typeof useU
       document.documentElement.removeAttribute("data-theme");
       document.documentElement.classList.remove("dark");
     }
-    localStorage.setItem("fundi-dark-mode", String(dark));
   }, [dark]);
 
   return (
@@ -2906,9 +2898,10 @@ export default function Home() {
       lessonStartTimeRef.current = Date.now();
       lessonHeartLostRef.current = false;
       isFinalizingRef.current = false; // reset for fresh lesson
+      setReviewAnswers(null);
       analytics.lessonStarted(courseId, lessonId, lessonTitle);
     },
-    []
+    [setReviewAnswers]
   );
 
   const resumeLesson = React.useCallback(
@@ -3172,26 +3165,20 @@ export default function Home() {
         .from("user_progress")
         .select("xp, streak, completed_lessons, last_activity_date, weekly_xp, week_key, hearts, earned_badges, badges, daily_xp_today, daily_xp_date, daily_lessons_today, daily_lessons_date, perfect_today, perfect_today_date, perfect_lessons_total, first_lesson_fired, milestone_cta_shown, weekly_challenge_progress, expense_today, expense_today_date, budget_visited_date")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
       if (!data) return;
-      // Only overwrite localStorage if Supabase has more progress
-      const localXP = parseInt(localStorage.getItem("fundi-xp") ?? "0", 10);
-      if (data.xp > localXP) {
-        localStorage.setItem("fundi-xp", String(data.xp));
-      }
-      const localStreak = parseInt(localStorage.getItem("fundi-streak") ?? "0", 10);
-      if (data.streak > localStreak) {
-        localStorage.setItem("fundi-streak", String(data.streak));
-      }
-      // Restore today's XP from Supabase if localStorage was wiped
       const todayIso = sastToday();
       const localDailyXp = parseInt(localStorage.getItem(`fundi-daily-xp-${todayIso}`) ?? "0", 10);
-      if (localDailyXp === 0 && ((data as any).daily_xp_today ?? 0) > 0 && (data as any).daily_xp_date === todayIso) {
-        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String((data as any).daily_xp_today));
-        setDailyXP((data as any).daily_xp_today);
-      } else {
-        setDailyXP(Number.isNaN(localDailyXp) ? 0 : localDailyXp);
+      const remoteDailyXp =
+        (data as any).daily_xp_date === todayIso ? Number((data as any).daily_xp_today ?? 0) : 0;
+      const mergedDailyXp = Math.max(
+        Number.isNaN(localDailyXp) ? 0 : localDailyXp,
+        remoteDailyXp
+      );
+      if (mergedDailyXp > 0) {
+        localStorage.setItem(`fundi-daily-xp-${todayIso}`, String(mergedDailyXp));
       }
+      setDailyXP(mergedDailyXp);
       if (data.completed_lessons && Array.isArray(data.completed_lessons)) {
         const localRaw = localStorage.getItem("fundi-completed-lessons");
         const localSet: string[] = localRaw ? JSON.parse(localRaw) : [];
@@ -3213,10 +3200,12 @@ export default function Home() {
       const todayDate = sastToday();
       if ((data as any).daily_lessons_date === todayDate) {
         const remDailyLessons = Number((data as any).daily_lessons_today ?? 0);
-        const locDailyLessons = parseInt(localStorage.getItem(`fundi-lessons-today-${todayDate}`) ?? "0", 10);
-        if (remDailyLessons > locDailyLessons) {
-          localStorage.setItem(`fundi-lessons-today-${todayDate}`, String(remDailyLessons));
-          localStorage.setItem(`fundi-daily-lessons-${todayDate}`, String(remDailyLessons));
+        const locLessonsToday = parseInt(localStorage.getItem(`fundi-lessons-today-${todayDate}`) ?? "0", 10);
+        const locDailyLessons = parseInt(localStorage.getItem(`fundi-daily-lessons-${todayDate}`) ?? "0", 10);
+        const mergedLessons = Math.max(remDailyLessons, locLessonsToday, locDailyLessons);
+        if (mergedLessons > locLessonsToday || mergedLessons > locDailyLessons) {
+          localStorage.setItem(`fundi-lessons-today-${todayDate}`, String(mergedLessons));
+          localStorage.setItem(`fundi-daily-lessons-${todayDate}`, String(mergedLessons));
         }
       }
       if ((data as any).perfect_today_date === todayDate) {
@@ -3452,10 +3441,6 @@ export default function Home() {
     // to this key. Reading it here avoids double-counting.
     const dailyXpSoFar = parseInt(localStorage.getItem(dailyKey) ?? "0", 10);
 
-    const dailyLessonsKey = `fundi-daily-lessons-${today}`;
-    const prevLessons = parseInt(localStorage.getItem(dailyLessonsKey) ?? "0", 10);
-    localStorage.setItem(dailyLessonsKey, String(prevLessons + 1));
-
     state.lessonsCompleted += 1;
     state.xpEarned += payload.xpEarned;
     state.perfectLessons += payload.isPerfect ? 1 : 0;
@@ -3518,7 +3503,6 @@ export default function Home() {
         setChallengeRewardClaimed(true);
         setWeeklyChallengeCelebration({ bonusXP: wc.xp, description: wc.text });
         addXP(wc.xp);
-        setDailyXP((v) => v + wc.xp);
       }
     } else {
       localStorage.setItem(key, JSON.stringify(state));
@@ -3596,8 +3580,6 @@ export default function Home() {
     localStorage.setItem("fundi-earned-badges", JSON.stringify(next));
     setCourseBadgeIds(next);
     await persistEarnedBadges(next);
-    const refreshed = await getAwardedBadgeIds();
-    if (!refreshed.has(badge.id)) return;
     setCourseCompleteModal(badge);
   };
 
@@ -3637,16 +3619,45 @@ export default function Home() {
       }
     );
 
-    const streakAfterLesson = await completeLesson(
+    const alreadyCompleted = isLessonCompleted(
       currentLessonState.courseId,
-      currentLessonState.lessonId,
-      totalXP
+      currentLessonState.lessonId
     );
+
+    const streakAfterLesson = alreadyCompleted
+      ? userData.streak
+      : await completeLesson(
+          currentLessonState.courseId,
+          currentLessonState.lessonId,
+          totalXP
+        );
 
     if (typeof window !== "undefined") {
       localStorage.removeItem("fundi-lesson-progress");
     }
     setSavedProgress(null);
+
+    if (alreadyCompleted) {
+      const elapsedSeconds = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
+      const accuracy =
+        totalQuestions > 0
+          ? Math.min(100, Math.round((currentLessonState.correctCount / totalQuestions) * 100))
+          : 0;
+      setLessonSummary({
+        xpEarned: 0,
+        timeSeconds: elapsedSeconds,
+        accuracy,
+        streak: streakAfterLesson,
+        isPerfect,
+        choice,
+        nextLessonId: getNextLesson(currentLessonState.courseId, currentLessonState.lessonId)?.id ?? null,
+        courseId: currentLessonState.courseId,
+        lessonId: currentLessonState.lessonId,
+      });
+      isFinalizingRef.current = false;
+      return;
+    }
+
     if (isPerfect) {
       const prev = parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10);
       const newPerfectTotal = prev + 1;
@@ -3659,8 +3670,10 @@ export default function Home() {
 
       // Daily lesson counter
       const lessonsKey = `fundi-lessons-today-${isoDay}`;
+      const dailyLessonsKey = `fundi-daily-lessons-${isoDay}`;
       const newLessonCount = (parseInt(localStorage.getItem(lessonsKey) ?? "0", 10)) + 1;
       localStorage.setItem(lessonsKey, String(newLessonCount));
+      localStorage.setItem(dailyLessonsKey, String(newLessonCount));
 
       // Daily perfect counter
       const perfTodayKey = `fundi-perfect-today-${isoDay}`;
@@ -3870,6 +3883,7 @@ export default function Home() {
       await persistEarnedBadges(merged);
       setNewlyEarnedBadges(justEarned);
       nextLessonRef.current = nextLesson;
+      isFinalizingRef.current = false;
       return;
     }
 
@@ -3894,6 +3908,7 @@ export default function Home() {
       courseId: currentLessonState.courseId,
       lessonId: currentLessonState.lessonId,
     });
+    isFinalizingRef.current = false;
   };
 
   const nextStep = () => {
@@ -3933,7 +3948,10 @@ export default function Home() {
         correctCount: correct ? prev.correctCount + 1 : prev.correctCount,
       }));
       playSound(correct ? "correct" : "incorrect");
-      if (!correct) {
+      if (correct) {
+        bumpCorrectAnswerStreakToday();
+      } else {
+        resetCorrectAnswerStreakToday();
         const ls = lessonStateRef.current;
         lessonHeartLostRef.current = true;
         const st = ls.steps[ls.stepIndex];
@@ -3960,7 +3978,10 @@ export default function Home() {
       correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
     playSound(isCorrect ? "correct" : "incorrect");
-    if (!isCorrect) {
+    if (isCorrect) {
+      bumpCorrectAnswerStreakToday();
+    } else {
+      resetCorrectAnswerStreakToday();
       lessonHeartLostRef.current = true;
       if (currentLessonState.courseId && currentLessonState.lessonId) {
         analytics.wrongAnswer(
@@ -3984,7 +4005,10 @@ export default function Home() {
       correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
     }));
     playSound(isCorrect ? "correct" : "incorrect");
-    if (!isCorrect) {
+    if (isCorrect) {
+      bumpCorrectAnswerStreakToday();
+    } else {
+      resetCorrectAnswerStreakToday();
       lessonHeartLostRef.current = true;
       if (currentLessonState.courseId && currentLessonState.lessonId) {
         analytics.wrongAnswer(

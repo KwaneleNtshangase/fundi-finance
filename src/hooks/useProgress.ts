@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { sastWeekKey } from "@/lib/dates";
+import { sastOffset, sastWeekKey } from "@/lib/dates";
 
 type ProgressState = {
   xp: number;
@@ -40,10 +40,14 @@ const DEFAULT_STATE: ProgressState = {
 // successful Supabase read; it only fills the gap while waiting for network.
 const PROGRESS_CACHE_KEY = "fundi-progress-v1";
 
-function readProgressCache(): ProgressState | null {
-  if (typeof window === "undefined") return null;
+function progressCacheKey(userId: string): string {
+  return `${PROGRESS_CACHE_KEY}-${userId}`;
+}
+
+function readProgressCache(userId: string | null): ProgressState | null {
+  if (typeof window === "undefined" || !userId) return null;
   try {
-    const raw = localStorage.getItem(PROGRESS_CACHE_KEY);
+    const raw = localStorage.getItem(progressCacheKey(userId));
     if (!raw) return null;
     const p = JSON.parse(raw) as Partial<ProgressState>;
     return {
@@ -61,10 +65,10 @@ function readProgressCache(): ProgressState | null {
   }
 }
 
-function writeProgressCache(s: ProgressState): void {
-  if (typeof window === "undefined") return;
+function writeProgressCache(s: ProgressState, userId: string | null): void {
+  if (typeof window === "undefined" || !userId) return;
   try {
-    localStorage.setItem(PROGRESS_CACHE_KEY, JSON.stringify(s));
+    localStorage.setItem(progressCacheKey(userId), JSON.stringify(s));
   } catch { /* ignore quota errors — cache is best-effort */ }
 }
 
@@ -72,9 +76,17 @@ function getCurrentWeekKey(): string {
   return sastWeekKey();
 }
 
+async function streakSyncAuthHeaders(): Promise<HeadersInit> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
+
 export function useProgress() {
   // Seed from cache immediately (shows last-known XP/streak before Supabase responds)
-  const [state, setState] = useState<ProgressState>(() => readProgressCache() ?? DEFAULT_STATE);
+  const [state, setState] = useState<ProgressState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const completedLessons = useMemo(() => new Set(state.completedLessons), [state.completedLessons]);
@@ -113,7 +125,7 @@ export function useProgress() {
       // Merge: take the union of DB lessons and any cached lessons.
       // This recovers lessons that were saved locally but whose DB write failed
       // (e.g. row didn't exist yet when .update() fired, poor connectivity, etc.)
-      const cache = readProgressCache();
+      const cache = readProgressCache(userId);
       const cacheLessons = cache?.completedLessons ?? [];
       const offlineLessons = cacheLessons.filter((l) => !dbLessons.includes(l));
       const mergedLessons = offlineLessons.length > 0
@@ -142,8 +154,51 @@ export function useProgress() {
       };
       setState(fresh);
       // Update the offline-first cache so next load is instant even without network
-      writeProgressCache(fresh);
+      writeProgressCache(fresh, userId);
+
+      // Retry streak sync after a lesson completed while offline / network failed
+      if (
+        typeof window !== "undefined" &&
+        localStorage.getItem("fundi-pending-streak-sync") === "1"
+      ) {
+        localStorage.removeItem("fundi-pending-streak-sync");
+        try {
+          const r = await fetch("/api/progress/sync-streak", {
+            method: "POST",
+            headers: await streakSyncAuthHeaders(),
+            body: JSON.stringify({ userId }),
+          });
+          const json = await r.json();
+          if (json?.ok) {
+            setState((prev) => {
+              const next = {
+                ...prev,
+                streak: json.streak,
+                longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
+                lastActivityDate: json.lastActivityDate,
+                freezeCount: json.freezeCount ?? prev.freezeCount,
+              };
+              writeProgressCache(next, userId);
+              return next;
+            });
+          } else {
+            localStorage.setItem("fundi-pending-streak-sync", "1");
+          }
+        } catch {
+          localStorage.setItem("fundi-pending-streak-sync", "1");
+        }
+      }
     })().catch((e) => console.warn("load progress failed", e));
+  }, [userId]);
+
+  // Hydrate from per-user cache immediately when userId is known (before Supabase responds)
+  useEffect(() => {
+    if (!userId) {
+      setState(DEFAULT_STATE);
+      return;
+    }
+    const cached = readProgressCache(userId);
+    if (cached) setState(cached);
   }, [userId]);
 
   const persist = async (partial: Partial<ProgressState>) => {
@@ -179,7 +234,7 @@ export function useProgress() {
             { onConflict: "user_id" }
           );
       }
-      writeProgressCache(next);
+      writeProgressCache(next, userId);
       return next;
     });
   };
@@ -189,7 +244,7 @@ export function useProgress() {
     const nextXp = Math.max(0, state.xp - amount);
     setState((prev) => {
       const next = { ...prev, xp: nextXp };
-      writeProgressCache(next);
+      writeProgressCache(next, userId);
       return next;
     });
     // Targeted update — only xp, not weekly_xp, to avoid stale overwrites
@@ -206,7 +261,7 @@ export function useProgress() {
     setState((prev) => {
       const nextLessons = prev.completedLessons.includes(id) ? prev.completedLessons : [...prev.completedLessons, id];
       const next = { ...prev, completedLessons: nextLessons };
-      writeProgressCache(next);
+      writeProgressCache(next, userId);
       // Use upsert (not update) so that if the row doesn't exist yet — e.g. the
       // sync-streak call that creates it hasn't landed yet — the lesson is still
       // persisted. Only completed_lessons + updated_at are specified so no other
@@ -228,13 +283,19 @@ export function useProgress() {
     try {
       const r = await fetch("/api/progress/sync-streak", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: await streakSyncAuthHeaders(),
         body: JSON.stringify({ userId }),
       });
       const json = await r.json();
       if (!json?.ok) {
         console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
+        if (typeof window !== "undefined") {
+          localStorage.setItem("fundi-pending-streak-sync", "1");
+        }
         return state.streak;
+      }
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("fundi-pending-streak-sync");
       }
       setState((prev) => {
         const next = {
@@ -243,25 +304,37 @@ export function useProgress() {
           longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
           lastActivityDate: json.lastActivityDate,
         };
-        writeProgressCache(next);
+        writeProgressCache(next, userId);
         return next;
       });
       return json.streak as number;
     } catch (e) {
       console.warn("[applyStreakAfterLesson] fetch failed:", e);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("fundi-pending-streak-sync", "1");
+      }
       return state.streak;
     }
   };
 
+  const MAX_FREEZE_COUNT = 2;
+
   const buyStreakFreeze = (cost = 200): boolean => {
+    if (state.freezeCount >= MAX_FREEZE_COUNT) return false;
     if (!tryDeductXp(cost)) return false;
-    const next = state.freezeCount + 1;
-    setState((prev) => ({ ...prev, freezeCount: next }));
-    // Targeted update — only freezeCount, xp already handled by tryDeductXp
+    let nextFreeze = 0;
+    setState((prev) => {
+      if (prev.freezeCount >= MAX_FREEZE_COUNT) return prev;
+      nextFreeze = prev.freezeCount + 1;
+      const next = { ...prev, freezeCount: nextFreeze };
+      writeProgressCache(next, userId);
+      return next;
+    });
+    if (nextFreeze === 0) return false;
     if (userId) {
       void supabase
         .from("user_progress")
-        .update({ streak_freeze_count: next, updated_at: new Date().toISOString() })
+        .update({ streak_freeze_count: nextFreeze, updated_at: new Date().toISOString() })
         .eq("user_id", userId);
     }
     return true;
@@ -279,7 +352,16 @@ export function useProgress() {
     }
     const result = data as { ok: boolean; streak?: number; freezes_left?: number; reason?: string };
     if (result.ok) {
-      setState((prev) => ({ ...prev, freezeCount: result.freezes_left ?? Math.max(0, prev.freezeCount - 1) }));
+      const yDate = sastOffset(-1);
+      setState((prev) => {
+        const next = {
+          ...prev,
+          freezeCount: result.freezes_left ?? Math.max(0, prev.freezeCount - 1),
+          lastActivityDate: yDate,
+        };
+        writeProgressCache(next, userId);
+        return next;
+      });
     }
     return { ok: result.ok, streak: result.streak, freezesLeft: result.freezes_left, reason: result.reason };
   };
