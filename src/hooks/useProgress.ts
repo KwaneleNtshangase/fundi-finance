@@ -236,12 +236,16 @@ export function useProgress() {
         console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
         return state.streak;
       }
-      setState((prev) => ({
-        ...prev,
-        streak: json.streak,
-        longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
-        lastActivityDate: json.lastActivityDate,
-      }));
+      setState((prev) => {
+        const next = {
+          ...prev,
+          streak: json.streak,
+          longestStreak: Math.max(json.longestStreak ?? json.streak, prev.longestStreak),
+          lastActivityDate: json.lastActivityDate,
+        };
+        writeProgressCache(next);
+        return next;
+      });
       return json.streak as number;
     } catch (e) {
       console.warn("[applyStreakAfterLesson] fetch failed:", e);
