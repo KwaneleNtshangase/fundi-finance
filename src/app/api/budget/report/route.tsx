@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const [entriesRes, targetsRes, catsRes, profileRes] = await Promise.all([
     admin
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date")
+      .select("id, type, category, amount, description, entry_date, is_transfer")
       .eq("user_id", user.id)
       .gte("entry_date", periodStart)
       .lte("entry_date", periodEnd),
@@ -65,7 +65,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: catsRes.error.message }, { status: 500 });
   }
 
-  const entries = (entriesRes.data ?? []) as BudgetEntryInput[];
+  const entries = (entriesRes.data ?? []).map(
+    (e: {
+      id: string;
+      type: "income" | "expense";
+      category: string;
+      amount: number;
+      description: string | null;
+      entry_date: string;
+      is_transfer?: boolean;
+    }) => ({
+      id: e.id,
+      type: e.type,
+      category: e.category,
+      amount: Number(e.amount),
+      description: e.description,
+      entry_date: e.entry_date,
+      is_transfer: e.is_transfer ?? false,
+    })
+  ) as BudgetEntryInput[];
   const targets = (targetsRes.data ?? []) as BudgetTargetInput[];
   const categories: CategoryMeta[] = (catsRes.data ?? []).map(
     (c: { id: string; name: string; color: string; type: "expense" | "income" }) => ({

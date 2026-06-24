@@ -1,0 +1,9 @@
+{
+  "headerText": "Standard Bank Statement",
+  "openingBalance": 3000,
+  "closingBalance": 2680,
+  "lines": [
+    { "y": 200, "items": [{ "x": 40, "text": "01/05/2026" }, { "x": 120, "text": "CHECKERS" }, { "x": 380, "text": "320.50" }, { "x": 450, "text": "" }, { "x": 520, "text": "2679.50" }] },
+    { "y": 220, "items": [{ "x": 40, "text": "05/05/2026" }, { "x": 120, "text": "INTERNET TRANSFER IN" }, { "x": 380, "text": "" }, { "x": 450, "text": "500.00" }, { "x": 520, "text": "3179.50" }] }
+  ]
+}

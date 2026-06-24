@@ -2,13 +2,72 @@ import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/apiAuth";
 import { createServiceSupabase } from "@/lib/supabaseServer";
 import { parseStatement, inferFileType } from "@/lib/budget/parsers";
+import { parsePdfStatement, SCANNED_MESSAGE } from "@/lib/budget/parsers/pdf";
 import { assignDedupeHashes, applyExistingImportSkips } from "@/lib/budget/dedupe";
 import { reconcileAfterImportSkips } from "@/lib/budget/reconciliation";
 import { isRefundLikeCredit } from "@/lib/budget/refunds";
 import { categorise } from "@/lib/categorisation";
-import type { PreviewTxn } from "@/lib/budget/types";
+import type { PreviewTxn, UserMerchantRule } from "@/lib/budget/types";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+function buildPreview(
+  parsed: {
+    transactions: import("@/lib/budget/types").NormalizedTxn[];
+    reconciliation: import("@/lib/budget/types").ReconciliationResult;
+    bankHint?: string;
+    accountLabel?: string;
+    fileType: import("@/lib/budget/types").StatementFileType;
+    lowConfidence?: boolean;
+  },
+  userRules: UserMerchantRule[],
+  existingHashes: Set<string>,
+  fileName: string,
+  accountLabelOverride?: string
+) {
+  const accountLabel = accountLabelOverride ?? parsed.accountLabel ?? parsed.bankHint ?? fileName;
+
+  const txnsWithAccount = parsed.transactions.map((t) => ({
+    ...t,
+    accountLabel: t.accountLabel ?? accountLabel,
+  }));
+
+  const dedupeHashes = assignDedupeHashes(txnsWithAccount);
+
+  let preview: PreviewTxn[] = txnsWithAccount.map((txn, i) => {
+    const cat = categorise(txn, userRules);
+    const lowConf = parsed.lowConfidence || parsed.fileType === "pdf";
+    return {
+      ...txn,
+      id: `preview-${fileName}-${i}`,
+      dedupeHash: dedupeHashes[i],
+      categorisation: cat,
+      refundLike: isRefundLikeCredit(txn),
+      sourceFileName: fileName,
+      needsReview: lowConf && parsed.reconciliation.ok === false,
+    };
+  });
+
+  preview = applyExistingImportSkips(preview, existingHashes);
+
+  const reconciliation = reconcileAfterImportSkips(
+    txnsWithAccount,
+    preview,
+    parsed.reconciliation
+  );
+
+  return {
+    bankHint: parsed.bankHint,
+    accountLabel,
+    fileType: parsed.fileType,
+    reconciliation,
+    statementReconciliation: parsed.reconciliation,
+    transactions: preview,
+    importedCount: preview.filter((t) => !t.skipReason).length,
+    skippedCount: preview.filter((t) => t.skipReason === "existing_import").length,
+    lowConfidence: parsed.lowConfidence,
+  };
+}
 
 export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req);
@@ -28,12 +87,12 @@ export async function POST(req: NextRequest) {
     }
 
     const fileType = inferFileType(file.name, file.type);
-    if (!fileType || fileType === "pdf") {
-      return NextResponse.json({ error: "Unsupported file type. Use CSV or OFX." }, { status: 400 });
+    if (!fileType) {
+      return NextResponse.json({ error: "Unsupported file type. Use CSV, OFX, or PDF." }, { status: 400 });
     }
 
-    const text = await file.text();
-    const parsed = parseStatement(text, fileType);
+    const password = (form.get("password") as string | null) ?? undefined;
+    const accountLabelOverride = (form.get("accountLabel") as string | null)?.trim() || undefined;
 
     const admin = createServiceSupabase();
 
@@ -52,37 +111,48 @@ export async function POST(req: NextRequest) {
       (existingRows ?? []).map((r) => r.dedupe_hash as string).filter(Boolean)
     );
 
-    const dedupeHashes = assignDedupeHashes(parsed.transactions);
+    if (fileType === "pdf") {
+      const buffer = new Uint8Array(await file.arrayBuffer());
+      const pdfResult = await parsePdfStatement(buffer, {
+        password,
+        fileName: file.name,
+      });
 
-    let preview: PreviewTxn[] = parsed.transactions.map((txn, i) => {
-      const cat = categorise(txn, userRules ?? []);
-      return {
-        ...txn,
-        id: `preview-${i}`,
-        dedupeHash: dedupeHashes[i],
-        categorisation: cat,
-        refundLike: isRefundLikeCredit(txn),
-      };
-    });
+      if (!pdfResult.ok) {
+        if (pdfResult.kind === "needsPassword") {
+          return NextResponse.json({ needsPassword: true }, { status: 422 });
+        }
+        if (pdfResult.kind === "scanned") {
+          return NextResponse.json({ error: SCANNED_MESSAGE }, { status: 400 });
+        }
+        return NextResponse.json(
+          { error: pdfResult.kind === "error" ? pdfResult.message : SCANNED_MESSAGE },
+          { status: 400 }
+        );
+      }
 
-    preview = applyExistingImportSkips(preview, existingHashes);
+      const result = buildPreview(
+        pdfResult,
+        userRules ?? [],
+        existingHashes,
+        file.name,
+        accountLabelOverride
+      );
 
-    const reconciliation = reconcileAfterImportSkips(
-      parsed.transactions,
-      preview,
-      parsed.reconciliation
+      return NextResponse.json({ ok: true, ...result });
+    }
+
+    const text = await file.text();
+    const parsed = parseStatement(text, fileType);
+    const result = buildPreview(
+      parsed,
+      userRules ?? [],
+      existingHashes,
+      file.name,
+      accountLabelOverride
     );
 
-    return NextResponse.json({
-      ok: true,
-      bankHint: parsed.bankHint,
-      fileType: parsed.fileType,
-      reconciliation,
-      statementReconciliation: parsed.reconciliation,
-      transactions: preview,
-      importedCount: preview.filter((t) => !t.skipReason).length,
-      skippedCount: preview.filter((t) => t.skipReason === "existing_import").length,
-    });
+    return NextResponse.json({ ok: true, ...result });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: message }, { status: 400 });

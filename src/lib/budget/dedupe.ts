@@ -37,6 +37,10 @@ export function buildDedupeHash(txn: NormalizedTxn, occurrenceOrdinal: number): 
     normaliseDescription(txn.description),
   ];
 
+  if (txn.accountLabel) {
+    parts.push(`acct:${normaliseDescription(txn.accountLabel)}`);
+  }
+
   if (txn.balanceAfter !== undefined && txn.balanceAfter !== null) {
     parts.push(`bal:${amountToCents(txn.balanceAfter)}`);
   } else if (txn.externalId) {

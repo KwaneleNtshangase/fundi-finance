@@ -13,6 +13,8 @@ export type NormalizedTxn = {
   externalId?: string;
   /** 0-based line in source file */
   lineIndex: number;
+  /** Source bank/account label (multi-statement imports) */
+  accountLabel?: string;
 };
 
 export type ReconciliationResult = {
@@ -45,14 +47,37 @@ export type PreviewTxn = NormalizedTxn & {
   possibleDuplicateInFile?: boolean;
   /** Money-in line that may be a card refund — defaults to income unless re-categorised */
   refundLike?: boolean;
+  /** Source file name for multi-import preview grouping */
+  sourceFileName?: string;
+  /** Low-confidence PDF row — user should verify */
+  needsReview?: boolean;
+  /** Inter-account transfer — excluded from income/expense when confirmed */
+  isTransfer?: boolean;
+  /** Links debit/credit legs of a transfer pair */
+  transferPairId?: string;
+  /** User confirmed this as a transfer */
+  transferConfirmed?: boolean;
 };
 
 export type ParseStatementResult = {
   fileType: StatementFileType;
   bankHint?: string;
+  accountLabel?: string;
   transactions: NormalizedTxn[];
   reconciliation: ReconciliationResult;
+  /** PDF-only: lower confidence when no balances/totals to reconcile */
+  lowConfidence?: boolean;
 };
+
+export type ParsePdfError =
+  | { kind: "needsPassword" }
+  | { kind: "scanned" }
+  | { kind: "noText" }
+  | { kind: "error"; message: string };
+
+export type ParsePdfResult =
+  | ({ ok: true } & ParseStatementResult)
+  | ({ ok: false } & ParsePdfError);
 
 export type UserMerchantRule = {
   merchant_pattern: string;

@@ -1,0 +1,10 @@
+{
+  "headerText": "Capitec Bank Statement Account",
+  "openingBalance": 5000,
+  "closingBalance": 4250,
+  "lines": [
+    { "y": 200, "items": [{ "x": 40, "text": "01/05/2026" }, { "x": 120, "text": "WOOLWORTHS" }, { "x": 350, "text": "" }, { "x": 420, "text": "250.00" }, { "x": 500, "text": "4750.00" }] },
+    { "y": 220, "items": [{ "x": 40, "text": "05/05/2026" }, { "x": 120, "text": "SALARY DEPOSIT" }, { "x": 350, "text": "15000.00" }, { "x": 420, "text": "" }, { "x": 500, "text": "19750.00" }] },
+    { "y": 240, "items": [{ "x": 40, "text": "10/05/2026" }, { "x": 120, "text": "TRANSFER TO SAVINGS" }, { "x": 350, "text": "" }, { "x": 420, "text": "500.00" }, { "x": 500, "text": "19250.00" }] }
+  ]
+}

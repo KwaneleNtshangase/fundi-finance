@@ -167,6 +167,25 @@ describe("buildReport", () => {
     expect(model.netCents).toBe(99999999 - 12345678);
   });
 
+  it("excludes is_transfer rows from totals and insights", () => {
+    const model = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "food", amount: 500, entry_date: "2026-06-05" },
+        { type: "expense", category: "savings", amount: 3000, entry_date: "2026-06-10", is_transfer: true },
+        { type: "income", category: "other-income", amount: 3000, entry_date: "2026-06-10", is_transfer: true },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(model.totalIncomeCents).toBe(1000000);
+    expect(model.totalExpenseCents).toBe(50000);
+    expect(model.savingsRatePct).toBe(0);
+    expect(model.incomeCategories).toHaveLength(1);
+    expect(model.expenseCategories).toHaveLength(1);
+  });
+
   it("top merchants case-fold and trim descriptions", () => {
     const model = report(
       [

@@ -7,6 +7,8 @@ export type BudgetEntryInput = {
   amount: number;
   description?: string | null;
   entry_date: string;
+  is_transfer?: boolean;
+  account_label?: string | null;
 };
 
 export type BudgetTargetInput = {

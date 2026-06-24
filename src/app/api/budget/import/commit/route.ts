@@ -16,6 +16,8 @@ type CommitRow = {
   skipReason?: "existing_import" | "user_removed";
   rememberMerchant?: boolean;
   merchantPattern?: string;
+  accountLabel?: string;
+  isTransfer?: boolean;
 };
 
 export async function POST(req: NextRequest) {
@@ -26,7 +28,8 @@ export async function POST(req: NextRequest) {
 
   const body = (await req.json()) as {
     fileName?: string;
-    fileType?: "csv" | "ofx";
+    fileType?: "csv" | "ofx" | "pdf";
+    accountLabel?: string;
     reconciled?: boolean;
     reconciliationNote?: string;
     statementReconciliation?: ReconciliationResult;
@@ -72,12 +75,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Block PDF import when statement reconciliation failed
+  if (body.fileType === "pdf" && body.statementReconciliation && !body.statementReconciliation.ok) {
+    return NextResponse.json(
+      {
+        error: "PDF statement failed reconciliation — review and fix before importing.",
+        reconciliation: body.statementReconciliation,
+      },
+      { status: 409 }
+    );
+  }
+
   const { data: batch, error: batchError } = await admin
     .from("budget_import_batches")
     .insert({
       user_id: user.id,
       file_name: body.fileName ?? null,
       file_type: body.fileType ?? "csv",
+      account_label: body.accountLabel ?? null,
       txn_count: allRows.length,
       imported_count: 0,
       skipped_count: allRows.length - rowsToInsert.length,
@@ -103,6 +118,8 @@ export async function POST(req: NextRequest) {
       source: "import",
       import_batch_id: batch.id,
       dedupe_hash: row.dedupeHash,
+      account_label: row.accountLabel ?? body.accountLabel ?? null,
+      is_transfer: row.isTransfer ?? false,
     };
   });
 
@@ -122,7 +139,7 @@ export async function POST(req: NextRequest) {
   }
 
   const merchantRules = rowsToInsert
-    .filter((r) => r.rememberMerchant && r.merchantPattern?.trim())
+    .filter((r) => r.rememberMerchant && r.merchantPattern?.trim() && !r.isTransfer)
     .map((r) => {
       const { type } = txnToBudgetEntryFields({ amountZAR: r.amountZAR });
       return {

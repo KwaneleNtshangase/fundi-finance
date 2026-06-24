@@ -1,0 +1,10 @@
+{
+  "headerText": "FNB First National Bank Statement",
+  "openingBalance": 10000,
+  "closingBalance": 8500,
+  "lines": [
+    { "y": 200, "items": [{ "x": 40, "text": "2026-05-01" }, { "x": 120, "text": "PICK N PAY" }, { "x": 400, "text": "-150.00" }, { "x": 480, "text": "9850.00" }] },
+    { "y": 220, "items": [{ "x": 40, "text": "2026-05-15" }, { "x": 120, "text": "SALARY" }, { "x": 400, "text": "25000.00" }, { "x": 480, "text": "34850.00" }] },
+    { "y": 240, "items": [{ "x": 40, "text": "2026-05-20" }, { "x": 120, "text": "RENT PAYMENT" }, { "x": 400, "text": "-8500.00" }, { "x": 480, "text": "26350.00" }] }
+  ]
+}

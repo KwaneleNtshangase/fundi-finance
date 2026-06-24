@@ -57,7 +57,9 @@ export function buildReport(
   let totalIncomeCents = 0;
   let totalExpenseCents = 0;
 
-  const periodEntries = entries.filter((e) => inPeriod(e.entry_date, periodStart, periodEnd));
+  const periodEntries = entries.filter(
+    (e) => inPeriod(e.entry_date, periodStart, periodEnd) && !e.is_transfer
+  );
 
   for (const entry of periodEntries) {
     const cents = amountToCents(entry.amount);
@@ -261,7 +263,7 @@ export function sumDbEntriesCents(
   let incomeCents = 0;
   let expenseCents = 0;
   for (const e of entries) {
-    if (!inPeriod(e.entry_date, periodStart, periodEnd)) continue;
+    if (!inPeriod(e.entry_date, periodStart, periodEnd) || e.is_transfer) continue;
     const cents = amountToCents(e.amount);
     if (e.type === "income") incomeCents += cents;
     else expenseCents += cents;
