@@ -6,6 +6,12 @@ import { sastOffset, sastWeekKey } from "@/lib/dates";
 
 type ProgressState = {
   xp: number;
+  /**
+   * Lifetime XP spent (streak freezes, etc.). `xp` above is the spendable
+   * balance; lifetime earned = xp + xpSpent. Tracked so cross-device merges
+   * keep a purchase authoritative without "highest xp wins" refunding it.
+   */
+  xpSpent: number;
   streak: number;
   longestStreak: number;
   lastActivityDate: string | null;
@@ -24,6 +30,7 @@ export type WeeklyCompletionsMap = Record<string, WeeklyCompletionEntry>;
 
 const DEFAULT_STATE: ProgressState = {
   xp: 0,
+  xpSpent: 0,
   streak: 0,
   longestStreak: 0,
   lastActivityDate: null,
@@ -52,6 +59,7 @@ function readProgressCache(userId: string | null): ProgressState | null {
     const p = JSON.parse(raw) as Partial<ProgressState>;
     return {
       xp: Number(p.xp ?? 0),
+      xpSpent: Number(p.xpSpent ?? 0),
       streak: Number(p.streak ?? 0),
       longestStreak: Number(p.longestStreak ?? 0),
       lastActivityDate: p.lastActivityDate ?? null,
@@ -74,6 +82,79 @@ function writeProgressCache(s: ProgressState, userId: string | null): void {
 
 function getCurrentWeekKey(): string {
   return sastWeekKey();
+}
+
+// ── Pending XP delta queue ──────────────────────────────────────────────────────
+// XP is now an additive server-side ledger (xp = xp + delta) so every gain
+// across every device counts. Deltas are NOT idempotent, so an earn whose
+// network write fails must not be silently lost OR blindly retried in a way
+// that loses it. We durably queue unsynced deltas in localStorage and flush
+// the accumulated total exactly once per successful round-trip.
+type PendingXp = { delta: number; weeklyDelta: number; weekKey: string };
+
+function pendingXpKey(userId: string): string {
+  return `fundi-pending-xp-${userId}`;
+}
+
+function readPendingXp(userId: string | null): PendingXp | null {
+  if (typeof window === "undefined" || !userId) return null;
+  try {
+    const raw = localStorage.getItem(pendingXpKey(userId));
+    if (!raw) return null;
+    const p = JSON.parse(raw) as Partial<PendingXp>;
+    const delta = Number(p.delta ?? 0);
+    if (!delta) return null;
+    return { delta, weeklyDelta: Number(p.weeklyDelta ?? 0), weekKey: p.weekKey ?? getCurrentWeekKey() };
+  } catch {
+    return null;
+  }
+}
+
+function enqueuePendingXp(userId: string | null, delta: number, weeklyDelta: number, weekKey: string): void {
+  if (typeof window === "undefined" || !userId || !delta) return;
+  try {
+    const cur = readPendingXp(userId);
+    const next: PendingXp = cur && cur.weekKey === weekKey
+      ? { delta: cur.delta + delta, weeklyDelta: cur.weeklyDelta + weeklyDelta, weekKey }
+      // Week rolled over while a delta was still queued: keep accumulating the
+      // lifetime delta, but track weekly against the most recent week.
+      : { delta: (cur?.delta ?? 0) + delta, weeklyDelta, weekKey };
+    localStorage.setItem(pendingXpKey(userId), JSON.stringify(next));
+  } catch { /* best-effort */ }
+}
+
+function clearPendingXp(userId: string | null): void {
+  if (typeof window === "undefined" || !userId) return;
+  try { localStorage.removeItem(pendingXpKey(userId)); } catch { /* ignore */ }
+}
+
+type ProgressRow = {
+  xp?: number; xp_spent?: number; completed_lessons?: string[];
+  weekly_xp?: number; week_key?: string; longest_streak?: number; streak?: number;
+};
+
+// Flush the queued XP delta to the server. The queue is CLAIMED (read + cleared
+// synchronously) before the network call, so two rapid earns can't both send the
+// same accumulated total and double-count. If the write fails, the claimed delta
+// is re-queued (merged with anything queued meanwhile) for the next attempt.
+// JS is single-threaded, so read-then-clear is atomic with respect to other earns.
+async function flushPendingXp(userId: string): Promise<ProgressRow | null> {
+  const claimed = readPendingXp(userId);
+  if (!claimed) return null;
+  clearPendingXp(userId);
+  const { data, error } = await supabase.rpc("apply_progress_delta", {
+    p_user_id: userId,
+    p_xp_delta: claimed.delta,
+    p_weekly_delta: claimed.weeklyDelta,
+    p_week_key: claimed.weekKey,
+    p_completed_lessons: null,
+    p_longest_streak: null,
+  });
+  if (error) {
+    enqueuePendingXp(userId, claimed.delta, claimed.weeklyDelta, claimed.weekKey);
+    return null;
+  }
+  return (data as ProgressRow) ?? null;
 }
 
 async function streakSyncAuthHeaders(): Promise<HeadersInit> {
@@ -114,40 +195,41 @@ export function useProgress() {
       return;
     }
     (async () => {
+      // 1. Flush any XP earned offline (durable queue) BEFORE reading, so the
+      //    row we read already includes it. Idempotent: cleared on success only.
+      await flushPendingXp(userId).catch(() => null);
+
+      // 2. Union any lessons saved locally but not yet in the DB (failed writes,
+      //    or completed on this device while offline). apply_progress_delta only
+      //    ever adds to the set, so this can heal but never shrink the DB.
+      const cachePre = readProgressCache(userId);
+      if (cachePre && cachePre.completedLessons.length > 0) {
+        await supabase.rpc("apply_progress_delta", {
+          p_user_id: userId,
+          p_xp_delta: 0,
+          p_weekly_delta: 0,
+          p_week_key: null,
+          p_completed_lessons: cachePre.completedLessons,
+          p_longest_streak: cachePre.longestStreak,
+        }).then(() => null, () => null);
+      }
+
+      // 3. Read the now-reconciled authoritative row. The DB is the source of
+      //    truth for XP, weekly XP, and lessons — no client snapshot overwrites.
       const { data } = await supabase
         .from("user_progress")
-        .select("xp,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
+        .select("xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
         .eq("user_id", userId)
         .maybeSingle();
       const wk = getCurrentWeekKey();
-      const dbLessons = (data?.completed_lessons ?? []) as string[];
-
-      // Merge: take the union of DB lessons and any cached lessons.
-      // This recovers lessons that were saved locally but whose DB write failed
-      // (e.g. row didn't exist yet when .update() fired, poor connectivity, etc.)
-      const cache = readProgressCache(userId);
-      const cacheLessons = cache?.completedLessons ?? [];
-      const offlineLessons = cacheLessons.filter((l) => !dbLessons.includes(l));
-      const mergedLessons = offlineLessons.length > 0
-        ? [...dbLessons, ...offlineLessons]
-        : dbLessons;
-
-      // Write any recovered lessons back to Supabase immediately
-      if (offlineLessons.length > 0 && userId) {
-        void supabase
-          .from("user_progress")
-          .upsert(
-            { user_id: userId, completed_lessons: mergedLessons, updated_at: new Date().toISOString() },
-            { onConflict: "user_id" }
-          );
-      }
 
       const fresh: ProgressState = {
-        xp: data?.xp ?? 0,
+        xp: Math.max(0, Number(data?.xp ?? 0)),
+        xpSpent: Math.max(0, Number(data?.xp_spent ?? 0)),
         streak: data?.streak ?? 0,
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
-        completedLessons: mergedLessons,
+        completedLessons: (data?.completed_lessons ?? []) as string[],
         freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
@@ -201,58 +283,71 @@ export function useProgress() {
     if (cached) setState(cached);
   }, [userId]);
 
-  const persist = async (partial: Partial<ProgressState>) => {
-    if (!userId) return;
-    const next = { ...state, ...partial };
-    const payload: Record<string, unknown> = {
-      user_id: userId,
-      xp: next.xp,
-      streak: next.streak,
-      last_activity_date: next.lastActivityDate,
-      completed_lessons: next.completedLessons,
-      streak_freeze_count: next.freezeCount,
-      weekly_xp: next.weeklyXp,
-      week_key: next.weekKey || getCurrentWeekKey(),
-      updated_at: new Date().toISOString(),
-    };
-    await supabase.from("user_progress").upsert(payload, { onConflict: "user_id" });
-  };
-
   const addXP = (amount: number) => {
+    if (!amount) return;
+    const wk = getCurrentWeekKey();
+    // Optimistic local update — pure updater, no side effects (safe if React
+    // double-invokes it under StrictMode). The network write is fired ONCE
+    // below, outside the updater, so a delta is never double-counted.
     setState((prev) => {
-      const wk = getCurrentWeekKey();
       const newXp = Math.max(0, prev.xp + amount);
       const newWeeklyXp = prev.weekKey === wk ? prev.weeklyXp + amount : amount;
       const next = { ...prev, xp: newXp, weeklyXp: newWeeklyXp, weekKey: wk };
-      // Targeted update for only XP columns to avoid race with completeLesson's
-      // targeted update for completed_lessons — never overwrite each other.
-      if (userId) {
-        void supabase
-          .from("user_progress")
-          .upsert(
-            { user_id: userId, xp: newXp, weekly_xp: newWeeklyXp, week_key: wk, updated_at: new Date().toISOString() },
-            { onConflict: "user_id" }
-          );
-      }
       writeProgressCache(next, userId);
       return next;
     });
+    if (!userId) return;
+    // Additive ledger on the server (xp = xp + delta): every gain across every
+    // device accumulates, including repeating a lesson on several devices. The
+    // durable queue means a gain whose write fails is retried, not lost. Other
+    // devices' gains are picked up on the next load (which reads the DB total).
+    enqueuePendingXp(userId, amount, amount, wk);
+    void flushPendingXp(userId);
   };
 
   const tryDeductXp = (amount: number): boolean => {
     if (state.xp < amount) return false;
     const nextXp = Math.max(0, state.xp - amount);
+    // Optimistic local update so the UI is instant. Also bump xpSpent so
+    // earned (= xp + xpSpent) stays constant — this is what stops a later
+    // cross-device merge from refunding the spend.
     setState((prev) => {
-      const next = { ...prev, xp: nextXp };
+      const next = { ...prev, xp: nextXp, xpSpent: prev.xpSpent + amount };
       writeProgressCache(next, userId);
       return next;
     });
-    // Targeted update — only xp, not weekly_xp, to avoid stale overwrites
+    // Authoritative atomic spend on the server. Reconcile from the result;
+    // roll back the optimistic change if the server rejects it (e.g. another
+    // device already spent the balance, or the row doesn't exist yet).
     if (userId) {
-      void supabase
-        .from("user_progress")
-        .update({ xp: nextXp, updated_at: new Date().toISOString() })
-        .eq("user_id", userId);
+      void (async () => {
+        const { data, error } = await supabase.rpc("spend_xp", {
+          p_user_id: userId,
+          p_amount: amount,
+        });
+        const res = data as { ok?: boolean; balance?: number; spent?: number } | null;
+        if (error || !res?.ok) {
+          setState((prev) => {
+            const next = {
+              ...prev,
+              xp: prev.xp + amount,
+              xpSpent: Math.max(0, prev.xpSpent - amount),
+            };
+            writeProgressCache(next, userId);
+            return next;
+          });
+          return;
+        }
+        setState((prev) => {
+          const next = {
+            ...prev,
+            xp: typeof res.balance === "number" ? res.balance : prev.xp,
+            xpSpent: typeof res.spent === "number" ? res.spent : prev.xpSpent,
+          };
+          writeProgressCache(next, userId);
+          return next;
+        });
+      })();
     }
     return true;
   };
@@ -262,17 +357,21 @@ export function useProgress() {
       const nextLessons = prev.completedLessons.includes(id) ? prev.completedLessons : [...prev.completedLessons, id];
       const next = { ...prev, completedLessons: nextLessons };
       writeProgressCache(next, userId);
-      // Use upsert (not update) so that if the row doesn't exist yet — e.g. the
-      // sync-streak call that creates it hasn't landed yet — the lesson is still
-      // persisted. Only completed_lessons + updated_at are specified so no other
-      // column (xp, streak, weekly_xp) gets touched or reset.
+      // Server-side UNION via apply_progress_delta. This is the core cross-device
+      // fix: instead of overwriting completed_lessons with this device's array
+      // (which dropped lessons completed on another device), the DB unions them
+      // so the set only ever grows. xp_delta 0 leaves XP untouched. Union is
+      // idempotent, so this is safe even if the updater is re-invoked. Creates
+      // the row if it doesn't exist yet.
       if (userId) {
-        void supabase
-          .from("user_progress")
-          .upsert(
-            { user_id: userId, completed_lessons: nextLessons, updated_at: new Date().toISOString() },
-            { onConflict: "user_id" }
-          );
+        void supabase.rpc("apply_progress_delta", {
+          p_user_id: userId,
+          p_xp_delta: 0,
+          p_weekly_delta: 0,
+          p_week_key: null,
+          p_completed_lessons: nextLessons,
+          p_longest_streak: null,
+        });
       }
       return next;
     });
@@ -390,6 +489,7 @@ export function useProgress() {
       {
         user_id: userId,
         xp: 0,
+        xp_spent: 0,
         streak: 0,
         last_activity_date: null,
         completed_lessons: [],
