@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
+import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import {
   LineChart,
@@ -174,6 +175,12 @@ export function BudgetView() {
   const [savingCustomCat, setSavingCustomCat] = useState(false);
   const [benchmarks, setBenchmarks] = useState<Record<string, number>>({});
   const [userGoalLabel, setUserGoalLabel] = useState<string | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [exportPreset, setExportPreset] = useState<PeriodPreset>("this_month");
+  const [exportCustomStart, setExportCustomStart] = useState(() => monthAlignedDefaults().periodStart);
+  const [exportCustomEnd, setExportCustomEnd] = useState(() => monthAlignedDefaults().periodEnd);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   // Read the user's onboarding goal from localStorage to show as header context
   useEffect(() => {
@@ -455,6 +462,66 @@ export function BudgetView() {
     setEditSaving(false); setEditEntry(null);
   };
 
+  const openExportModal = () => {
+    const defaults = monthAlignedDefaults();
+    setExportPreset("this_month");
+    setExportCustomStart(defaults.periodStart);
+    setExportCustomEnd(defaults.periodEnd);
+    setExportError(null);
+    setShowExportModal(true);
+  };
+
+  const handleExportReport = async () => {
+    setExportLoading(true);
+    setExportError(null);
+    try {
+      const { periodStart, periodEnd } =
+        exportPreset === "custom"
+          ? resolvePeriod("custom", {
+              periodStart: exportCustomStart,
+              periodEnd: exportCustomEnd,
+            })
+          : resolvePeriod(exportPreset);
+
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) {
+        setExportError("Please sign in to export a report.");
+        return;
+      }
+
+      const res = await fetch(`${window.location.origin}/api/budget/report`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ periodStart, periodEnd }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        setExportError((err as { error?: string }).error ?? "Failed to generate report.");
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      setShowExportModal(false);
+    } catch {
+      setExportError("Failed to generate report. Please try again.");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   const income = entries.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
   const expenses = entries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
   const surplus = income - expenses;
@@ -500,6 +567,25 @@ export function BudgetView() {
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
           <BudgetImportPanel onImported={loadEntries} />
+          <button
+            type="button"
+            onClick={openExportModal}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              background: "var(--color-surface)",
+              color: "var(--color-primary)",
+              border: "1px solid var(--color-border)",
+              borderRadius: 10,
+              padding: "8px 12px",
+              fontWeight: 700,
+              fontSize: 13,
+              cursor: "pointer",
+            }}
+          >
+            <FileText size={15} aria-hidden /> Export report
+          </button>
           <div style={{ display: "flex", borderRadius: 10, border: "1px solid var(--color-border)", overflow: "hidden" }}>
             {(["month", "year"] as const).map((v) => (
               <button key={v} type="button" onClick={() => setViewMode(v)}
@@ -874,6 +960,83 @@ export function BudgetView() {
         </>
       )}
       </>)}
+
+      {/* Export Report Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
+          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>Export Budget Report</h3>
+              <button type="button" onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
+                <X size={20} style={{ color: "var(--color-text-secondary)" }} />
+              </button>
+            </div>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
+              Download a PDF summary of your budget vs actual spending for a chosen period.
+            </p>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Period</div>
+              <select
+                value={exportPreset}
+                onChange={(e) => setExportPreset(e.target.value as PeriodPreset)}
+                style={{
+                  width: "100%",
+                  padding: "12px 14px",
+                  borderRadius: 10,
+                  border: "1px solid var(--color-border)",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  background: "var(--color-bg)",
+                  color: "var(--color-text-primary)",
+                }}
+              >
+                <option value="this_month">This month (to date)</option>
+                <option value="last_month">Last month</option>
+                <option value="quarter">This quarter (to date)</option>
+                <option value="year">This year (to date)</option>
+                <option value="custom">Custom range</option>
+              </select>
+            </div>
+            {exportPreset === "custom" && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>From</div>
+                  <input
+                    type="date"
+                    value={exportCustomStart}
+                    onChange={(e) => setExportCustomStart(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+                  />
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>To</div>
+                  <input
+                    type="date"
+                    value={exportCustomEnd}
+                    onChange={(e) => setExportCustomEnd(e.target.value)}
+                    style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }}
+                  />
+                </div>
+              </div>
+            )}
+            {exportError && (
+              <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 10, background: "rgba(224,60,49,0.1)", color: "#E03C31", fontSize: 13, fontWeight: 600 }}>
+                {exportError}
+              </div>
+            )}
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ width: "100%", padding: 14, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+              disabled={exportLoading}
+              onClick={handleExportReport}
+            >
+              <FileText size={16} aria-hidden />
+              {exportLoading ? "Generating PDF…" : "Download PDF"}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Set Budget Targets Modal */}
       {showSetBudget && (
