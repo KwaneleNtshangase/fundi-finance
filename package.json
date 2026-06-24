@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "playwright test",
+    "test:unit": "vitest run",
     "test:calc": "node scripts/calculator-self-check.js",
     "test:ui": "playwright test --ui",
     "test:smoke": "playwright test --project='Desktop Chrome' e2e/01-auth.spec.ts e2e/02-lesson-flow.spec.ts",
@@ -15,10 +16,12 @@
     "test:health": "node scripts/health-check.js"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "@supabase/supabase-js": "^2.99.2",
     "canvas-confetti": "^1.9.4",
     "lucide-react": "^0.577.0",
     "next": "16.1.6",
+    "papaparse": "^5.5.4",
     "posthog-js": "^1.364.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -29,11 +32,14 @@
     "@tailwindcss/postcss": "^4",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.3",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.9"
   }
 }

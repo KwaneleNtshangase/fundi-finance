@@ -4,6 +4,10 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday, sastSundayDate, sastWeekKey } from "@/lib/dates";
+import {
+  computeLessonXpAward,
+  replayXpStorageKey,
+} from "@/lib/lessonXp";
 import { CONTENT_DATA } from "@/data/content";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
@@ -356,26 +360,41 @@ export function useFundiState() {
     courseId: string,
     lessonId: string,
     xpEarned: number
-  ): Promise<number> => {
+  ): Promise<{ streak: number; xpAwarded: number }> => {
     const lessonKey = `${courseId}:${lessonId}`;
     const alreadyDone = progress.completedLessons.has(lessonKey);
     if (!alreadyDone) {
       progress.completeLesson(lessonKey);
     }
-    const newStreak = alreadyDone
-      ? progress.streak
-      : await progress.applyStreakAfterLesson();
-    if (!alreadyDone) {
-      analytics.streakUpdated(newStreak);
-      addXP(xpEarned);
-      if (progress.userId) {
-        void supabase
-          .from("user_progress")
-          .update({ last_lesson_at: new Date().toISOString() })
-          .eq("user_id", progress.userId);
+
+    const today = sastToday();
+    const replayKey = replayXpStorageKey(progress.userId, lessonKey, today);
+    const replayClaimedToday =
+      typeof window !== "undefined" && Boolean(localStorage.getItem(replayKey));
+
+    const xpAwarded = computeLessonXpAward(xpEarned, alreadyDone, replayClaimedToday);
+
+    const newStreak = await progress.applyStreakAfterLesson();
+
+    if (xpAwarded > 0) {
+      addXP(xpAwarded);
+      if (alreadyDone && typeof window !== "undefined") {
+        localStorage.setItem(replayKey, "1");
       }
     }
-    return newStreak;
+
+    if (!alreadyDone) {
+      analytics.streakUpdated(newStreak);
+    }
+
+    if (progress.userId) {
+      void supabase
+        .from("user_progress")
+        .update({ last_lesson_at: new Date().toISOString() })
+        .eq("user_id", progress.userId);
+    }
+
+    return { streak: newStreak, xpAwarded };
   };
 
   const isLessonCompleted = (courseId: string, lessonId: string) =>

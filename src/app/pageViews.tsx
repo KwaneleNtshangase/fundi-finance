@@ -3607,30 +3607,28 @@ export default function Home() {
 
     const lessonTitleDone =
       getLessonTitle(currentLessonState.courseId, currentLessonState.lessonId) ?? "";
-    analytics.lessonCompleted(
-      currentLessonState.courseId,
-      currentLessonState.lessonId,
-      lessonTitleDone,
-      {
-        xpEarned: totalXP,
-        isPerfect,
-        timeSeconds: Math.round((Date.now() - lessonStartTimeRef.current) / 1000),
-        heartLost: lessonHeartLostRef.current,
-      }
-    );
-
     const alreadyCompleted = isLessonCompleted(
       currentLessonState.courseId,
       currentLessonState.lessonId
     );
 
-    const streakAfterLesson = alreadyCompleted
-      ? userData.streak
-      : await completeLesson(
-          currentLessonState.courseId,
-          currentLessonState.lessonId,
-          totalXP
-        );
+    const { streak: streakAfterLesson, xpAwarded } = await completeLesson(
+      currentLessonState.courseId,
+      currentLessonState.lessonId,
+      totalXP
+    );
+
+    analytics.lessonCompleted(
+      currentLessonState.courseId,
+      currentLessonState.lessonId,
+      lessonTitleDone,
+      {
+        xpEarned: xpAwarded,
+        isPerfect,
+        timeSeconds: Math.round((Date.now() - lessonStartTimeRef.current) / 1000),
+        heartLost: lessonHeartLostRef.current,
+      }
+    );
 
     if (typeof window !== "undefined") {
       localStorage.removeItem("fundi-lesson-progress");
@@ -3644,7 +3642,7 @@ export default function Home() {
           ? Math.min(100, Math.round((currentLessonState.correctCount / totalQuestions) * 100))
           : 0;
       setLessonSummary({
-        xpEarned: 0,
+        xpEarned: xpAwarded,
         timeSeconds: elapsedSeconds,
         accuracy,
         streak: streakAfterLesson,
@@ -3737,7 +3735,7 @@ export default function Home() {
         }
       });
     }
-    bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: totalXP, isPerfect, courseId: currentLessonState.courseId ?? undefined });
+    bumpWeeklyChallengeProgress(weeklyChallenge, { xpEarned: xpAwarded, isPerfect, courseId: currentLessonState.courseId ?? undefined });
 
     playSound("complete");
 
@@ -3898,7 +3896,7 @@ export default function Home() {
       };
     }
     setLessonSummary({
-      xpEarned: totalXP,
+      xpEarned: xpAwarded,
       timeSeconds: elapsedSeconds,
       accuracy,
       streak: str,

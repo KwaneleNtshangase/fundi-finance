@@ -55,6 +55,7 @@ import {
   Zap,
 } from "lucide-react";
 import { formatRand } from "@/lib/viewHelpers";
+import { BudgetImportPanel } from "@/components/BudgetImportPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -498,6 +499,7 @@ export function BudgetView() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: userGoalLabel ? 8 : 16 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
         <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <BudgetImportPanel onImported={loadEntries} />
           <div style={{ display: "flex", borderRadius: 10, border: "1px solid var(--color-border)", overflow: "hidden" }}>
             {(["month", "year"] as const).map((v) => (
               <button key={v} type="button" onClick={() => setViewMode(v)}
