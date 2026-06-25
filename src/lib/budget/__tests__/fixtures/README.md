@@ -12,6 +12,7 @@ Files like `fnb-sample.csv` are **hand-built** to match each bank's known CSV he
 | `nedbank-sample.csv` | Nedbank | Synthetic — needs real anonymised validation |
 | `absa-sample.csv` | Absa | Synthetic — needs real anonymised validation |
 | `pdf-*.layout.json` | PDF layouts | Synthetic positioned-text fixtures for Capitec, FNB, Standard Bank, generic — **not validated against real PDF exports** |
+| `fnb-sample.pdf` | FNB | Synthetic anonymised PDF — used by `pdf.integration.test.ts` (real unpdf extraction, no mocks) |
 
 ## Before marking a bank parser "done"
 

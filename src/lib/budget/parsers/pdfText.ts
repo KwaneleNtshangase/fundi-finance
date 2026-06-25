@@ -1,3 +1,4 @@
+import { getDocumentProxy, getResolvedPDFJS } from "unpdf";
 import type { PositionedItem, TextLine } from "./pdfLayout";
 
 export type PdfExtractResult =
@@ -6,66 +7,33 @@ export type PdfExtractResult =
   | { ok: false; kind: "scanned" }
   | { ok: false; kind: "error"; message: string };
 
-type PdfJsModule = {
-  getDocument: (params: {
-    data: Uint8Array;
-    password?: string;
-    useSystemFonts?: boolean;
-    disableFontFace?: boolean;
-  }) => { promise: Promise<PdfDocument> };
-  PasswordResponses: { NEED_PASSWORD: number; INCORRECT_PASSWORD: number };
+type TextContentItem = {
+  str?: string;
+  transform?: number[];
 };
 
-type PdfDocument = {
-  numPages: number;
-  getPage: (n: number) => Promise<PdfPage>;
-};
-
-type PdfPage = {
-  getTextContent: () => Promise<{ items: PdfTextItem[] }>;
-};
-
-type PdfTextItem = {
-  str: string;
-  transform: number[];
-};
-
-let pdfjsModule: PdfJsModule | null = null;
-
-async function loadPdfJs(): Promise<PdfJsModule> {
-  if (!pdfjsModule) {
-    pdfjsModule = (await import("pdfjs-dist/build/pdf.mjs")) as unknown as PdfJsModule;
+async function mapPasswordError(err: unknown): Promise<PdfExtractResult | null> {
+  const e = err as { name?: string; code?: number };
+  if (e.name !== "PasswordException") return null;
+  const pdfjs = await getResolvedPDFJS();
+  if (e.code === pdfjs.PasswordResponses.NEED_PASSWORD) {
+    return { ok: false, kind: "needsPassword" };
   }
-  return pdfjsModule;
+  return { ok: false, kind: "error", message: "Incorrect PDF password." };
 }
 
-/** Extract positioned text from a PDF buffer (in memory only). */
+/** Extract positioned text from a PDF buffer (in memory only; unpdf serverless build — no worker file). */
 export async function extractPdfText(
   buffer: Uint8Array,
   password?: string
 ): Promise<PdfExtractResult> {
   try {
-    const pdfjs = await loadPdfJs();
-    const loadingTask = pdfjs.getDocument({
-      data: buffer,
+    const data = new Uint8Array(buffer);
+    const pdf = await getDocumentProxy(data, {
       password: password ?? "",
       useSystemFonts: true,
       disableFontFace: true,
     });
-
-    let pdf: PdfDocument;
-    try {
-      pdf = await loadingTask.promise;
-    } catch (err: unknown) {
-      const e = err as { name?: string; code?: number };
-      if (e.name === "PasswordException") {
-        if (e.code === pdfjs.PasswordResponses.NEED_PASSWORD) {
-          return { ok: false, kind: "needsPassword" };
-        }
-        return { ok: false, kind: "error", message: "Incorrect PDF password." };
-      }
-      throw err;
-    }
 
     const items: PositionedItem[] = [];
     const textParts: string[] = [];
@@ -73,11 +41,11 @@ export async function extractPdfText(
     for (let p = 1; p <= pdf.numPages; p++) {
       const page = await pdf.getPage(p);
       const content = await page.getTextContent();
-      for (const item of content.items) {
-        const t = item.str?.trim();
+      for (const raw of content.items as TextContentItem[]) {
+        const t = raw.str?.trim();
         if (!t) continue;
-        const x = item.transform[4] ?? 0;
-        const y = item.transform[5] ?? 0;
+        const x = raw.transform?.[4] ?? 0;
+        const y = raw.transform?.[5] ?? 0;
         items.push({ text: t, x, y, page: p });
         textParts.push(t);
       }
@@ -90,6 +58,8 @@ export async function extractPdfText(
 
     return { ok: true, items, fullText, pageCount: pdf.numPages };
   } catch (err) {
+    const passwordResult = await mapPasswordError(err);
+    if (passwordResult) return passwordResult;
     return {
       ok: false,
       kind: "error",

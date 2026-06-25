@@ -67,6 +67,29 @@ const INCOME_CATS = [
   { id: "other-income", label: "Other Income" },
 ];
 
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+const ACCEPTED_EXT = [".csv", ".ofx", ".qfx", ".pdf"];
+
+function isAcceptedFile(file: File): boolean {
+  const lower = file.name.toLowerCase();
+  return ACCEPTED_EXT.some((ext) => lower.endsWith(ext));
+}
+
+function validateIncomingFiles(incoming: File[]): { files: File[] } | { error: string } {
+  if (incoming.length === 0) {
+    return { error: "No files selected." };
+  }
+  const rejected = incoming.filter((f) => !isAcceptedFile(f));
+  if (rejected.length > 0) {
+    return { error: `Unsupported file type: ${rejected.map((f) => f.name).join(", ")}. Use CSV, OFX, or PDF.` };
+  }
+  const tooLarge = incoming.filter((f) => f.size > MAX_FILE_BYTES);
+  if (tooLarge.length > 0) {
+    return { error: `File too large (max 5 MB): ${tooLarge.map((f) => f.name).join(", ")}` };
+  }
+  return { files: incoming };
+}
+
 export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
   const [open, setOpen] = useState(false);
   const [consent, setConsent] = useState(false);
@@ -79,6 +102,53 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
   const [pdfPassword, setPdfPassword] = useState("");
   const [needsPasswordFile, setNeedsPasswordFile] = useState<string | null>(null);
   const [confirmedTransfers, setConfirmedTransfers] = useState<Set<string>>(new Set());
+  const [dragActive, setDragActive] = useState(false);
+
+  const applyValidatedFiles = (incoming: File[]) => {
+    const validated = validateIncomingFiles(incoming);
+    if ("error" in validated) {
+      setError(validated.error);
+      return;
+    }
+    setError(null);
+    setFiles(validated.files);
+    setNeedsPasswordFile(null);
+    setPdfPassword("");
+  };
+
+  const handleFileInputChange = (fileList: FileList | null) => {
+    if (!fileList?.length) return;
+    applyValidatedFiles(Array.from(fileList));
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragActive) setDragActive(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.currentTarget === e.target) setDragActive(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (!consent) {
+      setError("Please accept the consent checkbox before uploading files.");
+      return;
+    }
+    applyValidatedFiles(Array.from(e.dataTransfer.files));
+  };
 
   const transferPairs = useMemo(() => detectTransferPairs(rows), [rows]);
 
@@ -356,27 +426,65 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
         {rows.length === 0 ? (
           <>
-            <label style={{
-              display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
-              padding: 24, border: "2px dashed var(--color-border)", borderRadius: 12, cursor: "pointer", marginBottom: 16,
-            }}>
-              <FileUp size={32} style={{ color: "var(--color-text-secondary)" }} />
-              <span style={{ fontWeight: 600 }}>
-                {files.length > 0
-                  ? `${files.length} file${files.length > 1 ? "s" : ""} selected`
-                  : "Choose CSV, OFX, or PDF files"}
-              </span>
-              <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
-                Multiple files OK · Max 5 MB each
-              </span>
+            <div
+              role="button"
+              tabIndex={0}
+              onDragEnter={handleDragEnter}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  document.getElementById("budget-import-file-input")?.click();
+                }
+              }}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 8,
+                padding: 24,
+                border: `2px dashed ${dragActive ? "var(--color-primary)" : "var(--color-border)"}`,
+                borderRadius: 12,
+                cursor: "pointer",
+                marginBottom: 16,
+                background: dragActive ? "rgba(0,122,77,0.08)" : "transparent",
+                transition: "border-color 0.15s ease, background 0.15s ease",
+              }}
+            >
+              <label
+                htmlFor="budget-import-file-input"
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                <FileUp size={32} style={{ color: dragActive ? "var(--color-primary)" : "var(--color-text-secondary)" }} />
+                <span style={{ fontWeight: 600 }}>
+                  {dragActive
+                    ? "Drop files here"
+                    : files.length > 0
+                      ? `${files.length} file${files.length > 1 ? "s" : ""} selected`
+                      : "Choose or drop CSV, OFX, or PDF files"}
+                </span>
+                <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                  Multiple files OK · Max 5 MB each
+                </span>
+              </label>
               <input
+                id="budget-import-file-input"
                 type="file"
                 accept=".csv,.ofx,.qfx,.pdf"
                 multiple
                 style={{ display: "none" }}
-                onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
+                onChange={(e) => handleFileInputChange(e.target.files)}
               />
-            </label>
+            </div>
 
             {needsPasswordFile && (
               <div style={{ marginBottom: 16 }}>
