@@ -2,6 +2,7 @@ import type { NormalizedTxn, ParsePdfResult } from "../types";
 import { reconcileBalanceChain, reconcileTransactions } from "../reconciliation";
 import { extractPdfText } from "./pdfText";
 import { groupItemsIntoLines } from "./pdfLayout";
+import { extractContextYear } from "./pdfDates";
 import {
   accountLabelFromBank,
   detectBankFromText,
@@ -36,8 +37,7 @@ export async function parsePdfStatement(
   const generic = parseGenericPdfLayout(items, fullText);
   const lines = groupItemsIntoLines(items);
   const bankId = generic.bankHint;
-  const contextYearMatch = fullText.match(/\b(20\d{2})\b/);
-  const contextYear = contextYearMatch ? +contextYearMatch[1] : undefined;
+  const contextYear = extractContextYear(fullText, bankId);
 
   let rows = generic.rows;
   if (bankId && BANK_TEMPLATES.some((t) => t.id === bankId)) {
@@ -63,7 +63,7 @@ export async function parsePdfStatement(
   const lowConfidence = !hasBalanceMeta;
 
   let reconciliation =
-    bankId === "capitec" &&
+    (bankId === "capitec" || bankId === "fnb") &&
     generic.balances.openingBalance !== undefined &&
     generic.balances.closingBalance !== undefined
       ? reconcileBalanceChain(

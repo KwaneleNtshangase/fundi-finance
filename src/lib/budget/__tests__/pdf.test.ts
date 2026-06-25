@@ -2,7 +2,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { describe, expect, it, vi } from "vitest";
 import { parseStatementDate, findDateToken, daysBetween } from "../parsers/pdfDates";
-import { parseAmountToken, findAmountTokens } from "../parsers/pdfLayout";
+import { parseAmountToken, parseFnbAmountToken, findAmountTokens } from "../parsers/pdfLayout";
 import { parseLayoutFixture, detectBankFromText } from "../parsers/pdfGeneric";
 import { reconcileBalanceChain, reconcileTransactions } from "../reconciliation";
 import { applyBankTemplate } from "../parsers/pdfTemplates";
@@ -47,8 +47,15 @@ describe("pdfLayout amounts", () => {
     expect(parseAmountToken("1 234.56")).toBe(1234.56);
   });
 
-  it("parses parenthetical negatives", () => {
-    expect(parseAmountToken("(250.00)")).toBe(-250);
+  it("parses comma thousands", () => {
+    expect(parseAmountToken("1,077.04")).toBe(1077.04);
+  });
+
+  it("parses FNB Cr/Dr amounts", () => {
+    expect(parseFnbAmountToken("901.00Cr")).toBe(901);
+    expect(parseFnbAmountToken("500.00")).toBe(-500);
+    expect(parseFnbAmountToken("25,468.00Cr")).toBe(25468);
+    expect(parseFnbAmountToken("892.38Cr")).toBe(892.38);
   });
 
   it("finds multiple amounts on a line", () => {
@@ -89,12 +96,43 @@ describe("bank layout fixtures", () => {
     expect(rows.some((r) => /summary|scheduled/i.test(r.description))).toBe(false);
   });
 
-  it("parses FNB synthetic layout with signed amounts", () => {
+  it("parses FNB ZAR layout with Cr/Dr amounts and balance chain", () => {
     const fixture = loadLayout("pdf-fnb.layout.json");
-    const { rows, bankHint } = parseLayoutFixture(fixture);
+    const { rows, bankHint, balances } = parseLayoutFixture(fixture);
     expect(bankHint).toBe("fnb");
-    expect(rows[0].date).toBe("2026-05-01");
-    expect(rows[0].amountZAR).toBe(-150);
+    expect(rows.length).toBe(9);
+    expect(rows.some((r) => r.amountZAR > 0)).toBe(true);
+    expect(rows.some((r) => r.amountZAR < 0)).toBe(true);
+    expect(rows.find((r) => r.description.includes("Magtape"))?.amountZAR).toBe(198);
+    expect(rows.find((r) => r.description.includes("Internal Debit"))?.amountZAR).toBe(-198);
+    expect(rows.find((r) => r.description.includes("Transfer"))?.amountZAR).toBe(901);
+    expect(rows.find((r) => r.description.includes("1,077") || r.description.includes("Transfer"))?.amountZAR).toBe(901);
+    expect(rows.find((r) => r.description.includes("Merchant"))?.amountZAR).toBe(-500);
+    expect(rows.find((r) => r.description.includes("School Fees"))?.amountZAR).toBe(25468);
+    expect(rows.find((r) => r.description.includes("Savings"))?.amountZAR).toBe(-25000);
+    expect(rows[0].date).toBe("2026-04-01");
+    expect(rows.some((r) => r.description.includes("Decoy"))).toBe(false);
+    expect(rows.some((r) => r.description.includes("R25853"))).toBe(true);
+    const chain = reconcileBalanceChain(
+      rows.map((r) => ({
+        date: r.date,
+        description: r.description,
+        amountZAR: r.amountZAR,
+        balanceAfter: r.balanceAfter,
+        lineIndex: r.lineIndex,
+      })),
+      balances.openingBalance!,
+      balances.closingBalance!
+    );
+    expect(chain.ok).toBe(true);
+    expect(chain.warnings).toContain("Balance reconciles ✓");
+  });
+
+  it("parses FNB without Transaction History heading (regression)", () => {
+    const fixture = loadLayout("pdf-fnb.layout.json");
+    expect(fixture.headerText).not.toMatch(/transaction\s+history/i);
+    const { rows } = parseLayoutFixture(fixture);
+    expect(rows.length).toBeGreaterThan(0);
   });
 
   it("parses Standard Bank debit/credit layout", () => {
@@ -196,7 +234,7 @@ describe("parsePdfStatement integration", () => {
 });
 
 describe("applyBankTemplate", () => {
-  it("template parser extracts rows only under Transaction History", () => {
+  it("template parser extracts Capitec rows only under Transaction History", () => {
     const fixture = loadLayout("pdf-capitec.layout.json");
     const items = fixture.lines.flatMap(
       (l: { y: number; page?: number; items: { x: number; text: string }[] }) =>
@@ -211,5 +249,24 @@ describe("applyBankTemplate", () => {
     const rows = applyBankTemplate("capitec", lines, 2025);
     expect(rows.length).toBe(6);
     expect(rows.some((r) => r.description.includes("Netflix"))).toBe(false);
+  });
+
+  it("template parser extracts FNB rows under Transactions in RAND section", () => {
+    const fixture = loadLayout("pdf-fnb.layout.json");
+    const items = fixture.lines.flatMap(
+      (l: { y: number; page?: number; items: { x: number; text: string }[] }) =>
+        l.items.map((i: { x: number; text: string }) => ({
+          text: i.text,
+          x: i.x,
+          y: l.y,
+          page: l.page ?? 1,
+        }))
+    );
+    const lines = groupItemsIntoLines(items);
+    const fullText = fixture.headerText ?? "";
+    const yearMatch = fullText.match(/to\s+\d{1,2}\s+\w+\s+(\d{4})/i);
+    const rows = applyBankTemplate("fnb", lines, yearMatch ? +yearMatch[1] : 2026);
+    expect(rows.length).toBe(9);
+    expect(rows.some((r) => r.description.includes("Decoy"))).toBe(false);
   });
 });

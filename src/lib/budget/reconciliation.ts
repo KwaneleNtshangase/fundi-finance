@@ -57,7 +57,7 @@ export function reconcileBalanceChain(
     }
   } else if (ok && rows.length === 0) {
     ok = false;
-    warnings.push("No transactions parsed under Transaction History.");
+    warnings.push("No transactions parsed in the statement transaction section.");
   }
 
   if (ok) {

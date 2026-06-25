@@ -3,7 +3,10 @@ import {
   amountFromBucket,
   bucketItemsToColumns,
   dateTokenInColumn,
+  fnbAmountFromBucket,
+  fnbBalanceFromBucket,
   parseAmountToken,
+  parseFnbAmountToken,
   textFromBucket,
   type ColumnLayout,
   type ColumnRange,
@@ -20,11 +23,33 @@ export type BankTemplate = {
 export const BANK_TEMPLATES: BankTemplate[] = [
   { id: "capitec", detect: /capitec/i, dateFormat: "dmy" },
   { id: "standard-bank", detect: /standard\s+bank|std\s+bank/i, dateFormat: "dmy" },
-  { id: "fnb", detect: /\bfnb\b|first\s+national\s+bank/i, dateFormat: "dmy" },
+  { id: "fnb", detect: /\bfnb\b|first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/i, dateFormat: "dMon" },
 ];
 
 const CAPITEC_HEADER_RE =
   /date.*description.*category.*money\s+in.*money\s+out.*fee.*balance/i;
+
+const FNB_HEADER_RE = /\bdate\b.*\bdescription\b.*\bamount\b.*\bbalance\b/i;
+const FNB_TRANSACTIONS_SECTION = /transactions\s+in\s+rand\s*\(zar\)/i;
+const FNB_SECTION_END = /closing\s+balance|turnover\s+for\s+statement\s+period/i;
+const FNB_FOOTER =
+  /please\s+contact\s+us|first\s+national\s+bank|page\s+\d+\s+of\s+\d+/i;
+
+/** Bank-agnostic transaction-table header (Date + Balance + amount columns). */
+export function detectTransactionTableHeader(
+  line: TextLine,
+  bankId?: string
+): ColumnLayout | null {
+  if (bankId === "capitec" || !bankId) {
+    const capitec = detectCapitecColumns(line);
+    if (capitec) return capitec;
+  }
+  if (bankId === "fnb" || !bankId) {
+    const fnb = detectFnbColumns(line);
+    if (fnb) return fnb;
+  }
+  return null;
+}
 
 const FOOTER_LINE = /unique\s+document\s+no\.|page\s+\d+\s+of\s+\d+/i;
 const TRANSACTION_HISTORY_TITLE = /transaction\s+history/i;
@@ -71,6 +96,26 @@ export function detectCapitecColumns(line: TextLine): ColumnLayout | null {
 
   if (!layout.date || !layout.balance) return null;
   return layout;
+}
+
+/** Detect FNB column x-positions from Date Description Amount Balance header. */
+export function detectFnbColumns(line: TextLine): ColumnLayout | null {
+  const normalized = line.text.replace(/\s+/g, " ");
+  if (!FNB_HEADER_RE.test(normalized)) return null;
+  if (/money\s+in|money\s+out|category/i.test(normalized)) return null;
+
+  const findCol = (label: RegExp, fallbackX: number, tolerance = 35): ColumnRange => {
+    const item = line.items.find((i) => label.test(i.text.replace(/\*/g, "")));
+    return item ? colRange(item.x, tolerance) : colRange(fallbackX, tolerance);
+  };
+
+  return {
+    date: findCol(/^date$/i, 25, 25),
+    description: findCol(/^description$/i, 200, 150),
+    amount: findCol(/^amount$/i, 462, 35),
+    balance: findCol(/^balance$/i, 525, 35),
+    accruedCharges: colRange(565, 30),
+  };
 }
 
 function descriptionFromBuckets(
@@ -236,6 +281,127 @@ export function parseCapitecLayout(
   return { rows, columns, balanceChainOk };
 }
 
+export type FnbParseResult = {
+  rows: ParsedRow[];
+  columns: ColumnLayout | null;
+  balanceChainOk: boolean;
+};
+
+function isFnbExcludedLine(line: TextLine): boolean {
+  if (FNB_FOOTER.test(line.text)) return true;
+  if (FNB_SECTION_END.test(line.text)) return true;
+  if (/^opening\s+balance/i.test(line.text)) return true;
+  return false;
+}
+
+function fnbDescriptionFromLine(
+  line: TextLine,
+  columns: ColumnLayout,
+  dateToken: string
+): string {
+  const dateX = columns.date?.x ?? 25;
+  const amountX = columns.amount?.x ?? 462;
+  const descItems = line.items.filter(
+    (item) =>
+      item.text !== dateToken &&
+      item.x > dateX + 10 &&
+      item.x < amountX - 15 &&
+      parseFnbAmountToken(item.text) === null
+  );
+  return descItems
+    .map((i) => i.text)
+    .join(" ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** FNB-specific parser — single Amount column with Cr/Dr suffix. */
+export function parseFnbLayout(
+  lines: TextLine[],
+  contextYear?: number
+): FnbParseResult {
+  let columns: ColumnLayout | null = null;
+  const rows: ParsedRow[] = [];
+  let previousDate: string | undefined;
+  let seenTransactionsSection = false;
+  let inTransactionTable = false;
+  let prevBalance: number | undefined;
+  let balanceChainOk = true;
+  let lastMainRowIndex = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (FNB_TRANSACTIONS_SECTION.test(line.text)) {
+      seenTransactionsSection = true;
+      inTransactionTable = false;
+      continue;
+    }
+
+    const headerCols = detectFnbColumns(line);
+    if (headerCols) {
+      if (seenTransactionsSection) {
+        columns = headerCols;
+        inTransactionTable = true;
+      }
+      continue;
+    }
+
+    if (isFnbExcludedLine(line)) {
+      inTransactionTable = false;
+      continue;
+    }
+
+    if (!inTransactionTable || !columns) continue;
+
+    const dateToken = dateTokenInColumn(line, columns.date);
+    const buckets = bucketItemsToColumns(line, columns);
+    const balanceAfter = fnbBalanceFromBucket(buckets, "balance");
+
+    if (!dateToken) {
+      if (lastMainRowIndex >= 0 && balanceAfter === null) {
+        const extra = fnbDescriptionFromLine(line, columns, "");
+        if (extra) {
+          const last = rows[lastMainRowIndex];
+          last.description = `${last.description} ${extra}`.replace(/\s+/g, " ").trim();
+        }
+      }
+      continue;
+    }
+
+    if (balanceAfter === null) continue;
+
+    const iso = parseStatementDate(dateToken, contextYear, previousDate);
+    if (!iso) continue;
+
+    const amountZAR = fnbAmountFromBucket(buckets, "amount");
+    if (amountZAR === null || Math.abs(amountZAR) < 0.01) continue;
+
+    const desc = fnbDescriptionFromLine(line, columns, dateToken) || "Transaction";
+
+    if (prevBalance !== undefined) {
+      const expected = amountToCents(prevBalance) + amountToCents(amountZAR);
+      if (Math.abs(expected - amountToCents(balanceAfter)) > 1) {
+        balanceChainOk = false;
+      }
+    }
+
+    rows.push({
+      date: iso,
+      description: desc,
+      amountZAR,
+      balanceAfter,
+      lineIndex: i,
+      needsReview: !desc || desc === "Transaction",
+    });
+    lastMainRowIndex = rows.length - 1;
+    prevBalance = balanceAfter;
+    previousDate = iso;
+  }
+
+  return { rows, columns, balanceChainOk };
+}
+
 function amountToCents(n: number): number {
   return Math.round(n * 100);
 }
@@ -255,6 +421,9 @@ export function applyBankTemplate(
 ): ParsedRow[] {
   if (bankId === "capitec") {
     return parseCapitecLayout(lines, contextYear).rows;
+  }
+  if (bankId === "fnb") {
+    return parseFnbLayout(lines, contextYear).rows;
   }
 
   const rows: ParsedRow[] = [];
@@ -333,7 +502,7 @@ export function mergeTemplateRows(
   templateRows: ParsedRow[],
   bankId: string
 ): ParsedRow[] {
-  if (bankId === "capitec" && templateRows.length > 0) {
+  if ((bankId === "capitec" || bankId === "fnb") && templateRows.length > 0) {
     return templateRows.map((r) => ({ ...r, needsReview: r.needsReview ?? false }));
   }
   if (templateRows.length >= genericRows.length * 0.7) {

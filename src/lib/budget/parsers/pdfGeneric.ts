@@ -1,4 +1,4 @@
-import { findDateToken, parseStatementDate } from "./pdfDates";
+import { findDateToken, parseStatementDate, extractContextYear } from "./pdfDates";
 import {
   amountInColumn,
   dateTokenInColumn,
@@ -8,6 +8,7 @@ import {
   itemNearColumn,
   nearestItem,
   parseAmountToken,
+  parseFnbAmountToken,
   textInColumn,
   type ColumnLayout,
   type ColumnRange,
@@ -150,21 +151,28 @@ function deriveAmountFromColumns(
 export function extractBalances(fullText: string, lines: TextLine[]): BalanceMeta {
   const meta: BalanceMeta = {};
 
+  const parseBal = (raw: string) => parseFnbAmountToken(raw) ?? parseAmountToken(raw);
+
   const openMatch = fullText.match(
-    /(?:opening\s+balance|balance\s+brought\s+forward|b\/f)[:\s]*R?\s*([\d\s.,()-]+)/i
+    /(?:opening\s+balance|balance\s+brought\s+forward|b\/f)[:\s]*([\d\s.,]+(?:Cr|Dr)?)/i
   );
-  if (openMatch) meta.openingBalance = parseAmountToken(openMatch[1]) ?? undefined;
+  if (openMatch) meta.openingBalance = parseBal(openMatch[1].trim()) ?? undefined;
 
   const closeMatch = fullText.match(
-    /(?:closing\s+balance|balance\s+carried\s+forward|c\/f)[:\s]*R?\s*([\d\s.,()-]+)/i
+    /(?:closing\s+balance|balance\s+carried\s+forward|c\/f)[:\s]*([\d\s.,]+(?:Cr|Dr)?)/i
   );
-  if (closeMatch) meta.closingBalance = parseAmountToken(closeMatch[1]) ?? undefined;
+  if (closeMatch) meta.closingBalance = parseBal(closeMatch[1].trim()) ?? undefined;
 
   if (!meta.openingBalance) {
-    for (const line of lines.slice(0, 15)) {
+    for (const line of lines.slice(0, 20)) {
       if (/opening|b\/f|brought forward/i.test(line.text)) {
-        const amounts = findAmountTokens(line.text);
-        if (amounts.length) meta.openingBalance = amounts[amounts.length - 1].value;
+        for (const item of line.items) {
+          const val = parseFnbAmountToken(item.text);
+          if (val !== null) {
+            meta.openingBalance = val;
+            break;
+          }
+        }
       }
     }
   }
@@ -176,7 +184,7 @@ export function detectBankFromText(fullText: string): string | null {
   const lower = fullText.toLowerCase();
   if (/capitec/.test(lower)) return "capitec";
   if (/standard\s+bank|std\s+bank/.test(lower)) return "standard-bank";
-  if (/\bfnb\b|first\s+national\s+bank/.test(lower)) return "fnb";
+  if (/\bfnb\b|first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/.test(lower)) return "fnb";
   if (/nedbank/.test(lower)) return "nedbank";
   if (/\bab\s*sa\b/.test(lower)) return "absa";
   return null;
@@ -376,8 +384,8 @@ export function parseLayoutFixture(
   const bankId = generic.bankHint;
   let rows = generic.rows;
   if (bankId && BANK_TEMPLATES.some((t) => t.id === bankId)) {
-    const contextYearMatch = fullText.match(/\b(20\d{2})\b/);
-    const templateRows = applyBankTemplate(bankId, lines, contextYearMatch ? +contextYearMatch[1] : undefined);
+    const contextYear = extractContextYear(fullText, bankId);
+    const templateRows = applyBankTemplate(bankId, lines, contextYear);
     rows = mergeTemplateRows(generic.rows, templateRows, bankId);
   }
   if (fixture.openingBalance !== undefined || fixture.closingBalance !== undefined) {

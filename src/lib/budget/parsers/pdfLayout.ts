@@ -76,7 +76,10 @@ export type ColumnLayout = {
   fee?: ColumnRange;
   debit?: ColumnRange;
   credit?: ColumnRange;
+  amount?: ColumnRange;
   balance?: ColumnRange;
+  /** FNB accrued bank charges — informational, not part of running balance */
+  accruedCharges?: ColumnRange;
 };
 
 export type ParsedRow = {
@@ -171,9 +174,60 @@ export function isDateToken(text: string): boolean {
   return /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(text.trim());
 }
 
+/** DD Mon (FNB and similar) */
+export function isDMonDateToken(text: string): boolean {
+  return /^\d{1,2}\s+[A-Za-z]{3,9}$/.test(text.trim());
+}
+
+export function isStatementDateToken(text: string): boolean {
+  return isDateToken(text) || isDMonDateToken(text);
+}
+
+/**
+ * FNB Amount/Balance token: comma thousands + optional Cr/Dr suffix.
+ * Cr → positive (credit/in), no suffix or Dr → negative (debit/out).
+ */
+export function parseFnbAmountToken(raw: string): number | null {
+  const t = raw.trim().replace(/\s+/g, "");
+  if (!t) return null;
+  const m = t.match(/^([\d,]+(?:\.\d{2})?)(Cr|Dr)?$/i);
+  if (!m) return null;
+  if (!m[2] && !/\.\d{2}$/.test(m[1])) return null;
+  const num = parseAmountToken(m[1]);
+  if (num === null) return null;
+  const suffix = m[2]?.toLowerCase();
+  if (suffix === "cr") return Math.abs(num);
+  if (suffix === "dr") return -Math.abs(num);
+  return -Math.abs(num);
+}
+
+export function fnbAmountFromBucket(
+  buckets: Map<keyof ColumnLayout, PositionedItem[]>,
+  key: keyof ColumnLayout
+): number | null {
+  const items = buckets.get(key) ?? [];
+  for (const item of items) {
+    const val = parseFnbAmountToken(item.text);
+    if (val !== null && Math.abs(val) >= 0.01) return val;
+  }
+  return null;
+}
+
+export function fnbBalanceFromBucket(
+  buckets: Map<keyof ColumnLayout, PositionedItem[]>,
+  key: keyof ColumnLayout
+): number | null {
+  const items = buckets.get(key) ?? [];
+  for (const item of items) {
+    const val = parseFnbAmountToken(item.text);
+    if (val !== null) return val;
+  }
+  return null;
+}
+
 export function dateTokenInColumn(line: TextLine, dateCol?: ColumnRange): string | null {
   for (const item of itemsInColumn(line, dateCol)) {
-    if (isDateToken(item.text)) return item.text;
+    if (isStatementDateToken(item.text)) return item.text.trim();
   }
   return null;
 }

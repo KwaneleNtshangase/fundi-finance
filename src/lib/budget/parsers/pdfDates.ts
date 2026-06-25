@@ -81,3 +81,19 @@ export function findDateToken(text: string): string | null {
   }
   return null;
 }
+
+/** Infer statement year — FNB uses Statement Period; others use first 20xx token. */
+export function extractContextYear(fullText: string, bankId?: string | null): number | undefined {
+  if (bankId === "fnb") {
+    const periodEnd = fullText.match(
+      /statement\s+period\s*:?\s*\d{1,2}\s+\w+\s+\d{4}\s+to\s+\d{1,2}\s+\w+\s+(\d{4})/i
+    );
+    if (periodEnd) return +periodEnd[1];
+    const periodStart = fullText.match(
+      /statement\s+period\s*:?\s*\d{1,2}\s+\w+\s+(\d{4})/i
+    );
+    if (periodStart) return +periodStart[1];
+  }
+  const m = fullText.match(/\b(20\d{2})\b/);
+  return m ? +m[1] : undefined;
+}
