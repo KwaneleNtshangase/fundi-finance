@@ -1,5 +1,5 @@
 import type { NormalizedTxn, ParsePdfResult } from "../types";
-import { reconcileTransactions } from "../reconciliation";
+import { reconcileBalanceChain, reconcileTransactions } from "../reconciliation";
 import { extractPdfText } from "./pdfText";
 import { groupItemsIntoLines } from "./pdfLayout";
 import {
@@ -10,7 +10,6 @@ import {
 import {
   applyBankTemplate,
   BANK_TEMPLATES,
-  capitecBalanceChainReconciles,
   mergeTemplateRows,
 } from "./pdfTemplates";
 
@@ -59,34 +58,23 @@ export async function parsePdfStatement(
   }));
 
   const hasBalanceMeta =
-    generic.balances.openingBalance !== undefined ||
+    generic.balances.openingBalance !== undefined &&
     generic.balances.closingBalance !== undefined;
   const lowConfidence = !hasBalanceMeta;
 
-  let reconciliation = reconcileTransactions(transactions, {
-    openingBalance: generic.balances.openingBalance,
-    closingBalance: generic.balances.closingBalance,
-    expectedCount: generic.balances.expectedCount,
-  });
-
-  if (
+  let reconciliation =
     bankId === "capitec" &&
-    generic.balances.closingBalance !== undefined &&
-    !capitecBalanceChainReconciles(
-      rows,
-      generic.balances.openingBalance,
-      generic.balances.closingBalance
-    )
-  ) {
-    reconciliation = {
-      ...reconciliation,
-      ok: false,
-      warnings: [
-        ...reconciliation.warnings,
-        "Capitec balance chain does not reconcile to the closing balance.",
-      ],
-    };
-  }
+    generic.balances.openingBalance !== undefined &&
+    generic.balances.closingBalance !== undefined
+      ? reconcileBalanceChain(
+          transactions,
+          generic.balances.openingBalance,
+          generic.balances.closingBalance
+        )
+      : reconcileTransactions(transactions, {
+          openingBalance: generic.balances.openingBalance,
+          closingBalance: generic.balances.closingBalance,
+        });
 
   if (lowConfidence && reconciliation.ok) {
     reconciliation.warnings.push(

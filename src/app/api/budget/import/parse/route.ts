@@ -11,6 +11,14 @@ import type { PreviewTxn, UserMerchantRule } from "@/lib/budget/types";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB
 
+export type CustomBudgetCategory = {
+  id: string;
+  name: string;
+  type: "income" | "expense";
+  color?: string;
+  icon_name?: string;
+};
+
 function buildPreview(
   parsed: {
     transactions: import("@/lib/budget/types").NormalizedTxn[];
@@ -23,7 +31,8 @@ function buildPreview(
   userRules: UserMerchantRule[],
   existingHashes: Set<string>,
   fileName: string,
-  accountLabelOverride?: string
+  accountLabelOverride?: string,
+  customCategories: CustomBudgetCategory[] = []
 ) {
   const accountLabel = accountLabelOverride ?? parsed.accountLabel ?? parsed.bankHint ?? fileName;
 
@@ -36,7 +45,10 @@ function buildPreview(
 
   let preview: PreviewTxn[] = txnsWithAccount.map((txn, i) => {
     const cat = categorise(txn, userRules);
-    const lowConf = parsed.lowConfidence || parsed.fileType === "pdf";
+    const uncertain =
+      parsed.reconciliation.ok === false ||
+      cat.category === "other" ||
+      cat.category === "other-income";
     return {
       ...txn,
       id: `preview-${fileName}-${i}`,
@@ -44,7 +56,7 @@ function buildPreview(
       categorisation: cat,
       refundLike: isRefundLikeCredit(txn),
       sourceFileName: fileName,
-      needsReview: lowConf && parsed.reconciliation.ok === false,
+      needsReview: uncertain,
     };
   });
 
@@ -66,6 +78,7 @@ function buildPreview(
     importedCount: preview.filter((t) => !t.skipReason).length,
     skippedCount: preview.filter((t) => t.skipReason === "existing_import").length,
     lowConfidence: parsed.lowConfidence,
+    customCategories,
   };
 }
 
@@ -107,6 +120,14 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id)
       .not("dedupe_hash", "is", null);
 
+    const { data: customCatRows } = await admin
+      .from("custom_budget_categories")
+      .select("id, name, type, color, icon_name")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+
+    const customCategories = (customCatRows ?? []) as CustomBudgetCategory[];
+
     const existingHashes = new Set(
       (existingRows ?? []).map((r) => r.dedupe_hash as string).filter(Boolean)
     );
@@ -136,7 +157,8 @@ export async function POST(req: NextRequest) {
         userRules ?? [],
         existingHashes,
         file.name,
-        accountLabelOverride
+        accountLabelOverride,
+        customCategories
       );
 
       return NextResponse.json({ ok: true, ...result });
@@ -149,7 +171,8 @@ export async function POST(req: NextRequest) {
       userRules ?? [],
       existingHashes,
       file.name,
-      accountLabelOverride
+      accountLabelOverride,
+      customCategories
     );
 
     return NextResponse.json({ ok: true, ...result });

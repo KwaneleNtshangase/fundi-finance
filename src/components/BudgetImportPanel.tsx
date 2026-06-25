@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, CheckCircle2, FileUp, Shield, Upload, X } from "lucide-react";
+import React, { useCallback, useMemo, useState } from "react";
+import { AlertTriangle, ArrowLeftRight, CheckCircle2, FileUp, Plus, Shield, Upload, X } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
 import type { PreviewTxn } from "@/lib/budget/types";
@@ -23,12 +23,21 @@ type FileMeta = {
   lowConfidence?: boolean;
 };
 
+type CustomBudgetCategory = {
+  id: string;
+  name: string;
+  type: "income" | "expense";
+};
+
+const ADD_CATEGORY_VALUE = "__add_category__";
+
 type ParseResponse = {
   ok: boolean;
   bankHint?: string;
   accountLabel?: string;
   fileType?: string;
   needsPassword?: boolean;
+  customCategories?: CustomBudgetCategory[];
   reconciliation?: {
     ok: boolean;
     warnings: string[];
@@ -111,6 +120,36 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
   const [needsPasswordFile, setNeedsPasswordFile] = useState<string | null>(null);
   const [confirmedTransfers, setConfirmedTransfers] = useState<Set<string>>(new Set());
   const [dragActive, setDragActive] = useState(false);
+  const [customCategories, setCustomCategories] = useState<CustomBudgetCategory[]>([]);
+  const [addingCategoryFor, setAddingCategoryFor] = useState<string | null>(null);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [savingCategory, setSavingCategory] = useState(false);
+
+  const loadCustomCategories = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("custom_budget_categories")
+      .select("id, name, type")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+    if (data) setCustomCategories(data as CustomBudgetCategory[]);
+  }, []);
+
+  const categoriesForRow = useCallback(
+    (row: PreviewRow) => {
+      const isIncome = row.categorisation.type === "income";
+      const statics = isIncome ? INCOME_CATS : EXPENSE_CATS;
+      const fallbackId = isIncome ? "other-income" : "other";
+      const custom = customCategories
+        .filter((c) => c.type === row.categorisation.type)
+        .map((c) => ({ id: c.id, label: c.name }));
+      const core = statics.filter((c) => c.id !== fallbackId);
+      const fallback = statics.find((c) => c.id === fallbackId)!;
+      return [...core, ...custom, fallback];
+    },
+    [customCategories]
+  );
 
   const applyValidatedFiles = (incoming: File[]) => {
     const validated = validateIncomingFiles(incoming);
@@ -193,6 +232,9 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
     setPdfPassword("");
     setNeedsPasswordFile(null);
     setConfirmedTransfers(new Set());
+    setCustomCategories([]);
+    setAddingCategoryFor(null);
+    setNewCategoryName("");
   };
 
   const parseOneFile = async (
@@ -236,6 +278,8 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
       const metas: FileMeta[] = [];
       let rowOffset = 0;
 
+      let latestCustomCategories: CustomBudgetCategory[] | undefined;
+
       for (const file of files) {
         const existingLabel = fileMetas.find((m) => m.fileName === file.name)?.accountLabel;
         const pwd = passwordForFile && needsPasswordFile === file.name ? passwordForFile : undefined;
@@ -274,10 +318,18 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
         }));
         allRows.push(...fileRows);
         rowOffset += fileRows.length;
+        if (json.customCategories?.length) {
+          latestCustomCategories = json.customCategories;
+        }
       }
 
       setFileMetas(metas);
       setRows(allRows);
+      if (latestCustomCategories?.length) {
+        setCustomCategories(latestCustomCategories);
+      } else {
+        await loadCustomCategories();
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Parse failed");
     } finally {
@@ -383,6 +435,44 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
       categorisation: { ...row.categorisation, category },
       categoryEdited: true,
     });
+    setAddingCategoryFor(null);
+  };
+
+  const handleCategorySelect = (row: PreviewRow, value: string) => {
+    if (value === ADD_CATEGORY_VALUE) {
+      setAddingCategoryFor(row.id);
+      setNewCategoryName("");
+      return;
+    }
+    handleCategoryChange(row, value);
+  };
+
+  const handleSaveNewCategory = async (row: PreviewRow) => {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    setSavingCategory(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data, error } = await supabase
+        .from("custom_budget_categories")
+        .insert({
+          user_id: user.id,
+          name,
+          color: "#007A4D",
+          icon_name: "MoreHorizontal",
+          type: row.categorisation.type,
+        })
+        .select("id, name, type")
+        .single();
+      if (error || !data) return;
+      const created = data as CustomBudgetCategory;
+      setCustomCategories((prev) => [...prev, created]);
+      handleCategoryChange(row, created.id);
+      setNewCategoryName("");
+    } finally {
+      setSavingCategory(false);
+    }
   };
 
   const importableCount = rowsWithTransfers.filter((r) => !r.skipReason && !r.isTransfer).length;
@@ -408,16 +498,18 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
   return (
     <div className="fixed inset-0 z-[450] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
       <div style={{
-        background: "var(--color-surface)", borderRadius: "20px 20px 0 0",
-        padding: rows.length > 0 ? "0" : "24px 20px 36px",
-        width: "100%", maxWidth: 820,
+        background: "var(--color-surface)",
+        borderRadius: "20px 20px 0 0",
+        width: "100%",
+        maxWidth: 820,
+        height: rows.length > 0 ? "92vh" : "auto",
         maxHeight: "92vh",
-        display: rows.length > 0 ? "flex" : "block",
+        display: "flex",
         flexDirection: "column",
         overflow: rows.length > 0 ? "hidden" : "auto",
       }}>
-        <div style={{ padding: rows.length > 0 ? "24px 20px 0" : 0, flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ flexShrink: 0, padding: rows.length > 0 ? "20px 20px 0" : "24px 20px 0" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: rows.length > 0 ? 12 : 16 }}>
             <h3 style={{ fontWeight: 900, fontSize: 18 }}>Import bank statement(s)</h3>
             <button type="button" onClick={() => { setOpen(false); reset(); }} style={{ background: "none", border: "none", cursor: "pointer" }}>
               <X size={20} />
@@ -532,34 +624,29 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
           </div>
         ) : (
           <>
-            <div style={{
-              flexShrink: 0,
-              padding: "0 20px",
-              position: "sticky",
-              top: 0,
-              zIndex: 2,
-              background: "var(--color-surface)",
-            }}>
-              {fileMetas.some((m) => m.reconciliation && !m.reconciliation.ok) && (
-                <div style={{ paddingBottom: 12 }}>
-                  {fileMetas.map((meta) => (
-                    meta.reconciliation && !meta.reconciliation.ok && (
-                      <div key={meta.fileName} style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
-                        <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "#F57C00", marginBottom: 4 }}>
-                          <AlertTriangle size={16} /> {meta.fileName} — reconciliation warning
-                        </div>
-                        {meta.reconciliation.warnings.map((w) => <div key={w}>{w}</div>)}
-                      </div>
-                    )
-                  ))}
-                </div>
-              )}
-              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 12, lineHeight: 1.5 }}>
+            <div style={{ flexShrink: 0, padding: "0 20px 12px" }}>
+              {fileMetas.map((meta) => (
+                meta.reconciliation?.ok ? (
+                  <div key={`${meta.fileName}-ok`} style={{ background: "rgba(0,122,77,0.08)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
+                    <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "var(--color-primary)" }}>
+                      <CheckCircle2 size={16} /> {meta.fileName} — Balance reconciles ✓
+                    </div>
+                  </div>
+                ) : meta.reconciliation ? (
+                  <div key={meta.fileName} style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
+                    <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "#F57C00", marginBottom: 4 }}>
+                      <AlertTriangle size={16} /> {meta.fileName} — reconciliation warning
+                    </div>
+                    {meta.reconciliation.warnings.map((w) => <div key={w}>{w}</div>)}
+                  </div>
+                ) : null
+              ))}
+              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 0, lineHeight: 1.5 }}>
                 Edit a category below and tick <strong>Remember</strong> to teach future imports how to categorise that merchant.
               </p>
             </div>
 
-            <div style={{ flex: 1, overflowY: "auto", padding: "0 20px", minHeight: 0 }}>
+            <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "12px 20px 0", WebkitOverflowScrolling: "touch" }}>
 
             {transferPairs.length > 0 && (
               <div style={{ background: "rgba(0,122,77,0.06)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 14, marginBottom: 16 }}>
@@ -642,15 +729,48 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                             <td style={{ padding: 8, fontWeight: 700 }}>{formatRand(Math.abs(r.amountZAR))}</td>
                             <td style={{ padding: 8 }}>
                               {!r.skipReason && !r.isTransfer && (
-                                <select
-                                  value={r.categorisation.category}
-                                  onChange={(e) => handleCategoryChange(r, e.target.value)}
-                                  style={{ fontSize: 12, padding: 4, borderRadius: 6, maxWidth: 140 }}
-                                >
-                                  {(r.categorisation.type === "income" ? INCOME_CATS : EXPENSE_CATS).map((c) => (
-                                    <option key={c.id} value={c.id}>{c.label}</option>
-                                  ))}
-                                </select>
+                                <div>
+                                  <select
+                                    value={
+                                      addingCategoryFor === r.id
+                                        ? ADD_CATEGORY_VALUE
+                                        : r.categorisation.category
+                                    }
+                                    onChange={(e) => handleCategorySelect(r, e.target.value)}
+                                    style={{ fontSize: 12, padding: 4, borderRadius: 6, maxWidth: 160, width: "100%" }}
+                                  >
+                                    {categoriesForRow(r).map((c) => (
+                                      <option key={c.id} value={c.id}>{c.label}</option>
+                                    ))}
+                                    <option value={ADD_CATEGORY_VALUE}>+ Add category</option>
+                                  </select>
+                                  {addingCategoryFor === r.id && (
+                                    <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
+                                      <input
+                                        type="text"
+                                        value={newCategoryName}
+                                        onChange={(e) => setNewCategoryName(e.target.value)}
+                                        placeholder="Category name"
+                                        style={{
+                                          flex: 1, fontSize: 12, padding: "6px 8px", borderRadius: 6,
+                                          border: "1px solid var(--color-border)",
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === "Enter") void handleSaveNewCategory(r);
+                                        }}
+                                      />
+                                      <button
+                                        type="button"
+                                        className="btn btn-primary"
+                                        style={{ padding: "6px 10px", fontSize: 11 }}
+                                        disabled={savingCategory || !newCategoryName.trim()}
+                                        onClick={() => void handleSaveNewCategory(r)}
+                                      >
+                                        <Plus size={12} aria-hidden />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </td>
                             <td style={{ padding: 8, textAlign: "center" }}>
@@ -677,12 +797,9 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
             <div style={{
               flexShrink: 0,
-              position: "sticky",
-              bottom: 0,
-              zIndex: 2,
               background: "var(--color-surface)",
               borderTop: "1px solid var(--color-border)",
-              padding: "16px 20px 36px",
+              padding: "16px 20px max(20px, env(safe-area-inset-bottom))",
               display: "flex",
               gap: 10,
             }}>

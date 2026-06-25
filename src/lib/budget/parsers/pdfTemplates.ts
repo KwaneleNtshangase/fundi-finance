@@ -27,9 +27,24 @@ const CAPITEC_HEADER_RE =
   /date.*description.*category.*money\s+in.*money\s+out.*fee.*balance/i;
 
 const FOOTER_LINE = /unique\s+document\s+no\.|page\s+\d+\s+of\s+\d+/i;
-const SKIP_SECTION =
-  /^(scheduled\s+payments|spending\s+summary|money\s+in\/out\s+summary|card\s+subscriptions|self-scheduled\s+payment)/i;
-const SUMMARY_LINE = /summary|digital\s+payments\s+-/i;
+const TRANSACTION_HISTORY_TITLE = /transaction\s+history/i;
+const SCHEDULED_PAYMENTS_SECTION = /scheduled\s+payments/i;
+const SUMMARY_SECTION = /\bsummary\b/i;
+
+function isCapitecExcludedLine(line: TextLine): boolean {
+  if (FOOTER_LINE.test(line.text)) return true;
+  if (SCHEDULED_PAYMENTS_SECTION.test(line.text)) return true;
+  if (SUMMARY_SECTION.test(line.text) && !CAPITEC_HEADER_RE.test(line.text)) return true;
+  return false;
+}
+
+function isScheduledPaymentsLine(line: TextLine): boolean {
+  return SCHEDULED_PAYMENTS_SECTION.test(line.text);
+}
+
+function isSummaryLine(line: TextLine): boolean {
+  return SUMMARY_SECTION.test(line.text) && !CAPITEC_HEADER_RE.test(line.text);
+}
 
 function colRange(x: number, tolerance = 55): ColumnRange {
   return { x, tolerance };
@@ -56,13 +71,6 @@ export function detectCapitecColumns(line: TextLine): ColumnLayout | null {
 
   if (!layout.date || !layout.balance) return null;
   return layout;
-}
-
-function isCapitecExcludedLine(line: TextLine): boolean {
-  if (FOOTER_LINE.test(line.text)) return true;
-  if (SKIP_SECTION.test(line.text)) return true;
-  if (SUMMARY_LINE.test(line.text) && !CAPITEC_HEADER_RE.test(line.text)) return true;
-  return false;
 }
 
 function descriptionFromBuckets(
@@ -96,6 +104,7 @@ export function parseCapitecLayout(
   let columns: ColumnLayout | null = null;
   const rows: ParsedRow[] = [];
   let previousDate: string | undefined;
+  let seenTransactionHistory = false;
   let inTransactionTable = false;
   let prevBalance: number | undefined;
   let balanceChainOk = true;
@@ -145,10 +154,23 @@ export function parseCapitecLayout(
 
     if (line.page === 1 && hasLaterPages) continue;
 
+    if (TRANSACTION_HISTORY_TITLE.test(line.text)) {
+      seenTransactionHistory = true;
+      inTransactionTable = false;
+      continue;
+    }
+
+    if (isScheduledPaymentsLine(line) || isSummaryLine(line)) {
+      inTransactionTable = false;
+      continue;
+    }
+
     const headerCols = detectCapitecColumns(line);
     if (headerCols) {
-      columns = headerCols;
-      inTransactionTable = true;
+      if (seenTransactionHistory) {
+        columns = headerCols;
+        inTransactionTable = true;
+      }
       continue;
     }
 
@@ -321,26 +343,4 @@ export function mergeTemplateRows(
     ...r,
     description: r.description || `[${bankId}] Transaction`,
   }));
-}
-
-export function capitecBalanceChainReconciles(
-  rows: ParsedRow[],
-  openingBalance?: number,
-  closingBalance?: number
-): boolean {
-  if (closingBalance === undefined) return true;
-
-  const lastWithBalance = [...rows].reverse().find((r) => r.balanceAfter !== undefined);
-  if (!lastWithBalance?.balanceAfter) return false;
-  if (Math.abs(amountToCents(lastWithBalance.balanceAfter) - amountToCents(closingBalance)) > 1) {
-    return false;
-  }
-
-  if (openingBalance !== undefined) {
-    const sumCents = rows.reduce((s, r) => s + amountToCents(r.amountZAR), 0);
-    const expected = amountToCents(openingBalance) + sumCents;
-    if (Math.abs(expected - amountToCents(closingBalance)) > 1) return false;
-  }
-
-  return !rows.some((r) => r.balanceStepFailed);
 }

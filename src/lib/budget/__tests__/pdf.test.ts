@@ -4,8 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { parseStatementDate, findDateToken, daysBetween } from "../parsers/pdfDates";
 import { parseAmountToken, findAmountTokens } from "../parsers/pdfLayout";
 import { parseLayoutFixture, detectBankFromText } from "../parsers/pdfGeneric";
-import { applyBankTemplate, capitecBalanceChainReconciles } from "../parsers/pdfTemplates";
-import { reconcileTransactions } from "../reconciliation";
+import { reconcileBalanceChain, reconcileTransactions } from "../reconciliation";
+import { applyBankTemplate } from "../parsers/pdfTemplates";
 import { groupItemsIntoLines } from "../parsers/pdfLayout";
 import { parsePdfStatement } from "../parsers/pdf";
 import * as pdfText from "../parsers/pdfText";
@@ -69,20 +69,22 @@ describe("bank layout fixtures", () => {
     expect(rows.filter((r) => r.description === "Bank Charges")).toHaveLength(2);
     expect(rows.find((r) => r.description.includes("Snapscan"))?.amountZAR).toBe(9.66);
     expect(rows.find((r) => r.description.includes("Uber"))?.amountZAR).toBe(-60);
-    expect(rows.find((r) => r.description.includes("Alex M"))?.amountZAR).toBe(-1000);
-    expect(capitecBalanceChainReconciles(rows, balances.openingBalance, balances.closingBalance)).toBe(true);
-    const reconciliation = reconcileTransactions(
+    expect(rows.find((r) => r.description.includes("Alex M"))?.amountZAR).toBe(-2814.93);
+    const chain = reconcileBalanceChain(
       rows.map((r) => ({
         date: r.date,
         description: r.description,
         amountZAR: r.amountZAR,
-        rawMerchant: r.description,
-        lineIndex: r.lineIndex,
         balanceAfter: r.balanceAfter,
+        lineIndex: r.lineIndex,
       })),
-      { openingBalance: balances.openingBalance, closingBalance: balances.closingBalance }
+      balances.openingBalance!,
+      balances.closingBalance!
     );
-    expect(reconciliation.ok).toBe(true);
+    expect(chain.ok).toBe(true);
+    expect(chain.warnings).toContain("Balance reconciles ✓");
+    expect(rows.some((r) => r.description.includes("Netflix"))).toBe(false);
+    expect(rows.some((r) => r.description.includes("Gogo Dstv Recurring"))).toBe(false);
     expect(rows.some((r) => /page\s+\d+\s+of/i.test(r.description))).toBe(false);
     expect(rows.some((r) => /summary|scheduled/i.test(r.description))).toBe(false);
   });
@@ -194,14 +196,20 @@ describe("parsePdfStatement integration", () => {
 });
 
 describe("applyBankTemplate", () => {
-  it("template parser extracts rows from grouped lines", () => {
+  it("template parser extracts rows only under Transaction History", () => {
     const fixture = loadLayout("pdf-capitec.layout.json");
     const items = fixture.lines.flatMap(
-      (l: { y: number; items: { x: number; text: string }[] }) =>
-        l.items.map((i: { x: number; text: string }) => ({ text: i.text, x: i.x, y: l.y, page: 1 }))
+      (l: { y: number; page?: number; items: { x: number; text: string }[] }) =>
+        l.items.map((i: { x: number; text: string }) => ({
+          text: i.text,
+          x: i.x,
+          y: l.y,
+          page: l.page ?? 1,
+        }))
     );
     const lines = groupItemsIntoLines(items);
-    const rows = applyBankTemplate("capitec", lines, 2026);
-    expect(rows.length).toBeGreaterThan(0);
+    const rows = applyBankTemplate("capitec", lines, 2025);
+    expect(rows.length).toBe(6);
+    expect(rows.some((r) => r.description.includes("Netflix"))).toBe(false);
   });
 });

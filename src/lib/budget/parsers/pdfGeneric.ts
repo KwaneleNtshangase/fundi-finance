@@ -160,9 +160,6 @@ export function extractBalances(fullText: string, lines: TextLine[]): BalanceMet
   );
   if (closeMatch) meta.closingBalance = parseAmountToken(closeMatch[1]) ?? undefined;
 
-  const countMatch = fullText.match(/(\d+)\s+transactions?/i);
-  if (countMatch) meta.expectedCount = +countMatch[1];
-
   if (!meta.openingBalance) {
     for (const line of lines.slice(0, 15)) {
       if (/opening|b\/f|brought forward/i.test(line.text)) {
@@ -386,9 +383,6 @@ export function parseLayoutFixture(
   if (fixture.openingBalance !== undefined || fixture.closingBalance !== undefined) {
     generic.balances.openingBalance = fixture.openingBalance ?? generic.balances.openingBalance;
     generic.balances.closingBalance = fixture.closingBalance ?? generic.balances.closingBalance;
-  }
-  if (fixture.expectedCount !== undefined) {
-    generic.balances.expectedCount = fixture.expectedCount;
   }
   return { rows, bankHint: generic.bankHint, balances: generic.balances };
 }
