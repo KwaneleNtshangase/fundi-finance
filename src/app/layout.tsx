@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ServiceWorkerRegistration } from "@/lib/sw/ServiceWorkerRegistration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,6 +64,7 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <PostHogProvider>{children}</PostHogProvider>
+          <ServiceWorkerRegistration />
         </ErrorBoundary>
       </body>
     </html>

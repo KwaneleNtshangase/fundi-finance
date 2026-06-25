@@ -2824,12 +2824,6 @@ export default function Home() {
   // Streak freeze - count-based, powered by useProgress hook
   const [freezeUsedToday, setFreezeUsedToday] = useState(false);
 
-  // ── Register service worker for offline support ───────────────────────────
-  useEffect(() => {
-    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/sw.js").catch(() => {/* silent - no SW support or HTTPS required */});
-  }, []);
-
   // ── Offline detection ─────────────────────────────────────────────────────
   const [isOffline, setIsOffline] = useState(false);
   useEffect(() => {

@@ -1,101 +1,128 @@
 // Fundi Finance — Service Worker
-// Handles: Push notifications + Offline caching (loadshedding/taxi mode)
+// Push notifications + offline caching. Bump SW_VERSION when caching strategy changes.
 
-const CACHE_NAME = "fundi-finance-v2";
+const SW_VERSION = "4";
+const STATIC_CACHE = `fundi-static-${SW_VERSION}`;
+const RUNTIME_CACHE = `fundi-runtime-${SW_VERSION}`;
+const CACHE_PREFIX = "fundi-";
 
-// Assets to pre-cache immediately on install
-const PRECACHE = [
-  "/",
-  "/manifest.json",
-  "/fundi-logo.png",
-  "/favicon.ico",
-];
+// Offline fallbacks only — do NOT pre-cache "/" (stale app shell after deploy).
+const PRECACHE = ["/manifest.json", "/fundi-logo.png", "/favicon.ico"];
 
-// ── Install: pre-cache app shell ──────────────────────────────────────────────
+function isNavigationRequest(request) {
+  return (
+    request.mode === "navigate" ||
+    (request.method === "GET" &&
+      request.headers.get("accept")?.includes("text/html"))
+  );
+}
+
+async function purgeNavigationEntries(cacheName) {
+  const cache = await caches.open(cacheName);
+  const keys = await cache.keys();
+  await Promise.all(
+    keys.filter((r) => isNavigationRequest(r)).map((r) => cache.delete(r))
+  );
+}
+
+// ── Install: pre-cache static assets (not HTML) ───────────────────────────────
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) =>
+    caches.open(STATIC_CACHE).then((cache) =>
       cache.addAll(PRECACHE).catch(() => {
-        // If any pre-cache fails (e.g. offline at install time), continue anyway
+        // Continue if offline at install time
       })
     )
   );
-  // Take over immediately — don't wait for old SW to expire
-  self.skipWaiting();
+  // Wait for user confirmation via SKIP_WAITING — do not skipWaiting here.
 });
 
-// ── Activate: clear old caches ────────────────────────────────────────────────
+// ── Activate: purge old caches + stale HTML, then claim clients ─────────────
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((names) =>
-        Promise.all(
-          names
-            .filter((n) => n !== CACHE_NAME)
-            .map((n) => caches.delete(n))
-        )
-      )
-      .then(() => self.clients.claim())
+    (async () => {
+      const keep = new Set([STATIC_CACHE, RUNTIME_CACHE]);
+      const names = await caches.keys();
+      await Promise.all(
+        names
+          .filter((n) => n.startsWith(CACHE_PREFIX) && !keep.has(n))
+          .map((n) => caches.delete(n))
+      );
+      await purgeNavigationEntries(RUNTIME_CACHE);
+      await self.clients.claim();
+    })()
   );
 });
 
-// ── Fetch: serve cached content offline ───────────────────────────────────────
+// ── Client-triggered activation of a waiting worker ───────────────────────────
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
 self.addEventListener("fetch", (event) => {
   const { request } = event;
 
-  // Only handle GET requests from same origin
   if (request.method !== "GET") return;
   if (!request.url.startsWith(self.location.origin)) return;
-
-  // Skip Supabase API calls — always needs network
   if (request.url.includes("supabase.co")) return;
 
   const url = new URL(request.url);
 
-  // ── Static assets (_next/static): cache-first ────────────────────────────
+  // Hashed build assets: cache-first (filename changes each deploy).
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
-      caches.match(request).then((cached) => {
+      caches.open(STATIC_CACHE).then(async (cache) => {
+        const cached = await cache.match(request);
         if (cached) return cached;
-        return fetch(request).then((response) => {
-          if (response.ok) {
-            caches.open(CACHE_NAME).then((c) => c.put(request, response.clone()));
-          }
-          return response;
-        });
+        const response = await fetch(request);
+        if (response.ok) {
+          await cache.put(request, response.clone());
+        }
+        return response;
       })
     );
     return;
   }
 
-  // ── Navigation requests (page loads): network-first, fall back to cache ──
-  if (request.mode === "navigate") {
+  // App shell / HTML: network-first, bypass HTTP cache, offline fallback only.
+  if (isNavigationRequest(request)) {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
+      (async () => {
+        try {
+          const response = await fetch(
+            new Request(request, { cache: "no-store" })
+          );
           if (response.ok) {
-            caches.open(CACHE_NAME).then((c) => c.put(request, response.clone()));
+            const cache = await caches.open(RUNTIME_CACHE);
+            await cache.put(request, response.clone());
           }
           return response;
-        })
-        .catch(() =>
-          // Offline: serve cached page (app shell)
-          caches.match(request).then((cached) => cached || caches.match("/"))
-        )
+        } catch {
+          const cached =
+            (await caches.match(request)) || (await caches.match("/"));
+          if (cached) return cached;
+          return Response.error();
+        }
+      })()
     );
     return;
   }
 
-  // ── Images and other assets: stale-while-revalidate ─────────────────────
+  // Other assets: stale-while-revalidate.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const networkFetch = fetch(request).then((response) => {
-        if (response.ok) {
-          caches.open(CACHE_NAME).then((c) => c.put(request, response.clone()));
-        }
-        return response;
-      }).catch(() => cached);
+    caches.open(RUNTIME_CACHE).then(async (cache) => {
+      const cached = await cache.match(request);
+      const networkFetch = fetch(request)
+        .then(async (response) => {
+          if (response.ok) {
+            await cache.put(request, response.clone());
+          }
+          return response;
+        })
+        .catch(() => cached);
       return cached || networkFetch;
     })
   );
