@@ -7,7 +7,12 @@ import {
   detectBankFromText,
   parseGenericPdfLayout,
 } from "./pdfGeneric";
-import { applyBankTemplate, BANK_TEMPLATES, mergeTemplateRows } from "./pdfTemplates";
+import {
+  applyBankTemplate,
+  BANK_TEMPLATES,
+  capitecBalanceChainReconciles,
+  mergeTemplateRows,
+} from "./pdfTemplates";
 
 const SCANNED_MESSAGE =
   "This looks like a scanned image — please upload the downloadable/text PDF or a CSV/OFX export from your bank.";
@@ -58,11 +63,30 @@ export async function parsePdfStatement(
     generic.balances.closingBalance !== undefined;
   const lowConfidence = !hasBalanceMeta;
 
-  const reconciliation = reconcileTransactions(transactions, {
+  let reconciliation = reconcileTransactions(transactions, {
     openingBalance: generic.balances.openingBalance,
     closingBalance: generic.balances.closingBalance,
     expectedCount: generic.balances.expectedCount,
   });
+
+  if (
+    bankId === "capitec" &&
+    generic.balances.closingBalance !== undefined &&
+    !capitecBalanceChainReconciles(
+      rows,
+      generic.balances.openingBalance,
+      generic.balances.closingBalance
+    )
+  ) {
+    reconciliation = {
+      ...reconciliation,
+      ok: false,
+      warnings: [
+        ...reconciliation.warnings,
+        "Capitec balance chain does not reconcile to the closing balance.",
+      ],
+    };
+  }
 
   if (lowConfidence && reconciliation.ok) {
     reconciliation.warnings.push(

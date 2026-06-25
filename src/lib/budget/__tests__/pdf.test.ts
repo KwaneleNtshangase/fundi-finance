@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 import { parseStatementDate, findDateToken, daysBetween } from "../parsers/pdfDates";
 import { parseAmountToken, findAmountTokens } from "../parsers/pdfLayout";
 import { parseLayoutFixture, detectBankFromText } from "../parsers/pdfGeneric";
-import { applyBankTemplate } from "../parsers/pdfTemplates";
+import { applyBankTemplate, capitecBalanceChainReconciles } from "../parsers/pdfTemplates";
+import { reconcileTransactions } from "../reconciliation";
 import { groupItemsIntoLines } from "../parsers/pdfLayout";
 import { parsePdfStatement } from "../parsers/pdf";
 import * as pdfText from "../parsers/pdfText";
@@ -57,13 +58,33 @@ describe("pdfLayout amounts", () => {
 });
 
 describe("bank layout fixtures", () => {
-  it("parses Capitec synthetic layout", () => {
+  it("parses Capitec real-layout fixture with reconciliation", () => {
     const fixture = loadLayout("pdf-capitec.layout.json");
-    const { rows, bankHint } = parseLayoutFixture(fixture);
+    const { rows, bankHint, balances } = parseLayoutFixture(fixture);
     expect(bankHint).toBe("capitec");
-    expect(rows.length).toBeGreaterThanOrEqual(2);
-    expect(rows.some((r) => r.amountZAR < 0)).toBe(true);
+    expect(rows).toHaveLength(6);
     expect(rows.some((r) => r.amountZAR > 0)).toBe(true);
+    expect(rows.some((r) => r.amountZAR < 0)).toBe(true);
+    expect(rows.some((r) => r.description.includes("2474439413"))).toBe(true);
+    expect(rows.filter((r) => r.description === "Bank Charges")).toHaveLength(2);
+    expect(rows.find((r) => r.description.includes("Snapscan"))?.amountZAR).toBe(9.66);
+    expect(rows.find((r) => r.description.includes("Uber"))?.amountZAR).toBe(-60);
+    expect(rows.find((r) => r.description.includes("Alex M"))?.amountZAR).toBe(-1000);
+    expect(capitecBalanceChainReconciles(rows, balances.openingBalance, balances.closingBalance)).toBe(true);
+    const reconciliation = reconcileTransactions(
+      rows.map((r) => ({
+        date: r.date,
+        description: r.description,
+        amountZAR: r.amountZAR,
+        rawMerchant: r.description,
+        lineIndex: r.lineIndex,
+        balanceAfter: r.balanceAfter,
+      })),
+      { openingBalance: balances.openingBalance, closingBalance: balances.closingBalance }
+    );
+    expect(reconciliation.ok).toBe(true);
+    expect(rows.some((r) => /page\s+\d+\s+of/i.test(r.description))).toBe(false);
+    expect(rows.some((r) => /summary|scheduled/i.test(r.description))).toBe(false);
   });
 
   it("parses FNB synthetic layout with signed amounts", () => {

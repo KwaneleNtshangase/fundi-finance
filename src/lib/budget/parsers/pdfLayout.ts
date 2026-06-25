@@ -65,6 +65,20 @@ export function groupItemsIntoLines(items: PositionedItem[], yTolerance = 3): Te
 
 export type ColumnKind = "date" | "description" | "debit" | "credit" | "amount" | "balance" | "unknown";
 
+export type ColumnRange = { x: number; tolerance?: number };
+
+export type ColumnLayout = {
+  date?: ColumnRange;
+  description?: ColumnRange;
+  category?: ColumnRange;
+  moneyIn?: ColumnRange;
+  moneyOut?: ColumnRange;
+  fee?: ColumnRange;
+  debit?: ColumnRange;
+  credit?: ColumnRange;
+  balance?: ColumnRange;
+};
+
 export type ParsedRow = {
   date: string;
   description: string;
@@ -72,7 +86,97 @@ export type ParsedRow = {
   balanceAfter?: number;
   needsReview?: boolean;
   lineIndex: number;
+  /** Row failed per-step balance-chain check */
+  balanceStepFailed?: boolean;
+  /** Amount inferred without a clear in/out column */
+  uncertainAmount?: boolean;
 };
+
+const DEFAULT_COL_TOLERANCE = 40;
+
+export function itemNearColumn(item: PositionedItem, col?: ColumnRange): boolean {
+  if (!col) return false;
+  const tol = col.tolerance ?? DEFAULT_COL_TOLERANCE;
+  return Math.abs(item.x - col.x) <= tol;
+}
+
+/** Assign each item to at most one column (nearest x wins). */
+export function bucketItemsToColumns(
+  line: TextLine,
+  cols: ColumnLayout
+): Map<keyof ColumnLayout, PositionedItem[]> {
+  const keys = Object.keys(cols) as (keyof ColumnLayout)[];
+  const buckets = new Map<keyof ColumnLayout, PositionedItem[]>();
+  for (const k of keys) buckets.set(k, []);
+
+  for (const item of line.items) {
+    let bestKey: keyof ColumnLayout | null = null;
+    let bestDist = Infinity;
+    for (const k of keys) {
+      const col = cols[k];
+      if (!col) continue;
+      const dist = Math.abs(item.x - col.x);
+      const tol = col.tolerance ?? DEFAULT_COL_TOLERANCE;
+      if (dist <= tol && dist < bestDist) {
+        bestDist = dist;
+        bestKey = k;
+      }
+    }
+    if (bestKey) buckets.get(bestKey)!.push(item);
+  }
+  return buckets;
+}
+
+export function amountFromBucket(
+  buckets: Map<keyof ColumnLayout, PositionedItem[]>,
+  key: keyof ColumnLayout
+): number | null {
+  const items = buckets.get(key) ?? [];
+  for (const item of items) {
+    const val = parseAmountToken(item.text);
+    if (val !== null && Math.abs(val) >= 0.01) return val;
+  }
+  return null;
+}
+
+export function textFromBucket(
+  buckets: Map<keyof ColumnLayout, PositionedItem[]>,
+  key: keyof ColumnLayout
+): string {
+  return (buckets.get(key) ?? []).map((i) => i.text).join(" ").trim();
+}
+
+export function itemsInColumn(line: TextLine, col?: ColumnRange): PositionedItem[] {
+  if (!col) return [];
+  return line.items.filter((i) => itemNearColumn(i, col));
+}
+
+export function textInColumn(line: TextLine, col?: ColumnRange): string {
+  return itemsInColumn(line, col)
+    .map((i) => i.text)
+    .join(" ")
+    .trim();
+}
+
+export function amountInColumn(line: TextLine, col?: ColumnRange): number | null {
+  const items = itemsInColumn(line, col);
+  for (const item of items) {
+    const val = parseAmountToken(item.text);
+    if (val !== null && Math.abs(val) >= 0.01) return val;
+  }
+  return null;
+}
+
+export function isDateToken(text: string): boolean {
+  return /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(text.trim());
+}
+
+export function dateTokenInColumn(line: TextLine, dateCol?: ColumnRange): string | null {
+  for (const item of itemsInColumn(line, dateCol)) {
+    if (isDateToken(item.text)) return item.text;
+  }
+  return null;
+}
 
 /** Infer x-position column boundaries from amount clusters on sample lines. */
 export function inferAmountColumns(lines: TextLine[]): {

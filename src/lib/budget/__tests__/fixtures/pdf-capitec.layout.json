@@ -1,10 +1,125 @@
 {
-  "headerText": "Capitec Bank Statement Account",
-  "openingBalance": 5000,
-  "closingBalance": 4250,
+  "headerText": "Capitec Bank Statement Account 0000000000",
+  "openingBalance": 3000,
+  "closingBalance": 1796.66,
+  "expectedCount": 6,
   "lines": [
-    { "y": 200, "items": [{ "x": 40, "text": "01/05/2026" }, { "x": 120, "text": "WOOLWORTHS" }, { "x": 350, "text": "" }, { "x": 420, "text": "250.00" }, { "x": 500, "text": "4750.00" }] },
-    { "y": 220, "items": [{ "x": 40, "text": "05/05/2026" }, { "x": 120, "text": "SALARY DEPOSIT" }, { "x": 350, "text": "15000.00" }, { "x": 420, "text": "" }, { "x": 500, "text": "19750.00" }] },
-    { "y": 240, "items": [{ "x": 40, "text": "10/05/2026" }, { "x": 120, "text": "TRANSFER TO SAVINGS" }, { "x": 350, "text": "" }, { "x": 420, "text": "500.00" }, { "x": 500, "text": "19250.00" }] }
+    {
+      "page": 1,
+      "y": 80,
+      "items": [
+        { "x": 40, "text": "Opening Balance" },
+        { "x": 400, "text": "3 000.00" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 100,
+      "items": [
+        { "x": 40, "text": "Closing Balance" },
+        { "x": 400, "text": "1 796.66" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 140,
+      "items": [{ "x": 40, "text": "Money In/Out Summary" }]
+    },
+    {
+      "page": 1,
+      "y": 160,
+      "items": [
+        { "x": 40, "text": "Scheduled Payments" },
+        { "x": 300, "text": "Card Subscriptions" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 180,
+      "items": [
+        { "x": 40, "text": "Spending Summary" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 200,
+      "items": [
+        { "x": 40, "text": "Digital Payments" },
+        { "x": 300, "text": "-R42 689.88" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 40,
+      "items": [
+        { "x": 40, "text": "Date" },
+        { "x": 120, "text": "Description" },
+        { "x": 280, "text": "Category" },
+        { "x": 360, "text": "Money In" },
+        { "x": 420, "text": "Money Out" },
+        { "x": 470, "text": "Fee*" },
+        { "x": 520, "text": "Balance" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 60,
+      "items": [
+        { "x": 40, "text": "02/06/2025" },
+        { "x": 120, "text": "Payment Received: Snapscan 20250602" },
+        { "x": 280, "text": "Other Income" },
+        { "x": 360, "text": "9.66" },
+        { "x": 520, "text": "3 009.66" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 80,
+      "items": [
+        { "x": 40, "text": "03/06/2025" },
+        { "x": 120, "text": "Online Purchase: Uber Cape Town (Card 0000)" },
+        { "x": 280, "text": "Public Transport" },
+        { "x": 420, "text": "-60.00" },
+        { "x": 520, "text": "2 949.66" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 100,
+      "items": [
+        { "x": 40, "text": "10/06/2025" },
+        { "x": 120, "text": "Recurring Payment (...): Gogo Dstv" },
+        { "x": 280, "text": "Digital Subscriptions" },
+        { "x": 420, "text": "-150.00" },
+        { "x": 470, "text": "-2.00" },
+        { "x": 520, "text": "2 797.66" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 115,
+      "items": [{ "x": 120, "text": "2474439413" }]
+    },
+    {
+      "page": 2,
+      "y": 130,
+      "items": [
+        { "x": 40, "text": "16/06/2025" },
+        { "x": 120, "text": "Banking App Immediate Payment: Alex M" },
+        { "x": 280, "text": "Digital" },
+        { "x": 420, "text": "-1 000.00" },
+        { "x": 470, "text": "-1.00" },
+        { "x": 520, "text": "1 796.66" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 500,
+      "items": [
+        { "x": 40, "text": "Unique Document No.:" },
+        { "x": 200, "text": "FAKE-DOC-001" },
+        { "x": 450, "text": "Page 2 of 14" }
+      ]
+    }
   ]
 }

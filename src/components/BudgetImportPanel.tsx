@@ -75,6 +75,14 @@ function isAcceptedFile(file: File): boolean {
   return ACCEPTED_EXT.some((ext) => lower.endsWith(ext));
 }
 
+function selectiveNeedsReview(row: PreviewRow, fileMeta?: FileMeta): boolean {
+  if (fileMeta?.reconciliation?.ok === false) return true;
+  if (row.needsReview) return true;
+  const cat = row.categorisation.category;
+  if (cat === "other" || cat === "other-income") return true;
+  return false;
+}
+
 function validateIncomingFiles(incoming: File[]): { files: File[] } | { error: string } {
   if (incoming.length === 0) {
     return { error: "No files selected." };
@@ -374,7 +382,6 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
     updateRow(row.id, {
       categorisation: { ...row.categorisation, category },
       categoryEdited: true,
-      rememberMerchant: true,
     });
   };
 
@@ -402,15 +409,24 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
     <div className="fixed inset-0 z-[450] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
       <div style={{
         background: "var(--color-surface)", borderRadius: "20px 20px 0 0",
-        padding: "24px 20px 36px", width: "100%", maxWidth: 820, maxHeight: "92vh", overflowY: "auto",
+        padding: rows.length > 0 ? "0" : "24px 20px 36px",
+        width: "100%", maxWidth: 820,
+        maxHeight: "92vh",
+        display: rows.length > 0 ? "flex" : "block",
+        flexDirection: "column",
+        overflow: rows.length > 0 ? "hidden" : "auto",
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-          <h3 style={{ fontWeight: 900, fontSize: 18 }}>Import bank statement(s)</h3>
-          <button type="button" onClick={() => { setOpen(false); reset(); }} style={{ background: "none", border: "none", cursor: "pointer" }}>
-            <X size={20} />
-          </button>
+        <div style={{ padding: rows.length > 0 ? "24px 20px 0" : 0, flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+            <h3 style={{ fontWeight: 900, fontSize: 18 }}>Import bank statement(s)</h3>
+            <button type="button" onClick={() => { setOpen(false); reset(); }} style={{ background: "none", border: "none", cursor: "pointer" }}>
+              <X size={20} />
+            </button>
+          </div>
         </div>
 
+        {rows.length === 0 ? (
+          <div style={{ padding: "0 20px 36px" }}>
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16, fontSize: 13, color: "var(--color-text-secondary)" }}>
           <Shield size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           <span>
@@ -424,8 +440,6 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
           I consent to processing these statement(s) for budget tracking (POPIA), including PDF and multi-file uploads.
         </label>
 
-        {rows.length === 0 ? (
-          <>
             <div
               role="button"
               tabIndex={0}
@@ -515,19 +529,37 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
             >
               {loading ? "Parsing…" : "Preview transactions"}
             </button>
-          </>
+          </div>
         ) : (
           <>
-            {fileMetas.map((meta) => (
-              meta.reconciliation && !meta.reconciliation.ok && (
-                <div key={meta.fileName} style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 12, fontSize: 13 }}>
-                  <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "#F57C00", marginBottom: 4 }}>
-                    <AlertTriangle size={16} /> {meta.fileName} — reconciliation warning
-                  </div>
-                  {meta.reconciliation.warnings.map((w) => <div key={w}>{w}</div>)}
+            <div style={{
+              flexShrink: 0,
+              padding: "0 20px",
+              position: "sticky",
+              top: 0,
+              zIndex: 2,
+              background: "var(--color-surface)",
+            }}>
+              {fileMetas.some((m) => m.reconciliation && !m.reconciliation.ok) && (
+                <div style={{ paddingBottom: 12 }}>
+                  {fileMetas.map((meta) => (
+                    meta.reconciliation && !meta.reconciliation.ok && (
+                      <div key={meta.fileName} style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
+                        <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "#F57C00", marginBottom: 4 }}>
+                          <AlertTriangle size={16} /> {meta.fileName} — reconciliation warning
+                        </div>
+                        {meta.reconciliation.warnings.map((w) => <div key={w}>{w}</div>)}
+                      </div>
+                    )
+                  ))}
                 </div>
-              )
-            ))}
+              )}
+              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: 12, lineHeight: 1.5 }}>
+                Edit a category below and tick <strong>Remember</strong> to teach future imports how to categorise that merchant.
+              </p>
+            </div>
+
+            <div style={{ flex: 1, overflowY: "auto", padding: "0 20px", minHeight: 0 }}>
 
             {transferPairs.length > 0 && (
               <div style={{ background: "rgba(0,122,77,0.06)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 14, marginBottom: 16 }}>
@@ -588,7 +620,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                           <th style={{ padding: 8 }}>Description</th>
                           <th style={{ padding: 8 }}>Amount</th>
                           <th style={{ padding: 8 }}>Category</th>
-                          <th style={{ padding: 8 }}>Remember</th>
+                          <th style={{ padding: 8 }} title="Save this merchant's category for next time.">Remember</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -603,7 +635,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                               {r.isTransfer && (
                                 <span style={{ display: "block", fontSize: 10, color: "var(--color-primary)" }}>Transfer — excluded</span>
                               )}
-                              {r.needsReview && !r.skipReason && (
+                              {selectiveNeedsReview(r, meta) && !r.skipReason && (
                                 <span style={{ display: "block", fontSize: 10, color: "#F57C00" }}>Needs review</span>
                               )}
                             </td>
@@ -641,7 +673,19 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
             })}
 
             {error && <p style={{ color: "#E03C31", fontSize: 13, marginBottom: 12 }}>{error}</p>}
-            <div style={{ display: "flex", gap: 10 }}>
+            </div>
+
+            <div style={{
+              flexShrink: 0,
+              position: "sticky",
+              bottom: 0,
+              zIndex: 2,
+              background: "var(--color-surface)",
+              borderTop: "1px solid var(--color-border)",
+              padding: "16px 20px 36px",
+              display: "flex",
+              gap: 10,
+            }}>
               <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={reset}>Back</button>
               <button
                 type="button"
