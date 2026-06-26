@@ -797,7 +797,21 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                                 <span style={{ display: "block", fontSize: 10, color: "#F57C00" }}>Needs review</span>
                               )}
                             </td>
-                            <td style={{ padding: 8, fontWeight: 700 }}>{formatRand(Math.abs(r.amountZAR))}</td>
+                            <td
+                              style={{
+                                padding: 8,
+                                fontWeight: 700,
+                                whiteSpace: "nowrap",
+                                color: r.isTransfer
+                                  ? "var(--color-text-secondary)"
+                                  : r.amountZAR < 0
+                                    ? "#E03C31"
+                                    : "#22C55E",
+                              }}
+                            >
+                              {r.amountZAR < 0 ? "-" : "+"}
+                              {formatRand(Math.abs(r.amountZAR))}
+                            </td>
                             <td style={{ padding: 8 }}>
                               {!r.skipReason && !r.isTransfer && (
                                 <div>
