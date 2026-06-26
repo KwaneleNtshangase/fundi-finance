@@ -357,8 +357,14 @@ export function parseFnbLayout(
   let balanceChainOk = true;
   let lastMainRowIndex = -1;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+  // pdfjs reports y bottom-origin (higher y = top of page). The shared line
+  // grouping sorts y ascending (bottom-up), which reverses FNB statements and
+  // makes the "Transactions in RAND" → header → rows section logic find nothing.
+  // Re-sort into correct top-down reading order for this parser.
+  const ordered = [...lines].sort((a, b) => a.page - b.page || b.y - a.y);
+
+  for (let i = 0; i < ordered.length; i++) {
+    const line = ordered[i];
 
     if (FNB_TRANSACTIONS_SECTION.test(line.text)) {
       seenTransactionsSection = true;
