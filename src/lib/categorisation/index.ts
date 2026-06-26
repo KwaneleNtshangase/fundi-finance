@@ -56,13 +56,19 @@ export function categorise(
 ): CategoriseResult {
   const haystack = `${txn.rawMerchant} ${txn.description}`;
 
+  // The SIGN of the amount is authoritative for income vs expense. Descriptions
+  // routinely contain bank/merchant words that don't reflect direction (e.g. an
+  // FNB credit "FNB OB Pmt ..."), so a keyword rule may only set the CATEGORY —
+  // it can never flip the direction. A rule whose type contradicts the sign is
+  // ignored, and the row falls back to the correct uncategorised bucket.
+  const type: "income" | "expense" = txn.amountZAR >= 0 ? "income" : "expense";
+
   const userMatch = matchUserRule(haystack, userRules);
-  if (userMatch) return userMatch;
+  if (userMatch && userMatch.type === type) return userMatch;
 
   const builtIn = matchBuiltIn(haystack);
-  if (builtIn) return builtIn;
+  if (builtIn && builtIn.type === type) return builtIn;
 
-  const type: "income" | "expense" = txn.amountZAR >= 0 ? "income" : "expense";
   return {
     category: type === "income" ? UNCATEGORISED_INCOME : UNCATEGORISED_EXPENSE,
     type,
