@@ -386,8 +386,14 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
       const token = session?.access_token;
       if (!token) return;
 
+      let committedAny = false;
+      const failed: string[] = [];
+
       for (const meta of fileMetas) {
         const fileRows = rowsWithTransfers.filter((r) => r.sourceFileName === meta.fileName);
+        // Skip files where every row is already imported / removed — sending them
+        // would error ("No new transactions") and abort the whole batch.
+        if (fileRows.every((r) => r.skipReason)) continue;
         const commitRows = fileRows.map((r) => ({
           date: r.date,
           description: r.description,
@@ -432,9 +438,21 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
         });
         const json = await res.json();
         if (!res.ok) {
-          setError(`${meta.fileName}: ${json.error ?? "Import failed"}`);
-          return;
+          // Keep importing the other files; report failures at the end.
+          failed.push(`${meta.fileName}: ${json.error ?? "Import failed"}`);
+          continue;
         }
+        committedAny = true;
+      }
+
+      if (failed.length > 0) {
+        setError(failed.join("  ·  "));
+      }
+      if (!committedAny) {
+        if (failed.length === 0) {
+          setError("Nothing new to import — these transactions are already in your budget.");
+        }
+        return;
       }
 
       setOpen(false);

@@ -44,7 +44,7 @@ function buildPreview(
   const dedupeHashes = assignDedupeHashes(txnsWithAccount);
 
   let preview: PreviewTxn[] = txnsWithAccount.map((txn, i) => {
-    const cat = categorise(txn, userRules);
+    const cat = categorise(txn, userRules, customCategories);
     const uncertain =
       parsed.reconciliation.ok === false ||
       cat.category === "other" ||
