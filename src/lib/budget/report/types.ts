@@ -61,6 +61,7 @@ export type MonthlySpend = {
   monthYear: string;
   label: string;
   expenseCents: number;
+  incomeCents: number;
 };
 
 export type ReportModel = {

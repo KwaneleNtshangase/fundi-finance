@@ -162,17 +162,14 @@ export function buildReport(
   const monthlySpend: MonthlySpend[] = monthsInPeriod.map((monthYear) => {
     const slice = monthOverlapSlice(monthYear, periodStart, periodEnd)!;
     let expenseCents = 0;
+    let incomeCents = 0;
     for (const entry of periodEntries) {
-      if (
-        entry.type === "expense" &&
-        entry.entry_date >= slice.overlapStart &&
-        entry.entry_date <= slice.overlapEnd
-      ) {
-        expenseCents += amountToCents(entry.amount);
-      }
+      if (entry.entry_date < slice.overlapStart || entry.entry_date > slice.overlapEnd) continue;
+      if (entry.type === "expense") expenseCents += amountToCents(entry.amount);
+      else incomeCents += amountToCents(entry.amount);
     }
     const [, m] = monthYear.split("-").map(Number);
-    return { monthYear, label: MONTH_SHORT[m - 1], expenseCents };
+    return { monthYear, label: MONTH_SHORT[m - 1], expenseCents, incomeCents };
   });
 
   const merchantMap = new Map<string, number>();

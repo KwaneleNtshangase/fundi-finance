@@ -52,7 +52,11 @@ export async function POST(req: NextRequest) {
       .from("custom_budget_categories")
       .select("id, name, color, icon_name, type")
       .eq("user_id", user.id),
-    admin.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+    admin
+      .from("profiles")
+      .select("display_name, full_name, username")
+      .eq("id", user.id)
+      .maybeSingle(),
   ]);
 
   if (entriesRes.error) {
@@ -94,10 +98,28 @@ export async function POST(req: NextRequest) {
     })
   );
 
+  const profile = profileRes.data as
+    | { display_name?: string; full_name?: string; username?: string }
+    | null;
   const displayName =
-    (profileRes.data as { display_name?: string } | null)?.display_name?.trim() ||
-    user.email?.split("@")[0] ||
+    profile?.full_name?.trim() ||
+    profile?.display_name?.trim() ||
+    profile?.username?.trim() ||
     "Fundi user";
+
+  // Fetch the Fundi logo (public asset) and inline it as a data URI so the PDF
+  // is self-contained. Graceful: if it fails, the report renders without it.
+  let logoDataUri: string | undefined;
+  try {
+    const origin = req.nextUrl.origin;
+    const logoRes = await fetch(`${origin}/Logo.png`);
+    if (logoRes.ok) {
+      const buf = Buffer.from(await logoRes.arrayBuffer());
+      logoDataUri = `data:image/png;base64,${buf.toString("base64")}`;
+    }
+  } catch {
+    logoDataUri = undefined;
+  }
 
   const model = buildReport(
     entries,
@@ -128,7 +150,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const buffer = await renderToBuffer(<BudgetReportDocument model={model} />);
+    const buffer = await renderToBuffer(
+      <BudgetReportDocument model={model} logoDataUri={logoDataUri} />
+    );
     const filename = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
