@@ -174,9 +174,9 @@ export function isDateToken(text: string): boolean {
   return /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}$/.test(text.trim());
 }
 
-/** DD Mon (FNB and similar) */
+/** DD Mon, DD Mon YY, or DD Mon YYYY (FNB, Standard Bank, and similar) */
 export function isDMonDateToken(text: string): boolean {
-  return /^\d{1,2}\s+[A-Za-z]{3,9}$/.test(text.trim());
+  return /^\d{1,2}\s+[A-Za-z]{3,9}(?:\s+\d{2,4})?$/.test(text.trim());
 }
 
 export function isStatementDateToken(text: string): boolean {

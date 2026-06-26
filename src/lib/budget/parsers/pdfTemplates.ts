@@ -35,6 +35,30 @@ const FNB_SECTION_END = /closing\s+balance|turnover\s+for\s+statement\s+period/i
 const FNB_FOOTER =
   /please\s+contact\s+us|first\s+national\s+bank|page\s+\d+\s+of\s+\d+/i;
 
+// Standard Bank: Date | Description | Payments | Deposits | Balance
+const SB_HEADER_RE = /\bdate\b.*\bdescription\b.*\bpayments\b.*\bdeposits\b.*\bbalance\b/i;
+const SB_OPENING_RE = /statement\s+opening\s+balance/i;
+const SB_SECTION_END =
+  /statement\s+closing\s+balance|today'?s\s+debits\s+have\s+not|the\s+standard\s+bank\s+of\s+south/i;
+const SB_FOOTER =
+  /customer\s+care|standardbank\.co\.za|pg\s*\d+\s*of\s*\d+|page\s*\d+\s*of\s*\d+/i;
+
+/**
+ * Trim noise from a transaction description: card masks, long reference/account
+ * numbers, phone numbers, branch codes — and cap the length.
+ */
+export function cleanDescription(raw: string): string {
+  let s = (raw || "").replace(/\s+/g, " ").trim();
+  s = s.replace(/\b\d{3,4}\*\d{3,4}\b/g, " ");                 // card masks e.g. 4548*0367
+  s = s.replace(/\bR\d{4,}\b/g, " ");                          // FNB refs e.g. R25853
+  s = s.replace(/\b\d{6,}\b/g, " ");                           // long reference / account numbers
+  s = s.replace(/\b0\d{2}[-\s]?\d{3}[-\s]?\d{4}\b/g, " ");     // phone numbers
+  s = s.replace(/universal\s+branch\s+code\s*\d*/gi, " ");     // branch-code boilerplate
+  s = s.replace(/\s+/g, " ").trim();
+  if (s.length > 90) s = `${s.slice(0, 89).trim()}…`;
+  return s;
+}
+
 /** Bank-agnostic transaction-table header (Date + Balance + amount columns). */
 export function detectTransactionTableHeader(
   line: TextLine,
@@ -47,6 +71,10 @@ export function detectTransactionTableHeader(
   if (bankId === "fnb" || !bankId) {
     const fnb = detectFnbColumns(line);
     if (fnb) return fnb;
+  }
+  if (bankId === "standard-bank" || !bankId) {
+    const sb = detectStandardBankColumns(line);
+    if (sb) return sb;
   }
   return null;
 }
@@ -232,7 +260,7 @@ export function parseCapitecLayout(
         const extra = continuationFromBuckets(buckets);
         if (extra) {
           const last = rows[lastMainRowIndex];
-          last.description = `${last.description} ${extra}`.replace(/\s+/g, " ").trim();
+          last.description = cleanDescription(`${last.description} ${extra}`) || last.description;
         }
       }
       continue;
@@ -259,7 +287,7 @@ export function parseCapitecLayout(
       continue;
     }
 
-    const desc = descriptionFromBuckets(buckets, dateToken) || "Transaction";
+    const desc = cleanDescription(descriptionFromBuckets(buckets, dateToken)) || "Transaction";
     const feeAmount =
       fee !== null && Math.abs(fee) >= 0.01 ? (fee <= 0 ? fee : -Math.abs(fee)) : undefined;
 
@@ -363,7 +391,7 @@ export function parseFnbLayout(
         const extra = fnbDescriptionFromLine(line, columns, "");
         if (extra) {
           const last = rows[lastMainRowIndex];
-          last.description = `${last.description} ${extra}`.replace(/\s+/g, " ").trim();
+          last.description = cleanDescription(`${last.description} ${extra}`) || last.description;
         }
       }
       continue;
@@ -377,7 +405,7 @@ export function parseFnbLayout(
     const amountZAR = fnbAmountFromBucket(buckets, "amount");
     if (amountZAR === null || Math.abs(amountZAR) < 0.01) continue;
 
-    const desc = fnbDescriptionFromLine(line, columns, dateToken) || "Transaction";
+    const desc = cleanDescription(fnbDescriptionFromLine(line, columns, dateToken)) || "Transaction";
 
     if (prevBalance !== undefined) {
       const expected = amountToCents(prevBalance) + amountToCents(amountZAR);
@@ -402,6 +430,132 @@ export function parseFnbLayout(
   return { rows, columns, balanceChainOk };
 }
 
+export type StandardBankParseResult = {
+  rows: ParsedRow[];
+  columns: ColumnLayout | null;
+  balanceChainOk: boolean;
+  closingBalance?: number;
+};
+
+/** Detect Standard Bank columns: Date | Description | Payments | Deposits | Balance. */
+export function detectStandardBankColumns(line: TextLine): ColumnLayout | null {
+  const normalized = line.text.replace(/\s+/g, " ");
+  if (!SB_HEADER_RE.test(normalized)) return null;
+  const findCol = (label: RegExp, fallbackX: number, tol: number): ColumnRange => {
+    const item = line.items.find((i) => label.test(i.text.replace(/\*/g, "")));
+    return item ? colRange(item.x, tol) : colRange(fallbackX, tol);
+  };
+  return {
+    date: findCol(/^date$/i, 45, 50),
+    // Description data spans well past the header label — wide tolerance so the
+    // whole merchant/payee is captured (amounts still win by nearest-column).
+    description: findCol(/^description$/i, 120, 170),
+    moneyOut: findCol(/^payments$/i, 395, 48), // Payments column → money out
+    moneyIn: findCol(/^deposits$/i, 470, 48), // Deposits column → money in
+    balance: findCol(/^balance$/i, 560, 48),
+  };
+}
+
+/**
+ * Standard Bank parser. Two-line rows (a date line + a transaction-type line),
+ * separate Payments (out) / Deposits (in) columns, comma thousands, DD Mon YY
+ * dates. No printed closing balance — the last row's balance is the closing.
+ */
+export function parseStandardBankLayout(
+  lines: TextLine[],
+  contextYear?: number
+): StandardBankParseResult {
+  let columns: ColumnLayout | null = null;
+  const rows: ParsedRow[] = [];
+  let previousDate: string | undefined;
+  let inTable = false;
+  let prevBalance: number | undefined;
+  let balanceChainOk = true;
+  let lastRowIndex = -1;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    const headerCols = detectStandardBankColumns(line);
+    if (headerCols) {
+      columns = headerCols;
+      inTable = true;
+      continue;
+    }
+
+    if (!inTable || !columns) continue;
+
+    if (SB_OPENING_RE.test(line.text)) {
+      const amts = amountsOnLine(line);
+      if (amts.length > 0) prevBalance = amts[amts.length - 1].val;
+      continue;
+    }
+    if (SB_SECTION_END.test(line.text)) {
+      inTable = false;
+      continue;
+    }
+
+    const buckets = bucketItemsToColumns(line, columns);
+    const dateStr = textFromBucket(buckets, "date").replace(/\s+/g, " ").trim();
+    const balanceAfter = amountFromBucket(buckets, "balance");
+    const moneyIn = amountFromBucket(buckets, "moneyIn");
+    const moneyOut = amountFromBucket(buckets, "moneyOut");
+    const iso = dateStr ? parseStatementDate(dateStr, contextYear, previousDate) : null;
+
+    // Continuation line (the transaction-type line): no date / amount / balance →
+    // append its description text to the previous transaction.
+    if (!iso || balanceAfter === null) {
+      if (
+        lastRowIndex >= 0 &&
+        balanceAfter === null &&
+        moneyIn === null &&
+        moneyOut === null
+      ) {
+        const extra = textFromBucket(buckets, "description").replace(/\s+/g, " ").trim();
+        if (extra) {
+          const last = rows[lastRowIndex];
+          last.description = cleanDescription(`${last.description} ${extra}`) || last.description;
+        }
+      }
+      continue;
+    }
+
+    let amountZAR: number;
+    if (moneyIn !== null && Math.abs(moneyIn) >= 0.01) {
+      amountZAR = Math.abs(moneyIn);
+    } else if (moneyOut !== null && Math.abs(moneyOut) >= 0.01) {
+      amountZAR = -Math.abs(moneyOut);
+    } else {
+      continue;
+    }
+
+    const desc = cleanDescription(textFromBucket(buckets, "description")) || "Transaction";
+
+    if (prevBalance !== undefined) {
+      const expected = amountToCents(prevBalance) + amountToCents(amountZAR);
+      if (Math.abs(expected - amountToCents(balanceAfter)) > 1) {
+        balanceChainOk = false;
+      }
+    }
+
+    rows.push({
+      date: iso,
+      description: desc,
+      amountZAR,
+      balanceAfter,
+      lineIndex: i,
+      needsReview: desc === "Transaction",
+    });
+    lastRowIndex = rows.length - 1;
+    prevBalance = balanceAfter;
+    previousDate = iso;
+  }
+
+  const closingBalance =
+    lastRowIndex >= 0 ? rows[lastRowIndex].balanceAfter : undefined;
+  return { rows, columns, balanceChainOk, closingBalance };
+}
+
 function amountToCents(n: number): number {
   return Math.round(n * 100);
 }
@@ -424,6 +578,9 @@ export function applyBankTemplate(
   }
   if (bankId === "fnb") {
     return parseFnbLayout(lines, contextYear).rows;
+  }
+  if (bankId === "standard-bank") {
+    return parseStandardBankLayout(lines, contextYear).rows;
   }
 
   const rows: ParsedRow[] = [];
@@ -502,7 +659,10 @@ export function mergeTemplateRows(
   templateRows: ParsedRow[],
   bankId: string
 ): ParsedRow[] {
-  if ((bankId === "capitec" || bankId === "fnb") && templateRows.length > 0) {
+  if (
+    (bankId === "capitec" || bankId === "fnb" || bankId === "standard-bank") &&
+    templateRows.length > 0
+  ) {
     return templateRows.map((r) => ({ ...r, needsReview: r.needsReview ?? false }));
   }
   if (templateRows.length >= genericRows.length * 0.7) {

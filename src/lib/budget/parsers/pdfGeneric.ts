@@ -16,7 +16,7 @@ import {
   type PositionedItem,
   type TextLine,
 } from "./pdfLayout";
-import { applyBankTemplate, BANK_TEMPLATES, mergeTemplateRows } from "./pdfTemplates";
+import { applyBankTemplate, BANK_TEMPLATES, cleanDescription, mergeTemplateRows } from "./pdfTemplates";
 
 export type BalanceMeta = {
   openingBalance?: number;
@@ -181,12 +181,16 @@ export function extractBalances(fullText: string, lines: TextLine[]): BalanceMet
 }
 
 export function detectBankFromText(fullText: string): string | null {
-  const lower = fullText.toLowerCase();
-  if (/capitec/.test(lower)) return "capitec";
-  if (/standard\s+bank|std\s+bank/.test(lower)) return "standard-bank";
-  if (/\bfnb\b|first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/.test(lower)) return "fnb";
-  if (/nedbank/.test(lower)) return "nedbank";
-  if (/\bab\s*sa\b/.test(lower)) return "absa";
+  // Detect the ISSUER from branding only. Transaction descriptions routinely
+  // name OTHER banks (e.g. "Magtape Credit Capitec", "KWANELE CAPITEC",
+  // "ABSA BANK FLAT 9") — matching a bare bank word mis-routes the parser, so
+  // we require issuer-specific markers (e.g. "Capitec Bank" / a bank domain).
+  const t = fullText.toLowerCase();
+  if (/capitec\s*bank|capitecbank\.co\.za/.test(t)) return "capitec";
+  if (/standard\s+bank|standardbank\.co\.za/.test(t)) return "standard-bank";
+  if (/first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/.test(t)) return "fnb";
+  if (/nedbank\.co\.za|nedbank\s+(?:ltd|limited)/.test(t)) return "nedbank";
+  if (/absa\.co\.za|absa\s+bank\s+(?:ltd|limited)/.test(t)) return "absa";
   return null;
 }
 
@@ -248,12 +252,13 @@ function parseRowFromLine(
         .replace(/\s+/g, " ")
         .trim();
 
+  const cleaned = cleanDescription(desc);
   return {
     date: iso,
-    description: desc || "Transaction",
+    description: cleaned || "Transaction",
     amountZAR: amount,
     balanceAfter: balanceAfter ?? undefined,
-    needsReview: uncertain || !desc || desc.length < 2,
+    needsReview: uncertain || !cleaned || cleaned.length < 2,
     uncertainAmount: uncertain,
     lineIndex,
   };

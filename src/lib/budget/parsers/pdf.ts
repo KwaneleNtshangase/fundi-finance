@@ -57,23 +57,30 @@ export async function parsePdfStatement(
     accountLabel,
   }));
 
+  // Standard Bank prints no closing-balance label — the last row's running
+  // balance IS the closing balance.
+  let closingBalance = generic.balances.closingBalance;
+  if (closingBalance === undefined && bankId === "standard-bank") {
+    const last = transactions[transactions.length - 1];
+    if (last?.balanceAfter !== undefined) closingBalance = last.balanceAfter;
+  }
+
   const hasBalanceMeta =
-    generic.balances.openingBalance !== undefined &&
-    generic.balances.closingBalance !== undefined;
+    generic.balances.openingBalance !== undefined && closingBalance !== undefined;
   const lowConfidence = !hasBalanceMeta;
 
   let reconciliation =
-    (bankId === "capitec" || bankId === "fnb") &&
+    (bankId === "capitec" || bankId === "fnb" || bankId === "standard-bank") &&
     generic.balances.openingBalance !== undefined &&
-    generic.balances.closingBalance !== undefined
+    closingBalance !== undefined
       ? reconcileBalanceChain(
           transactions,
           generic.balances.openingBalance,
-          generic.balances.closingBalance
+          closingBalance
         )
       : reconcileTransactions(transactions, {
           openingBalance: generic.balances.openingBalance,
-          closingBalance: generic.balances.closingBalance,
+          closingBalance,
         });
 
   if (lowConfidence && reconciliation.ok) {

@@ -158,9 +158,21 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
       return;
     }
     setError(null);
-    setFiles(validated.files);
+    // Accumulate across multiple selections/drops (dedupe by name + size) so a
+    // second pick adds to the queue instead of replacing it.
+    setFiles((prev) => {
+      const byKey = new Map(prev.map((f) => [`${f.name}:${f.size}`, f]));
+      for (const f of validated.files) byKey.set(`${f.name}:${f.size}`, f);
+      return Array.from(byKey.values());
+    });
     setNeedsPasswordFile(null);
     setPdfPassword("");
+  };
+
+  const removeFile = (name: string, size: number) => {
+    setFiles((prev) => prev.filter((f) => !(f.name === name && f.size === size)));
+    setFileMetas((prev) => prev.filter((m) => m.fileName !== name));
+    setRows((prev) => prev.filter((r) => r.sourceFileName !== name));
   };
 
   const handleFileInputChange = (fileList: FileList | null) => {
@@ -276,6 +288,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
       const allRows: PreviewRow[] = [];
       const metas: FileMeta[] = [];
+      const failed: { name: string; error: string }[] = [];
       let rowOffset = 0;
 
       let latestCustomCategories: CustomBudgetCategory[] | undefined;
@@ -292,8 +305,13 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
           return;
         }
         if (!json.ok || !json.transactions) {
-          setError(json.error ?? `Failed to parse ${file.name}`);
-          return;
+          // Surface this file's failure but keep parsing the rest, and keep any
+          // already-parsed files in the preview (never silently reset).
+          failed.push({
+            name: file.name,
+            error: json.error ?? "Couldn't read this statement — unsupported layout or no transaction table found.",
+          });
+          continue;
         }
 
         setNeedsPasswordFile(null);
@@ -325,6 +343,9 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
       setFileMetas(metas);
       setRows(allRows);
+      if (failed.length > 0) {
+        setError(failed.map((f) => `${f.name}: ${f.error}`).join("  ·  "));
+      }
       if (latestCustomCategories?.length) {
         setCustomCategories(latestCustomCategories);
       } else {
@@ -588,9 +609,59 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                 accept=".csv,.ofx,.qfx,.pdf"
                 multiple
                 style={{ display: "none" }}
-                onChange={(e) => handleFileInputChange(e.target.files)}
+                onChange={(e) => {
+                  handleFileInputChange(e.target.files);
+                  e.currentTarget.value = "";
+                }}
               />
             </div>
+
+            {files.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+                {files.map((f) => (
+                  <div
+                    key={`${f.name}:${f.size}`}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      padding: "5px 8px 5px 10px",
+                      borderRadius: 8,
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid var(--color-border)",
+                      fontSize: 12,
+                      maxWidth: "100%",
+                    }}
+                  >
+                    <span
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 220,
+                      }}
+                    >
+                      {f.name}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Remove ${f.name}`}
+                      onClick={() => removeFile(f.name, f.size)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--color-text-secondary)",
+                        display: "flex",
+                        padding: 0,
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {needsPasswordFile && (
               <div style={{ marginBottom: 16 }}>

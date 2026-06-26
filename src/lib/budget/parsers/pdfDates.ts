@@ -43,6 +43,17 @@ export function parseStatementDate(
     if (m) return toIsoDate(+dMonY[3], m, +dMonY[1]);
   }
 
+  // DD Mon YY (e.g. 12 Feb 26 — Standard Bank)
+  const dMonY2 = t.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{2})$/);
+  if (dMonY2) {
+    const m = MONTH_MAP[dMonY2[2].slice(0, 3).toLowerCase()];
+    if (m) {
+      const yy = +dMonY2[3];
+      const y = yy >= 70 ? 1900 + yy : 2000 + yy;
+      return toIsoDate(y, m, +dMonY2[1]);
+    }
+  }
+
   // DD Mon (year inferred)
   const dMon = t.match(/^(\d{1,2})\s+([A-Za-z]{3,9})$/);
   if (dMon) {
@@ -73,7 +84,7 @@ export function findDateToken(text: string): string | null {
   const patterns = [
     /\b\d{4}-\d{2}-\d{2}\b/,
     /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/,
-    /\b\d{1,2}\s+[A-Za-z]{3,9}(?:\s+\d{4})?\b/,
+    /\b\d{1,2}\s+[A-Za-z]{3,9}(?:\s+\d{2,4})?\b/,
   ];
   for (const p of patterns) {
     const m = text.match(p);
