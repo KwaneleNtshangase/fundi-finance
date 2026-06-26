@@ -2,9 +2,11 @@ import type {
   NormalizedTxn,
   UserMerchantRule,
   CategoriseResult,
-  CustomBudgetCategory,
 } from "../budget/types";
 import { normaliseDescription } from "../budget/dedupe";
+
+/** Minimal shape needed to resolve a category name to a user's custom id. */
+type CustomBudgetCategory = { id: string; name: string; type: "income" | "expense" };
 
 export type BuiltInRule = {
   pattern: RegExp;
