@@ -89,7 +89,11 @@ export function buildReport(
   for (const categoryId of expenseCategoryIds) {
     let categoryBudgetCents = 0;
     for (const monthYear of monthsInPeriod) {
-      const target = targets.find((t) => t.category === categoryId && t.month_year === monthYear);
+      // A month-specific override wins; otherwise fall back to the recurring
+      // default budget (month_year === "default"), which applies to every month.
+      const target =
+        targets.find((t) => t.category === categoryId && t.month_year === monthYear) ??
+        targets.find((t) => t.category === categoryId && t.month_year === "default");
       if (!target || target.monthly_limit <= 0) continue;
 
       const slice = monthOverlapSlice(monthYear, periodStart, periodEnd);

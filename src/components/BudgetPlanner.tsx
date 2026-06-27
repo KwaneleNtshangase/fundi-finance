@@ -163,6 +163,9 @@ export function BudgetView() {
   const [editSaving, setEditSaving] = useState(false);
   const [yearEntries, setYearEntries] = useState<BudgetEntry[]>([]);
   const [budgetTargets, setBudgetTargets] = useState<Record<string, number>>({});
+  const [defaultTargets, setDefaultTargets] = useState<Record<string, number>>({});
+  const [monthIsCustomised, setMonthIsCustomised] = useState(false);
+  const [budgetScope, setBudgetScope] = useState<"default" | "month">("default");
   const [showSetBudget, setShowSetBudget] = useState(false);
   const [budgetDraft, setBudgetDraft] = useState<Record<string, string>>({});
   const [budgetSaving, setBudgetSaving] = useState(false);
@@ -257,12 +260,19 @@ export function BudgetView() {
     if (!user) return;
     const { data } = await supabase
       .from("budget_targets")
-      .select("category, monthly_limit")
+      .select("category, monthly_limit, month_year")
       .eq("user_id", user.id)
-      .eq("month_year", monthYear);
-    const map: Record<string, number> = {};
-    (data ?? []).forEach((r: { category: string; monthly_limit: number }) => { map[r.category] = Number(r.monthly_limit); });
-    setBudgetTargets(map);
+      .in("month_year", [monthYear, "default"]);
+    const def: Record<string, number> = {};
+    const ovr: Record<string, number> = {};
+    (data ?? []).forEach((r: { category: string; monthly_limit: number; month_year: string }) => {
+      if (r.month_year === "default") def[r.category] = Number(r.monthly_limit);
+      else ovr[r.category] = Number(r.monthly_limit);
+    });
+    setDefaultTargets(def);
+    setMonthIsCustomised(Object.keys(ovr).length > 0);
+    // Effective budget for this month: default, with any month overrides on top.
+    setBudgetTargets({ ...def, ...ovr });
   }, [monthYear]);
 
   useEffect(() => { loadBudgetTargets(); }, [loadBudgetTargets]);
@@ -326,27 +336,41 @@ export function BudgetView() {
     return [...BUDGET_INCOME_CATS, ...custom];
   }, [customCats]);
 
-  const openSetBudget = () => {
+  const openSetBudget = (scope: "default" | "month" = monthIsCustomised ? "month" : "default") => {
+    setBudgetScope(scope);
+    const source = scope === "default" ? defaultTargets : budgetTargets;
     const draft: Record<string, string> = {};
-    allExpCats.forEach((c) => { draft[c.id] = budgetTargets[c.id] ? String(budgetTargets[c.id]) : ""; });
+    allExpCats.forEach((c) => { draft[c.id] = source[c.id] ? String(source[c.id]) : ""; });
     setBudgetDraft(draft);
     setShowSetBudget(true);
+  };
+
+  // Remove this month's overrides so it follows the default budget again.
+  const resetMonthToDefault = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from("budget_targets").delete()
+      .eq("user_id", user.id).eq("month_year", monthYear);
+    loadBudgetTargets();
   };
 
   const handleSaveBudgetTargets = async () => {
     setBudgetSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBudgetSaving(false); return; }
+    // "default" scope writes the recurring template (applies to every month);
+    // "month" scope writes an override for just the selected month.
+    const targetMonth = budgetScope === "default" ? "default" : monthYear;
     for (const cat of allExpCats) {
       const val = Number(budgetDraft[cat.id]);
       if (val > 0) {
         await supabase.from("budget_targets").upsert(
-          { user_id: user.id, category: cat.id, monthly_limit: val, month_year: monthYear },
+          { user_id: user.id, category: cat.id, monthly_limit: val, month_year: targetMonth },
           { onConflict: "user_id,category,month_year" }
         );
       } else {
         await supabase.from("budget_targets").delete()
-          .eq("user_id", user.id).eq("category", cat.id).eq("month_year", monthYear);
+          .eq("user_id", user.id).eq("category", cat.id).eq("month_year", targetMonth);
       }
     }
     // Behavioral outcome: track if user set a savings target
@@ -711,29 +735,27 @@ export function BudgetView() {
       </div>
 
       {Object.keys(budgetTargets).length > 0 && (
-        <button type="button" onClick={() => {
-          if (window.confirm("Apply this month's budget to all 12 months?")) {
-            const months = ["01","02","03","04","05","06","07","08","09","10","11","12"];
-            const y = year;
-            (async () => {
-              const { data: { user } } = await supabase.auth.getUser();
-              if (!user) return;
-              for (const m of months) {
-                const targetMonthYear = `${y}-${m}`;
-                for (const [cat, limit] of Object.entries(budgetTargets)) {
-                  await supabase.from("budget_targets").upsert(
-                    { user_id: user.id, category: cat, monthly_limit: limit, month_year: targetMonthYear },
-                    { onConflict: "user_id,category,month_year" }
-                  );
-                }
-              }
-              loadBudgetTargets();
-            })();
-          }
-        }}
-          style={{ width: "100%", marginBottom: 12, padding: "10px", borderRadius: 10, border: "1.5px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-secondary)", fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Copy size={14} /> Apply this budget to all months
-        </button>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--color-border)", background: monthIsCustomised ? "rgba(255,182,18,0.10)" : "var(--color-surface)", fontSize: 12.5 }}>
+          {monthIsCustomised ? (
+            <>
+              <Target size={14} style={{ color: "#B8860B", flexShrink: 0 }} />
+              <span style={{ fontWeight: 600, color: "var(--color-text-primary)", flex: 1 }}>Customised for {monthLabel}</span>
+              <button type="button" onClick={resetMonthToDefault}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)", fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                Reset to default
+              </button>
+            </>
+          ) : (
+            <>
+              <Copy size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+              <span style={{ fontWeight: 600, color: "var(--color-text-secondary)", flex: 1 }}>Following your default budget</span>
+              <button type="button" onClick={() => openSetBudget("month")}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)", fontWeight: 700, fontSize: 12.5, padding: 0 }}>
+                Customise this month
+              </button>
+            </>
+          )}
+        </div>
       )}
 
       {loading ? (
@@ -1043,12 +1065,38 @@ export function BudgetView() {
         <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
           <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <h3 style={{ fontWeight: 900, fontSize: 18 }}>Set Monthly Budget</h3>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>{budgetScope === "default" ? "Set Default Budget" : `Budget for ${monthLabel}`}</h3>
               <button type="button" onClick={() => setShowSetBudget(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
                 <X size={20} style={{ color: "var(--color-text-secondary)" }} />
               </button>
             </div>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>Set a spending limit for each category in {monthLabel}. Leave blank for no limit.</p>
+            {/* Scope toggle: default (every month) vs just this month */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
+              {([
+                { key: "default" as const, label: "Every month", sub: "Default" },
+                { key: "month" as const, label: `Only ${monthLabel}`, sub: "Override" },
+              ]).map((opt) => {
+                const active = budgetScope === opt.key;
+                return (
+                  <button key={opt.key} type="button" onClick={() => {
+                    const source = opt.key === "default" ? defaultTargets : budgetTargets;
+                    const draft: Record<string, string> = {};
+                    allExpCats.forEach((c) => { draft[c.id] = source[c.id] ? String(source[c.id]) : ""; });
+                    setBudgetDraft(draft);
+                    setBudgetScope(opt.key);
+                  }}
+                    style={{ padding: "9px 10px", borderRadius: 10, cursor: "pointer", border: `2px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.08)" : "var(--color-bg)", textAlign: "center" }}>
+                    <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
+                    <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
+                  </button>
+                );
+              })}
+            </div>
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
+              {budgetScope === "default"
+                ? "Set a limit for each category. This becomes your default budget and applies to every month — you can still override individual months later. Leave blank for no limit."
+                : `Set limits for ${monthLabel} only. These override your default budget for this month. Leave blank to follow the default.`}
+            </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
               {allExpCats.map((c) => (
                 <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -1056,7 +1104,9 @@ export function BudgetView() {
                   <span style={{ fontWeight: 600, fontSize: 13, flex: 1, minWidth: 0 }}>{c.label}</span>
                   <div style={{ position: "relative", width: 120 }}>
                     <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "var(--color-text-secondary)" }}>R</span>
-                    <input type="number" inputMode="decimal" placeholder="0" value={budgetDraft[c.id] ?? ""}
+                    <input type="number" inputMode="decimal"
+                      placeholder={budgetScope === "month" && defaultTargets[c.id] ? String(defaultTargets[c.id]) : "0"}
+                      value={budgetDraft[c.id] ?? ""}
                       onChange={(e) => setBudgetDraft((prev) => ({ ...prev, [c.id]: e.target.value }))}
                       style={{ width: "100%", padding: "10px 10px 10px 26px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-bg)", fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }} />
                   </div>
@@ -1064,7 +1114,7 @@ export function BudgetView() {
               ))}
             </div>
             <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} disabled={budgetSaving} onClick={handleSaveBudgetTargets}>
-              {budgetSaving ? "Saving..." : "Save Budget Targets"}
+              {budgetSaving ? "Saving..." : budgetScope === "default" ? "Save default budget" : `Save budget for ${monthLabel}`}
             </button>
           </div>
         </div>
