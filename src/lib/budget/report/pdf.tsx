@@ -143,6 +143,9 @@ const styles = StyleSheet.create({
 function zar(cents: number): string {
   return formatZarCurrency(cents / 100, { decimals: 2 });
 }
+function zarSigned(cents: number): string {
+  return `${cents < 0 ? "-" : "+"}${zar(Math.abs(cents))}`;
+}
 function zarShort(cents: number): string {
   const r = cents / 100;
   if (Math.abs(r) >= 1000) return `R${Math.round(r / 1000)}k`;
@@ -161,17 +164,20 @@ function Logo({ uri, size }: { uri?: string; size: number }) {
 }
 
 function PageHeader({ uri, title }: { uri?: string; title: string }) {
+  // Each band is its own absolutely-positioned `fixed` element so it anchors to
+  // the page's top edge. (A non-positioned wrapper would sit in normal flow and
+  // get pushed down by the page's paddingTop, dragging the band over content.)
   return (
-    <View fixed>
-      <View style={styles.header}>
+    <>
+      <View fixed style={styles.header}>
         <View style={styles.headerBrand}>
           <Logo uri={uri} size={26} />
           <Text style={styles.headerWordmark}>Fundi Finance</Text>
         </View>
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
-      <View style={styles.headerAccent} />
-    </View>
+      <View fixed style={styles.headerAccent} />
+    </>
   );
 }
 
@@ -359,7 +365,7 @@ function ExpenseTable({ rows }: { rows: ExpenseCategoryRow[] }) {
           <Text style={{ width: "16%", textAlign: "right" }}>{r.budgetedCents > 0 ? zar(r.budgetedCents) : "—"}</Text>
           <Text style={{ width: "16%", textAlign: "right" }}>{zar(r.actualCents)}</Text>
           <Text style={{ width: "16%", textAlign: "right", color: varianceColor(r.varianceCents, r.overBudget) }}>
-            {r.budgetedCents > 0 || r.actualCents > 0 ? `${r.varianceCents >= 0 ? "+" : ""}${zar(r.varianceCents)}` : "—"}
+            {r.budgetedCents > 0 || r.actualCents > 0 ? zarSigned(r.varianceCents) : "—"}
           </Text>
           <Text style={{ width: "12%", textAlign: "right", color: varianceColor(r.varianceCents, r.overBudget) }}>
             {r.variancePct != null ? `${r.variancePct}%` : "—"}
@@ -460,7 +466,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
               label: "Variance",
               value:
                 model.totalBudgetedExpenseCents > 0
-                  ? `${model.budgetVarianceCents >= 0 ? "+" : ""}${zar(model.budgetVarianceCents)}`
+                  ? zarSigned(model.budgetVarianceCents)
                   : "—",
               color: model.budgetVarianceCents > 0 ? C.expense : C.teal,
             },
@@ -558,7 +564,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
                   <View key={i} style={{ marginBottom: 5 }}>
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                       <Text style={{ fontSize: 8, flex: 1, marginRight: 6 }}>
-                        {i + 1}. {t.description.slice(0, 24)}
+                        {i + 1}. {t.description.length > 30 ? `${t.description.slice(0, 30)}…` : t.description}
                       </Text>
                       <Text style={{ fontSize: 8, fontWeight: 700 }}>{zar(t.cents)}</Text>
                     </View>
@@ -580,7 +586,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
             ) : (
               model.topOverBudget.map((r) => (
                 <Text key={r.categoryId} style={[styles.insightItem, { color: C.expense }]}>
-                  {r.categoryName} +{zar(r.varianceCents)} ({r.variancePct}%)
+                  {r.categoryName} {zarSigned(r.varianceCents)} ({r.variancePct}%)
                 </Text>
               ))
             )}
@@ -592,7 +598,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
             ) : (
               model.topUnderBudget.map((r) => (
                 <Text key={r.categoryId} style={[styles.insightItem, { color: C.teal }]}>
-                  {r.categoryName} {zar(r.varianceCents)} ({r.variancePct}%)
+                  {r.categoryName} {zarSigned(r.varianceCents)} ({r.variancePct}%)
                 </Text>
               ))
             )}
