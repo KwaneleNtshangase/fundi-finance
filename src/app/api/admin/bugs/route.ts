@@ -104,6 +104,7 @@ export async function POST(req: NextRequest) {
 
   const es = ((row as FeedbackRow).email_status ?? {}) as Record<string, unknown>;
   let emailResult: string | null = null;
+  let emailDetail: string | null = null;
 
   if (notify) {
     const { email, name } = await resolveUser(admin, (row as FeedbackRow).user_id, es.userEmail as string | null);
@@ -136,7 +137,14 @@ export async function POST(req: NextRequest) {
             </div>`,
         }),
       });
-      emailResult = resp.ok ? "sent" : `error-${resp.status}`;
+      if (resp.ok) {
+        emailResult = "sent";
+      } else {
+        const detail = await resp.text().catch(() => "");
+        emailResult = `error-${resp.status}`;
+        emailDetail = detail.slice(0, 400);
+        console.error("[admin/bugs] Resend send failed", resp.status, detail);
+      }
     }
   }
 
@@ -154,5 +162,5 @@ export async function POST(req: NextRequest) {
     .eq("id", id);
   if (updErr) return NextResponse.json({ error: updErr.message }, { status: 500 });
 
-  return NextResponse.json({ ok: true, emailResult, status });
+  return NextResponse.json({ ok: true, emailResult, emailDetail, status });
 }

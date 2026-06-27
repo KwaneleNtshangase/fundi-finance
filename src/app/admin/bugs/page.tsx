@@ -65,10 +65,10 @@ export default function AdminBugsPage() {
       const msg = d.notify
         ? (out.emailResult === "sent" ? "Saved · user emailed ✓"
           : out.emailResult === "no-email-on-file" ? "Saved · no email on file for this user"
-          : `Saved · email: ${out.emailResult}`)
+          : `Saved · email failed (${out.emailResult})${out.emailDetail ? `: ${out.emailDetail}` : ""}`)
         : "Saved";
       setToast(msg);
-      setTimeout(() => setToast(null), 4000);
+      setTimeout(() => setToast(null), out.emailResult && out.emailResult !== "sent" ? 12000 : 4000);
       load();
     } else {
       setToast(`Error: ${out.error ?? res.status}`);
