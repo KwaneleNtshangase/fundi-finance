@@ -21,38 +21,28 @@ export function MobileBottomNav({
   if (hidden) return null;
   return (
     <nav
-      className="bottom-nav fixed bottom-0 left-0 right-0 z-[200] pb-[env(safe-area-inset-bottom)] md:hidden"
+      className="bottom-nav fixed left-0 right-0 z-[200] md:hidden"
+      style={{
+        bottom: "calc(env(safe-area-inset-bottom) + 10px)",
+        paddingLeft: 12,
+        paddingRight: 12,
+      }}
       aria-label="Bottom navigation"
     >
-      <div className="mx-auto flex max-w-2xl flex-row items-stretch justify-around px-1">
+      <div className="nav-pill mx-auto flex max-w-[460px] flex-row items-stretch justify-between">
         {items.map((item) => (
           <button
             key={item.key}
             type="button"
-            className={[
-              "min-h-[52px]",
-              "flex-1",
-              item.order,
-              "px-1 py-2",
-              "flex flex-col items-center justify-center gap-1",
-              "text-[11px] font-bold tracking-wide",
-              "transition-colors duration-150",
-              item.isActive
-                ? "text-[var(--color-nav-active)]"
-                : "text-[var(--color-text-secondary)] opacity-80",
-            ].join(" ")}
+            className={["nav-pill-btn", item.order].join(" ")}
+            data-active={item.isActive ? "true" : "false"}
+            aria-current={item.isActive ? "page" : undefined}
             onClick={item.onClick}
           >
-            <span
-              className={[
-                "text-[20px] leading-none",
-                item.isActive ? "opacity-100" : "opacity-70",
-              ].join(" ")}
-              aria-hidden="true"
-            >
+            <span className="nav-ico" aria-hidden="true">
               {item.icon}
             </span>
-            <span className="leading-none">{item.label === "Quests" ? "Goals" : item.label}</span>
+            <span className="nav-lbl">{item.label === "Quests" ? "Goals" : item.label}</span>
           </button>
         ))}
       </div>
