@@ -25,6 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
 import {
   LineChart,
   Line,
@@ -4311,7 +4312,7 @@ export default function Home() {
                 onClick={() => handleNav("learn")}
               >
                 <span className="nav-icon">
-                  <BookOpen size={20} className="text-current" />
+                  <FundiLearn size={20} className="text-current" />
                 </span>
                 Learn
               </button>
@@ -4323,7 +4324,7 @@ export default function Home() {
                 onClick={() => handleNav("profile")}
               >
                 <span className="nav-icon">
-                  <UserIcon size={20} className="text-current" />
+                  <FundiProfile size={20} className="text-current" />
                 </span>
                 Profile
               </button>
@@ -4335,7 +4336,7 @@ export default function Home() {
                 onClick={() => handleNav("leaderboard")}
               >
                 <span className="nav-icon">
-                  <Trophy size={20} className="text-current" />
+                  <FundiLeaderboard size={20} className="text-current" />
                 </span>
                 Leaderboard
               </button>
@@ -4347,7 +4348,7 @@ export default function Home() {
                 onClick={() => handleNav("budget")}
               >
                 <span className="nav-icon">
-                  <Wallet size={20} className="text-current" />
+                  <FundiBudget size={20} className="text-current" />
                 </span>
                 Budget
               </button>
@@ -4359,7 +4360,7 @@ export default function Home() {
                 onClick={() => handleNav("calculator")}
               >
                 <span className="nav-icon">
-                  <BarChart2 size={20} className="text-current" />
+                  <FundiCalculate size={20} className="text-current" />
                 </span>
                 Calculate
               </button>
@@ -4371,7 +4372,7 @@ export default function Home() {
                 onClick={() => handleNav("quests")}
               >
                 <span className="nav-icon">
-                  <Target size={20} className="text-current" />
+                  <FundiGoals size={20} className="text-current" />
                 </span>
                 Goals
               </button>
@@ -5118,7 +5119,7 @@ export default function Home() {
           {
             key: "learn",
             label: "Learn",
-            icon: <BookOpen size={20} className="text-current" />,
+            icon: <FundiLearn size={24} className="text-current" />,
             isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
             onClick: () => setRoute({ name: "learn" }),
             order: "order-1",
@@ -5126,7 +5127,7 @@ export default function Home() {
           {
             key: "calculator",
             label: "Calculate",
-            icon: <Calculator size={20} className="text-current" />,
+            icon: <FundiCalculate size={24} className="text-current" />,
             isActive: route.name === "calculator",
             onClick: () => handleNav("calculator"),
             order: "order-2",
@@ -5134,7 +5135,7 @@ export default function Home() {
           {
             key: "budget",
             label: "Budget",
-            icon: <Wallet size={20} className="text-current" />,
+            icon: <FundiBudget size={24} className="text-current" />,
             isActive: route.name === "budget",
             onClick: () => handleNav("budget"),
             order: "order-3",
@@ -5142,7 +5143,7 @@ export default function Home() {
           {
             key: "quests",
             label: "Goals",
-            icon: <Target size={20} className="text-current" />,
+            icon: <FundiGoals size={24} className="text-current" />,
             isActive: route.name === "quests",
             onClick: () => handleNav("quests"),
             order: "order-4",
@@ -5150,7 +5151,7 @@ export default function Home() {
           {
             key: "progress",
             label: "Progress",
-            icon: <TrendingUp size={20} className="text-current" />,
+            icon: <FundiProgress size={24} className="text-current" />,
             isActive: route.name === "leaderboard",
             onClick: () => handleNav("leaderboard"),
             order: "order-5",
@@ -5158,7 +5159,7 @@ export default function Home() {
           {
             key: "profile",
             label: "Profile",
-            icon: <UserIcon size={20} className="text-current" />,
+            icon: <FundiProfile size={24} className="text-current" />,
             isActive: route.name === "profile",
             onClick: () => handleNav("profile"),
             order: "order-6",
