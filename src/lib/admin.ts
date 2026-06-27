@@ -3,7 +3,14 @@
  * (comma-separated) to control who can see/triage bugs. Falls back to the
  * known owner addresses so it works before the env var is configured.
  */
-const FALLBACK_ADMIN_EMAILS = ["kwanelebc031@gmail.com", "mntshangase97@gmail.com"];
+const FALLBACK_ADMIN_EMAILS = [
+  "kwanelebc031@gmail.com",
+  "hello@fundiapp.co.za",
+  "legal@fundiapp.co.za",
+  "noreply@fundiapp.co.za",
+  "privacy@fundiapp.co.za",
+  "support@fundiapp.co.za",
+];
 
 export function getAdminEmails(): string[] {
   const env = process.env.ADMIN_EMAILS ?? "";
