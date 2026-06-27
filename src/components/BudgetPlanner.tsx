@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
@@ -142,6 +142,54 @@ const BUDGET_INCOME_CATS = [
   { id: "other-income", label: "Other Income",     Icon: Wallet },
 ] as const;
 
+// ─── Swipeable transaction row (mobile: swipe left to reveal Delete) ───────────
+
+function SwipeableRow({
+  onOpen,
+  onDelete,
+  children,
+}: {
+  onOpen: () => void;
+  onDelete: () => void;
+  children: React.ReactNode;
+}) {
+  const [dx, setDx] = useState(0);
+  const sx = useRef(0);
+  const sy = useRef(0);
+  const drag = useRef(false);
+  const moved = useRef(false);
+  const REVEAL = 76;
+  return (
+    <div style={{ position: "relative", overflow: "hidden", borderBottom: "1px solid var(--color-border)" }}>
+      <button
+        type="button"
+        aria-label="Delete transaction"
+        onClick={onDelete}
+        style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: REVEAL, border: "none", background: "#E03C31", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+      >
+        <Trash2 size={18} />
+      </button>
+      <div
+        role="button"
+        tabIndex={0}
+        onTouchStart={(e) => { sx.current = e.touches[0].clientX; sy.current = e.touches[0].clientY; drag.current = false; moved.current = false; }}
+        onTouchMove={(e) => {
+          const dX = e.touches[0].clientX - sx.current;
+          const dY = e.touches[0].clientY - sy.current;
+          if (!drag.current && Math.abs(dX) > Math.abs(dY) + 4 && Math.abs(dX) > 8) drag.current = true;
+          if (drag.current) { moved.current = true; setDx(Math.max(-REVEAL, Math.min(0, dX))); }
+        }}
+        onTouchEnd={() => { if (drag.current) setDx((p) => (p < -REVEAL / 2 ? -REVEAL : 0)); }}
+        onClick={() => { if (moved.current) { moved.current = false; return; } if (dx !== 0) { setDx(0); return; } onOpen(); }}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onOpen(); } }}
+        style={{ transform: `translateX(${dx}px)`, transition: drag.current ? "none" : "transform .2s ease", background: "var(--color-surface)", cursor: "pointer" }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // ─── BudgetView ───────────────────────────────────────────────────────────────
 
 export function BudgetView() {
@@ -160,6 +208,8 @@ export function BudgetView() {
   const [addDate, setAddDate] = useState(() => sastToday());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editEntry, setEditEntry] = useState<BudgetEntry | null>(null);
   const [editType, setEditType] = useState<"income" | "expense">("expense");
   const [editCategory, setEditCategory] = useState("");
@@ -173,6 +223,7 @@ export function BudgetView() {
   const [defaultTargets, setDefaultTargets] = useState<Record<string, number>>({});
   const [monthIsCustomised, setMonthIsCustomised] = useState(false);
   const [budgetScope, setBudgetScope] = useState<"default" | "month">("default");
+  const [budgetApplyAll, setBudgetApplyAll] = useState(false);
   const [showSetBudget, setShowSetBudget] = useState(false);
   const [budgetDraft, setBudgetDraft] = useState<Record<string, string>>({});
   const [budgetSaving, setBudgetSaving] = useState(false);
@@ -368,20 +419,32 @@ export function BudgetView() {
     setBudgetSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBudgetSaving(false); return; }
-    // "default" scope writes a default version effective from the selected month
-    // (so earlier months keep the default that was in force then); "month" scope
-    // writes an override for just the selected month.
-    const targetMonth = budgetScope === "default" ? `default:${monthYear}` : monthYear;
-    for (const cat of allExpCats) {
-      const val = Number(budgetDraft[cat.id]);
-      if (val > 0) {
-        await supabase.from("budget_targets").upsert(
-          { user_id: user.id, category: cat.id, monthly_limit: val, month_year: targetMonth },
-          { onConflict: "user_id,category,month_year" }
-        );
-      } else {
-        await supabase.from("budget_targets").delete()
-          .eq("user_id", user.id).eq("category", cat.id).eq("month_year", targetMonth);
+
+    if (budgetScope === "default" && budgetApplyAll) {
+      // "All months": make this the budget for every month (past + future) and
+      // clear all month-specific budgets, so nothing keeps an older figure.
+      await supabase.from("budget_targets").delete().eq("user_id", user.id);
+      const rows = allExpCats
+        .map((c) => ({ category: c.id, monthly_limit: Number(budgetDraft[c.id]) }))
+        .filter((r) => r.monthly_limit > 0)
+        .map((r) => ({ user_id: user.id, category: r.category, monthly_limit: r.monthly_limit, month_year: "default" }));
+      if (rows.length) await supabase.from("budget_targets").insert(rows);
+    } else {
+      // "default" scope writes a default version effective from the selected month
+      // (so earlier months keep the default that was in force then); "month" scope
+      // writes an override for just the selected month.
+      const targetMonth = budgetScope === "default" ? `default:${monthYear}` : monthYear;
+      for (const cat of allExpCats) {
+        const val = Number(budgetDraft[cat.id]);
+        if (val > 0) {
+          await supabase.from("budget_targets").upsert(
+            { user_id: user.id, category: cat.id, monthly_limit: val, month_year: targetMonth },
+            { onConflict: "user_id,category,month_year" }
+          );
+        } else {
+          await supabase.from("budget_targets").delete()
+            .eq("user_id", user.id).eq("category", cat.id).eq("month_year", targetMonth);
+        }
       }
     }
     // Behavioral outcome: track if user set a savings target
@@ -392,6 +455,7 @@ export function BudgetView() {
     }
     setBudgetSaving(false);
     setShowSetBudget(false);
+    setBudgetApplyAll(false);
     loadBudgetTargets();
   };
 
@@ -490,6 +554,32 @@ export function BudgetView() {
     await supabase.from("budget_entries").delete().eq("id", id);
     setEntries((prev) => prev.filter((e) => e.id !== id));
     setDeleting(null);
+  };
+
+  // Swipe-to-delete a single row.
+  const swipeDelete = async (id: string) => {
+    if (!window.confirm("Delete this transaction?")) return;
+    await supabase.from("budget_entries").delete().eq("id", id);
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const exitSelectMode = () => { setSelectMode(false); setSelectedIds(new Set()); };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (!window.confirm(`Delete ${selectedIds.size} transaction${selectedIds.size > 1 ? "s" : ""}?`)) return;
+    const ids = [...selectedIds];
+    await supabase.from("budget_entries").delete().in("id", ids);
+    setEntries((prev) => prev.filter((e) => !selectedIds.has(e.id)));
+    exitSelectMode();
   };
 
   const openEdit = (e: BudgetEntry) => {
@@ -623,9 +713,9 @@ export function BudgetView() {
     <main className="main-content main-with-stats budget-page">
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: userGoalLabel ? 8 : 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: userGoalLabel ? 8 : 16 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900 }}>Budget</h2>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
           <BudgetImportPanel onImported={loadEntries} />
           <button
             type="button"
@@ -989,29 +1079,55 @@ export function BudgetView() {
                 </div>
               )}
 
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden", marginBottom: 24 }}>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden", marginBottom: selectMode ? 80 : 24 }}>
                 <div style={{ fontWeight: 800, fontSize: 14, padding: "14px 16px", borderBottom: "1px solid var(--color-border)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span>Transactions</span>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)" }}>Tap to edit</span>
+                  <span>{selectMode ? `${selectedIds.size} selected` : "Transactions"}</span>
+                  {selectMode ? (
+                    <button type="button" onClick={exitSelectMode} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)", fontWeight: 700, fontSize: 12.5, padding: 0 }}>Cancel</button>
+                  ) : (
+                    <button type="button" onClick={() => setSelectMode(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)", fontWeight: 700, fontSize: 12.5, padding: 0 }}>Select</button>
+                  )}
                 </div>
-                {entries.map((e) => (
-                  <button key={e.id} type="button" onClick={() => openEdit(e)}
-                    style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderTop: "none", borderLeft: "none", borderRight: "none", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: "none", cursor: "pointer", textAlign: "left" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{e.is_transfer ? "Transfer" : getCatLabel(e.type, e.category)}</div>
-                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
+                {(() => {
+                  const rowInner = (e: BudgetEntry) => (
+                    <>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
                       </div>
-                    </div>
-                    <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
-                      {e.is_transfer ? "⇄ " : e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
-                    </div>
-                    <ChevronRight size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
-                  </button>
-                ))}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{e.is_transfer ? "Transfer" : getCatLabel(e.type, e.category)}</div>
+                        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
+                        </div>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
+                        {e.is_transfer ? "⇄ " : e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
+                      </div>
+                    </>
+                  );
+                  return entries.map((e) => {
+                    if (selectMode) {
+                      const sel = selectedIds.has(e.id);
+                      return (
+                        <div key={e.id} role="button" tabIndex={0} onClick={() => toggleSelect(e.id)}
+                          style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: sel ? "rgba(0,122,77,0.06)" : "var(--color-surface)", cursor: "pointer", textAlign: "left" }}>
+                          <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, border: `2px solid ${sel ? "var(--color-primary)" : "var(--color-border)"}`, background: sel ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            {sel && <Check size={13} style={{ color: "white" }} />}
+                          </div>
+                          {rowInner(e)}
+                        </div>
+                      );
+                    }
+                    return (
+                      <SwipeableRow key={e.id} onOpen={() => openEdit(e)} onDelete={() => swipeDelete(e.id)}>
+                        <div style={{ display: "flex", alignItems: "center", padding: "12px 16px", gap: 12, width: "100%" }}>
+                          {rowInner(e)}
+                          <ChevronRight size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                        </div>
+                      </SwipeableRow>
+                    );
+                  });
+                })()}
               </div>
             </>
           )}
@@ -1019,10 +1135,20 @@ export function BudgetView() {
       )}
       </>)}
 
+      {/* Bulk-select action bar */}
+      {selectMode && selectedIds.size > 0 && (
+        <div style={{ position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 350, padding: "12px 16px calc(14px + env(safe-area-inset-bottom))", background: "var(--color-surface)", borderTop: "1px solid var(--color-border)", display: "flex", justifyContent: "center", boxShadow: "0 -4px 16px rgba(0,0,0,0.08)" }}>
+          <button type="button" onClick={bulkDelete}
+            style={{ width: "100%", maxWidth: 420, padding: 14, borderRadius: 12, border: "none", background: "#E03C31", color: "#fff", fontWeight: 800, fontSize: 15, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+            <Trash2 size={17} /> Delete {selectedIds.size} selected
+          </button>
+        </div>
+      )}
+
       {/* Export Report Modal */}
       {showExportModal && (
-        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
-          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500 }}>
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true" onClick={() => setShowExportModal(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500 }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>Export Budget Report</h3>
               <button type="button" onClick={() => setShowExportModal(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
@@ -1098,69 +1224,112 @@ export function BudgetView() {
 
       {/* Set Budget Targets Modal */}
       {showSetBudget && (
-        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
-          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true"
+          onClick={() => setShowSetBudget(false)}>
+          <div onClick={(e) => e.stopPropagation()}
+            style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 500, maxHeight: "92vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+            {/* Sticky header — X always reachable on mobile */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 12px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>{budgetScope === "default" ? "Set Default Budget" : `Budget for ${monthLabel}`}</h3>
-              <button type="button" onClick={() => setShowSetBudget(false)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4 }}>
-                <X size={20} style={{ color: "var(--color-text-secondary)" }} />
+              <button type="button" onClick={() => setShowSetBudget(false)} aria-label="Close" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 999, cursor: "pointer", padding: 6, display: "flex" }}>
+                <X size={18} style={{ color: "var(--color-text-secondary)" }} />
               </button>
             </div>
-            {/* Scope toggle: default (every month) vs just this month */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 14 }}>
-              {([
-                { key: "default" as const, label: "Every month", sub: "Default" },
-                { key: "month" as const, label: `Only ${monthLabel}`, sub: "Override" },
-              ]).map((opt) => {
-                const active = budgetScope === opt.key;
-                return (
-                  <button key={opt.key} type="button" onClick={() => {
-                    const source = opt.key === "default" ? defaultTargets : budgetTargets;
-                    const draft: Record<string, string> = {};
-                    allExpCats.forEach((c) => { draft[c.id] = source[c.id] ? String(source[c.id]) : ""; });
-                    setBudgetDraft(draft);
-                    setBudgetScope(opt.key);
-                  }}
-                    style={{ padding: "9px 10px", borderRadius: 10, cursor: "pointer", border: `2px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.08)" : "var(--color-bg)", textAlign: "center" }}>
-                    <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
-                    <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
-                  </button>
-                );
-              })}
-            </div>
-            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
-              {budgetScope === "default"
-                ? `Your default budget from ${monthLabel} onward. Earlier months keep the budget they already had, so changing this won't rewrite your history. You can still override individual months. Leave blank for no limit.`
-                : `Set limits for ${monthLabel} only. These override your default budget for this month. Leave blank to follow the default.`}
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
-              {allExpCats.map((c) => (
-                <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
-                  <span style={{ fontWeight: 600, fontSize: 13, flex: 1, minWidth: 0 }}>{c.label}</span>
-                  <div style={{ position: "relative", width: 120 }}>
-                    <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "var(--color-text-secondary)" }}>R</span>
-                    <input type="number" inputMode="decimal"
-                      placeholder={budgetScope === "month" && defaultTargets[c.id] ? String(defaultTargets[c.id]) : "0"}
-                      value={budgetDraft[c.id] ?? ""}
-                      onChange={(e) => setBudgetDraft((prev) => ({ ...prev, [c.id]: e.target.value }))}
-                      style={{ width: "100%", padding: "10px 10px 10px 26px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-bg)", fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }} />
-                  </div>
+
+            {/* Scrollable body */}
+            <div style={{ overflowY: "auto", padding: "16px 20px", flex: 1 }}>
+              {/* Scope toggle: default (every month) vs just this month */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                {([
+                  { key: "default" as const, label: "Every month", sub: "Default" },
+                  { key: "month" as const, label: `Only ${monthLabel}`, sub: "Override" },
+                ]).map((opt) => {
+                  const active = budgetScope === opt.key;
+                  return (
+                    <button key={opt.key} type="button" onClick={() => {
+                      const source = opt.key === "default" ? defaultTargets : budgetTargets;
+                      const draft: Record<string, string> = {};
+                      allExpCats.forEach((c) => { draft[c.id] = source[c.id] ? String(source[c.id]) : ""; });
+                      setBudgetDraft(draft);
+                      setBudgetScope(opt.key);
+                      if (opt.key === "month") setBudgetApplyAll(false);
+                    }}
+                      style={{ padding: "9px 10px", borderRadius: 10, cursor: "pointer", border: `2px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.08)" : "var(--color-bg)", textAlign: "center" }}>
+                      <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
+                      <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Default timing: from this month onward vs all months */}
+              {budgetScope === "default" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                  {([
+                    { all: false, label: `From ${monthLabel} on`, sub: "Keep history" },
+                    { all: true, label: "All months", sub: "Past too" },
+                  ]).map((opt) => {
+                    const active = budgetApplyAll === opt.all;
+                    return (
+                      <button key={String(opt.all)} type="button" onClick={() => setBudgetApplyAll(opt.all)}
+                        style={{ padding: "8px 10px", borderRadius: 10, cursor: "pointer", border: `1.5px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.06)" : "var(--color-bg)", textAlign: "center" }}>
+                        <div style={{ fontWeight: 700, fontSize: 12.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
+                        <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
+              )}
+
+              <p style={{ fontSize: 12.5, color: "var(--color-text-secondary)", marginBottom: 16 }}>
+                {budgetScope !== "default"
+                  ? `Set limits for ${monthLabel} only. These override your default budget for this month. Leave blank to follow the default.`
+                  : budgetApplyAll
+                    ? "Applies to every month — past and future — and replaces any month-specific budgets you've set. Use this to reset your whole budget."
+                    : `Your default budget from ${monthLabel} onward. Earlier months keep the budget they already had, so this won't rewrite your history. You can still override individual months. Leave blank for no limit.`}
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                {allExpCats.map((c) => (
+                  <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                    <span style={{ fontWeight: 600, fontSize: 13, flex: 1, minWidth: 0 }}>{c.label}</span>
+                    <div style={{ position: "relative", width: 120 }}>
+                      <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", fontSize: 13, fontWeight: 700, color: "var(--color-text-secondary)" }}>R</span>
+                      <input type="number" inputMode="decimal"
+                        placeholder={budgetScope === "month" && defaultTargets[c.id] ? String(defaultTargets[c.id]) : "0"}
+                        value={budgetDraft[c.id] ?? ""}
+                        onChange={(e) => setBudgetDraft((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                        style={{ width: "100%", padding: "10px 10px 10px 26px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-bg)", fontSize: 14, fontWeight: 700, color: "var(--color-text-primary)" }} />
+                    </div>
+                  </div>
+                ))}
+                <button type="button" onClick={() => { setNewCatType("expense"); setShowAddCustomCat(true); }}
+                  style={{ marginTop: 2, padding: "11px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)" }}>
+                  <Plus size={15} aria-hidden /> Add a category
+                </button>
+              </div>
             </div>
-            <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} disabled={budgetSaving} onClick={handleSaveBudgetTargets}>
-              {budgetSaving ? "Saving..." : budgetScope === "default" ? "Save default budget" : `Save budget for ${monthLabel}`}
-            </button>
+
+            {/* Sticky footer */}
+            <div style={{ padding: "12px 20px calc(16px + env(safe-area-inset-bottom))", borderTop: "1px solid var(--color-border)", flexShrink: 0, background: "var(--color-surface)" }}>
+              <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} disabled={budgetSaving}
+                onClick={() => {
+                  if (budgetScope === "default" && budgetApplyAll &&
+                    !window.confirm("Apply this budget to every month (past and future) and replace any month-specific budgets?")) return;
+                  handleSaveBudgetTargets();
+                }}>
+                {budgetSaving ? "Saving..." : budgetScope !== "default" ? `Save budget for ${monthLabel}` : budgetApplyAll ? "Apply to all months" : "Save default budget"}
+              </button>
+            </div>
           </div>
         </div>
       )}
 
       {/* Edit Entry Modal */}
       {editEntry && (
-        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
-          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true" onClick={() => setEditEntry(null)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, position: "sticky", top: -24, background: "var(--color-surface)", paddingTop: 8, marginTop: -8, zIndex: 2 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>Edit Entry</h3>
               <button type="button" onClick={() => setEditEntry(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
             </div>
@@ -1231,9 +1400,9 @@ export function BudgetView() {
 
       {/* Add Entry Modal */}
       {showAdd && (
-        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true">
-          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+        <div className="fixed inset-0 z-[400] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true" onClick={() => setShowAdd(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 36px", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, position: "sticky", top: -24, background: "var(--color-surface)", paddingTop: 8, marginTop: -8, zIndex: 2 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>Add Entry</h3>
               <button type="button" onClick={() => setShowAdd(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
             </div>
@@ -1306,8 +1475,8 @@ export function BudgetView() {
 
       {/* Add Custom Category Modal */}
       {showAddCustomCat && (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/70" role="dialog" aria-modal="true">
-          <div style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 500, maxHeight: "92vh", overflowY: "auto" }}>
+        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/70" role="dialog" aria-modal="true" onClick={() => setShowAddCustomCat(false)}>
+          <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 500, maxHeight: "92vh", overflowY: "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>New Category</h3>
               <button type="button" onClick={() => setShowAddCustomCat(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
