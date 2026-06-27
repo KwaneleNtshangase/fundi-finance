@@ -836,7 +836,7 @@ export function BudgetView() {
                 <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <div style={{ fontWeight: 800, fontSize: 14 }}>Expense breakdown</div>
-                    <button type="button" onClick={openSetBudget} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A4D", display: "flex", alignItems: "center", gap: 4 }}>
+                    <button type="button" onClick={() => openSetBudget()} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A4D", display: "flex", alignItems: "center", gap: 4 }}>
                       <Target size={13} /> Set Budget
                     </button>
                   </div>
