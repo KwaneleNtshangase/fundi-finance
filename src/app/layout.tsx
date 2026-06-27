@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorReportingInit } from "@/components/ErrorReportingInit";
 import { ServiceWorkerRegistration } from "@/lib/sw/ServiceWorkerRegistration";
 import "./globals.css";
 
@@ -65,6 +66,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <PostHogProvider>{children}</PostHogProvider>
           <ServiceWorkerRegistration />
+          <ErrorReportingInit />
         </ErrorBoundary>
       </body>
     </html>

@@ -40,6 +40,16 @@ export class ErrorBoundary extends React.Component<Props, State> {
     } catch {
       /* ignore */
     }
+    // Report to our own pipeline so the team is alerted and can notify the user.
+    try {
+      void import("@/lib/errorReporting").then((m) =>
+        m.reportClientError("app-crash", error, {
+          componentStack: info.componentStack?.slice(0, 1000),
+        })
+      );
+    } catch {
+      /* never throw from the boundary */
+    }
   }
 
   private handleRetry = () => {
@@ -103,9 +113,10 @@ export class ErrorBoundary extends React.Component<Props, State> {
               margin: "0 0 20px",
             }}
           >
-            Your progress is safe. We hit an unexpected hiccup while rendering
-            this screen. Try again, and if it keeps happening please use the
-            Send Feedback button in your Profile.
+            Your progress is safe. We hit an unexpected hiccup on this screen —
+            our team has been notified automatically and we&apos;re on it. Try
+            again, and if it keeps happening you can also let us know via Send
+            Feedback in your Profile.
           </p>
           <div style={{ display: "flex", gap: 10, flexDirection: "column" }}>
             <button

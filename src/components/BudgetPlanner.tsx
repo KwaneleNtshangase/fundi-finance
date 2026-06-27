@@ -7,6 +7,7 @@ import { sastToday } from "@/lib/dates";
 import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
+import { reportClientError } from "@/lib/errorReporting";
 import {
   LineChart,
   Line,
@@ -673,7 +674,9 @@ export function BudgetView() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        setExportError((err as { error?: string }).error ?? "Failed to generate report.");
+        const msg = (err as { error?: string }).error ?? "Failed to generate report.";
+        setExportError(msg);
+        void reportClientError("report-download", new Error(`Report export failed (${res.status}): ${msg}`));
         return;
       }
 
