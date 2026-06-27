@@ -6,6 +6,7 @@ import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
 import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
+import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
 import {
   LineChart,
   Line,
@@ -261,18 +262,21 @@ export function BudgetView() {
     const { data } = await supabase
       .from("budget_targets")
       .select("category, monthly_limit, month_year")
-      .eq("user_id", user.id)
-      .in("month_year", [monthYear, "default"]);
+      .eq("user_id", user.id);
+    const rows = (data ?? []) as BudgetTargetRow[];
+    const cats = new Set(rows.map((r) => r.category));
     const def: Record<string, number> = {};
-    const ovr: Record<string, number> = {};
-    (data ?? []).forEach((r: { category: string; monthly_limit: number; month_year: string }) => {
-      if (r.month_year === "default") def[r.category] = Number(r.monthly_limit);
-      else ovr[r.category] = Number(r.monthly_limit);
+    const eff: Record<string, number> = {};
+    cats.forEach((c) => {
+      const d = resolveDefaultBudget(rows, c, monthYear);
+      if (d > 0) def[c] = d;
+      const e = resolveMonthlyBudget(rows, c, monthYear);
+      if (e > 0) eff[c] = e;
     });
     setDefaultTargets(def);
-    setMonthIsCustomised(Object.keys(ovr).length > 0);
-    // Effective budget for this month: default, with any month overrides on top.
-    setBudgetTargets({ ...def, ...ovr });
+    // This month is "customised" only if it has its own override row.
+    setMonthIsCustomised(rows.some((r) => r.month_year === monthYear));
+    setBudgetTargets(eff);
   }, [monthYear]);
 
   useEffect(() => { loadBudgetTargets(); }, [loadBudgetTargets]);
@@ -358,9 +362,10 @@ export function BudgetView() {
     setBudgetSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setBudgetSaving(false); return; }
-    // "default" scope writes the recurring template (applies to every month);
-    // "month" scope writes an override for just the selected month.
-    const targetMonth = budgetScope === "default" ? "default" : monthYear;
+    // "default" scope writes a default version effective from the selected month
+    // (so earlier months keep the default that was in force then); "month" scope
+    // writes an override for just the selected month.
+    const targetMonth = budgetScope === "default" ? `default:${monthYear}` : monthYear;
     for (const cat of allExpCats) {
       const val = Number(budgetDraft[cat.id]);
       if (val > 0) {
@@ -1094,7 +1099,7 @@ export function BudgetView() {
             </div>
             <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 16 }}>
               {budgetScope === "default"
-                ? "Set a limit for each category. This becomes your default budget and applies to every month — you can still override individual months later. Leave blank for no limit."
+                ? `Your default budget from ${monthLabel} onward. Earlier months keep the budget they already had, so changing this won't rewrite your history. You can still override individual months. Leave blank for no limit.`
                 : `Set limits for ${monthLabel} only. These override your default budget for this month. Leave blank to follow the default.`}
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>

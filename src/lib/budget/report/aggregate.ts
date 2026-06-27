@@ -8,6 +8,7 @@ import {
   minDate,
 } from "./period";
 import { resolveCategoryMeta } from "./categories";
+import { resolveMonthlyBudget } from "../budgetResolve";
 import type {
   BudgetEntryInput,
   BudgetTargetInput,
@@ -89,12 +90,10 @@ export function buildReport(
   for (const categoryId of expenseCategoryIds) {
     let categoryBudgetCents = 0;
     for (const monthYear of monthsInPeriod) {
-      // A month-specific override wins; otherwise fall back to the recurring
-      // default budget (month_year === "default"), which applies to every month.
-      const target =
-        targets.find((t) => t.category === categoryId && t.month_year === monthYear) ??
-        targets.find((t) => t.category === categoryId && t.month_year === "default");
-      if (!target || target.monthly_limit <= 0) continue;
+      // Month override wins; otherwise the default version in force that month
+      // (effective-dated, so changing the default never rewrites past months).
+      const monthlyLimit = resolveMonthlyBudget(targets, categoryId, monthYear);
+      if (monthlyLimit <= 0) continue;
 
       const slice = monthOverlapSlice(monthYear, periodStart, periodEnd);
       if (!slice) continue;
@@ -102,7 +101,7 @@ export function buildReport(
       const [y, m] = monthYear.split("-").map(Number);
       const daysInMonth = daysInCalendarMonth(y, m);
       const daysInOverlap = inclusiveDayCount(slice.overlapStart, slice.overlapEnd);
-      const monthBudgetCents = Math.round(target.monthly_limit * 100);
+      const monthBudgetCents = Math.round(monthlyLimit * 100);
 
       if (daysInOverlap === daysInMonth) {
         categoryBudgetCents += monthBudgetCents;
