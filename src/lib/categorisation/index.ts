@@ -23,7 +23,7 @@ export type BuiltInRule = {
  */
 export const BUILT_IN_RULES: BuiltInRule[] = [
   // ── Bank charges & fees ───────────────────────────────────────────────
-  { pattern: /\bfee[:\s]|bank charge|service fee|admin fee|monthly (account )?(admin )?fee|cash (deposit|handling) fee|immediate payment fee|international (processing|transaction) fee|atm (fee|withdrawal fee)|external (payment|immediate) fee|cash sent fee|unpaid fee|other fees/i, category: "Bank Charges", type: "expense" },
+  { pattern: /\bfee[:\s]|bank charges?|service fee|admin fee|monthly (account )?(admin )?fee|cash (deposit|handling) fee|immediate payment fee|international (processing|transaction) fee|atm (fee|withdrawal fee)|external (payment|immediate) fee|cash sent fee|unpaid fee|other fees|notification fee|sms notification|value added service|balance enqu|card (replacement|delivery) fee|debit order (fee|dispute)|honou?ring fee|decline fee/i, category: "Bank Charges", type: "expense" },
   // ── Insurance ─────────────────────────────────────────────────────────
   { pattern: /insur|\binsure\b|outsurance|miway|mi way|king price|santam|hollard|dialdirect|naked insur|pineapple|budget insurance|1life|1 life|clientele|metropolitan.*(life|cover)|funeral (cover|plan)|life cover|short.?term cover|car insurance/i, category: "Insurance", type: "expense" },
   // ── Healthcare / medical ──────────────────────────────────────────────

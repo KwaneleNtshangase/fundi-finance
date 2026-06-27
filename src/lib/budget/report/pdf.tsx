@@ -146,6 +146,15 @@ function zar(cents: number): string {
 function zarSigned(cents: number): string {
   return `${cents < 0 ? "-" : "+"}${zar(Math.abs(cents))}`;
 }
+/** Tidy a raw (often lowercased) merchant string for display: title-case,
+ *  collapse whitespace, drop trailing card/ref noise, and ellipsis-truncate. */
+function prettyMerchant(raw: string, max = 30): string {
+  let s = (raw ?? "").trim();
+  if (!s || s === "(no description)") return "Unlabelled";
+  s = s.replace(/\s+/g, " ");
+  s = s.replace(/\b([a-z])([a-z']*)/g, (_m, a: string, b: string) => a.toUpperCase() + b);
+  return s.length > max ? `${s.slice(0, max).trimEnd()}…` : s;
+}
 function zarShort(cents: number): string {
   const r = cents / 100;
   if (Math.abs(r) >= 1000) return `R${Math.round(r / 1000)}k`;
@@ -546,7 +555,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
                 model.topMerchants.map((m, i) => (
                   <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 5 }}>
                     <Text style={{ fontSize: 8, flex: 1, marginRight: 6 }}>
-                      {i + 1}. {m.description.slice(0, 28)}
+                      {i + 1}. {prettyMerchant(m.description, 28)}
                     </Text>
                     <Text style={{ fontSize: 8, fontWeight: 700 }}>{zar(m.totalCents)}</Text>
                   </View>
