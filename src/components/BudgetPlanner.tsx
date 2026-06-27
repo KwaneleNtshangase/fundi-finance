@@ -44,6 +44,7 @@ import {
   Lightbulb,
   Lock,
   MoreHorizontal,
+  Pencil,
   PiggyBank,
   Plus,
   Shield,
@@ -234,6 +235,7 @@ export function BudgetView() {
   const [newCatColor, setNewCatColor] = useState("#007A4D");
   const [newCatIcon, setNewCatIcon] = useState("MoreHorizontal");
   const [savingCustomCat, setSavingCustomCat] = useState(false);
+  const [editingCatId, setEditingCatId] = useState<string | null>(null);
   const [benchmarks, setBenchmarks] = useState<Record<string, number>>({});
   const [userGoalLabel, setUserGoalLabel] = useState<string | null>(null);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -362,23 +364,46 @@ export function BudgetView() {
     })();
   }, []);
 
+  const resetCustomCatForm = () => {
+    setEditingCatId(null);
+    setNewCatName(""); setNewCatColor("#007A4D"); setNewCatIcon("MoreHorizontal");
+  };
+
+  // Load an existing custom category into the form for editing.
+  const startEditCustomCat = (c: CustomBudgetCat) => {
+    setEditingCatId(c.id);
+    setNewCatType(c.type);
+    setNewCatName(c.name);
+    setNewCatColor(c.color);
+    setNewCatIcon(c.icon_name);
+  };
+
   const handleSaveCustomCat = async () => {
     if (!newCatName.trim()) return;
     setSavingCustomCat(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSavingCustomCat(false); return; }
-    await supabase.from("custom_budget_categories").insert({
-      user_id: user.id, name: newCatName.trim(), color: newCatColor, icon_name: newCatIcon, type: newCatType,
-    });
+    if (editingCatId) {
+      // Update name / colour / icon of an existing category (id and type kept).
+      await supabase.from("custom_budget_categories")
+        .update({ name: newCatName.trim(), color: newCatColor, icon_name: newCatIcon })
+        .eq("id", editingCatId);
+    } else {
+      await supabase.from("custom_budget_categories").insert({
+        user_id: user.id, name: newCatName.trim(), color: newCatColor, icon_name: newCatIcon, type: newCatType,
+      });
+    }
     setSavingCustomCat(false);
     setShowAddCustomCat(false);
-    setNewCatName(""); setNewCatColor("#007A4D"); setNewCatIcon("MoreHorizontal");
+    resetCustomCatForm();
     loadCustomCats();
   };
 
   const handleDeleteCustomCat = async (id: string) => {
+    if (!window.confirm("Delete this category? Transactions in it move to Other.")) return;
     await supabase.from("custom_budget_categories").delete().eq("id", id);
     setCustomCats((prev) => prev.filter((c) => c.id !== id));
+    if (editingCatId === id) resetCustomCatForm();
   };
 
   const allExpCats = useMemo(() => {
@@ -1303,7 +1328,7 @@ export function BudgetView() {
                     </div>
                   </div>
                 ))}
-                <button type="button" onClick={() => { setNewCatType("expense"); setShowAddCustomCat(true); }}
+                <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType("expense"); setShowAddCustomCat(true); }}
                   style={{ marginTop: 2, padding: "11px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)" }}>
                   <Plus size={15} aria-hidden /> Add a category
                 </button>
@@ -1363,7 +1388,7 @@ export function BudgetView() {
                   </button>
                 ))}
                 {editType === "expense" && (
-                  <button type="button" onClick={() => { setNewCatType("expense"); setShowAddCustomCat(true); }}
+                  <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType("expense"); setShowAddCustomCat(true); }}
                     style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)" }}>
                     <Plus size={14} style={{ flexShrink: 0 }} /> <span>Add category</span>
                   </button>
@@ -1443,7 +1468,7 @@ export function BudgetView() {
                     <span>{c.label}</span>
                   </button>
                 ))}
-                <button type="button" onClick={() => { setNewCatType(addType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
+                <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType(addType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
                   style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", textAlign: "left" }}>
                   <Plus size={14} style={{ flexShrink: 0 }} aria-hidden /> <span>Add category</span>
                 </button>
@@ -1475,13 +1500,13 @@ export function BudgetView() {
 
       {/* Add Custom Category Modal */}
       {showAddCustomCat && (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/70" role="dialog" aria-modal="true" onClick={() => setShowAddCustomCat(false)}>
+        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-black/70" role="dialog" aria-modal="true" onClick={() => { setShowAddCustomCat(false); resetCustomCatForm(); }}>
           <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 40px", width: "100%", maxWidth: 500, maxHeight: "92vh", overflowY: "auto" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-              <h3 style={{ fontWeight: 900, fontSize: 18 }}>New Category</h3>
-              <button type="button" onClick={() => setShowAddCustomCat(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, position: "sticky", top: -24, background: "var(--color-surface)", paddingTop: 8, marginTop: -8, zIndex: 2 }}>
+              <h3 style={{ fontWeight: 900, fontSize: 18 }}>{editingCatId ? "Edit Category" : "New Category"}</h3>
+              <button type="button" onClick={() => { setShowAddCustomCat(false); resetCustomCatForm(); }} style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 999, cursor: "pointer", padding: 6, display: "flex", color: "var(--color-text-secondary)" }}><X size={18} /></button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20, opacity: editingCatId ? 0.5 : 1, pointerEvents: editingCatId ? "none" : "auto" }}>
               {(["expense", "income"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => setNewCatType(t)}
                   style={{ padding: 10, borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${newCatType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: newCatType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
@@ -1523,20 +1548,32 @@ export function BudgetView() {
               <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-text-primary)" }}>{newCatName.trim() || "Category name"}</span>
               <span style={{ marginLeft: "auto", fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "capitalize" }}>{newCatType}</span>
             </div>
-            <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 15 }} disabled={savingCustomCat || !newCatName.trim()} onClick={handleSaveCustomCat}>
-              {savingCustomCat ? "Saving..." : "Create Category"}
-            </button>
+            <div style={{ display: "flex", gap: 10 }}>
+              {editingCatId && (
+                <button type="button" onClick={resetCustomCatForm}
+                  style={{ padding: "13px 18px", borderRadius: 12, border: "1.5px solid var(--color-border)", background: "transparent", color: "var(--color-text-secondary)", fontWeight: 700, cursor: "pointer" }}>
+                  Cancel
+                </button>
+              )}
+              <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 14, fontSize: 15 }} disabled={savingCustomCat || !newCatName.trim()} onClick={handleSaveCustomCat}>
+                {savingCustomCat ? "Saving..." : editingCatId ? "Save changes" : "Create Category"}
+              </button>
+            </div>
             {customCats.filter(c => c.type === newCatType).length > 0 && (
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: "1px solid var(--color-border)" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 10 }}>Your custom {newCatType} categories</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 10 }}>Your custom {newCatType} categories · tap to edit</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {customCats.filter(c => c.type === newCatType).map((c) => {
                     const CatIcon = getIconByName(c.icon_name);
+                    const active = editingCatId === c.id;
                     return (
-                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: "var(--color-bg)", border: "1px solid var(--color-border)" }}>
-                        <CatIcon size={16} style={{ color: c.color, flexShrink: 0 }} />
-                        <span style={{ fontWeight: 600, fontSize: 13, flex: 1 }}>{c.name}</span>
-                        <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: active ? "rgba(0,122,77,0.06)" : "var(--color-bg)", border: `1px solid ${active ? "var(--color-primary)" : "var(--color-border)"}` }}>
+                        <button type="button" onClick={() => startEditCustomCat(c)}
+                          style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
+                          <CatIcon size={16} style={{ color: c.color, flexShrink: 0 }} />
+                          <span style={{ fontWeight: 600, fontSize: 13, flex: 1, color: "var(--color-text-primary)" }}>{c.name}</span>
+                          <Pencil size={13} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
+                        </button>
                         <button type="button" onClick={() => handleDeleteCustomCat(c.id)}
                           style={{ background: "none", border: "none", cursor: "pointer", color: "#E03C31", padding: 4, display: "flex", alignItems: "center" }} aria-label="Delete category">
                           <Trash2 size={14} />
