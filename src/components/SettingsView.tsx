@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   ArrowLeft,
   Bell,
+  Bug,
   ChevronRight,
   FileText,
   HelpCircle,
@@ -19,6 +20,7 @@ import {
   Zap,
 } from "lucide-react";
 import { LegalPage, FeedbackModal } from "@/components/ProfileView";
+import { isAdminEmail } from "@/lib/admin";
 
 function SettingsAccountSection() {
   const [name, setName] = useState("");
@@ -121,6 +123,11 @@ export function SettingsView({
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setIsAdmin(isAdminEmail(data.user?.email))).catch(() => {});
+  }, []);
 
   // Read initial values from Supabase-backed settings (with localStorage fallback)
   const [soundEnabled, setSoundEnabled] = useState<boolean>(userSettings.settings.soundEnabled);
@@ -327,6 +334,25 @@ export function SettingsView({
           <ArrowLeft size={16} style={{ transform: "rotate(180deg)", color: "var(--color-text-secondary)" }} />
         </Row>
       </a>
+
+      {/* ── Admin (only visible to allowlisted team accounts) ── */}
+      {isAdmin && (
+        <>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Admin</div>
+          <a href="/admin/bugs" style={{ textDecoration: "none" }}>
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, marginBottom: 8, overflow: "hidden" }}>
+              <div style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px" }}>
+                <Bug size={16} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>Bug console</div>
+                  <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>Triage reported &amp; auto-captured bugs · notify users when fixed</div>
+                </div>
+                <ChevronRight size={14} style={{ color: "var(--color-text-secondary)" }} />
+              </div>
+            </div>
+          </a>
+        </>
+      )}
 
       {/* ── Help & Legal ── */}
       <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", margin: "20px 0 8px" }}>Help &amp; Legal</div>
