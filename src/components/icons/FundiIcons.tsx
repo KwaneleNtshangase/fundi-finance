@@ -44,14 +44,18 @@ function Icon({
   );
 }
 
-/* ── Learn — open book ─────────────────────────────────────────────────── */
+/* ── Learn — open book with page detail + growth spark ─────────────────── */
 export function FundiLearn(p: FundiIconProps) {
   return (
     <Icon {...p}>
-      <path d="M12 6.6C10.3 5.5 8.2 5 6 5.2c-.6.05-1 .55-1 1.15v9.6c0 .65.5 1.15 1.15 1.1 2-.15 4 .35 5.85 1.55" />
-      <path d="M12 6.6C13.7 5.5 15.8 5 18 5.2c.6.05 1 .55 1 1.15v9.6c0 .65-.5 1.15-1.15 1.1-2-.15-4 .35-5.85 1.55" />
-      <path d="M12 6.6v11.95" />
-      <circle cx="20.4" cy="4.2" r="1.25" fill="currentColor" stroke="none" />
+      <path d="M12 7C10 5.8 7.4 5.3 5 5.6c-.6.07-1 .57-1 1.15v9.4c0 .62.5 1.1 1.12 1.04 2.3-.26 4.7.3 6.88 1.71" />
+      <path d="M12 7c2-1.2 4.6-1.7 7-1.4.6.07 1 .57 1 1.15v9.4c0 .62-.5 1.1-1.12 1.04-2.3-.26-4.7.3-6.88 1.71" />
+      <path d="M12 7v11.15" />
+      <path d="M6.6 9.3h3.1" opacity="0.5" />
+      <path d="M6.6 11.7h2.6" opacity="0.5" />
+      <path d="M14.3 9.3h3.1" opacity="0.5" />
+      <path d="M14.8 11.7h2.6" opacity="0.5" />
+      <path d="M20.1 3l.6 1.25 1.25.6-1.25.6-.6 1.25-.6-1.25L18.25 4.85l1.25-.6z" fill="currentColor" stroke="none" />
     </Icon>
   );
 }
@@ -71,36 +75,40 @@ export function FundiCalculate(p: FundiIconProps) {
   );
 }
 
-/* ── Budget — wallet with coin ─────────────────────────────────────────── */
+/* ── Budget — wallet with note tucked in + clasp ───────────────────────── */
 export function FundiBudget(p: FundiIconProps) {
   return (
     <Icon {...p}>
-      <path d="M16 6H6.5A2.5 2.5 0 0 0 4 8.5v8A2.5 2.5 0 0 0 6.5 19h11a2.5 2.5 0 0 0 2.5-2.5V11" />
-      <path d="M4 8.5A2.5 2.5 0 0 1 6.5 6H16a2 2 0 0 1 2 2v.5" />
-      <path d="M20 11.2h-3.4a1.9 1.9 0 0 0 0 3.8H20a.6.6 0 0 0 .6-.6v-2.6a.6.6 0 0 0-.6-.6Z" fill="currentColor" opacity="0.28" stroke="none" />
-      <circle cx="16.7" cy="13.1" r="1" fill="currentColor" stroke="none" />
+      <rect x="3.5" y="8" width="17" height="11" rx="2.6" />
+      <path d="M7 8V5.7c0-.6.55-1.05 1.15-.93l8.4 1.7c.5.1.85.55.85 1.06V8" />
+      <rect x="14" y="11.3" width="6.5" height="4.4" rx="2.2" fill="currentColor" opacity="0.28" stroke="none" />
+      <circle cx="17.3" cy="13.5" r="1.05" fill="currentColor" stroke="none" />
     </Icon>
   );
 }
 
-/* ── Goals — target / bullseye (echoes the Fundi mark) ─────────────────── */
+/* ── Goals — arrow striking the bullseye (echoes the logo arrow) ────────── */
 export function FundiGoals(p: FundiIconProps) {
   return (
     <Icon {...p}>
-      <circle cx="12" cy="12" r="8" />
-      <circle cx="12" cy="12" r="4.4" opacity="0.55" />
-      <circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
+      <circle cx="10.5" cy="13.5" r="6.8" />
+      <circle cx="10.5" cy="13.5" r="3.2" opacity="0.5" />
+      <circle cx="10.5" cy="13.5" r="1.2" fill="currentColor" stroke="none" />
+      <path d="M10.5 13.5 20 4" />
+      <path d="M15.5 4H20v4.5" />
     </Icon>
   );
 }
 
-/* ── Progress — rising trend ───────────────────────────────────────────── */
+/* ── Progress — ascending bars + rising arrow (the logo's chart) ────────── */
 export function FundiProgress(p: FundiIconProps) {
   return (
     <Icon {...p}>
-      <path d="M4 16.5l4.8-4.8 3 3 5.2-5.4" />
-      <path d="M14.4 9.3h3.4v3.4" />
-      <circle cx="4" cy="16.5" r="1.15" fill="currentColor" stroke="none" />
+      <rect x="3.2" y="14" width="3.4" height="6" rx="1.2" fill="currentColor" opacity="0.3" stroke="none" />
+      <rect x="10.3" y="11" width="3.4" height="9" rx="1.2" fill="currentColor" opacity="0.3" stroke="none" />
+      <rect x="17.4" y="8" width="3.4" height="12" rx="1.2" fill="currentColor" opacity="0.3" stroke="none" />
+      <path d="M4 12.5l5-3.8 3 2.2 7.2-6" />
+      <path d="M15.4 4.9h4v4" />
     </Icon>
   );
 }
