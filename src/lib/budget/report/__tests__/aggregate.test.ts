@@ -129,7 +129,7 @@ describe("buildReport", () => {
     expect(model.totalBudgetedExpenseCents).toBe(250000);
   });
 
-  it("SAST month boundary — entry on last day of month included", () => {
+  it("SAST month boundary - entry on last day of month included", () => {
     const model = report(
       [{ type: "expense", category: "food", amount: 99, entry_date: "2026-05-31" }],
       [],

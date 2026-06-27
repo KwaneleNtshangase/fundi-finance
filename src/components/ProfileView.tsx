@@ -111,7 +111,7 @@ const FUNDI_FAQ = [
 ];
 
 function normalizeUsername(value: string): string {
-  // Trim only — allow caps, spaces, symbols
+  // Trim only - allow caps, spaces, symbols
   return value.trim();
 }
 
@@ -180,7 +180,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
         }),
       });
       setSent(true);
-    } catch { /* ignore — DB insert is the source of truth */ }
+    } catch { /* ignore - DB insert is the source of truth */ }
     setSending(false);
   };
 
@@ -988,7 +988,7 @@ export function ProfileView({
       {/* Weekly XP Chart */}
       {(() => {
         const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
-        // Recharts SVG does not resolve CSS variables — use explicit hex colours
+        // Recharts SVG does not resolve CSS variables - use explicit hex colours
         const primaryColor = isDark ? "#3FB68B" : "#007A4D";
         const pastColor = isDark ? "#2a4a3e" : "#c6e6d8";
         const axisColor = isDark ? "#8B949E" : "#6B7280";

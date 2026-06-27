@@ -79,7 +79,7 @@ export function calcGrowth(inputs: CalcInputs) {
   return data;
 }
 
-/** Bisection solver — finds value where fn(v) ≈ 0; fn must be monotone increasing. */
+/** Bisection solver - finds value where fn(v) ≈ 0; fn must be monotone increasing. */
 function bisectSolver(fn: (v: number) => number, lo: number, hi: number, iters = 64): number {
   for (let i = 0; i < iters; i++) {
     const mid = (lo + hi) / 2;
@@ -231,7 +231,7 @@ export function CalculatorView() {
   const [calcStartYearB, setCalcStartYearB] = useState(0);
   const [projectionSaved, setProjectionSaved] = useState(false);
 
-  // Load user's previously saved projection — prefer Supabase, fall back to localStorage
+  // Load user's previously saved projection - prefer Supabase, fall back to localStorage
   useEffect(() => {
     if (typeof window === "undefined") return;
     const remoteCalc = calcViewSettings.settings.calcSaved as Partial<CalcInputs> | null;

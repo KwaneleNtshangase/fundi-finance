@@ -113,7 +113,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
               margin: "0 0 20px",
             }}
           >
-            Your progress is safe. We hit an unexpected hiccup on this screen —
+            Your progress is safe. We hit an unexpected hiccup on this screen -
             our team has been notified automatically and we&apos;re on it. Try
             again, and if it keeps happening you can also let us know via Send
             Feedback in your Profile.

@@ -10,7 +10,7 @@ function parseOfxAmount(raw: string): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Minimal OFX 1.x SGML/XML parser — no external dependency. */
+/** Minimal OFX 1.x SGML/XML parser - no external dependency. */
 export function parseOfxStatement(text: string): ParseStatementResult {
   const transactions: NormalizedTxn[] = [];
   let lineIndex = 0;

@@ -18,7 +18,7 @@ import { formatZarCurrency } from "@/lib/currency";
 import { formatPeriodLabel } from "./period";
 import type { ExpenseCategoryRow, MonthlySpend, ReportModel } from "./types";
 
-// Brand palette — from the Fundi Finance pitch deck (navy / gold / teal).
+// Brand palette - from the Fundi Finance pitch deck (navy / gold / teal).
 const C = {
   navy: "#15294B",
   navyDeep: "#0E1C38",
@@ -371,13 +371,13 @@ function ExpenseTable({ rows }: { rows: ExpenseCategoryRow[] }) {
             <View style={[styles.dot, { backgroundColor: r.color }]} />
             <Text>{r.categoryName}</Text>
           </View>
-          <Text style={{ width: "16%", textAlign: "right" }}>{r.budgetedCents > 0 ? zar(r.budgetedCents) : "—"}</Text>
+          <Text style={{ width: "16%", textAlign: "right" }}>{r.budgetedCents > 0 ? zar(r.budgetedCents) : "-"}</Text>
           <Text style={{ width: "16%", textAlign: "right" }}>{zar(r.actualCents)}</Text>
           <Text style={{ width: "16%", textAlign: "right", color: varianceColor(r.varianceCents, r.overBudget) }}>
-            {r.budgetedCents > 0 || r.actualCents > 0 ? zarSigned(r.varianceCents) : "—"}
+            {r.budgetedCents > 0 || r.actualCents > 0 ? zarSigned(r.varianceCents) : "-"}
           </Text>
           <Text style={{ width: "12%", textAlign: "right", color: varianceColor(r.varianceCents, r.overBudget) }}>
-            {r.variancePct != null ? `${r.variancePct}%` : "—"}
+            {r.variancePct != null ? `${r.variancePct}%` : "-"}
           </Text>
           <Text style={{ width: "12%", textAlign: "right" }}>{r.sharePct}%</Text>
         </View>
@@ -397,8 +397,8 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
   const topDonut = model.expenseCategories.slice(0, 6);
 
   return (
-    <Document title="Fundi Finance — Budget Report" author="Fundi Finance">
-      {/* ── Page 1 — Cover ────────────────────────────────────────────── */}
+    <Document title="Fundi Finance - Budget Report" author="Fundi Finance">
+      {/* ── Page 1 - Cover ────────────────────────────────────────────── */}
       <Page size="A4" style={styles.cover}>
         {/* faint watermark logo */}
         {logoDataUri && (
@@ -453,11 +453,11 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         </View>
       </Page>
 
-      {/* ── Page 2 — Overview: budget vs actual + line chart ──────────── */}
+      {/* ── Page 2 - Overview: budget vs actual + line chart ──────────── */}
       <Page size="A4" style={styles.page}>
         <PageHeader uri={logoDataUri} title="Overview" />
         <Text style={styles.sectionTitle}>Budget vs actual</Text>
-        {model.budgetIsEstimate && <Text style={styles.badge}>Budget figures prorated — estimate</Text>}
+        {model.budgetIsEstimate && <Text style={styles.badge}>Budget figures prorated - estimate</Text>}
         <View
           style={{
             flexDirection: "row",
@@ -469,17 +469,17 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
           }}
         >
           {[
-            { label: "Budgeted", value: model.totalBudgetedExpenseCents > 0 ? zar(model.totalBudgetedExpenseCents) : "—", color: C.text },
+            { label: "Budgeted", value: model.totalBudgetedExpenseCents > 0 ? zar(model.totalBudgetedExpenseCents) : "-", color: C.text },
             { label: "Actual", value: zar(model.totalExpenseCents), color: C.expense },
             {
               label: "Variance",
               value:
                 model.totalBudgetedExpenseCents > 0
                   ? zarSigned(model.budgetVarianceCents)
-                  : "—",
+                  : "-",
               color: model.budgetVarianceCents > 0 ? C.expense : C.teal,
             },
-            { label: "% used", value: model.budgetUsedPct != null ? `${model.budgetUsedPct}%` : "—", color: C.navy },
+            { label: "% used", value: model.budgetUsedPct != null ? `${model.budgetUsedPct}%` : "-", color: C.navy },
           ].map((c) => (
             <View key={c.label}>
               <Text style={{ fontSize: 8, color: C.textMuted, textTransform: "uppercase", marginBottom: 4 }}>{c.label}</Text>
@@ -499,7 +499,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         <Footer />
       </Page>
 
-      {/* ── Page 3 — Where the money went ─────────────────────────────── */}
+      {/* ── Page 3 - Where the money went ─────────────────────────────── */}
       <Page size="A4" style={styles.page}>
         <PageHeader uri={logoDataUri} title="Where the money went" />
         <Text style={styles.sectionTitle}>Expense breakdown</Text>
@@ -522,7 +522,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         <Footer />
       </Page>
 
-      {/* ── Page 4 — Income + insights ────────────────────────────────── */}
+      {/* ── Page 4 - Income + insights ────────────────────────────────── */}
       <Page size="A4" style={styles.page}>
         <PageHeader uri={logoDataUri} title="Income & insights" />
         <Text style={styles.sectionTitle}>Income by category</Text>
@@ -591,7 +591,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
           <View style={{ flex: 1 }}>
             <Text style={styles.sectionTitle}>Over budget</Text>
             {model.topOverBudget.length === 0 ? (
-              <Text style={{ fontSize: 9, color: C.textMuted }}>None — nicely done.</Text>
+              <Text style={{ fontSize: 9, color: C.textMuted }}>None - nicely done.</Text>
             ) : (
               model.topOverBudget.map((r) => (
                 <Text key={r.categoryId} style={[styles.insightItem, { color: C.expense }]}>

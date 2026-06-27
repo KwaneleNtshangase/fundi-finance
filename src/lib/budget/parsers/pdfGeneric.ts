@@ -183,7 +183,7 @@ export function extractBalances(fullText: string, lines: TextLine[]): BalanceMet
 export function detectBankFromText(fullText: string): string | null {
   // Detect the ISSUER from branding only. Transaction descriptions routinely
   // name OTHER banks (e.g. "Magtape Credit Capitec", "KWANELE CAPITEC",
-  // "ABSA BANK FLAT 9") — matching a bare bank word mis-routes the parser, so
+  // "ABSA BANK FLAT 9") - matching a bare bank word mis-routes the parser, so
   // we require issuer-specific markers (e.g. "Capitec Bank" / a bank domain).
   const t = fullText.toLowerCase();
   if (/capitec\s*bank|capitecbank\.co\.za/.test(t)) return "capitec";

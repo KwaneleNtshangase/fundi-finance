@@ -43,7 +43,7 @@ const DEFAULT_STATE: ProgressState = {
 // ── Offline-first cache ────────────────────────────────────────────────────────
 // Write-through localStorage cache so the app loads instantly even on
 // poor / no connectivity (SA users on prepaid data and during load-shedding).
-// Supabase remains the source of truth — cache is overwritten on every
+// Supabase remains the source of truth - cache is overwritten on every
 // successful Supabase read; it only fills the gap while waiting for network.
 const PROGRESS_CACHE_KEY = "fundi-progress-v1";
 
@@ -77,7 +77,7 @@ function writeProgressCache(s: ProgressState, userId: string | null): void {
   if (typeof window === "undefined" || !userId) return;
   try {
     localStorage.setItem(progressCacheKey(userId), JSON.stringify(s));
-  } catch { /* ignore quota errors — cache is best-effort */ }
+  } catch { /* ignore quota errors - cache is best-effort */ }
 }
 
 function getCurrentWeekKey(): string {
@@ -215,7 +215,7 @@ export function useProgress() {
       }
 
       // 3. Read the now-reconciled authoritative row. The DB is the source of
-      //    truth for XP, weekly XP, and lessons — no client snapshot overwrites.
+      //    truth for XP, weekly XP, and lessons - no client snapshot overwrites.
       const { data } = await supabase
         .from("user_progress")
         .select("xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
@@ -286,7 +286,7 @@ export function useProgress() {
   const addXP = (amount: number) => {
     if (!amount) return;
     const wk = getCurrentWeekKey();
-    // Optimistic local update — pure updater, no side effects (safe if React
+    // Optimistic local update - pure updater, no side effects (safe if React
     // double-invokes it under StrictMode). The network write is fired ONCE
     // below, outside the updater, so a delta is never double-counted.
     setState((prev) => {
@@ -309,7 +309,7 @@ export function useProgress() {
     if (state.xp < amount) return false;
     const nextXp = Math.max(0, state.xp - amount);
     // Optimistic local update so the UI is instant. Also bump xpSpent so
-    // earned (= xp + xpSpent) stays constant — this is what stops a later
+    // earned (= xp + xpSpent) stays constant - this is what stops a later
     // cross-device merge from refunding the spend.
     setState((prev) => {
       const next = { ...prev, xp: nextXp, xpSpent: prev.xpSpent + amount };

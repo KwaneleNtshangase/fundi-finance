@@ -1,5 +1,5 @@
 "use client";
-// v2 — streak freeze, hearts, share
+// v2 - streak freeze, hearts, share
 import { useState } from "react";
 import { Flame, Share2, Zap, Shield } from "lucide-react";
 import { generateShareText } from "@/app/pageViews.types";
@@ -47,7 +47,7 @@ export function FundiTopBar({
           backdropFilter: "blur(8px)",
         }}
       >
-        {/* Streak — tap to open freeze modal */}
+        {/* Streak - tap to open freeze modal */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <button
             type="button"
@@ -221,11 +221,11 @@ export function FundiTopBar({
 
             {streakSafeToday ? (
               <p style={{ color: "#22C55E", fontWeight: 700, marginBottom: 20, fontSize: 14 }}>
-                ✓ Lesson done today — streak is safe!
+                ✓ Lesson done today - streak is safe!
               </p>
             ) : freezeUsedToday ? (
               <p style={{ color: "#3B82F6", fontWeight: 700, marginBottom: 20, fontSize: 14 }}>
-                🛡️ Freeze used — streak protected today
+                🛡️ Freeze used - streak protected today
               </p>
             ) : (
               <p style={{ color: "var(--color-text-secondary)", marginBottom: 20, fontSize: 14 }}>
@@ -256,7 +256,7 @@ export function FundiTopBar({
               A streak freeze protects your streak for one day you miss. Buy them with XP before you need them.
             </p>
 
-            {/* Use freeze button — only show if freeze available, no lesson today, not already used */}
+            {/* Use freeze button - only show if freeze available, no lesson today, not already used */}
             {!streakSafeToday && !freezeUsedToday && freezeCount > 0 && onUseFreeze && (
               <button
                 type="button"
@@ -302,7 +302,7 @@ export function FundiTopBar({
                   marginBottom: 10,
                 }}
               >
-                Buy Freeze — 200 XP
+                Buy Freeze - 200 XP
               </button>
             )}
 

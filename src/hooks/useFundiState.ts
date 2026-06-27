@@ -235,7 +235,7 @@ export function useFundiState() {
     { id: "wc-perfect",          text: "Get a perfect score on 5 lessons",                      target: 5,   unit: "perfect",           xp: 350 },
     { id: "wc-200xp",            text: "Earn 200 XP in a single day",                           target: 200, unit: "daily_xp",          xp: 280 },
     { id: "wc-5lessons-perfect", text: "Complete 5 lessons with at least 80% score",            target: 5,   unit: "lessons",           xp: 300 },
-    // Behavior-linked challenges — connect to real money actions, not just lesson counts
+    // Behavior-linked challenges - connect to real money actions, not just lesson counts
     { id: "wc-budget-3days",     text: "Open the Budget Planner 3 days this week",              target: 3,   unit: "budget_days",       xp: 200 },
     { id: "wc-calculator-2",     text: "Use the Investment Calculator twice this week",          target: 2,   unit: "calculator_days",   xp: 175 },
     { id: "wc-advanced-lesson",  text: "Complete a lesson in any Advanced course",              target: 1,   unit: "advanced_lesson",   xp: 300 },
@@ -243,7 +243,7 @@ export function useFundiState() {
   // Returns "YYYY-MM-DD" of the most recent Sunday (week anchor) in SAST
   const getSundayKey = () => sastSundayDate();
   const getWeeklyChallenge = () => {
-    // Use the Sunday date string as a stable, deterministic seed — resets only on Sunday
+    // Use the Sunday date string as a stable, deterministic seed - resets only on Sunday
     const weekKey = getSundayKey();
     let seed = 0;
     for (let i = 0; i < weekKey.length; i++) seed = ((seed << 5) - seed + weekKey.charCodeAt(i)) | 0;

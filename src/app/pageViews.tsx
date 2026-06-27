@@ -344,7 +344,7 @@ function OnboardingView({
           </>
         )}
 
-        {/* Age confirmation + skip — screen 0 (goal screen) */}
+        {/* Age confirmation + skip - screen 0 (goal screen) */}
         {screen === 0 && (
           <label style={{
             display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20,
@@ -365,7 +365,7 @@ function OnboardingView({
           </label>
         )}
 
-        {/* Username input — screen 1 */}
+        {/* Username input - screen 1 */}
         {screen === 1 && (
           <div style={{ marginBottom: 16, textAlign: "left" }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>
@@ -414,7 +414,7 @@ function OnboardingView({
           {current.cta}
         </button>
 
-        {/* Skip goal — allowed once age is confirmed */}
+        {/* Skip goal - allowed once age is confirmed */}
         {screen === 0 && (
           <button
             type="button"
@@ -532,7 +532,7 @@ const DAILY_CHALLENGE_POOL = [
 ];
 
 function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
-  // Deterministic daily selection — different every day, same for all users on same day
+  // Deterministic daily selection - different every day, same for all users on same day
   const today = sastToday();
   let seed = 0;
   for (let i = 0; i < today.length; i++) seed = ((seed << 5) - seed + today.charCodeAt(i)) | 0;
@@ -620,7 +620,7 @@ function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpCla
     // Update local weekly XP state so leaderboard reflects this immediately
     onXpClaimed?.(xp);
 
-    // Persist claim state only — onXpClaimed → addXP already updates xp + weekly_xp in DB.
+    // Persist claim state only - onXpClaimed → addXP already updates xp + weekly_xp in DB.
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       await supabase.from("user_progress").update({
@@ -3276,7 +3276,7 @@ export default function Home() {
   // Ref to hold next lesson across async badge modal
   const nextLessonRef = React.useRef<Lesson | null>(null);
 
-  // Ref tracking the last completed lesson — used to detect budget-opens post-lesson
+  // Ref tracking the last completed lesson - used to detect budget-opens post-lesson
   const lastCompletedLessonRef = React.useRef<{ courseId: string; lessonId: string } | null>(null);
 
   /**
@@ -3674,7 +3674,7 @@ export default function Home() {
         : parseInt(localStorage.getItem(perfTodayKey) ?? "0", 10);
       if (isPerfect) localStorage.setItem(perfTodayKey, String(newPerfectToday));
 
-      // Daily XP — addXP (called via completeLesson above) already wrote the
+      // Daily XP - addXP (called via completeLesson above) already wrote the
       // correct cumulative value. Read it back for the Supabase sync; do NOT
       // add totalXP again or we double-count every lesson's XP.
       const xpIsoKey = `fundi-daily-xp-${isoDay}`;
@@ -4138,7 +4138,7 @@ export default function Home() {
       }
       await supabase.from("user_progress").upsert({ user_id: user.id, display_name: username }, { onConflict: "user_id" });
     }
-    // Fire welcome email (non-blocking — user shouldn't wait for this).
+    // Fire welcome email (non-blocking - user shouldn't wait for this).
     void supabase.functions.invoke("send-email", { body: { type: "welcome" } });
     // Auto-launch the first lesson of the user's goal course instead of
     // showing the course list. This removes the extra friction step.
@@ -4174,7 +4174,7 @@ export default function Home() {
 
   useEffect(() => {
     if (!progressReady || !userId || route.name === "onboarding") return;
-    // Check localStorage first — it's set synchronously during onboarding,
+    // Check localStorage first - it's set synchronously during onboarding,
     // so there's no race condition. Only hit Supabase for users who somehow
     // arrived without going through onboarding (e.g. magic-link sign-in).
     const localUsername = localStorage.getItem("fundi-username");
@@ -4623,7 +4623,7 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Budget bridge card — shown for budget-relevant lessons */}
+            {/* Budget bridge card - shown for budget-relevant lessons */}
             {(() => {
               const bridgeKey = `${lessonSummary.courseId}:${lessonSummary.lessonId}`;
               const bridge = BUDGET_LESSON_BRIDGE[bridgeKey];

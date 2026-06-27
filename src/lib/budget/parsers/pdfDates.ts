@@ -43,7 +43,7 @@ export function parseStatementDate(
     if (m) return toIsoDate(+dMonY[3], m, +dMonY[1]);
   }
 
-  // DD Mon YY (e.g. 12 Feb 26 — Standard Bank)
+  // DD Mon YY (e.g. 12 Feb 26 - Standard Bank)
   const dMonY2 = t.match(/^(\d{1,2})\s+([A-Za-z]{3,9})\s+(\d{2})$/);
   if (dMonY2) {
     const m = MONTH_MAP[dMonY2[2].slice(0, 3).toLowerCase()];
@@ -93,7 +93,7 @@ export function findDateToken(text: string): string | null {
   return null;
 }
 
-/** Infer statement year — FNB uses Statement Period; others use first 20xx token. */
+/** Infer statement year - FNB uses Statement Period; others use first 20xx token. */
 export function extractContextYear(fullText: string, bankId?: string | null): number | undefined {
   if (bankId === "fnb") {
     const periodEnd = fullText.match(

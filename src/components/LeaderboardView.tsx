@@ -12,7 +12,7 @@ export function getLeaderboardWeekKey(): string {
   return sastWeekKey();
 }
 
-/** Next Sunday 00:00 SAST — weekly XP resets when the new week starts (Sunday-anchored). */
+/** Next Sunday 00:00 SAST - weekly XP resets when the new week starts (Sunday-anchored). */
 function getWeekResetDate(): Date {
   const SAST_OFFSET_MS = 2 * 60 * 60 * 1000;
   const nowSAST = new Date(Date.now() + SAST_OFFSET_MS);

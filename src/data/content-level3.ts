@@ -1,11 +1,11 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE — LEVEL 3 ADVANCED CONTENT
+// FUNDI FINANCE - LEVEL 3 ADVANCED CONTENT
 //
 // Four new full courses at financial-advisor quality:
-//   1. advanced-tax         — Capital gains, trust tax vehicles, offshore, dividend vs salary
-//   2. estate-planning      — SA wills, estate duty, trusts, beneficiary strategy, liquidity
-//   3. advanced-investing   — MPT, factor investing, offshore allocation, sequence-of-returns
-//   4. business-finance-advanced — Pty Ltd vs trust, SBC, reading accounts, valuation, funding
+//   1. advanced-tax         - Capital gains, trust tax vehicles, offshore, dividend vs salary
+//   2. estate-planning      - SA wills, estate duty, trusts, beneficiary strategy, liquidity
+//   3. advanced-investing   - MPT, factor investing, offshore allocation, sequence-of-returns
+//   4. business-finance-advanced - Pty Ltd vs trust, SBC, reading accounts, valuation, funding
 //
 // All figures reference 2024/25 SARS rules, the Wills Act 7 of 1953,
 // the Estate Duty Act, Regulation 28, and JSE-specific data.

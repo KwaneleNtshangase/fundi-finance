@@ -55,7 +55,7 @@ export function ServiceWorkerRegistration() {
         maxWidth: "calc(100vw - 32px)",
       }}
     >
-      Update available — tap to refresh
+      Update available - tap to refresh
     </button>
   );
 }

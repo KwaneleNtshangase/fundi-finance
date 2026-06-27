@@ -1418,7 +1418,7 @@ html.dark .option-button:hover:not(:disabled) {
   50% { opacity: 0.7; transform: scale(0.96); }
 }
 
-/* patch-12: desktop nav — bottom-nav override removed; sidebar layout at 768px+ relies on md:hidden */
+/* patch-12: desktop nav - bottom-nav override removed; sidebar layout at 768px+ relies on md:hidden */
 @media (min-width: 768px) {
   .app-shell {
     max-width: 480px;

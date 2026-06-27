@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getUserFromRequest } from "@/lib/apiAuth";
 
 // South Africa Standard Time is UTC+2 with no daylight saving.
-// All streak dates must be computed in SAST — not UTC — or a lesson done
+// All streak dates must be computed in SAST - not UTC - or a lesson done
 // between 22:00 and 23:59 SA time gets stamped with the next UTC date,
 // causing false streak gaps or frozen counts the following day.
 function sastDate(offsetDays = 0): string {
@@ -60,16 +60,16 @@ export async function POST(req: NextRequest) {
   let nextFreezeCount = freezeCount;
 
   if (!lastActive) {
-    // First ever lesson — start streak at 1
+    // First ever lesson - start streak at 1
     nextStreak = 1;
   } else if (lastActive === today) {
-    // Already did a lesson today — keep streak (at least 1)
+    // Already did a lesson today - keep streak (at least 1)
     nextStreak = Math.max(current, 1);
   } else if (lastActive === yesterday) {
-    // Consecutive day — increment
+    // Consecutive day - increment
     nextStreak = current + 1;
   } else if (freezeCount > 0) {
-    // Missed a day but has a freeze — consume it and keep streak
+    // Missed a day but has a freeze - consume it and keep streak
     nextStreak = current;
     nextFreezeCount = freezeCount - 1;
     console.info("[sync-streak] Consumed streak freeze", {
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
       remainingFreezes: nextFreezeCount,
     });
   } else {
-    // Missed one or more days with no freeze — start a new streak from today
+    // Missed one or more days with no freeze - start a new streak from today
     nextStreak = 1;
   }
 

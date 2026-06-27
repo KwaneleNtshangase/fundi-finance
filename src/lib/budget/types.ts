@@ -2,7 +2,7 @@
 
 export type StatementFileType = "csv" | "ofx" | "pdf";
 
-/** Parser output — signed ZAR: negative = money out, positive = money in. */
+/** Parser output - signed ZAR: negative = money out, positive = money in. */
 export type NormalizedTxn = {
   date: string; // YYYY-MM-DD (SAST calendar day from statement)
   description: string;
@@ -43,15 +43,15 @@ export type PreviewTxn = NormalizedTxn & {
   dedupeHash: string;
   /** Already in DB from a prior import */
   skipReason?: "existing_import" | "user_removed";
-  /** Same hash earlier in this file — user should confirm both */
+  /** Same hash earlier in this file - user should confirm both */
   possibleDuplicateInFile?: boolean;
-  /** Money-in line that may be a card refund — defaults to income unless re-categorised */
+  /** Money-in line that may be a card refund - defaults to income unless re-categorised */
   refundLike?: boolean;
   /** Source file name for multi-import preview grouping */
   sourceFileName?: string;
-  /** Low-confidence PDF row — user should verify */
+  /** Low-confidence PDF row - user should verify */
   needsReview?: boolean;
-  /** Inter-account transfer — excluded from income/expense when confirmed */
+  /** Inter-account transfer - excluded from income/expense when confirmed */
   isTransfer?: boolean;
   /** Links debit/credit legs of a transfer pair */
   transferPairId?: string;

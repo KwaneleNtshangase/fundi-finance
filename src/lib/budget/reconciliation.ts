@@ -13,7 +13,7 @@ export type BalanceChainRow = Pick<
   "date" | "description" | "amountZAR" | "balanceAfter" | "lineIndex"
 >;
 
-/** Walk running balances in order — sole reconciliation signal for Capitec PDF imports. */
+/** Walk running balances in order - sole reconciliation signal for Capitec PDF imports. */
 export function reconcileBalanceChain(
   rows: BalanceChainRow[],
   openingBalance: number,
@@ -159,7 +159,7 @@ export function reconcileAfterImportSkips(
   if (importSumCents + skippedSumCents !== fullSumCents) {
     ok = false;
     warnings.push(
-      "Import split mismatch: skipped and new rows do not add up to the parsed statement total — a transaction may have been dropped incorrectly."
+      "Import split mismatch: skipped and new rows do not add up to the parsed statement total - a transaction may have been dropped incorrectly."
     );
   }
 
@@ -183,7 +183,7 @@ export function reconcileAfterImportSkips(
     }
   } else if (fullSumCents !== statement.parsedSignedSumCents) {
     ok = false;
-    warnings.push("Parsed statement total changed after dedupe — review before importing.");
+    warnings.push("Parsed statement total changed after dedupe - review before importing.");
   }
 
   return {

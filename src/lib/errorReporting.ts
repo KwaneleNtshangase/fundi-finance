@@ -31,7 +31,7 @@ export async function reportClientError(
       const { data } = await supabase.auth.getSession();
       token = data.session?.access_token;
     } catch {
-      /* not signed in / supabase unavailable — still report anonymously */
+      /* not signed in / supabase unavailable - still report anonymously */
     }
 
     await fetch("/api/errors/report", {

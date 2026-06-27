@@ -15,7 +15,7 @@ import {
 } from "./pdfTemplates";
 
 const SCANNED_MESSAGE =
-  "This looks like a scanned image — please upload the downloadable/text PDF or a CSV/OFX export from your bank.";
+  "This looks like a scanned image - please upload the downloadable/text PDF or a CSV/OFX export from your bank.";
 
 export async function parsePdfStatement(
   buffer: Uint8Array,
@@ -57,7 +57,7 @@ export async function parsePdfStatement(
     accountLabel,
   }));
 
-  // Standard Bank prints no closing-balance label — the last row's running
+  // Standard Bank prints no closing-balance label - the last row's running
   // balance IS the closing balance.
   let closingBalance = generic.balances.closingBalance;
   if (closingBalance === undefined && bankId === "standard-bank") {
@@ -85,7 +85,7 @@ export async function parsePdfStatement(
 
   if (lowConfidence && reconciliation.ok) {
     reconciliation.warnings.push(
-      "No opening/closing balance found — review each transaction carefully."
+      "No opening/closing balance found - review each transaction carefully."
     );
   }
 

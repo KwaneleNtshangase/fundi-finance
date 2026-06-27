@@ -22,7 +22,7 @@ async function mapPasswordError(err: unknown): Promise<PdfExtractResult | null> 
   return { ok: false, kind: "error", message: "Incorrect PDF password." };
 }
 
-/** Extract positioned text from a PDF buffer (in memory only; unpdf serverless build — no worker file). */
+/** Extract positioned text from a PDF buffer (in memory only; unpdf serverless build - no worker file). */
 export async function extractPdfText(
   buffer: Uint8Array,
   password?: string

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE — DEEP CONTENT BATCH
+// FUNDI FINANCE - DEEP CONTENT BATCH
 // Topics: Repo Rate | Behavioral Finance | Bonds | Credit Score | Portfolio Construction
 //
 // HOW TO MERGE:
@@ -355,7 +355,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. BONDS — DEEP DIVE
+// 3. BONDS - DEEP DIVE
 // Target: investing-basics → relevant unit, or sa-investing
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -479,7 +479,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. CREDIT SCORE — DEEPER DIVE
+// 4. CREDIT SCORE - DEEPER DIVE
 // Target: credit-debt → unit-1 (Understanding Credit)
 // ─────────────────────────────────────────────────────────────────────────────
 

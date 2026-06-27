@@ -13,7 +13,7 @@ export function parseAmountToken(raw: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Find all amount-like tokens in text (requires 2dp — avoids date fragments). */
+/** Find all amount-like tokens in text (requires 2dp - avoids date fragments). */
 export function findAmountTokens(text: string): { value: number; index: number; raw: string }[] {
   const results: { value: number; index: number; raw: string }[] = [];
   const re = /(?:\([\d\s.,]+\)|-?\d{1,3}(?:[\s]\d{3})*\.\d{2}|-?\d+\.\d{2})/g;
@@ -78,7 +78,7 @@ export type ColumnLayout = {
   credit?: ColumnRange;
   amount?: ColumnRange;
   balance?: ColumnRange;
-  /** FNB accrued bank charges — informational, not part of running balance */
+  /** FNB accrued bank charges - informational, not part of running balance */
   accruedCharges?: ColumnRange;
 };
 

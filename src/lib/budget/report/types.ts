@@ -1,4 +1,4 @@
-/** Cents-based report model — all monetary fields are integer cents. */
+/** Cents-based report model - all monetary fields are integer cents. */
 
 export type BudgetEntryInput = {
   id?: string;

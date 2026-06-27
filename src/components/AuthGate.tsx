@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabaseClient";
 // Google OAuth is blocked only in LinkedIn's in-app browser.
 // All other in-app browsers (Instagram, Facebook, WhatsApp, etc.) either use
 // SFSafariViewController or handle the redirect acceptably.
-// Facebook OAuth works everywhere — no restrictions.
+// Facebook OAuth works everywhere - no restrictions.
 function isLinkedInBrowser(): boolean {
   if (typeof window === "undefined") return false;
   return /\[LinkedInApp\]/i.test(window.navigator.userAgent);
@@ -140,7 +140,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     else setError(null);
   };
 
-  // Facebook works everywhere — no restrictions.
+  // Facebook works everywhere - no restrictions.
   // Google is blocked only inside LinkedIn's in-app browser; everywhere else it works.
   const handleOAuthSignIn = async (provider: "google" | "facebook") => {
     if (provider === "google" && inWebView) {

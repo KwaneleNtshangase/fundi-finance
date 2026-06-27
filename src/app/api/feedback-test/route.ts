@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-/** Disabled in production — diagnostic email test only for local development. */
+/** Disabled in production - diagnostic email test only for local development. */
 export async function GET() {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found" }, { status: 404 });

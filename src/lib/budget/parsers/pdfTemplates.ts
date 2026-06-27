@@ -45,7 +45,7 @@ const SB_FOOTER =
 
 /**
  * Trim noise from a transaction description: card masks, long reference/account
- * numbers, phone numbers, branch codes — and cap the length.
+ * numbers, phone numbers, branch codes - and cap the length.
  */
 export function cleanDescription(raw: string): string {
   let s = (raw || "").replace(/\s+/g, " ").trim();
@@ -343,7 +343,7 @@ function fnbDescriptionFromLine(
     .trim();
 }
 
-/** FNB-specific parser — single Amount column with Cr/Dr suffix. */
+/** FNB-specific parser - single Amount column with Cr/Dr suffix. */
 export function parseFnbLayout(
   lines: TextLine[],
   contextYear?: number
@@ -453,7 +453,7 @@ export function detectStandardBankColumns(line: TextLine): ColumnLayout | null {
   };
   return {
     date: findCol(/^date$/i, 45, 50),
-    // Description data spans well past the header label — wide tolerance so the
+    // Description data spans well past the header label - wide tolerance so the
     // whole merchant/payee is captured (amounts still win by nearest-column).
     description: findCol(/^description$/i, 120, 170),
     moneyOut: findCol(/^payments$/i, 395, 48), // Payments column → money out
@@ -465,7 +465,7 @@ export function detectStandardBankColumns(line: TextLine): ColumnLayout | null {
 /**
  * Standard Bank parser. Two-line rows (a date line + a transaction-type line),
  * separate Payments (out) / Deposits (in) columns, comma thousands, DD Mon YY
- * dates. No printed closing balance — the last row's balance is the closing.
+ * dates. No printed closing balance - the last row's balance is the closing.
  */
 export function parseStandardBankLayout(
   lines: TextLine[],
@@ -573,7 +573,7 @@ function amountsOnLine(line: TextLine): { x: number; val: number }[] {
     .sort((a, b) => a.x - b.x);
 }
 
-/** Template-aware row parser — uses x-positions for known bank column layouts. */
+/** Template-aware row parser - uses x-positions for known bank column layouts. */
 export function applyBankTemplate(
   bankId: string,
   lines: TextLine[],

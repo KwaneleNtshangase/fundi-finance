@@ -309,7 +309,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
           // already-parsed files in the preview (never silently reset).
           failed.push({
             name: file.name,
-            error: json.error ?? "Couldn't read this statement — unsupported layout or no transaction table found.",
+            error: json.error ?? "Couldn't read this statement - unsupported layout or no transaction table found.",
           });
           continue;
         }
@@ -391,7 +391,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
       for (const meta of fileMetas) {
         const fileRows = rowsWithTransfers.filter((r) => r.sourceFileName === meta.fileName);
-        // Skip files where every row is already imported / removed — sending them
+        // Skip files where every row is already imported / removed - sending them
         // would error ("No new transactions") and abort the whole batch.
         if (fileRows.every((r) => r.skipReason)) continue;
         const commitRows = fileRows.map((r) => ({
@@ -450,7 +450,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
       }
       if (!committedAny) {
         if (failed.length === 0) {
-          setError("Nothing new to import — these transactions are already in your budget.");
+          setError("Nothing new to import - these transactions are already in your budget.");
         }
         return;
       }
@@ -561,7 +561,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
         <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16, fontSize: 13, color: "var(--color-text-secondary)" }}>
           <Shield size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           <span>
-            Files are processed <strong>in memory only</strong> — raw PDFs, CSVs, and passwords are never stored.
+            Files are processed <strong>in memory only</strong> - raw PDFs, CSVs, and passwords are never stored.
             Only categorised transactions and account labels are saved.
           </span>
         </div>
@@ -718,13 +718,13 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                 meta.reconciliation?.ok ? (
                   <div key={`${meta.fileName}-ok`} style={{ background: "rgba(0,122,77,0.08)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
                     <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "var(--color-primary)" }}>
-                      <CheckCircle2 size={16} /> {meta.fileName} — Balance reconciles ✓
+                      <CheckCircle2 size={16} /> {meta.fileName} - Balance reconciles ✓
                     </div>
                   </div>
                 ) : meta.reconciliation ? (
                   <div key={meta.fileName} style={{ background: "rgba(255,152,0,0.1)", border: "1px solid rgba(255,152,0,0.3)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
                     <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "#F57C00", marginBottom: 4 }}>
-                      <AlertTriangle size={16} /> {meta.fileName} — reconciliation warning
+                      <AlertTriangle size={16} /> {meta.fileName} - reconciliation warning
                     </div>
                     {meta.reconciliation.warnings.map((w) => <div key={w}>{w}</div>)}
                   </div>
@@ -741,7 +741,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
               <div style={{ background: "rgba(0,122,77,0.06)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 14, marginBottom: 16 }}>
                 <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "var(--color-primary)", marginBottom: 10, fontSize: 13 }}>
                   <ArrowLeftRight size={16} />
-                  These look like transfers between your own accounts — exclude from spending?
+                  These look like transfers between your own accounts - exclude from spending?
                 </div>
                 {transferPairs.map((pair: TransferPair) => {
                   const debit = rowsWithTransfers.find((r) => r.id === pair.debitId);
@@ -757,7 +757,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                         style={{ marginTop: 3 }}
                       />
                       <span>
-                        <strong>{formatRand(pair.amountCents / 100)}</strong> — {pair.debitAccount} → {pair.creditAccount}
+                        <strong>{formatRand(pair.amountCents / 100)}</strong> - {pair.debitAccount} → {pair.creditAccount}
                         <span style={{ display: "block", color: "var(--color-text-secondary)", marginTop: 2 }}>
                           {debit.date}: {debit.description.slice(0, 40)} ↔ {credit.description.slice(0, 40)}
                         </span>
@@ -809,7 +809,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                                 <span style={{ display: "block", fontSize: 10, color: "#9E9E9E" }}>Already imported</span>
                               )}
                               {r.isTransfer && (
-                                <span style={{ display: "block", fontSize: 10, color: "var(--color-primary)" }}>Transfer — excluded</span>
+                                <span style={{ display: "block", fontSize: 10, color: "var(--color-primary)" }}>Transfer - excluded</span>
                               )}
                               {selectiveNeedsReview(r, meta) && !r.skipReason && (
                                 <span style={{ display: "block", fontSize: 10, color: "#F57C00" }}>Needs review</span>

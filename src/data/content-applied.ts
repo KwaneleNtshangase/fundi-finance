@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE — APPLIED DECISION LESSONS  (content-applied.ts)
+// FUNDI FINANCE - APPLIED DECISION LESSONS  (content-applied.ts)
 //
 // Purpose: address the "definition ceiling" problem.
 // Every lesson here is a real South African financial decision scenario.
@@ -13,7 +13,7 @@ import type { LessonStep } from "./content";
 export type Lesson = { id: string; title: string; steps: LessonStep[] };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. INVESTING-BASICS — applied decision
+// 1. INVESTING-BASICS - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_THABO_INVESTMENT: Lesson = {
   id: "lesson-applied-thabo-investment",
@@ -91,7 +91,7 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. CREDIT-DEBT — applied decision
+// 2. CREDIT-DEBT - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_PERSONAL_LOAN_TRAP: Lesson = {
   id: "lesson-applied-loan-trap",
@@ -159,7 +159,7 @@ export const LESSON_PERSONAL_LOAN_TRAP: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. SALARY-PAYSLIP — applied decision
+// 3. SALARY-PAYSLIP - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
   id: "lesson-applied-read-payslip",
@@ -225,7 +225,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. PROPERTY — applied decision
+// 4. PROPERTY - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_BUY_OR_RENT: Lesson = {
   id: "lesson-applied-buy-or-rent",
@@ -294,7 +294,7 @@ export const LESSON_BUY_OR_RENT: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. TAXES — applied decision
+// 5. TAXES - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_SARS_ASSESSMENT: Lesson = {
   id: "lesson-applied-sars-assessment",
@@ -360,7 +360,7 @@ export const LESSON_SARS_ASSESSMENT: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. SCAMS-FRAUD — applied decision
+// 6. SCAMS-FRAUD - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_WHATSAPP_SCHEME: Lesson = {
   id: "lesson-applied-whatsapp-scheme",
@@ -439,7 +439,7 @@ export const LESSON_WHATSAPP_SCHEME: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. BUSINESS-FINANCE — applied decision
+// 7. BUSINESS-FINANCE - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
   id: "lesson-applied-cashflow-profit",
@@ -520,7 +520,7 @@ export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 8. RAND-ECONOMY — applied decision
+// 8. RAND-ECONOMY - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_REPO_RATE_IMPACT: Lesson = {
   id: "lesson-applied-repo-rate-impact",
@@ -599,7 +599,7 @@ export const LESSON_REPO_RATE_IMPACT: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 9. MONEY-PSYCHOLOGY — applied decision
+// 9. MONEY-PSYCHOLOGY - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_SUNK_COST_INVESTING: Lesson = {
   id: "lesson-applied-sunk-cost-investing",
@@ -665,7 +665,7 @@ export const LESSON_SUNK_COST_INVESTING: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 10. EMERGENCY-FUND — applied decision
+// 10. EMERGENCY-FUND - applied decision
 // ─────────────────────────────────────────────────────────────────────────────
 export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
   id: "lesson-applied-emergency-fund-build",
@@ -725,7 +725,7 @@ export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-// EXPORT ARRAYS — grouped by course for wiring into mergeContentExtras
+// EXPORT ARRAYS - grouped by course for wiring into mergeContentExtras
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const APPLIED_INVESTING_LESSONS: Lesson[] = [LESSON_THABO_INVESTMENT];

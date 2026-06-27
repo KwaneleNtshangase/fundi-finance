@@ -17,7 +17,7 @@ export type BuiltInRule = {
 };
 
 /**
- * SA merchant/keyword rules — ordered most-specific first (first match wins).
+ * SA merchant/keyword rules - ordered most-specific first (first match wins).
  * The SIGN of the amount still decides income vs expense; these only suggest a
  * category, and a rule whose type contradicts the sign is ignored.
  */
@@ -112,7 +112,7 @@ export function categorise(
   const haystack = `${txn.rawMerchant} ${txn.description}`;
 
   // The SIGN of the amount is authoritative for income vs expense. A keyword may
-  // only set the CATEGORY — never flip direction (descriptions often carry bank
+  // only set the CATEGORY - never flip direction (descriptions often carry bank
   // or merchant words that don't reflect the money direction).
   const type: "income" | "expense" = txn.amountZAR >= 0 ? "income" : "expense";
 

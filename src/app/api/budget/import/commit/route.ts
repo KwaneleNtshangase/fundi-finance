@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     if (!postDedupe.ok) {
       return NextResponse.json(
         {
-          error: "Reconciliation failed after dedupe — import blocked.",
+          error: "Reconciliation failed after dedupe - import blocked.",
           reconciliation: postDedupe,
         },
         { status: 409 }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   if (body.fileType === "pdf" && body.statementReconciliation && !body.statementReconciliation.ok) {
     return NextResponse.json(
       {
-        error: "PDF statement failed reconciliation — review and fix before importing.",
+        error: "PDF statement failed reconciliation - review and fix before importing.",
         reconciliation: body.statementReconciliation,
       },
       { status: 409 }

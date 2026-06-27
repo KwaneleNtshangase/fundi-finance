@@ -3,7 +3,7 @@
  *
  * Every calendar-day localStorage key and daily/weekly comparison MUST go
  * through these helpers. Using new Date().toISOString() gives a UTC date
- * which rolls over at 22:00 SA time — causing streaks, daily XP, and
+ * which rolls over at 22:00 SA time - causing streaks, daily XP, and
  * daily challenges to reset two hours early every evening.
  */
 

@@ -26,7 +26,7 @@ export type BehaviorEventKey =
 /**
  * Increments a behavior event counter in user_progress.behavior_events.
  * Uses a read-modify-write since Supabase JS client doesn't expose jsonb increment directly.
- * Fire-and-forget — wrapped in void so callers don't need to await.
+ * Fire-and-forget - wrapped in void so callers don't need to await.
  */
 export async function trackBehaviorEvent(
   eventKey: BehaviorEventKey,
@@ -56,6 +56,6 @@ export async function trackBehaviorEvent(
         { onConflict: "user_id" }
       );
   } catch {
-    // Non-critical — never throw, never block UI
+    // Non-critical - never throw, never block UI
   }
 }

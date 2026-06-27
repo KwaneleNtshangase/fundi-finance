@@ -459,7 +459,7 @@ export type ShareCardData =
   | { type: "lesson"; lessonTitle: string; xpEarned: number; isPerfect: boolean; courseName: string }
   | { type: "calculator"; headline: string; sub: string };
 
-/** Cross-browser rounded rect — falls back to plain rect if roundRect unavailable */
+/** Cross-browser rounded rect - falls back to plain rect if roundRect unavailable */
 function canvasRoundRect(
   ctx: CanvasRenderingContext2D,
   x: number, y: number, w: number, h: number, r: number
@@ -633,7 +633,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
           return;
         }
       } catch {
-        // canShare or share failed — fall through to download
+        // canShare or share failed - fall through to download
       }
 
       // Fallback: try navigator.share with just text (no image)
@@ -645,7 +645,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
           setSharing(false);
           return;
         } catch {
-          // dismissed — fall through to download
+          // dismissed - fall through to download
         }
       }
 

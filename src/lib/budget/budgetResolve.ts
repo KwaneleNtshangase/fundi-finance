@@ -13,7 +13,7 @@
  *   4. 0 (no budget)
  *
  * This makes "set a default once, applies every month" work, while editing the
- * default only affects the month it's effective from and later — earlier months
+ * default only affects the month it's effective from and later - earlier months
  * keep whatever default was in force at the time.
  */
 

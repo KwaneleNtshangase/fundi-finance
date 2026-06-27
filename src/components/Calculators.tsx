@@ -695,7 +695,7 @@ export function CalculatorView() {
               <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} />
               <YAxis tickFormatter={formatYAxis} tick={{ fontSize: 11, fill: "var(--color-text-secondary)" }} width={58} />
               <Tooltip
-                formatter={(v) => v === null || v === undefined ? "—" : formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
+                formatter={(v) => v === null || v === undefined ? "-" : formatZAR(typeof v === "number" ? v : Number(v ?? 0))}
                 labelFormatter={(l) => `Year ${l}`}
                 contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 13 }}
               />

@@ -26,16 +26,16 @@ export async function POST(req: NextRequest) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceKey) return NextResponse.json({ ok: true, skipped: true });
 
-  // User is optional — errors can happen on unauthenticated screens.
+  // User is optional - errors can happen on unauthenticated screens.
   const user = await getUserFromRequest(req).catch(() => null);
   const admin = createClient(supabaseUrl, serviceKey);
 
   const subject = `[Auto] ${area}: ${message}`.slice(0, 200);
   const description = [
     `Area: ${area}`,
-    `URL: ${body.url ?? "—"}`,
+    `URL: ${body.url ?? "-"}`,
     `User: ${user?.email ?? "anonymous"}`,
-    `Device: ${body.userAgent ?? "—"}`,
+    `Device: ${body.userAgent ?? "-"}`,
     body.extra ? `Extra: ${JSON.stringify(body.extra)}` : null,
     "",
     body.stack || message,
@@ -84,7 +84,7 @@ export async function POST(req: NextRequest) {
               <p style="margin:4px 0"><b>Area:</b> ${area}</p>
               <p style="margin:4px 0"><b>User:</b> ${user?.email ?? "anonymous"}</p>
               <p style="margin:4px 0"><b>Message:</b> ${message}</p>
-              <p style="margin:4px 0"><b>URL:</b> ${body.url ?? "—"}</p>
+              <p style="margin:4px 0"><b>URL:</b> ${body.url ?? "-"}</p>
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
               <p style="font-size:13px;color:#6b7280">Triage and notify the user from the admin console:</p>
               <p><a href="https://fundiapp.co.za/admin/bugs" style="color:#007A4D;font-weight:700">Open bug console →</a></p>

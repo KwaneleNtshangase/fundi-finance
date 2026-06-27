@@ -7,7 +7,7 @@
  * to the Supabase `user_settings` table so they follow the user across devices.
  *
  * Strategy: localStorage is kept as a write-through cache for instant reads on
- * first render.  Supabase is the source of truth — on login its values win.
+ * first render.  Supabase is the source of truth - on login its values win.
  */
 
 import { useCallback, useEffect, useState } from "react";

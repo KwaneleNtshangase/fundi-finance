@@ -503,7 +503,7 @@ export function BudgetView() {
   const handleAdd = async () => {
     if (!addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) return;
 
-    // Transfer: money moved between accounts — stored with is_transfer=true and
+    // Transfer: money moved between accounts - stored with is_transfer=true and
     // excluded from income/expense everywhere. From → To kept in the description.
     if (addType === "transfer") {
       if (!addFrom.trim() || !addTo.trim()) return;
@@ -1256,7 +1256,7 @@ export function BudgetView() {
           onClick={() => setShowSetBudget(false)}>
           <div onClick={(e) => e.stopPropagation()}
             style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 500, maxHeight: "92vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-            {/* Sticky header — X always reachable on mobile */}
+            {/* Sticky header - X always reachable on mobile */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px 12px", borderBottom: "1px solid var(--color-border)", flexShrink: 0 }}>
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>{budgetScope === "default" ? "Set Default Budget" : `Budget for ${monthLabel}`}</h3>
               <button type="button" onClick={() => setShowSetBudget(false)} aria-label="Close" style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 999, cursor: "pointer", padding: 6, display: "flex" }}>
@@ -1313,7 +1313,7 @@ export function BudgetView() {
                 {budgetScope !== "default"
                   ? `Set limits for ${monthLabel} only. These override your default budget for this month. Leave blank to follow the default.`
                   : budgetApplyAll
-                    ? "Applies to every month — past and future — and replaces any month-specific budgets you've set. Use this to reset your whole budget."
+                    ? "Applies to every month - past and future - and replaces any month-specific budgets you've set. Use this to reset your whole budget."
                     : `Your default budget from ${monthLabel} onward. Earlier months keep the budget they already had, so this won't rewrite your history. You can still override individual months. Leave blank for no limit.`}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -1369,7 +1369,7 @@ export function BudgetView() {
                 </button>
               ))}
             </div>
-            {/* Mark as transfer — excludes this entry from income/expense totals */}
+            {/* Mark as transfer - excludes this entry from income/expense totals */}
             <button type="button" onClick={() => setEditIsTransfer((v) => !v)}
               style={{ width: "100%", marginBottom: 16, padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "rgba(0,122,77,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
               <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1377,7 +1377,7 @@ export function BudgetView() {
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 13.5 }}>This is a transfer</div>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>Money moved between accounts — kept out of income &amp; expenses</div>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>Money moved between accounts - kept out of income &amp; expenses</div>
               </div>
             </button>
             <div style={{ marginBottom: 16 }}>
