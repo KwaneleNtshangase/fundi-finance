@@ -1168,15 +1168,29 @@ html.dark [style*="color:black"] {
   border-top: none !important;
   box-shadow: none !important;
 }
+/* Soft scrim so scrolling content fades into the background under the floating
+   island instead of showing hard card edges beside it. */
+.bottom-nav::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(to top, var(--color-bg), transparent);
+  background: linear-gradient(to top, var(--color-bg) 45%, color-mix(in srgb, var(--color-bg) 0%, transparent) 100%);
+}
 .nav-pill {
+  position: relative;
+  z-index: 1;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: 26px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
   padding: 6px;
   gap: 2px;
-  backdrop-filter: saturate(1.1) blur(8px);
-  -webkit-backdrop-filter: saturate(1.1) blur(8px);
 }
 .nav-pill-btn {
   flex: 1 1 0;
@@ -1289,8 +1303,8 @@ body.modal-open .bottom-nav {
 /* ── Dark mode floating nav pill ────────────────────────────────────────── */
 html.dark .nav-pill {
   background: #141414;
-  border-color: #2A2A2A;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.65), 0 0 0 0.5px rgba(255, 255, 255, 0.04);
+  border-color: #232323;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.7);
 }
 html.dark .nav-pill-btn {
   color: #9AA0A6;
