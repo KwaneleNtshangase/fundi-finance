@@ -21,12 +21,14 @@ import {
   Cell,
 } from "recharts";
 import {
+  ArrowLeftRight,
   Award,
   BarChart2,
   Brain,
   Briefcase,
   Building2,
   Car,
+  Check,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -68,6 +70,7 @@ type BudgetEntry = {
   amount: number;
   description?: string;
   entry_date: string;
+  is_transfer?: boolean;
 };
 
 type CustomBudgetCat = {
@@ -148,10 +151,12 @@ export function BudgetView() {
   const [entries, setEntries] = useState<BudgetEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
-  const [addType, setAddType] = useState<"income" | "expense">("expense");
+  const [addType, setAddType] = useState<"income" | "expense" | "transfer">("expense");
   const [addCategory, setAddCategory] = useState("");
   const [addAmount, setAddAmount] = useState("");
   const [addDesc, setAddDesc] = useState("");
+  const [addFrom, setAddFrom] = useState("");
+  const [addTo, setAddTo] = useState("");
   const [addDate, setAddDate] = useState(() => sastToday());
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -161,6 +166,7 @@ export function BudgetView() {
   const [editAmount, setEditAmount] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editIsTransfer, setEditIsTransfer] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
   const [yearEntries, setYearEntries] = useState<BudgetEntry[]>([]);
   const [budgetTargets, setBudgetTargets] = useState<Record<string, number>>({});
@@ -227,7 +233,7 @@ export function BudgetView() {
     if (!user) { setLoading(false); return; }
     const { data } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date")
+      .select("id, type, category, amount, description, entry_date, is_transfer")
       .eq("user_id", user.id)
       .gte("entry_date", startDate)
       .lte("entry_date", endDate)
@@ -395,7 +401,7 @@ export function BudgetView() {
     const yr = now.getFullYear();
     const { data } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date")
+      .select("id, type, category, amount, description, entry_date, is_transfer")
       .eq("user_id", user.id)
       .gte("entry_date", `${yr}-01-01`)
       .lte("entry_date", `${yr}-12-31`);
@@ -405,7 +411,28 @@ export function BudgetView() {
   useEffect(() => { if (viewMode === "year") loadYearEntries(); }, [viewMode, loadYearEntries]);
 
   const handleAdd = async () => {
-    if (!addCategory || !addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) return;
+    if (!addAmount || isNaN(Number(addAmount)) || Number(addAmount) <= 0) return;
+
+    // Transfer: money moved between accounts — stored with is_transfer=true and
+    // excluded from income/expense everywhere. From → To kept in the description.
+    if (addType === "transfer") {
+      if (!addFrom.trim() || !addTo.trim()) return;
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { setSaving(false); return; }
+      const note = addDesc.trim();
+      const desc = `${addFrom.trim()} → ${addTo.trim()}${note ? ` · ${note}` : ""}`;
+      await supabase.from("budget_entries").insert({
+        user_id: user.id, type: "expense", category: "transfer",
+        amount: Number(addAmount), description: desc, entry_date: addDate, is_transfer: true,
+      });
+      setSaving(false); setShowAdd(false);
+      setAddAmount(""); setAddDesc(""); setAddFrom(""); setAddTo(""); setAddDate(sastToday());
+      loadEntries();
+      return;
+    }
+
+    if (!addCategory) return;
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
@@ -468,6 +495,7 @@ export function BudgetView() {
   const openEdit = (e: BudgetEntry) => {
     setEditEntry(e); setEditType(e.type); setEditCategory(e.category);
     setEditAmount(String(e.amount)); setEditDesc(e.description ?? ""); setEditDate(e.entry_date);
+    setEditIsTransfer(!!e.is_transfer);
   };
 
   const handleEditSave = async () => {
@@ -475,10 +503,10 @@ export function BudgetView() {
     setEditSaving(true);
     await supabase.from("budget_entries").update({
       type: editType, category: editCategory, amount: Number(editAmount),
-      description: editDesc.trim() || null, entry_date: editDate,
+      description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
     }).eq("id", editEntry.id);
     setEntries((prev) => prev.map((e) => e.id === editEntry.id
-      ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate }
+      ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate, is_transfer: editIsTransfer }
       : e));
     setEditSaving(false); setEditEntry(null);
   };
@@ -551,19 +579,22 @@ export function BudgetView() {
     }
   };
 
-  const income = entries.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
-  const expenses = entries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
+  // Transfers (money moved between your own accounts, or imported transfer pairs)
+  // are excluded from income/expense/savings maths everywhere.
+  const realEntries = entries.filter((e) => !e.is_transfer);
+  const income = realEntries.filter((e) => e.type === "income").reduce((s, e) => s + e.amount, 0);
+  const expenses = realEntries.filter((e) => e.type === "expense").reduce((s, e) => s + e.amount, 0);
   const surplus = income - expenses;
 
   const catTotals = allExpCats.map((c) => ({
     ...c,
-    total: entries.filter((e) => e.type === "expense" && e.category === c.id).reduce((s, e) => s + e.amount, 0),
+    total: realEntries.filter((e) => e.type === "expense" && e.category === c.id).reduce((s, e) => s + e.amount, 0),
   })).filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
 
-  const needsTotal = entries.filter((e) => e.type === "expense" && ["food","transport","housing","airtime","healthcare","education"].includes(e.category)).reduce((s, e) => s + e.amount, 0);
-  const wantsTotal = entries.filter((e) => e.type === "expense" && e.category === "entertainment").reduce((s, e) => s + e.amount, 0);
-  const debtTotal = entries.filter((e) => e.type === "expense" && e.category === "debt").reduce((s, e) => s + e.amount, 0);
-  const savingsTotal = entries.filter((e) => e.type === "expense" && e.category === "savings").reduce((s, e) => s + e.amount, 0);
+  const needsTotal = realEntries.filter((e) => e.type === "expense" && ["food","transport","housing","airtime","healthcare","education"].includes(e.category)).reduce((s, e) => s + e.amount, 0);
+  const wantsTotal = realEntries.filter((e) => e.type === "expense" && e.category === "entertainment").reduce((s, e) => s + e.amount, 0);
+  const debtTotal = realEntries.filter((e) => e.type === "expense" && e.category === "debt").reduce((s, e) => s + e.amount, 0);
+  const savingsTotal = realEntries.filter((e) => e.type === "expense" && e.category === "savings").reduce((s, e) => s + e.amount, 0);
   const savingsRate = income > 0 ? Math.round((savingsTotal / income) * 100) : 0;
   const debtRate = income > 0 ? Math.round((debtTotal / income) * 100) : 0;
 
@@ -583,8 +614,8 @@ export function BudgetView() {
       const d = new Date(e.entry_date + "T00:00:00");
       return d.getMonth() === mi;
     });
-    const inc = monthEntries.filter(e => e.type === "income").reduce((s, e) => s + e.amount, 0);
-    const exp = monthEntries.filter(e => e.type === "expense").reduce((s, e) => s + e.amount, 0);
+    const inc = monthEntries.filter(e => e.type === "income" && !e.is_transfer).reduce((s, e) => s + e.amount, 0);
+    const exp = monthEntries.filter(e => e.type === "expense" && !e.is_transfer).reduce((s, e) => s + e.amount, 0);
     return { name, income: inc, expenses: exp, surplus: inc - exp };
   });
 
@@ -819,7 +850,7 @@ export function BudgetView() {
 
               {Object.keys(budgetTargets).length > 0 && catTotals.length > 0 && (() => {
                 const totalBudget = Object.values(budgetTargets).reduce((s, v) => s + v, 0);
-                const totalActual = BUDGET_EXPENSE_CATS.reduce((s, c) => s + (budgetTargets[c.id] ? entries.filter(e => e.type === "expense" && e.category === c.id).reduce((a, e) => a + e.amount, 0) : 0), 0);
+                const totalActual = BUDGET_EXPENSE_CATS.reduce((s, c) => s + (budgetTargets[c.id] ? realEntries.filter(e => e.type === "expense" && e.category === c.id).reduce((a, e) => a + e.amount, 0) : 0), 0);
                 const delta = totalBudget - totalActual;
                 const isOver = delta < 0;
                 return (
@@ -966,17 +997,17 @@ export function BudgetView() {
                 {entries.map((e) => (
                   <button key={e.id} type="button" onClick={() => openEdit(e)}
                     style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderTop: "none", borderLeft: "none", borderRight: "none", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: "none", cursor: "pointer", textAlign: "left" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      {e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
+                    <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{getCatLabel(e.type, e.category)}</div>
-                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{e.is_transfer ? "Transfer" : getCatLabel(e.type, e.category)}</div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
                       </div>
                     </div>
-                    <div style={{ fontWeight: 800, fontSize: 14, color: e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
-                      {e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
+                    <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
+                      {e.is_transfer ? "⇄ " : e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
                     </div>
                     <ChevronRight size={14} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
                   </button>
@@ -1141,6 +1172,17 @@ export function BudgetView() {
                 </button>
               ))}
             </div>
+            {/* Mark as transfer — excludes this entry from income/expense totals */}
+            <button type="button" onClick={() => setEditIsTransfer((v) => !v)}
+              style={{ width: "100%", marginBottom: 16, padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "rgba(0,122,77,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
+              <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {editIsTransfer && <Check size={12} style={{ color: "white" }} />}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 700, fontSize: 13.5 }}>This is a transfer</div>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>Money moved between accounts — kept out of income &amp; expenses</div>
+              </div>
+            </button>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1195,14 +1237,33 @@ export function BudgetView() {
               <h3 style={{ fontWeight: 900, fontSize: 18 }}>Add Entry</h3>
               <button type="button" onClick={() => setShowAdd(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }}><X size={20} /></button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
-              {(["expense", "income"] as const).map((t) => (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
+              {(["expense", "income", "transfer"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => { setAddType(t); setAddCategory(""); }}
-                  style={{ padding: "10px", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${addType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: addType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
-                  {t === "income" ? "Income +" : "Expense -"}
+                  style={{ padding: "10px 6px", borderRadius: 10, fontWeight: 700, fontSize: 13.5, cursor: "pointer", border: `2px solid ${addType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: addType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)" }}>
+                  {t === "income" ? "Income +" : t === "expense" ? "Expense -" : "Transfer ⇄"}
                 </button>
               ))}
             </div>
+            {addType === "transfer" ? (
+              <>
+                <p style={{ fontSize: 12.5, color: "var(--color-text-secondary)", marginBottom: 14 }}>
+                  Moving money between your own accounts (or to savings). Transfers are kept out of your income and expenses so they don&apos;t distort your budget.
+                </p>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>From</div>
+                    <input type="text" placeholder="e.g. Cheque" value={addFrom} onChange={(e) => setAddFrom(e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>To</div>
+                    <input type="text" placeholder="e.g. Savings" value={addTo} onChange={(e) => setAddTo(e.target.value)}
+                      style={{ width: "100%", padding: "10px 12px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
+                  </div>
+                </div>
+              </>
+            ) : (
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -1213,12 +1274,13 @@ export function BudgetView() {
                     <span>{c.label}</span>
                   </button>
                 ))}
-                <button type="button" onClick={() => { setNewCatType(addType); setShowAddCustomCat(true); }}
+                <button type="button" onClick={() => { setNewCatType(addType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
                   style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", textAlign: "left" }}>
                   <Plus size={14} style={{ flexShrink: 0 }} aria-hidden /> <span>Add category</span>
                 </button>
               </div>
             </div>
+            )}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Amount (R)</div>
               <input type="number" inputMode="decimal" placeholder="0.00" value={addAmount} onChange={(e) => setAddAmount(e.target.value)} min="0.01" step="0.01"
@@ -1235,8 +1297,8 @@ export function BudgetView() {
                 style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid var(--color-border)", fontSize: 14, background: "var(--color-bg)", color: "var(--color-text-primary)", boxSizing: "border-box" as const }} />
             </div>
             <button type="button" className="btn btn-primary" style={{ width: "100%", padding: 14, fontSize: 16 }}
-              disabled={saving || !addCategory || !addAmount || Number(addAmount) <= 0} onClick={handleAdd}>
-              {saving ? "Saving..." : "Save Entry"}
+              disabled={saving || !addAmount || Number(addAmount) <= 0 || (addType === "transfer" ? (!addFrom.trim() || !addTo.trim()) : !addCategory)} onClick={handleAdd}>
+              {saving ? "Saving..." : addType === "transfer" ? "Save Transfer" : "Save Entry"}
             </button>
           </div>
         </div>
