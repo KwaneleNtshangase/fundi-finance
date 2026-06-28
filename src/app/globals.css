@@ -48,18 +48,18 @@ body.fundi-reduced-motion .skeleton { animation: none; }
   --nav-link-color: #374151;
   --color-primary: #007A4D;
   --color-primary-hover: #006040;
-  --color-primary-light: #E6F4EF;
+  --color-primary-light: #EAF3EF;
   --color-secondary: #FFB612;
   --color-secondary-light: #FFF6DC;
   --color-accent: #E03C31;
   --color-accent-light: #FDECEA;
   --color-danger: #E03C31;
   --color-danger-light: #FDECEA;
-  --color-bg: #F0F7F4;
-  --color-surface: #ffffff;
+  --color-bg: #FFFFFF;
+  --color-surface: #F4F5F7;
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
-  --color-border: #D1E8DF;
+  --color-border: #ECEDF0;
   --color-nav-bg: #ffffff;
   --color-nav-active: #007A4D;
   --color-hearts: #E03C31;
@@ -71,8 +71,8 @@ body.fundi-reduced-motion .skeleton { animation: none; }
   --primary-green-light: var(--color-primary-hover);
   --lesson-yellow: var(--color-accent);
   --lesson-yellow-light: var(--color-accent);
-  --bg-gray: var(--color-bg);
-  --sidebar-bg: var(--color-surface);
+  --bg-gray: #F4F5F7;
+  --sidebar-bg: #FFFFFF;
   --text-dark: var(--color-text-primary);
   --text-light: var(--color-text-secondary);
   --border-light: var(--color-border);
@@ -101,8 +101,8 @@ body {
   /* Hidden on mobile */
   display: none;
   width: 256px;
-  background: #f9fafb;
-  border-right: 2px solid #e5e7eb;
+  background: var(--color-bg);
+  border-right: none;
   padding: 0 0 24px;
   position: fixed;
   top: 0;
@@ -110,7 +110,7 @@ body {
   height: 100vh;
   overflow-y: auto;
   z-index: 30;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
 }
 
 @media (min-width: 769px) {
@@ -129,7 +129,7 @@ body {
 
 .logo {
   padding: 0 24px 32px;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: none;
   margin-bottom: 16px;
 }
 
@@ -189,11 +189,11 @@ html.dark .nav-link:hover {
 }
 
 .nav-link.active {
-  background: #ecfdf5;
-  color: #15803d;
-  border-radius: 10px;
-  border-left: 4px solid #007a4d;
-  padding-left: 12px;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: 12px;
+  border-left: none;
+  padding-left: 16px;
   font-weight: 700;
 }
 
@@ -236,9 +236,9 @@ html.dark .nav-link.active {
     top: 0;
     width: 320px;
     height: 100vh;
-    background: var(--color-surface);
+    background: var(--color-bg);
     color: var(--color-text-primary);
-    border-left: 2px solid var(--border-light);
+    border-left: none;
     padding: 32px 24px;
     overflow-y: auto;
   }
@@ -336,10 +336,10 @@ html.dark .nav-link.active {
 
 .course-card {
   background: var(--color-surface);
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 24px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: none;
+  box-shadow: none;
   transition: 0.2s ease;
   cursor: pointer;
 }
@@ -449,10 +449,10 @@ html.dark .nav-link.active {
 
 .unit-header {
   background: var(--color-surface);
-  border: 2px solid var(--color-primary);
+  border: none;
   color: var(--color-text-primary);
   padding: 16px 24px;
-  border-radius: 12px;
+  border-radius: 14px;
   margin-bottom: 24px;
   box-shadow: none;
 }

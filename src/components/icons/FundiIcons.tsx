@@ -310,3 +310,16 @@ export function FundiBrain(p: FundiIconProps) {
     </Icon>
   );
 }
+
+/* ── Trophy — wins / completion / leaderboard ──────────────────────────── */
+export function FundiTrophy(p: FundiIconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M6.5 4h11v4.5a5.5 5.5 0 0 1-11 0z" />
+      <path d="M6.5 5.5H4.2c0 2.2 1 3.6 2.8 4M17.5 5.5h2.3c0 2.2-1 3.6-2.8 4" />
+      <path d="M9.5 14.2 9 18h6l-.5-3.8" />
+      <path d="M7.5 20.5h9" />
+      <path d="M12 7.2l.7 1.4 1.5.22-1.1 1.06.26 1.52L12 10.7l-1.36.72.26-1.52-1.1-1.06 1.5-.22z" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}

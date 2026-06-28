@@ -8,13 +8,11 @@ import {
   Play,
   Search,
   Target,
-  Trophy,
-  Zap,
 } from "lucide-react";
+import { FundiTrophy, FundiXP, FundiBrain } from "@/components/icons/FundiIcons";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import { CONTENT_DATA } from "@/data/content";
 import { getDueCards } from "@/lib/spaced-repetition";
-import { Brain } from "lucide-react";
 import { ReviewSession } from "@/components/ReviewSession";
 import { DailyChallenges } from "@/components/DailyChallenges";
 import type { Course } from "@/data/content";
@@ -174,7 +172,7 @@ export function LearnView({
           className="w-full flex items-center gap-3 rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 mb-4 text-left"
         >
           <div className="shrink-0 w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
-            <Brain size={20} className="text-purple-600 dark:text-purple-300" aria-hidden />
+            <FundiBrain size={20} className="text-purple-600 dark:text-purple-300" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-purple-900 dark:text-purple-200 font-bold text-sm">
@@ -332,7 +330,7 @@ export function LearnView({
           display: "flex", alignItems: "center", gap: 14,
         }}>
           <div style={{ flexShrink: 0, color: "var(--color-primary)", display: "flex" }}>
-            {challengeComplete ? <Trophy size={28} /> : <Zap size={28} />}
+            {challengeComplete ? <FundiTrophy size={28} /> : <FundiXP size={28} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 2 }}>

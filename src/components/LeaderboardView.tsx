@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, RefreshCcw, Trophy } from "lucide-react";
+import { AlertTriangle, RefreshCcw } from "lucide-react";
+import { FundiTrophy } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { formatWithSpaces } from "@/lib/formatters";
 import { sastWeekKey } from "@/lib/dates";
@@ -262,7 +263,7 @@ export function LeaderboardView({
                 {/* 1st place */}
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-                    <Trophy size={20} style={{ color: "#FFB612" }} />
+                    <FundiTrophy size={20} style={{ color: "#FFB612" }} />
                   </div>
                   <div style={{
                     width: 60, height: 60, borderRadius: "50%", margin: "0 auto 6px",

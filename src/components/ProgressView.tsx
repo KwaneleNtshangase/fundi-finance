@@ -5,10 +5,10 @@ import React, { useState } from "react";
 import type { ReactNode } from "react";
 import {
   ArrowLeft,
-  BookOpen,
   CheckCircle2,
   Lock,
 } from "lucide-react";
+import { FundiLearn } from "@/components/icons/FundiIcons";
 import type { Course } from "@/data/content";
 import {
   CourseIcon,
@@ -99,7 +99,7 @@ export function CourseView({
 
                 let nodeClass = "lesson-node";
                 let icon: ReactNode = (
-                  <BookOpen size={28} className="text-current" />
+                  <FundiLearn size={28} className="text-current" />
                 );
 
                 if (state === "completed") {

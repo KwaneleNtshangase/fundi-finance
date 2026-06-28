@@ -9,10 +9,9 @@ import {
   Lightbulb,
   Sparkles,
   Target,
-  Trophy,
   X,
-  Zap,
 } from "lucide-react";
+import { FundiTrophy, FundiXP } from "@/components/icons/FundiIcons";
 import {
   LineChart,
   Line,
@@ -105,7 +104,7 @@ function FillBlankStep({
           <div className="lesson-actions">
             {isLast ? (
               <div style={{ textAlign: "center", width: "100%" }}>
-                <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
+                <FundiTrophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
                 <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                 <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
                 <div style={{ color: "var(--color-text-secondary)", marginBottom: 16 }}>
@@ -266,7 +265,7 @@ export function LessonView({
       return (
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-3 rounded-xl bg-green-600 px-5 py-4">
-            <Zap className="h-8 w-8 shrink-0 text-white" strokeWidth={2} aria-hidden />
+            <FundiXP size={32} className="shrink-0 text-white" />
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-green-100">Do This Now</p>
               <p className="text-lg font-bold leading-tight text-white">{step.title}</p>
@@ -352,7 +351,7 @@ export function LessonView({
             <div className="lesson-actions">
               {lessonState.stepIndex === lessonState.steps.length - 1 ? (
                 <div style={{ textAlign: "center", width: "100%" }}>
-                  <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto" }} />
+                  <FundiTrophy size={48} style={{ color: "#FFB612", margin: "0 auto" }} />
                   <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                   <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
                   <div style={{ marginBottom: 16, fontSize: 14 }}>
@@ -520,7 +519,7 @@ export function LessonView({
               <div className="lesson-actions">
                 {lessonState.stepIndex === lessonState.steps.length - 1 ? (
                   <div style={{ textAlign: "center", animation: "fade-in 0.4s ease-out", width: "100%" }}>
-                    <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto" }} />
+                    <FundiTrophy size={48} style={{ color: "#FFB612", margin: "0 auto" }} />
                     <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                     <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
                     <div style={{ color: "var(--color-text-secondary)", marginBottom: 4 }}>+{50 + correctCount * 10} XP earned</div>

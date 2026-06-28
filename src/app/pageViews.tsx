@@ -25,7 +25,11 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile } from "@/components/icons/FundiIcons";
+import {
+  FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile,
+  FundiBriefcase, FundiBuilding, FundiCredit, FundiShield, FundiUmbrella,
+  FundiFlag, FundiHome, FundiDoc, FundiAlert, FundiBrain,
+} from "@/components/icons/FundiIcons";
 import {
   LineChart,
   Line,
@@ -453,33 +457,33 @@ function CourseIcon({ name, size = 48 }: { name: string; size?: number }) {
   const props = { size, className: "text-current" };
   switch (name) {
     case "wallet":
-      return <Wallet {...props} />;
+      return <FundiBudget {...props} />;
     case "briefcase":
-      return <Briefcase {...props} />;
+      return <FundiBriefcase {...props} />;
     case "building-2":
-      return <Building2 {...props} />;
+      return <FundiBuilding {...props} />;
     case "credit-card":
-      return <CreditCard {...props} />;
+      return <FundiCredit {...props} />;
     case "shield":
-      return <Shield {...props} />;
+      return <FundiShield {...props} />;
     case "umbrella":
-      return <Umbrella {...props} />;
+      return <FundiUmbrella {...props} />;
     case "trending-up":
-      return <TrendingUp {...props} />;
+      return <FundiProgress {...props} />;
     case "flag":
-      return <Flag {...props} />;
+      return <FundiFlag {...props} />;
     case "home":
-      return <HomeIcon {...props} />;
+      return <FundiHome {...props} />;
     case "file-text":
-      return <FileText {...props} />;
+      return <FundiDoc {...props} />;
     case "siren":
-      return <Siren {...props} />;
+      return <FundiAlert {...props} />;
     case "brain":
-      return <Brain {...props} />;
+      return <FundiBrain {...props} />;
     case "book-open":
-      return <BookOpen {...props} />;
+      return <FundiLearn {...props} />;
     default:
-      return <Wallet {...props} />;
+      return <FundiBudget {...props} />;
   }
 }
 

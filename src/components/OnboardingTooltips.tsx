@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Flame, Zap } from "lucide-react";
+import { FundiStreak, FundiXP } from "@/components/icons/FundiIcons";
 
 const SLIDES = [
   {
@@ -19,7 +19,7 @@ const SLIDES = [
           margin: "0 auto 20px",
         }}
       >
-        <Zap size={36} style={{ color: "var(--color-primary)" }} />
+        <FundiXP size={36} style={{ color: "var(--color-primary)" }} />
       </div>
     ),
     title: "What is XP?",
@@ -41,7 +41,7 @@ const SLIDES = [
           margin: "0 auto 20px",
         }}
       >
-        <Flame size={36} style={{ color: "#FFB612" }} />
+        <FundiStreak size={36} style={{ color: "#FFB612" }} />
       </div>
     ),
     title: "What's a streak?",
@@ -192,7 +192,7 @@ export function OnboardingTooltips({ onDone }: { onDone: () => void }) {
             fontStyle: "italic",
           }}
         >
-          💡 {current.tip}
+          {current.tip}
         </div>
 
         {/* Dot pagination */}
@@ -228,7 +228,7 @@ export function OnboardingTooltips({ onDone }: { onDone: () => void }) {
           className="btn btn-primary"
           style={{ width: "100%", fontSize: 16, padding: "14px 0", borderRadius: 12 }}
         >
-          {isLast ? "Got it, let's go! 🚀" : "Next →"}
+          {isLast ? "Got it, let's go" : "Next"}
         </button>
 
         {/* Skip link */}

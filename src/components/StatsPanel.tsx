@@ -148,7 +148,7 @@ export function StatsPanel({
                 }}
                 title="Protect your streak for today if you can't do a lesson"
               >
-                🛡️ Use Freeze
+                Use Freeze
               </button>
             )}
             {!streakSafeToday && freezeCount === 0 && !freezeUsedToday && (
@@ -217,7 +217,7 @@ export function StatsPanel({
         opacity: 0.7,
         textAlign: "center",
       }}>
-        📚 Educational content only - not financial advice. Consult a licensed financial advisor before making any financial decisions.
+        Educational content only - not financial advice. Consult a licensed financial advisor before making any financial decisions.
       </div>
     </aside>
   );

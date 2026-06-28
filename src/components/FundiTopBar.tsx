@@ -42,10 +42,9 @@ export function FundiTopBar({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          padding: "8px 16px",
-          background: "var(--color-surface)",
-          borderBottom: "1.5px solid var(--color-border)",
-          backdropFilter: "blur(8px)",
+          padding: "10px 16px",
+          background: "var(--color-bg)",
+          borderBottom: "none",
         }}
       >
         {/* Streak - tap to open freeze modal */}
@@ -204,7 +203,9 @@ export function FundiTopBar({
             }}
           >
             {/* Streak count */}
-            <div style={{ fontSize: 48, marginBottom: 4 }}>🔥</div>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+              <FundiStreak size={52} style={{ color: "#FF9500" }} />
+            </div>
             <div style={{ fontSize: 28, fontWeight: 900, color: "#FFB612", marginBottom: 4 }}>
               {streak} day streak
             </div>
@@ -215,7 +216,7 @@ export function FundiTopBar({
               </p>
             ) : freezeUsedToday ? (
               <p style={{ color: "#3B82F6", fontWeight: 700, marginBottom: 20, fontSize: 14 }}>
-                🛡️ Freeze used - streak protected today
+                Freeze used - streak protected today
               </p>
             ) : (
               <p style={{ color: "var(--color-text-secondary)", marginBottom: 20, fontSize: 14 }}>
@@ -267,7 +268,7 @@ export function FundiTopBar({
                   marginBottom: 10,
                 }}
               >
-                🛡️ Use Freeze Now
+                Use Freeze Now
               </button>
             )}
 
