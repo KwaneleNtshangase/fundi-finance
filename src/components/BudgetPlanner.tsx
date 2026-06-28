@@ -786,7 +786,7 @@ export function BudgetView() {
           display: "flex", alignItems: "center", gap: 6,
           marginBottom: 16, padding: "6px 12px",
           background: "rgba(0,122,77,0.07)",
-          borderRadius: 8, border: "1px solid rgba(0,122,77,0.2)",
+          borderRadius: 8, border: "none",
         }}>
           <Target size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--color-primary)" }}>
@@ -942,7 +942,7 @@ export function BudgetView() {
           ) : (
             <>
               {income > 0 && (
-                <div style={{ background: "linear-gradient(135deg,rgba(0,122,77,0.07) 0%,rgba(255,182,18,0.05) 100%)", border: "1px solid rgba(0,122,77,0.2)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                <div style={{ background: "linear-gradient(135deg,rgba(0,122,77,0.07) 0%,rgba(255,182,18,0.05) 100%)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14, marginBottom: 12 }}>
                     <Lightbulb size={16} style={{ color: "var(--color-primary)" }} /> Fundi Insights
                   </div>
@@ -972,7 +972,7 @@ export function BudgetView() {
                 const delta = totalBudget - totalActual;
                 const isOver = delta < 0;
                 return (
-                  <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,77,0.08)", border: `1px solid ${isOver ? "rgba(224,60,49,0.3)" : "rgba(0,122,77,0.3)"}`, borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                  <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,77,0.08)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
                     <div style={{ width: 44, height: 44, borderRadius: "50%", background: isOver ? "rgba(224,60,49,0.15)" : "rgba(0,122,77,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Target size={22} style={{ color: isOver ? "#E03C31" : "#007A4D" }} />
                     </div>

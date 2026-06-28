@@ -59,7 +59,8 @@ body.fundi-reduced-motion .skeleton { animation: none; }
   --color-surface: #F4F5F7;
   --color-text-primary: #111827;
   --color-text-secondary: #6B7280;
-  --color-border: #ECEDF0;
+  --color-border: transparent;
+  --track-bg: #E6E8EB;
   --color-nav-bg: #ffffff;
   --color-nav-active: #007A4D;
   --color-hearts: #E03C31;
@@ -311,7 +312,7 @@ html.dark .nav-link.active {
 
 .progress-bar {
   height: 16px;
-  background: var(--border-light);
+  background: var(--track-bg);
   border-radius: 8px;
   overflow: hidden;
   margin-top: 8px;
@@ -535,7 +536,7 @@ html.dark .nav-link.active {
 
 .lesson-progress-bar {
   height: 10px;
-  background: var(--color-border);
+  background: var(--track-bg);
   border-radius: 99px;
   margin-bottom: 32px;
   overflow: hidden;
@@ -764,7 +765,7 @@ html.dark .nav-link.active {
 }
 
 .btn-primary:disabled {
-  background: var(--border-light);
+  background: var(--track-bg);
   cursor: not-allowed;
   transform: none;
 }
@@ -1110,16 +1111,17 @@ input[type="number"] { -moz-appearance: textfield; }
 html.dark {
   --color-bg: #000000;
   --color-surface: #141414;
-  --color-border: #2A2A2A;
+  --color-border: transparent;
+  --track-bg: #2A2A2A;
   --color-text-primary: #ffffff;
   --color-text-secondary: #9AA0A6;
   --color-primary: #3FB68B;
   --color-secondary: #FFB612;
   --bg-gray: #000000;
-  --border-light: #2A2A2A;
+  --border-light: transparent;
   --text-light: #9AA0A6;
   --text-dark: #ffffff;
-  --sidebar-bg: #0a0a0a;
+  --sidebar-bg: #000000;
   --nav-link-color: #ffffff;
   /* Bottom nav - ensure strong contrast in dark mode */
   --color-nav-bg: #141414;
@@ -1303,7 +1305,7 @@ body.modal-open .bottom-nav {
 /* ── Dark mode floating nav pill ────────────────────────────────────────── */
 html.dark .nav-pill {
   background: #141414;
-  border-color: #232323;
+  border-color: transparent;
   box-shadow: 0 12px 34px rgba(0, 0, 0, 0.7);
 }
 html.dark .nav-pill-btn {
@@ -1506,7 +1508,8 @@ html.dark .option-button:hover:not(:disabled) {
   :root {
     --color-bg: #000000;
     --color-surface: #141414;
-    --color-border: #2A2A2A;
+    --color-border: transparent;
+    --track-bg: #2A2A2A;
     --color-text: #ffffff;
     --color-text-primary: #ffffff;
     --color-text-secondary: #9AA0A6;
@@ -1514,8 +1517,10 @@ html.dark .option-button:hover:not(:disabled) {
     --color-primary: #4ade80;
     --color-primary-dark: #22c55e;
     --color-secondary: #FFB612;
-    --border-light: #2A2A2A;
+    --border-light: transparent;
     --bg-gray: #000000;
+    --sidebar-bg: #000000;
+    --nav-link-color: #E5E7EB;
   }
   body, main, div, span, p, h1, h2, h3, h4, h5, h6 {
     color: inherit;
@@ -1617,3 +1622,28 @@ html.dark .option-button:hover:not(:disabled) {
   background: #4ade8020;
   color: var(--color-primary, #4ade80);
 }
+
+/* ── Borderless surfaces ───────────────────────────────────────────────────
+   The user wants NO visible borders anywhere. --color-border is already
+   transparent; this also neutralises inline accent outlines (primary/gold/
+   purple) on cards and outline buttons. Their fills/text keep them legible. */
+[style*="solid var(--color-primary)"],
+[style*="solid var(--color-secondary)"],
+[style*="solid #007A4D"],
+[style*="solid #007a4d"],
+[style*="solid #7C4DFF"],
+[style*="solid #7c4dff"],
+[style*="solid #8B5CF6"],
+[style*="solid #FFB612"] {
+  border-color: transparent !important;
+}
+
+/* Inputs read as soft grey fills (Instagram-style) instead of outlined boxes */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  border-color: transparent !important;
+}
+
+/* ── No borders anywhere (covers Tailwind, inline, var and literal) ──────── */
+*, *::before, *::after { border-color: transparent !important; }
