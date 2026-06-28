@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Trophy,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 
 const ONBOARDING_GOAL_OPTIONS = [
   { id: "debt-free", label: "Get debt-free", Icon: CreditCard },

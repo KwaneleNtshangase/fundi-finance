@@ -110,7 +110,7 @@ import {
   WifiOff,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import confetti from "canvas-confetti";
 
 import type { Course, Unit, Lesson, LessonStep } from "@/data/content";

@@ -22,7 +22,7 @@ import {
   Target,
   TrendingUp,
   Wallet,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { formatWithSpaces, formatRand, formatZAR } from "@/lib/formatters";
 import { ShareResultButton } from "@/components/ShareCard";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { Share2 } from "@/components/icons/FundiIcons";
 import { analytics } from "@/lib/analytics";
 import { markSharedToday } from "@/lib/dailyChallengeFlags";
 import { generateShareText } from "@/app/pageViews.types";

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "lucide-react";
+import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
 
 // Google OAuth is blocked only in LinkedIn's in-app browser.

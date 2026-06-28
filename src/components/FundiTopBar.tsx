@@ -1,7 +1,7 @@
 "use client";
 // v2 - streak freeze, hearts, share
 import { useState } from "react";
-import { Share2 } from "lucide-react";
+import { Share2 } from "@/components/icons/FundiIcons";
 import { FundiStreak, FundiXP, FundiFreeze, FundiHeart } from "@/components/icons/FundiIcons";
 import { generateShareText } from "@/app/pageViews.types";
 import { formatWithSpaces } from "@/lib/formatters";

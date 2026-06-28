@@ -7,7 +7,7 @@ import {
   ArrowLeft,
   CheckCircle2,
   Lock,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { FundiLearn } from "@/components/icons/FundiIcons";
 import type { Course } from "@/data/content";
 import {

@@ -18,7 +18,7 @@ import {
   Target,
   Trash2,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { LegalPage, FeedbackModal } from "@/components/ProfileView";
 import { isAdminEmail } from "@/lib/admin";
 

@@ -1,4 +1,4 @@
-import type { CSSProperties } from "react";
+import type { SVGProps } from "react";
 
 /**
  * Fundi house-style icon set.
@@ -6,23 +6,25 @@ import type { CSSProperties } from "react";
  * One consistent visual language so the app stops looking like the default
  * Lucide/Feather set everyone uses:
  *   - 24x24 grid, rounded geometry, 2px rounded strokes
- *   - currentColor everywhere (so they inherit nav active/inactive colour)
+ *   - currentColor everywhere (so they inherit text/nav colour)
  *   - a single filled "accent" per icon for warmth/signature
  *
- * Keep new icons in this file so the style stays coherent as we expand.
+ * The wrapper accepts the same props as lucide (size, strokeWidth, color,
+ * className, style, aria-*, onClick, ...) so these are drop-in replacements
+ * for `lucide-react`: just repoint the import.
  */
 
-export type FundiIconProps = {
+export type FundiIconProps = Omit<SVGProps<SVGSVGElement>, "ref"> & {
   size?: number;
-  className?: string;
-  style?: CSSProperties;
 };
 
 function Icon({
   size = 24,
+  strokeWidth = 2,
   className,
   style,
   children,
+  ...rest
 }: FundiIconProps & { children: React.ReactNode }) {
   return (
     <svg
@@ -31,13 +33,14 @@ function Icon({
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth={2}
+      strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
       className={className}
       style={style}
       aria-hidden="true"
       focusable="false"
+      {...rest}
     >
       {children}
     </svg>
@@ -322,4 +325,213 @@ export function FundiTrophy(p: FundiIconProps) {
       <path d="M12 7.2l.7 1.4 1.5.22-1.1 1.06.26 1.52L12 10.7l-1.36.72.26-1.52-1.1-1.06 1.5-.22z" fill="currentColor" stroke="none" />
     </Icon>
   );
+}
+
+/* ═══ Drop-in replacements for lucide-react ════════════════════════════════
+   Same export names as lucide so any `from "@/components/icons/FundiIcons"` import can be
+   repointed here with no usage changes. Content/brand icons reuse the
+   bespoke designs above; the rest are drawn in the same house style.
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Content / brand aliases */
+export const BookOpen = FundiLearn;
+export const Wallet = FundiBudget;
+export const Calculator = FundiCalculate;
+export const User = FundiProfile;
+export const Brain = FundiBrain;
+export const Briefcase = FundiBriefcase;
+export const Building2 = FundiBuilding;
+export const Landmark = FundiBuilding;
+export const CreditCard = FundiCredit;
+export const Shield = FundiShield;
+export const Umbrella = FundiUmbrella;
+export const Flag = FundiFlag;
+export const Home = FundiHome;
+export const HomeIcon = FundiHome;
+export const FileText = FundiDoc;
+export const Siren = FundiAlert;
+export const TrendingUp = FundiProgress;
+export const Trophy = FundiTrophy;
+export const Award = FundiTrophy;
+export const Flame = FundiStreak;
+export const Zap = FundiXP;
+
+export function Heart(p: FundiIconProps) {
+  return <FundiHeart filled={false} {...p} />;
+}
+export function HeartOff(p: FundiIconProps) {
+  return (
+    <Icon {...p}>
+      <path d="M19.6 13.2A4.6 4.6 0 0 0 13 6.4l-.9.9" />
+      <path d="M12 20.4 4.4 12.9a4.6 4.6 0 0 1 1.1-7.3" />
+      <path d="M3.4 3.8 20.6 20.4" />
+    </Icon>
+  );
+}
+
+/* Glyphs */
+export function X(p: FundiIconProps) {
+  return <Icon {...p}><path d="M6 6l12 12M18 6 6 18" /></Icon>;
+}
+export function Plus(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 5v14M5 12h14" /></Icon>;
+}
+export function Check(p: FundiIconProps) {
+  return <Icon {...p}><path d="M5 12.5l4.4 4.4L19 7.2" /></Icon>;
+}
+export function CheckCircle(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M8.2 12.3l2.6 2.6 5-5.2" /></Icon>;
+}
+export const CheckCircle2 = CheckCircle;
+export function ChevronDown(p: FundiIconProps) {
+  return <Icon {...p}><path d="M6 9l6 6 6-6" /></Icon>;
+}
+export function ChevronUp(p: FundiIconProps) {
+  return <Icon {...p}><path d="M6 15l6-6 6 6" /></Icon>;
+}
+export function ChevronLeft(p: FundiIconProps) {
+  return <Icon {...p}><path d="M15 6l-6 6 6 6" /></Icon>;
+}
+export function ChevronRight(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9 6l6 6-6 6" /></Icon>;
+}
+export function ArrowLeft(p: FundiIconProps) {
+  return <Icon {...p}><path d="M19 12H5" /><path d="M11 6l-6 6 6 6" /></Icon>;
+}
+export function ArrowLeftRight(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 8h13" /><path d="M14 5l3 3-3 3" /><path d="M20 16H7" /><path d="M10 13l-3 3 3 3" /></Icon>;
+}
+export function MoreHorizontal(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="5.5" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" /><circle cx="18.5" cy="12" r="1.5" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Hash(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9.5 4 8 20M16 4l-1.5 16M4.5 8.5h15M4 15.5h15" /></Icon>;
+}
+export function Play(p: FundiIconProps) {
+  return <Icon {...p}><path d="M7 5.3v13.4a1 1 0 0 0 1.5.86l11-6.7a1 1 0 0 0 0-1.72l-11-6.7A1 1 0 0 0 7 5.3z" fill="currentColor" stroke="none" /></Icon>;
+}
+
+/* Alerts / info */
+export function AlertCircle(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 7.4v5.4" /><circle cx="12" cy="16.4" r="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function AlertTriangle(p: FundiIconProps) {
+  return <Icon {...p}><path d="M10.3 4.9 3.3 17.4a2 2 0 0 0 1.7 3h14a2 2 0 0 0 1.7-3L13.7 4.9a2 2 0 0 0-3.4 0z" /><path d="M12 9.8v4" /><circle cx="12" cy="16.8" r="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Info(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><circle cx="12" cy="7.7" r="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function HelpCircle(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="9" /><path d="M9.6 9.3a2.4 2.4 0 0 1 4.7.8c0 1.6-2.3 2-2.3 3.5" /><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Clock(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></Icon>;
+}
+export function Bell(p: FundiIconProps) {
+  return <Icon {...p}><path d="M6 16.5v-5a6 6 0 0 1 12 0v5l1.5 2H4.5z" /><path d="M10 18.5a2 2 0 0 0 4 0" /></Icon>;
+}
+export function Bug(p: FundiIconProps) {
+  return <Icon {...p}><rect x="7.5" y="8" width="9" height="10.5" rx="4.5" /><path d="M12 8V5.4" /><path d="M9.6 6.1 8.2 4.7M14.4 6.1l1.4-1.4" /><path d="M7.5 11H4.5M16.5 11h3M7.3 14.5H4M16.7 14.5H20M7.7 17.8 5.6 19.9M16.3 17.8l2.1 2.1" /></Icon>;
+}
+
+/* Communication / web */
+export function Mail(p: FundiIconProps) {
+  return <Icon {...p}><rect x="3" y="5" width="18" height="14" rx="2.6" /><path d="M4 7.2l8 5.4 8-5.4" /></Icon>;
+}
+export function MessageSquare(p: FundiIconProps) {
+  return <Icon {...p}><path d="M5 5h14a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H9.5L5.5 19.2V16H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2z" /></Icon>;
+}
+export function Share2(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="6" cy="12" r="2.6" /><circle cx="17.5" cy="6" r="2.6" /><circle cx="17.5" cy="18" r="2.6" /><path d="M8.3 10.8 15.2 7.2M8.3 13.2l6.9 3.6" /></Icon>;
+}
+export function Link2(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9 12h6" /><path d="M10.5 7.5H8a4.5 4.5 0 0 0 0 9h2.5" /><path d="M13.5 7.5H16a4.5 4.5 0 0 1 0 9h-2.5" /></Icon>;
+}
+export function ExternalLink(p: FundiIconProps) {
+  return <Icon {...p}><path d="M14 4h6v6" /><path d="M20 4l-9 9" /><path d="M18 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4.5" /></Icon>;
+}
+export function Copy(p: FundiIconProps) {
+  return <Icon {...p}><rect x="8.5" y="8.5" width="11" height="11" rx="2.4" /><path d="M5.5 15.5H5A1.5 1.5 0 0 1 3.5 14V5A1.5 1.5 0 0 1 5 3.5h9A1.5 1.5 0 0 1 15.5 5v.5" /></Icon>;
+}
+export function ClipboardCopy(p: FundiIconProps) {
+  return <Icon {...p}><rect x="5" y="5" width="14" height="16" rx="2.4" /><path d="M9 5V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1" /><path d="M9 12h6M9 15.5h4" /></Icon>;
+}
+
+/* Account / system */
+export function Lock(p: FundiIconProps) {
+  return <Icon {...p}><rect x="5" y="10.5" width="14" height="9.5" rx="2.4" /><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5" /><circle cx="12" cy="15" r="1.1" fill="currentColor" stroke="none" /></Icon>;
+}
+export function KeyRound(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="8" cy="8" r="4.5" /><path d="M11.2 11.2 19 19M16 16l2-2M19 19l1.4-1.4" /></Icon>;
+}
+export function LogOut(p: FundiIconProps) {
+  return <Icon {...p}><path d="M14 4H6.5A1.5 1.5 0 0 0 5 5.5v13A1.5 1.5 0 0 0 6.5 20H14" /><path d="M17 8l4 4-4 4M21 12H10" /></Icon>;
+}
+export function Settings(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 7h9M17 7h3" /><circle cx="15" cy="7" r="2.2" /><path d="M4 14h2M11 14h9" /><circle cx="8" cy="14" r="2.2" /></Icon>;
+}
+export function Search(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="11" cy="11" r="6.5" /><path d="M20 20l-4.2-4.2" /></Icon>;
+}
+export function RefreshCcw(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 5.5v4h4" /><path d="M4.6 11.8A7.5 7.5 0 0 1 17 7.1L20 9.5" /><path d="M20 18.5v-4h-4" /><path d="M19.4 12.2A7.5 7.5 0 0 1 7 16.9L4 14.5" /></Icon>;
+}
+export function Trash2(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4.5 6.5h15" /><path d="M9 6.5V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v1.5" /><path d="M6.6 6.5 7.4 19a1.6 1.6 0 0 0 1.6 1.5h6a1.6 1.6 0 0 0 1.6-1.5l.8-12.5" /><path d="M10 10.5v6M14 10.5v6" opacity="0.7" /></Icon>;
+}
+export function Moon(p: FundiIconProps) {
+  return <Icon {...p}><path d="M20 14.6A8 8 0 1 1 9.4 4 6.5 6.5 0 0 0 20 14.6z" /><circle cx="15" cy="9" r="0.7" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Sun(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="4" /><path d="M12 2.4v2.2M12 19.4v2.2M21.6 12h-2.2M4.6 12H2.4M18.8 5.2 17.2 6.8M6.8 17.2 5.2 18.8M18.8 18.8 17.2 17.2M6.8 6.8 5.2 5.2" /></Icon>;
+}
+
+/* Objects */
+export function PiggyBank(p: FundiIconProps) {
+  return <Icon {...p}><path d="M3.8 12.6c0-3 2.7-5.2 6.2-5.2h3.5c1.3 0 2.5.4 3.4 1.2l2.3-.7-.6 2.2c.7.8 1.1 1.7 1.1 2.8v2.6c0 .6-.5 1.1-1.1 1.1h-.9l-.6 1.9h-2.1l-.4-1.5h-3.1L11 20.4H8.9l-.5-1.9a5 5 0 0 1-2.3-2.4H4.5c-.6 0-1.1-.5-1.1-1.1z" /><circle cx="15.4" cy="12.2" r="0.9" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Car(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 13.8l1.6-4.5C5.9 8.6 6.6 8 7.5 8h9c.9 0 1.7.6 1.9 1.4L20 13.8" /><rect x="3" y="13.5" width="18" height="4.2" rx="1.4" /><circle cx="7.5" cy="17.8" r="1.4" fill="currentColor" stroke="none" /><circle cx="16.5" cy="17.8" r="1.4" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Tv(p: FundiIconProps) {
+  return <Icon {...p}><rect x="3" y="6.5" width="18" height="12" rx="2.4" /><path d="M8 3l4 3 4-3" /></Icon>;
+}
+export function Smartphone(p: FundiIconProps) {
+  return <Icon {...p}><rect x="6.5" y="2.5" width="11" height="19" rx="2.8" /><path d="M10.5 18.5h3" /></Icon>;
+}
+export function ShoppingCart(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="9.5" cy="19" r="1.4" fill="currentColor" stroke="none" /><circle cx="17" cy="19" r="1.4" fill="currentColor" stroke="none" /><path d="M3 4h2l2.2 10.2a1.5 1.5 0 0 0 1.5 1.2h8.1a1.5 1.5 0 0 0 1.5-1.2L20 8H6.2" /></Icon>;
+}
+export function WifiOff(p: FundiIconProps) {
+  return <Icon {...p}><path d="M3.4 4 20.6 20.6" /><path d="M5 9.1A11 11 0 0 1 9 7M19 9.1a11 11 0 0 0-3-1.7" /><path d="M8.2 12.4a6 6 0 0 1 6-1" /><circle cx="12" cy="16.6" r="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function FileUp(p: FundiIconProps) {
+  return <Icon {...p}><path d="M7 3h7l5 5v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" /><path d="M14 3v5h5" /><path d="M12 18.5v-5M9.5 15.5l2.5-2.5 2.5 2.5" /></Icon>;
+}
+export function Upload(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 16V4.5" /><path d="M7 9.5l5-5 5 5" /><path d="M4 17v1.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V17" /></Icon>;
+}
+export function GraduationCap(p: FundiIconProps) {
+  return <Icon {...p}><path d="M3 9.5 12 5.5l9 4-9 4z" /><path d="M7.5 11.4V15c0 1 2 2.2 4.5 2.2s4.5-1.2 4.5-2.2v-3.6" /><path d="M21 9.7V14" /></Icon>;
+}
+export function Lightbulb(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9 14.4a5 5 0 1 1 6 0c-.7.5-1 1.2-1 2v.4h-4v-.4c0-.8-.3-1.5-1-2z" /><path d="M10 20h4M10.4 18h3.2" /></Icon>;
+}
+export function BarChart2(p: FundiIconProps) {
+  return <Icon {...p}><path d="M6 20V10M12 20V4M18 20v-7" /></Icon>;
+}
+export function TrendingDown(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 7l6 6 3.5-3.5L20 16" /><path d="M20 11.5V16h-4.5" /></Icon>;
+}
+export function PenLine(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 20.5h16" /><path d="M14.5 5.3l3.2 3.2L8.2 18 5 18.7 5.7 15.5z" /></Icon>;
+}
+export function Pencil(p: FundiIconProps) {
+  return <Icon {...p}><path d="M16.3 4.5l3.2 3.2" /><path d="M5 19l-1 1 1-4L15.4 5.6a1.6 1.6 0 0 1 2.3 0l.7.7a1.6 1.6 0 0 1 0 2.3L8 19z" /></Icon>;
+}
+export function Sparkles(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z" fill="currentColor" stroke="none" /><path d="M18.4 14l.6 1.7 1.7.6-1.7.6-.6 1.7-.6-1.7-1.7-.6 1.7-.6z" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Target(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.6" opacity="0.55" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" /></Icon>;
 }

@@ -10,7 +10,7 @@ import {
   Sparkles,
   Target,
   X,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { FundiTrophy, FundiXP } from "@/components/icons/FundiIcons";
 import {
   LineChart,

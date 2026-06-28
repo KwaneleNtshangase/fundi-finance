@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "@/components/icons/FundiIcons";
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error: Error | null };

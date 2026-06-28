@@ -8,7 +8,7 @@ import {
   Play,
   Search,
   Target,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { FundiTrophy, FundiXP, FundiBrain } from "@/components/icons/FundiIcons";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import { CONTENT_DATA } from "@/data/content";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, RefreshCcw } from "lucide-react";
+import { AlertTriangle, RefreshCcw } from "@/components/icons/FundiIcons";
 import { FundiTrophy } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { formatWithSpaces } from "@/lib/formatters";

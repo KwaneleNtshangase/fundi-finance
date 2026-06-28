@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Brain, CheckCircle2, X } from "lucide-react";
+import { Brain, CheckCircle2, X } from "@/components/icons/FundiIcons";
 import { CONCEPTS } from "@/data/concepts";
 import { applyReview, getDueCards, saveMastery } from "@/lib/spaced-repetition";
 import type { MasteryRecord } from "@/lib/spaced-repetition";

@@ -17,7 +17,7 @@ import {
   GraduationCap,
   BarChart2,
   TrendingDown,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import {
   FundiLearn,
   FundiBudget,

@@ -22,7 +22,7 @@ import {
   Target,
   TrendingUp,
   Wallet,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { analytics } from "@/lib/analytics";
 import {
   type CalcInputs,

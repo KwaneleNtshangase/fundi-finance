@@ -59,7 +59,7 @@ import {
   Wallet,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 import { formatRand } from "@/lib/viewHelpers";
 import { BudgetImportPanel } from "@/components/BudgetImportPanel";
 

@@ -210,7 +210,7 @@ import {
   PenLine,
   GraduationCap,
   BarChart2,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 
 export const ONBOARDING_GOAL_OPTIONS = [
   { id: "debt-free", label: "Get debt-free", Icon: CreditCard },

@@ -1,6 +1,6 @@
 "use client";
 
-import { Share2 } from "lucide-react";
+import { Share2 } from "@/components/icons/FundiIcons";
 import { FundiStreak, FundiHeart, FundiFreeze, FundiLevel, FundiXP } from "@/components/icons/FundiIcons";
 import { formatWithSpaces } from "@/lib/formatters";
 import { generateShareText, type UserData } from "@/app/pageViews.types";

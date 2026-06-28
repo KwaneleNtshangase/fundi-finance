@@ -52,9 +52,9 @@ import {
   Wallet,
   X,
   Zap,
-} from "lucide-react";
+} from "@/components/icons/FundiIcons";
 // Lucide's "Home" export is aliased below
-import { Home as HomeIcon } from "lucide-react";
+import { Home as HomeIcon } from "@/components/icons/FundiIcons";
 import {
   GOAL_OPTIONS,
   ONBOARDING_GOAL_OPTIONS,

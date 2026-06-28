@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2 } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { assignChallengesForUser, lookupChallenge, rerollChallenge } from "@/lib/challenges";
 import { sastToday, sastSundayDate } from "@/lib/dates";
