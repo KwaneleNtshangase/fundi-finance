@@ -1402,16 +1402,16 @@ html.dark textarea {
 }
 
 html.dark .sidebar {
-  background: #0a0a0a;
+  background: var(--color-bg);
   color: #f3f4f6;
-  border-right: 1px solid #2A2A2A;
-  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.5);
+  border-right: none;
+  box-shadow: none;
 }
 
 html.dark .stats-panel {
-  background: var(--color-surface);
+  background: var(--color-bg);
   color: var(--color-text-primary);
-  border-left-color: var(--color-border);
+  border-left: none;
 }
 
 html.dark .stats-section h3,
