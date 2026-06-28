@@ -4283,7 +4283,7 @@ export default function Home() {
         />
       </div>
       <div className="app-container">
-        <nav className="sidebar" style={{ background: "var(--color-bg)", border: "none" }}>
+        <nav className="sidebar">
           {/* Branded sidebar header */}
           <div style={{
             padding: "20px 20px 16px",

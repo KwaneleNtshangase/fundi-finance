@@ -1542,7 +1542,7 @@ html.dark .option-button:hover:not(:disabled) {
     border-color: var(--color-border) !important;
   }
   /* Fact of day and info cards */
-  .fact-card, [class*="fact"], [style*="var(--color-bg)"] {
+  .fact-card, [class*="fact"] {
     background: var(--color-surface) !important;
   }
   /* Inputs */
