@@ -25,7 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
+import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile } from "@/components/icons/FundiIcons";
 import {
   LineChart,
   Line,
@@ -4319,26 +4319,14 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${route.name === "profile" ? "active" : ""}`}
-                style={route.name !== "profile" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("profile")}
+                className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
+                style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("calculator")}
               >
                 <span className="nav-icon">
-                  <FundiProfile size={20} className="text-current" />
+                  <FundiCalculate size={20} className="text-current" />
                 </span>
-                Profile
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
-                style={route.name !== "leaderboard" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("leaderboard")}
-              >
-                <span className="nav-icon">
-                  <FundiLeaderboard size={20} className="text-current" />
-                </span>
-                Leaderboard
+                Calculate
               </button>
             </li>
             <li className="nav-item">
@@ -4355,18 +4343,6 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
-                style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("calculator")}
-              >
-                <span className="nav-icon">
-                  <FundiCalculate size={20} className="text-current" />
-                </span>
-                Calculate
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
                 className={`nav-link ${route.name === "quests" ? "active" : ""}`}
                 style={route.name !== "quests" ? { color: "var(--nav-link-color)" } : {}}
                 onClick={() => handleNav("quests")}
@@ -4375,6 +4351,30 @@ export default function Home() {
                   <FundiGoals size={20} className="text-current" />
                 </span>
                 Goals
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
+                style={route.name !== "leaderboard" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("leaderboard")}
+              >
+                <span className="nav-icon">
+                  <FundiProgress size={20} className="text-current" />
+                </span>
+                Progress
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${route.name === "profile" ? "active" : ""}`}
+                style={route.name !== "profile" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("profile")}
+              >
+                <span className="nav-icon">
+                  <FundiProfile size={20} className="text-current" />
+                </span>
+                Profile
               </button>
             </li>
           </ul>

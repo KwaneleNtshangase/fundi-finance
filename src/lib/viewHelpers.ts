@@ -16,15 +16,23 @@ import {
   PenLine,
   GraduationCap,
   BarChart2,
-  Wallet,
-  BookOpen,
-  Building2,
-  Umbrella,
-  Brain,
-  FileText,
-  Siren,
   TrendingDown,
 } from "lucide-react";
+import {
+  FundiLearn,
+  FundiBudget,
+  FundiProgress,
+  FundiShield,
+  FundiCredit,
+  FundiBuilding,
+  FundiBriefcase,
+  FundiUmbrella,
+  FundiFlag,
+  FundiHome,
+  FundiDoc,
+  FundiAlert,
+  FundiBrain,
+} from "@/components/icons/FundiIcons";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types shared across multiple components
@@ -397,33 +405,33 @@ export function CourseIcon({ name, size = 48 }: { name: string; size?: number })
   const props = { size, className: "text-current" };
   switch (name) {
     case "wallet":
-      return React.createElement(Wallet, props);
+      return React.createElement(FundiBudget, props);
     case "briefcase":
-      return React.createElement(Briefcase, props);
+      return React.createElement(FundiBriefcase, props);
     case "building-2":
-      return React.createElement(Building2, props);
+      return React.createElement(FundiBuilding, props);
     case "credit-card":
-      return React.createElement(CreditCard, props);
+      return React.createElement(FundiCredit, props);
     case "shield":
-      return React.createElement(Shield, props);
+      return React.createElement(FundiShield, props);
     case "umbrella":
-      return React.createElement(Umbrella, props);
+      return React.createElement(FundiUmbrella, props);
     case "trending-up":
-      return React.createElement(TrendingUp, props);
+      return React.createElement(FundiProgress, props);
     case "flag":
-      return React.createElement(Flag, props);
+      return React.createElement(FundiFlag, props);
     case "home":
-      return React.createElement(HomeIcon, props);
+      return React.createElement(FundiHome, props);
     case "file-text":
-      return React.createElement(FileText, props);
+      return React.createElement(FundiDoc, props);
     case "siren":
-      return React.createElement(Siren, props);
+      return React.createElement(FundiAlert, props);
     case "brain":
-      return React.createElement(Brain, props);
+      return React.createElement(FundiBrain, props);
     case "book-open":
-      return React.createElement(BookOpen, props);
+      return React.createElement(FundiLearn, props);
     default:
-      return React.createElement(Wallet, props);
+      return React.createElement(FundiBudget, props);
   }
 }
 

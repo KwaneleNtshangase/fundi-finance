@@ -1,6 +1,7 @@
 "use client";
 
-import { Flame, Heart, Shield, Target, Zap, Share2 } from "lucide-react";
+import { Share2 } from "lucide-react";
+import { FundiStreak, FundiHeart, FundiFreeze, FundiLevel, FundiXP } from "@/components/icons/FundiIcons";
 import { formatWithSpaces } from "@/lib/formatters";
 import { generateShareText, type UserData } from "@/app/pageViews.types";
 
@@ -34,7 +35,7 @@ export function StatsPanel({
         <h3>My Stats</h3>
         <div className="stat-item" style={{ position: "relative" }}>
           <div className="stat-icon" style={{ position: "relative" }}>
-            <Flame
+            <FundiStreak
               size={28}
               style={{
                 color: userData.lessonsToday > 0 ? "#FF9500" : undefined,
@@ -87,7 +88,7 @@ export function StatsPanel({
 
         <div className="stat-item">
           <div className="stat-icon">
-            <Zap size={28} className="text-current" />
+            <FundiXP size={28} className="text-current" />
           </div>
           <div className="stat-content">
             <div className="stat-label">Total XP</div>
@@ -99,7 +100,7 @@ export function StatsPanel({
 
         <div className="stat-item">
           <div className="stat-icon">
-            <Heart size={28} className="text-current" style={{ color: "#E03C31" }} />
+            <FundiHeart size={28} className="text-current" style={{ color: "#E03C31" }} />
           </div>
           <div className="stat-content">
             <div className="stat-label">Hearts</div>
@@ -112,7 +113,7 @@ export function StatsPanel({
         {/* Streak Freeze */}
         <div className="stat-item" style={{ alignItems: "flex-start" }}>
           <div className="stat-icon" style={{ color: "#3B82F6" }}>
-            <Shield size={28} />
+            <FundiFreeze size={28} />
           </div>
           <div className="stat-content" style={{ flex: 1 }}>
             <div className="stat-label">Streak Freezes</div>
@@ -160,7 +161,7 @@ export function StatsPanel({
 
         <div className="stat-item">
           <div className="stat-icon">
-            <Target size={28} className="text-current" />
+            <FundiLevel size={28} className="text-current" />
           </div>
           <div className="stat-content">
             <div className="stat-label">Level</div>

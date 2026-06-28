@@ -1,7 +1,8 @@
 "use client";
 // v2 - streak freeze, hearts, share
 import { useState } from "react";
-import { Flame, Share2, Zap, Shield } from "lucide-react";
+import { Share2 } from "lucide-react";
+import { FundiStreak, FundiXP, FundiFreeze, FundiHeart } from "@/components/icons/FundiIcons";
 import { generateShareText } from "@/app/pageViews.types";
 import { formatWithSpaces } from "@/lib/formatters";
 
@@ -63,7 +64,7 @@ export function FundiTopBar({
             }}
             aria-label="Streak and freeze info"
           >
-            <Flame size={20} style={{ color: "#FFB612" }} />
+            <FundiStreak size={20} style={{ color: "#FFB612" }} />
             <span style={{ fontWeight: 700, fontSize: 15, color: "#FFB612" }}>{streak}</span>
           </button>
           <button
@@ -93,7 +94,7 @@ export function FundiTopBar({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          <Zap size={18} style={{ color: "var(--color-primary)" }} />
+          <FundiXP size={18} style={{ color: "var(--color-primary)" }} />
           <span style={{ fontWeight: 700, fontSize: 14, color: "var(--color-primary)" }}>{formatWithSpaces(xp)} XP</span>
         </div>
 
@@ -111,18 +112,12 @@ export function FundiTopBar({
           aria-label="Hearts status"
         >
           {Array.from({ length: maxHearts }).map((_, i) => (
-            <svg
+            <FundiHeart
               key={i}
-              viewBox="0 0 24 24"
-              fill={i < hearts ? "#E03C31" : "none"}
-              stroke={i < hearts ? "#E03C31" : "#ccc"}
-              strokeWidth="2"
-              width="18"
-              height="18"
-              style={{ transition: "fill 0.2s" }}
-            >
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
+              size={18}
+              filled={i < hearts}
+              style={{ color: i < hearts ? "#E03C31" : "#ccc", transition: "color 0.2s" }}
+            />
           ))}
         </button>
       </div>
@@ -155,17 +150,12 @@ export function FundiTopBar({
           >
             <div style={{ display: "flex", gap: 6, justifyContent: "center", marginBottom: 16 }}>
               {Array.from({ length: maxHearts }).map((_, i) => (
-                <svg
+                <FundiHeart
                   key={i}
-                  viewBox="0 0 24 24"
-                  fill={i < hearts ? "#E03C31" : "none"}
-                  stroke={i < hearts ? "#E03C31" : "#ccc"}
-                  strokeWidth="2"
-                  width="28"
-                  height="28"
-                >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
+                  size={28}
+                  filled={i < hearts}
+                  style={{ color: i < hearts ? "#E03C31" : "#ccc" }}
+                />
               ))}
             </div>
             <div style={{ fontSize: 20, fontWeight: 800, marginBottom: 8 }}>
@@ -246,7 +236,7 @@ export function FundiTopBar({
                 marginBottom: 16,
               }}
             >
-              <Shield size={22} style={{ color: freezeCount > 0 ? "#3B82F6" : "#aaa" }} />
+              <FundiFreeze size={22} style={{ color: freezeCount > 0 ? "#3B82F6" : "#aaa" }} />
               <span style={{ fontWeight: 700, fontSize: 16, color: freezeCount > 0 ? "#3B82F6" : "var(--color-text-secondary)" }}>
                 {freezeCount} {freezeCount === 1 ? "Streak Freeze" : "Streak Freezes"}
               </span>
