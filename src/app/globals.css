@@ -30,9 +30,9 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--color-border) 0%,
-    rgba(209, 232, 223, 0.55) 50%,
-    var(--color-border) 100%
+    var(--track-bg) 0%,
+    rgba(150, 160, 170, 0.25) 50%,
+    var(--track-bg) 100%
   );
   background-size: 800px 100%;
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
@@ -61,6 +61,7 @@ body.fundi-reduced-motion .skeleton { animation: none; }
   --color-text-secondary: #6B7280;
   --color-border: transparent;
   --track-bg: #E6E8EB;
+  --hover-bg: rgba(0, 0, 0, 0.06);
   --color-nav-bg: #ffffff;
   --color-nav-active: #007A4D;
   --color-hearts: #E03C31;
@@ -176,8 +177,8 @@ body {
 }
 
 .nav-link:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--hover-bg);
+  /* keep the item's own text colour so the label stays visible on hover */
 }
 
 html.dark .nav-link {
@@ -185,8 +186,7 @@ html.dark .nav-link {
 }
 
 html.dark .nav-link:hover {
-  background: #1f2937;
-  color: #f9fafb;
+  background: var(--hover-bg);
 }
 
 .nav-link.active {
@@ -1113,6 +1113,8 @@ html.dark {
   --color-surface: #141414;
   --color-border: transparent;
   --track-bg: #2A2A2A;
+  --hover-bg: rgba(255, 255, 255, 0.08);
+  --color-primary-light: rgba(63, 182, 139, 0.18);
   --color-text-primary: #ffffff;
   --color-text-secondary: #9AA0A6;
   --color-primary: #3FB68B;
@@ -1521,6 +1523,8 @@ html.dark .option-button:hover:not(:disabled) {
     --bg-gray: #000000;
     --sidebar-bg: #000000;
     --nav-link-color: #E5E7EB;
+    --hover-bg: rgba(255, 255, 255, 0.08);
+    --color-primary-light: rgba(74, 222, 128, 0.16);
   }
   body, main, div, span, p, h1, h2, h3, h4, h5, h6 {
     color: inherit;
@@ -1647,3 +1651,17 @@ textarea {
 
 /* ── No borders anywhere (covers Tailwind, inline, var and literal) ──────── */
 *, *::before, *::after { border-color: transparent !important; }
+
+/* ── Instagram-style hover highlight on every interactive element ──────────
+   An inset overlay tints whatever background the control has (works on
+   coloured, grey and transparent buttons alike) and sits below the text,
+   so labels stay fully visible on hover. */
+button, [role="button"], .course-card, a.btn {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+button:not(:disabled):hover,
+[role="button"]:not([aria-disabled="true"]):hover,
+.course-card:hover,
+a.btn:hover {
+  box-shadow: inset 0 0 0 999px var(--hover-bg);
+}
