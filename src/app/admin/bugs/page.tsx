@@ -16,6 +16,85 @@ type BugItem = {
   note: string | null;
 };
 
+/** Admin control to schedule the "budget statement import" announcement to all users. */
+function BroadcastPanel() {
+  const [status, setStatus] = useState<"idle" | "checking" | "ready" | "sending" | "done" | "error">("idle");
+  const [count, setCount] = useState<number | null>(null);
+  const [scheduledAt, setScheduledAt] = useState<string | null>(null);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const authToken = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
+  };
+
+  const check = async () => {
+    setStatus("checking"); setMsg(null);
+    const t = await authToken();
+    const res = await fetch("/api/admin/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ dryRun: true }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus("error"); setMsg(out.error ?? `Error ${res.status}`); return; }
+    setCount(out.recipients ?? 0);
+    setScheduledAt(out.scheduledAt ?? null);
+    setStatus("ready");
+  };
+
+  const send = async () => {
+    if (!window.confirm(`Schedule the budget announcement to ${count} users, delivered ${prettyDate(scheduledAt)}?\n\nThis cannot be undone from here (only cancelled per-email in Resend).`)) return;
+    setStatus("sending"); setMsg(null);
+    const t = await authToken();
+    const res = await fetch("/api/admin/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ dryRun: false, confirm: true }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus("error"); setMsg(out.error ?? `Error ${res.status}`); return; }
+    setStatus("done");
+    setMsg(`Scheduled ${out.scheduled}/${out.totalRecipients} emails for ${prettyDate(out.scheduledAt)}${out.failed ? ` · ${out.failed} failed` : ""}.`);
+  };
+
+  return (
+    <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 16, background: "#F5FBF8", marginBottom: 20 }}>
+      <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4, color: "#065f46" }}>Budget announcement broadcast</div>
+      <p style={{ fontSize: 13, color: "#374151", margin: "0 0 12px" }}>
+        Schedules the &quot;import your bank statement&quot; announcement to every confirmed user, sent from hello@fundiapp.co.za. Delivery is queued in Resend for the set time.
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+        {status !== "done" && (
+          <button type="button" onClick={check} disabled={status === "checking" || status === "sending"}
+            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A4D", background: "#fff", color: "#007A4D", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            {status === "checking" ? "Checking…" : "Check recipients"}
+          </button>
+        )}
+        {status === "ready" && count != null && (
+          <>
+            <span style={{ fontSize: 13, color: "#374151" }}>{count} recipients · delivers {prettyDate(scheduledAt)}</span>
+            <button type="button" onClick={send}
+              style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#007A4D", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+              Schedule send
+            </button>
+          </>
+        )}
+        {status === "sending" && <span style={{ fontSize: 13, color: "#374151" }}>Scheduling…</span>}
+        {status === "done" && <span style={{ fontSize: 13, color: "#166534", fontWeight: 700 }}>{msg}</span>}
+        {status === "error" && <span style={{ fontSize: 13, color: "#E03C31", fontWeight: 700 }}>{msg}</span>}
+      </div>
+    </div>
+  );
+}
+
+function prettyDate(iso: string | null): string {
+  if (!iso) return "the scheduled time";
+  try {
+    return new Date(iso).toLocaleString("en-ZA", { timeZone: "Africa/Johannesburg", dateStyle: "medium", timeStyle: "short" }) + " SAST";
+  } catch { return iso; }
+}
+
 const STATUSES = ["new", "investigating", "fixed", "wont_fix"] as const;
 const STATUS_LABEL: Record<string, string> = {
   new: "New", investigating: "Investigating", fixed: "Fixed", wont_fix: "Won't fix",
@@ -96,6 +175,8 @@ export default function AdminBugsPage() {
         <button type="button" onClick={load} style={{ background: "none", border: "1px solid #d1d5db", borderRadius: 8, padding: "6px 12px", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>Refresh</button>
       </div>
       <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20 }}>{open.length} open · {items.length} total. Auto-captured crashes and user-reported bugs. Tick &quot;Email this user&quot; when you want to tell them it&apos;s fixed.</p>
+
+      <BroadcastPanel />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {items.map((it) => {
