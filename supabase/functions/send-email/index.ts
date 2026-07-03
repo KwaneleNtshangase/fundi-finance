@@ -44,6 +44,22 @@ function goalInfo(goal?: string) {
   };
 }
 
+// ── Name resolution ────────────────────────────────────────────────────────────
+// Address people by their first name if we have it, otherwise their username.
+// Never fall back to a generic label like "Mfundi".
+
+function firstNameOf(full?: string | null): string {
+  if (!full) return "";
+  const t = full.trim().split(/\s+/)[0] ?? "";
+  return t.length >= 2 ? t : "";
+}
+
+function resolveName(
+  p?: { full_name?: string | null; display_name?: string | null; username?: string | null } | null,
+): string {
+  return firstNameOf(p?.full_name) || firstNameOf(p?.display_name) || (p?.username?.trim() || "") || "there";
+}
+
 // ── Streak helpers ─────────────────────────────────────────────────────────────
 
 function streakLine(streak: number): string {
@@ -272,7 +288,7 @@ serve(async (req) => {
       return new Response(JSON.stringify({ skipped: true, reason: "already_sent" }), { status: 200 });
     }
 
-    const username = profile?.username ?? "Mfundi";
+    const username = resolveName(profile);
     const g        = goalInfo(profile?.goal);
 
     const result = await sendViaTemplate(
@@ -316,7 +332,7 @@ serve(async (req) => {
 
       const { data: profile } = await supabase
         .from("profiles")
-        .select("retention_fired, username, goal")
+        .select("retention_fired, username, full_name, display_name, goal")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -332,7 +348,7 @@ serve(async (req) => {
         continue;
       }
 
-      const username = profile?.username ?? "Mfundi";
+      const username = resolveName(profile);
       const g        = goalInfo(profile?.goal);
       const subject  = streak > 0
         ? `${username}, your ${streak}-day streak is waiting 🔥`
@@ -388,7 +404,7 @@ serve(async (req) => {
 
         const { data: profile } = await supabase
           .from("profiles")
-          .select("retention_fired, username, goal")
+          .select("retention_fired, username, full_name, display_name, goal")
           .eq("user_id", userId)
           .maybeSingle();
 
@@ -404,7 +420,7 @@ serve(async (req) => {
           .eq("user_id", userId)
           .maybeSingle();
 
-        const username = profile?.username ?? "Mfundi";
+        const username = resolveName(profile);
         const streak   = (progress?.streak as number) ?? 0;
         const xp       = (progress?.xp as number) ?? 0;
         const g        = goalInfo(profile?.goal);

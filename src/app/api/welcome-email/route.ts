@@ -1,53 +1,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserFromRequest } from "@/lib/apiAuth";
+import { createServiceSupabase } from "@/lib/supabaseServer";
+import { buildWelcome, sendEmail, type EmailProfile } from "@/lib/emails/lifecycle";
 
+export const runtime = "nodejs";
+
+/**
+ * Sends the welcome email on signup. Called from the onboarding flow with the
+ * user's session token. Derives the recipient + name server-side (first name
+ * or username, never a generic label) and only sends once per user.
+ */
 export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
-  if (!resendKey) {
-    return NextResponse.json({ ok: true, skipped: true });
-  }
+  if (!resendKey) return NextResponse.json({ ok: true, skipped: "no-resend" });
 
   const user = await getUserFromRequest(req);
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user?.email) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const admin = createServiceSupabase();
+  const { data: profile } = await admin
+    .from("profiles")
+    .select("retention_fired, username, full_name, goal")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const fired = String((profile as { retention_fired?: string } | null)?.retention_fired ?? "")
+    .split(",").map((s) => s.trim()).filter(Boolean);
+  if (fired.includes("welcome")) {
+    return NextResponse.json({ ok: true, skipped: "already-sent" });
   }
 
-  const { to, username } = (await req.json()) as { to?: string; username?: string };
-  if (!to || !username) {
-    return NextResponse.json({ error: "Missing required fields." }, { status: 400 });
-  }
+  const email = buildWelcome((profile ?? {}) as EmailProfile);
+  const res = await sendEmail(resendKey, user.email, email);
+  if (!res.ok) return NextResponse.json({ error: res.detail }, { status: 500 });
 
-  if (user.email && to.toLowerCase() !== user.email.toLowerCase()) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const safeUsername = String(username).slice(0, 40);
-
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: "Fundi Finance <hello@fundiapp.co.za>",
-      to: [to],
-      subject: "Welcome to Fundi. Your first lesson is waiting 🚀",
-      html: `
-        <div style="font-family:Arial,sans-serif;line-height:1.5;color:#1f2937">
-          <h2>Welcome to Fundi, ${safeUsername} 👋</h2>
-          <p>You're in. One small lesson a day can change how you handle money.</p>
-          <p>Start now, build your streak, and keep stacking wins.</p>
-          <p><a href="https://fundiapp.co.za" style="display:inline-block;padding:10px 16px;background:#007A4D;color:#fff;text-decoration:none;border-radius:8px">Complete your first lesson</a></p>
-          <p style="font-size:12px;color:#6b7280">You've got this. Team Fundi</p>
-        </div>
-      `,
-    }),
-  });
-
-  if (!response.ok) {
-    const text = await response.text();
-    return NextResponse.json({ error: text }, { status: 500 });
-  }
+  await admin.from("profiles").update({ retention_fired: [...fired, "welcome"].join(",") }).eq("user_id", user.id);
   return NextResponse.json({ ok: true });
 }
