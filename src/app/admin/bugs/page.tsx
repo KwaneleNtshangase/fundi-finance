@@ -43,6 +43,18 @@ function BroadcastPanel() {
     setStatus("ready");
   };
 
+  const sendTest = async () => {
+    setMsg("Sending test…");
+    const t = await authToken();
+    const res = await fetch("/api/admin/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ test: true }),
+    });
+    const out = await res.json().catch(() => ({}));
+    setMsg(res.ok ? `Test sent to ${out.sentTo}. Check your inbox.` : `Test failed: ${out.error ?? res.status}`);
+  };
+
   const send = async () => {
     if (!window.confirm(`Schedule the budget announcement to ${count} users, delivered ${prettyDate(scheduledAt)}?\n\nThis cannot be undone from here (only cancelled per-email in Resend).`)) return;
     setStatus("sending"); setMsg(null);
@@ -65,6 +77,14 @@ function BroadcastPanel() {
         Schedules the &quot;import your bank statement&quot; announcement to every confirmed user, sent from hello@fundiapp.co.za. Delivery is queued in Resend for the set time.
       </p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+        <a href="/api/admin/broadcast?preview=1" target="_blank" rel="noopener noreferrer"
+          style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", color: "#374151", fontWeight: 700, fontSize: 13, textDecoration: "none" }}>
+          Preview email
+        </a>
+        <button type="button" onClick={sendTest}
+          style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #d1d5db", background: "#fff", color: "#374151", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+          Send test to me
+        </button>
         {status !== "done" && (
           <button type="button" onClick={check} disabled={status === "checking" || status === "sending"}
             style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A4D", background: "#fff", color: "#007A4D", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
@@ -84,6 +104,9 @@ function BroadcastPanel() {
         {status === "done" && <span style={{ fontSize: 13, color: "#166534", fontWeight: 700 }}>{msg}</span>}
         {status === "error" && <span style={{ fontSize: 13, color: "#E03C31", fontWeight: 700 }}>{msg}</span>}
       </div>
+      {msg && (status === "idle" || status === "ready" || status === "checking") && (
+        <div style={{ marginTop: 10, fontSize: 13, color: "#374151" }}>{msg}</div>
+      )}
     </div>
   );
 }

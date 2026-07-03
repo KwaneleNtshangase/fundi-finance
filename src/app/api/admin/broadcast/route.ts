@@ -123,27 +123,35 @@ function buildText(): string {
   ].join("\n");
 }
 
-async function scheduleOne(resendKey: string, to: string, scheduledAt: string) {
+async function scheduleOne(resendKey: string, to: string, scheduledAt?: string) {
+  const payload: Record<string, unknown> = {
+    from: FROM,
+    to: [to],
+    subject: scheduledAt ? SUBJECT : `[TEST] ${SUBJECT}`,
+    html: buildHtml(),
+    text: buildText(),
+  };
+  if (scheduledAt) payload.scheduled_at = scheduledAt;
   const resp = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${resendKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      from: FROM,
-      to: [to],
-      subject: SUBJECT,
-      html: buildHtml(),
-      text: buildText(),
-      scheduled_at: scheduledAt,
-    }),
+    body: JSON.stringify(payload),
   });
   if (!resp.ok) {
     const detail = await resp.text();
     return { ok: false as const, detail: detail.slice(0, 200) };
   }
   return { ok: true as const };
+}
+
+/** GET ?preview=1 returns the rendered email HTML (marketing copy, not sensitive). */
+export async function GET(req: NextRequest) {
+  const preview = new URL(req.url).searchParams.get("preview");
+  if (!preview) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return new NextResponse(buildHtml(), { headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
 export async function POST(req: NextRequest) {
@@ -157,7 +165,21 @@ export async function POST(req: NextRequest) {
     dryRun?: boolean;
     confirm?: boolean;
     scheduledAt?: string;
+    test?: boolean;
+    testEmail?: string;
   };
+
+  // Test send: deliver a single copy immediately to the admin (or a given address).
+  if (body.test) {
+    const resendKey = process.env.RESEND_API_KEY;
+    if (!resendKey) return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });
+    const to = (body.testEmail || user.email || "").trim();
+    if (!to) return NextResponse.json({ error: "No test address available" }, { status: 400 });
+    const r = await scheduleOne(resendKey, to); // no scheduledAt = send now
+    if (!r.ok) return NextResponse.json({ error: `Test send failed: ${r.detail}` }, { status: 500 });
+    return NextResponse.json({ test: true, sentTo: to });
+  }
+
   const dryRun = body.dryRun !== false; // default true; must explicitly pass false
   const scheduledAt = body.scheduledAt || DEFAULT_SCHEDULED_AT;
 

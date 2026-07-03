@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
           from: "Fundi Finance <hello@fundiapp.co.za>",
-          to: ["support@fundiapp.co.za"],
-          subject: `🐞 Auto-captured bug: ${area}`,
+          to: [process.env.ALERT_EMAIL || "kwanelebc031@gmail.com"],
+          subject: `Auto-captured bug: ${area}`,
           html: `
             <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:600px">
               <h2 style="color:#E03C31">A user hit a bug</h2>
