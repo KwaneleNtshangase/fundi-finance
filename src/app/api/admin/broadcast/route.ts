@@ -60,34 +60,48 @@ async function listAllEmails(admin: SupabaseClient): Promise<string[]> {
 }
 
 function buildHtml(): string {
+  const row = (text: string) =>
+    `<tr>
+        <td style="vertical-align:top;padding:0 10px 10px 0;color:#007A4D;font-size:15px;font-weight:800;line-height:1.5">&bull;</td>
+        <td style="padding:0 0 10px;font-size:14px;color:#374151;line-height:1.5">${text}</td>
+      </tr>`;
   return `
-  <div style="margin:0;padding:0;background:#f4f5f7">
-    <div style="max-width:560px;margin:0 auto;padding:24px 20px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#111827;line-height:1.6">
-      <div style="text-align:center;padding:8px 0 20px">
-        <span style="font-size:20px;font-weight:800;color:#007A4D">Fundi Finance</span>
-      </div>
-      <div style="background:#ffffff;border-radius:16px;padding:28px 24px">
-        <h1 style="margin:0 0 12px;font-size:22px;line-height:1.3;color:#111827">Budgeting just got a whole lot easier</h1>
-        <p style="margin:0 0 16px;font-size:15px;color:#374151">
-          You no longer have to type in every transaction. Head to the <strong>Budget</strong> tab and import your bank statement, and Fundi builds your budget for you.
-        </p>
-        <div style="background:#EAF3EF;border-radius:12px;padding:16px 18px;margin:0 0 20px">
-          <p style="margin:0 0 10px;font-size:14px;font-weight:700;color:#007A4D">What you can do now</p>
-          <p style="margin:0 0 8px;font-size:14px;color:#374151">Import a statement (PDF or CSV) from SA banks like Capitec, FNB and Standard Bank, and see your money sorted automatically.</p>
-          <p style="margin:0 0 8px;font-size:14px;color:#374151">Get a clear view of your income, expenses and savings rate for the month.</p>
-          <p style="margin:0;font-size:14px;color:#374151">Export a clean report to keep or share.</p>
-        </div>
-        <div style="text-align:center;margin:0 0 8px">
-          <a href="https://fundiapp.co.za/?tab=budget" style="display:inline-block;padding:13px 22px;background:#007A4D;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">Try it now</a>
-        </div>
-        <p style="margin:18px 0 0;font-size:14px;color:#374151">Small steps, real progress. Team Fundi.</p>
-      </div>
-      <p style="text-align:center;margin:18px 0 0;font-size:11px;color:#9AA0A6">
-        You're receiving this because you have a Fundi Finance account.<br/>
-        Educational content only, not financial advice.
-      </p>
-    </div>
-  </div>`;
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;margin:0;padding:0">
+    <tr><td align="center" style="padding:24px 12px">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
+        <!-- Header band -->
+        <tr><td style="background:#007A4D;border-radius:16px 16px 0 0;padding:20px 26px">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td align="left" style="vertical-align:middle">
+              <img src="https://fundiapp.co.za/Fundi_Finance_logo.png" width="34" height="34" alt="Fundi Finance" style="vertical-align:middle;border-radius:8px;background:#ffffff" />
+              <span style="vertical-align:middle;font-size:18px;font-weight:800;color:#ffffff;padding-left:10px">Fundi Finance</span>
+            </td>
+            <td align="right" style="vertical-align:middle;font-size:12px;color:#BFE6D4;letter-spacing:0.03em">Master Your Money</td>
+          </tr></table>
+        </td></tr>
+        <!-- Body box -->
+        <tr><td style="background:#ffffff;border-radius:0 0 16px 16px;padding:30px 26px;color:#111827;line-height:1.6">
+          <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#111827;font-weight:800">Budgeting just got a whole lot easier</h1>
+          <p style="margin:0 0 18px;font-size:15px;color:#374151">You no longer have to type in every transaction. Head to the <strong>Budget</strong> tab and import your bank statement, and Fundi builds your budget for you.</p>
+          <p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#111827">What you can do now</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px">
+            ${row("Import a statement (PDF or CSV) from SA banks like Capitec, FNB and Standard Bank, and see your money sorted automatically.")}
+            ${row("Get a clear view of your income, expenses and savings rate for the month.")}
+            ${row("Export a clean report to keep or share.")}
+          </table>
+          <div style="margin:0 0 6px">
+            <a href="https://fundiapp.co.za" style="display:inline-block;padding:13px 24px;background:#007A4D;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">Try it now</a>
+          </div>
+          <p style="margin:24px 0 0;font-size:15px;color:#374151">Small steps, real progress.<br/>Team Fundi</p>
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="padding:16px 26px 0;text-align:center;font-size:11px;color:#9AA0A6;line-height:1.6">
+          You're getting this because you have a Fundi Finance account.<br/>
+          Educational content only, not financial advice.
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>`;
 }
 
 function buildText(): string {
