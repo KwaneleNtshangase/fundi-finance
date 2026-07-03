@@ -70,13 +70,15 @@ function buildHtml(): string {
     <tr><td align="center" style="padding:24px 12px">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
         <!-- Header band -->
-        <tr><td style="background:#007A4D;border-radius:16px 16px 0 0;padding:20px 26px">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
-            <td align="left" style="vertical-align:middle">
-              <img src="https://fundiapp.co.za/Fundi_Finance_logo.png" width="34" height="34" alt="Fundi Finance" style="vertical-align:middle;border-radius:8px;background:#ffffff" />
-              <span style="vertical-align:middle;font-size:18px;font-weight:800;color:#ffffff;padding-left:10px">Fundi Finance</span>
+        <tr><td style="background:#007A4D;border-radius:16px 16px 0 0;padding:30px 28px">
+          <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+            <td style="vertical-align:middle;padding-right:14px">
+              <img src="https://fundiapp.co.za/Fundi_Finance_logo.png" width="44" height="44" alt="Fundi Finance" style="display:block;border:0;outline:none;text-decoration:none" />
             </td>
-            <td align="right" style="vertical-align:middle;font-size:12px;color:#BFE6D4;letter-spacing:0.03em">Master Your Money</td>
+            <td style="vertical-align:middle">
+              <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Fundi Finance</div>
+              <div style="font-size:12px;color:#BFE6D4;letter-spacing:0.04em;padding-top:3px">Master Your Money</div>
+            </td>
           </tr></table>
         </td></tr>
         <!-- Body box -->
