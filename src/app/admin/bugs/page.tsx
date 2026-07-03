@@ -16,6 +16,48 @@ type BugItem = {
   note: string | null;
 };
 
+/** Admin control to send test copies of the lifecycle emails to yourself. */
+function LifecycleTestPanel() {
+  const [msg, setMsg] = useState<string | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const KINDS: { key: string; label: string }[] = [
+    { key: "welcome", label: "Welcome" },
+    { key: "d1", label: "Day 1" },
+    { key: "d7", label: "Day 7" },
+    { key: "d14", label: "Day 14" },
+    { key: "d30", label: "Day 30" },
+  ];
+  const send = async (kind: string) => {
+    setBusy(kind); setMsg(null);
+    const { data } = await supabase.auth.getSession();
+    const res = await fetch("/api/admin/email-test", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${data.session?.access_token}` },
+      body: JSON.stringify({ kind }),
+    });
+    const out = await res.json().catch(() => ({}));
+    setBusy(null);
+    setMsg(res.ok ? `Sent the ${kind} email to ${out.sentTo}. Check your inbox.` : `Failed: ${out.error ?? res.status}`);
+  };
+  return (
+    <div style={{ border: "1px solid #e5e7eb", borderRadius: 14, padding: 16, background: "#F5FBF8", marginBottom: 16 }}>
+      <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4, color: "#065f46" }}>Lifecycle email tests</div>
+      <p style={{ fontSize: 13, color: "#374151", margin: "0 0 12px" }}>
+        Send a test copy of each lifecycle email to your own address to preview it. Subjects are prefixed with [TEST].
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+        {KINDS.map((k) => (
+          <button key={k.key} type="button" onClick={() => send(k.key)} disabled={busy === k.key}
+            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A4D", background: "#fff", color: "#007A4D", fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: busy === k.key ? 0.6 : 1 }}>
+            {busy === k.key ? "Sending…" : k.label}
+          </button>
+        ))}
+      </div>
+      {msg && <div style={{ marginTop: 10, fontSize: 13, color: "#374151" }}>{msg}</div>}
+    </div>
+  );
+}
+
 /** Admin control to schedule the "budget statement import" announcement to all users. */
 function BroadcastPanel() {
   const [status, setStatus] = useState<"idle" | "checking" | "ready" | "sending" | "done" | "error">("idle");
@@ -199,6 +241,7 @@ export default function AdminBugsPage() {
       </div>
       <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 20 }}>{open.length} open · {items.length} total. Auto-captured crashes and user-reported bugs. Tick &quot;Email this user&quot; when you want to tell them it&apos;s fixed.</p>
 
+      <LifecycleTestPanel />
       <BroadcastPanel />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
