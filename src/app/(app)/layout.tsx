@@ -16,12 +16,13 @@ import { usePathname } from "next/navigation";
 import { StatsPanel } from "@/components/StatsPanel";
 
 function AppNavigation() {
-  const { route, setRoute } = useFundi();
+  const { setRoute } = useFundi();
+  const pathname = usePathname() || "/";
+  const is = (p: string) => pathname.startsWith(p);
 
-  // Replicating the handleNav logic from pageViews.tsx
   const handleNav = (name: string) => {
     // We just dispatch setRoute; the FundiContext will do router.push()
-    setRoute({ name: name as any });
+    setRoute({ name: name as never });
   };
 
   return (
@@ -31,7 +32,7 @@ function AppNavigation() {
           key: "learn",
           label: "Learn",
           icon: <FundiLearn size={24} className="text-current" />,
-          isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
+          isActive: is("/learn") || is("/course") || is("/lesson") || pathname === "/",
           onClick: () => handleNav("learn"),
           order: "order-1",
         },
@@ -39,7 +40,7 @@ function AppNavigation() {
           key: "calculator",
           label: "Calculate",
           icon: <FundiCalculate size={24} className="text-current" />,
-          isActive: route.name === "calculator",
+          isActive: is("/calculator"),
           onClick: () => handleNav("calculator"),
           order: "order-2",
         },
@@ -47,7 +48,7 @@ function AppNavigation() {
           key: "budget",
           label: "Budget",
           icon: <FundiBudget size={24} className="text-current" />,
-          isActive: route.name === "budget",
+          isActive: is("/budget"),
           onClick: () => handleNav("budget"),
           order: "order-3",
         },
@@ -55,7 +56,7 @@ function AppNavigation() {
           key: "quests",
           label: "Goals",
           icon: <FundiGoals size={24} className="text-current" />,
-          isActive: route.name === "quests",
+          isActive: is("/quests"),
           onClick: () => handleNav("quests"),
           order: "order-4",
         },
@@ -63,7 +64,7 @@ function AppNavigation() {
           key: "progress",
           label: "Progress",
           icon: <FundiProgress size={24} className="text-current" />,
-          isActive: route.name === "leaderboard",
+          isActive: is("/leaderboard"),
           onClick: () => handleNav("leaderboard"),
           order: "order-5",
         },
@@ -71,7 +72,7 @@ function AppNavigation() {
           key: "profile",
           label: "Profile",
           icon: <FundiProfile size={24} className="text-current" />,
-          isActive: route.name === "profile",
+          isActive: is("/profile"),
           onClick: () => handleNav("profile"),
           order: "order-6",
         },

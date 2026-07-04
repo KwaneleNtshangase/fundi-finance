@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
 import { useFundi } from "@/context/FundiContext";
 import {
   FundiLearn,
@@ -11,15 +12,28 @@ import {
   FundiProfile,
 } from "@/components/icons/FundiIcons";
 
+/** Which nav item should be highlighted, derived from the real URL. */
+function activeKeyFromPath(pathname: string): string {
+  if (pathname.startsWith("/budget")) return "budget";
+  if (pathname.startsWith("/calculator")) return "calculator";
+  if (pathname.startsWith("/quests")) return "quests";
+  if (pathname.startsWith("/leaderboard")) return "leaderboard";
+  if (pathname.startsWith("/profile")) return "profile";
+  // learn, course, lesson and the root all live under "Learn"
+  return "learn";
+}
+
 export function DesktopSidebar() {
-  const { route, setRoute } = useFundi();
+  const { setRoute } = useFundi();
+  const pathname = usePathname() || "/";
+  const active = activeKeyFromPath(pathname);
 
   const handleNav = (name: string) => {
-    setRoute({ name: name as any });
+    setRoute({ name: name as never });
   };
 
   return (
-    <nav className="sidebar" style={{ background: "var(--sidebar-bg)", borderRightColor: "var(--color-border)" }}>
+    <nav className="sidebar" style={{ background: "var(--color-bg)", border: "none" }}>
       {/* Branded sidebar header */}
       <div style={{
         padding: "20px 20px 16px",
@@ -47,8 +61,8 @@ export function DesktopSidebar() {
       <ul className="nav-menu">
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "learn" ? "active" : ""}`}
-            style={route.name !== "learn" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="learn" ? "active" : ""}`}
+            style={active !=="learn" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("learn")}
           >
             <span className="nav-icon">
@@ -59,8 +73,8 @@ export function DesktopSidebar() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
-            style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="calculator" ? "active" : ""}`}
+            style={active !=="calculator" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("calculator")}
           >
             <span className="nav-icon">
@@ -71,8 +85,8 @@ export function DesktopSidebar() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "budget" ? "active" : ""}`}
-            style={route.name !== "budget" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="budget" ? "active" : ""}`}
+            style={active !=="budget" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("budget")}
           >
             <span className="nav-icon">
@@ -83,8 +97,8 @@ export function DesktopSidebar() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "quests" ? "active" : ""}`}
-            style={route.name !== "quests" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="quests" ? "active" : ""}`}
+            style={active !=="quests" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("quests")}
           >
             <span className="nav-icon">
@@ -95,8 +109,8 @@ export function DesktopSidebar() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
-            style={route.name !== "leaderboard" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="leaderboard" ? "active" : ""}`}
+            style={active !=="leaderboard" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("leaderboard")}
           >
             <span className="nav-icon">
@@ -107,8 +121,8 @@ export function DesktopSidebar() {
         </li>
         <li className="nav-item">
           <button
-            className={`nav-link ${route.name === "profile" ? "active" : ""}`}
-            style={route.name !== "profile" ? { color: "var(--nav-link-color)" } : {}}
+            className={`nav-link ${active ==="profile" ? "active" : ""}`}
+            style={active !=="profile" ? { color: "var(--nav-link-color)" } : {}}
             onClick={() => handleNav("profile")}
           >
             <span className="nav-icon">
