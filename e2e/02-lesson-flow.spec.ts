@@ -92,6 +92,7 @@ test.describe("Lesson Flow", () => {
     let safety = 0;
     while (safety < 40) {
       safety++;
+      await page.waitForTimeout(500);
       // Done?
       const backBtn = page.locator("button", { hasText: /Back to Course|Done.*Course/i }).first();
       if (await backBtn.isVisible()) break;
@@ -125,6 +126,7 @@ test.describe("Lesson Flow", () => {
     let safety = 0;
     while (safety < 40) {
       safety++;
+      await page.waitForTimeout(500);
       const done = page.locator("text=Lesson Complete!, text=Back to Course").first();
       if (await done.isVisible()) break;
       const opts = page.locator(".option-button:not([disabled])");
@@ -150,6 +152,7 @@ test.describe("Lesson Flow", () => {
     let safety = 0;
     while (safety < 40) {
       safety++;
+      await page.waitForTimeout(500);
       const backBtn = page.locator("button", { hasText: /Back to Course|Done.*Course/i }).first();
       if (await backBtn.isVisible()) { await backBtn.click(); break; }
       const opts = page.locator(".option-button:not([disabled])");

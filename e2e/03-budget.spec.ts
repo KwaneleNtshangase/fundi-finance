@@ -31,20 +31,30 @@ test.describe("Budget", () => {
   test("3.3 — Add income entry", async ({ page }) => {
     // Look for + button or add entry
     const addBtn = page.locator("button", { hasText: /Add|Income|\+/i }).first();
-    if (await addBtn.isVisible()) {
-      await addBtn.click();
-      await page.waitForTimeout(400);
-      // Modal or form should appear
-      const amountInput = page.locator('input[type="number"], input[placeholder*="amount" i], input[placeholder*="R" i]').first();
-      if (await amountInput.isVisible()) {
-        await amountInput.fill("5000");
-        const saveBtn = page.locator("button", { hasText: /Save|Add|Done/i }).first();
-        await saveBtn.click();
-        await page.waitForTimeout(600);
-        // Amount should appear somewhere
-        await expect(page.locator("text=/5.000|5000/").first()).toBeVisible({ timeout: 5_000 });
-      }
+    await addBtn.waitFor({ state: "visible", timeout: 10000 });
+    await addBtn.click();
+    await page.waitForTimeout(400);
+    // Modal or form should appear
+    const incomeTab = page.locator("button", { hasText: "Income +" }).first();
+    if (await incomeTab.isVisible()) {
+      await incomeTab.click();
+      await page.waitForTimeout(300);
     }
+
+    const categoryBtn = page.locator("button", { hasText: /Salary|Business|Side Hustle|Other/i }).first();
+    if (await categoryBtn.isVisible()) {
+      await categoryBtn.click();
+    }
+
+    const amountInput = page.locator('input[type="number"], input[placeholder*="amount" i], input[placeholder*="R" i]').first();
+    await amountInput.waitFor({ state: "visible", timeout: 5000 });
+    await amountInput.fill("5000");
+
+    const saveBtn = page.locator("button", { hasText: /Save|Add|Done/i }).last();
+    await saveBtn.click();
+    await page.waitForTimeout(600);
+    // Amount should appear somewhere
+    await expect(page.locator("text=/5.000|5000/").first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("3.4 — Year view loads with income/expenses chart", async ({ page }) => {

@@ -14,12 +14,12 @@ test.describe("Profile & Settings", () => {
     const error = page.locator("text=Something went wrong");
     await expect(error).not.toBeVisible();
     // Profile should show user info
-    const profile = page.locator("text=Total XP, text=Badges, text=Profile").first();
+    const profile = page.locator("h2", { hasText: "Profile" }).first();
     await expect(profile).toBeVisible({ timeout: 10_000 });
   });
 
   test("5.2 — Badges section shows earned badges", async ({ page }) => {
-    const badges = page.locator("text=Badges, text=badge").first();
+    const badges = page.locator("text=Your Badges").first();
     await expect(badges).toBeVisible({ timeout: 10_000 });
   });
 

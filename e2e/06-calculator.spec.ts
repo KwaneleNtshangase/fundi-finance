@@ -25,15 +25,14 @@ test.describe("Calculator", () => {
     if ((await inputs.count()) >= 2) {
       await inputs.first().clear();
       await inputs.first().fill("10000");
-      const calcBtn = page.locator("button", { hasText: /Calculat|Solve|Show/i }).first();
+      const calcBtn = page.locator("main").locator("button", { hasText: /Calculat|Solve|Show/i }).first();
       if (await calcBtn.isVisible()) {
         await calcBtn.click();
         await page.waitForTimeout(600);
         // Result should show a rand value using space format
         const resultText = await page.locator("body").textContent() ?? "";
         // Check for R followed by digits (with space formatting)
-        const hasResult = /R[\d\s]+/.test(resultText);
-        expect(hasResult).toBe(true);
+        expect(resultText).toMatch(/R\s*[\d\s]+/);
       }
     }
   });

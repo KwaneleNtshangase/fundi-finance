@@ -1,0 +1,126 @@
+"use client";
+
+import React from "react";
+import { FundiProvider, useFundi } from "@/context/FundiContext";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { DesktopSidebar } from "@/components/DesktopSidebar";
+import {
+  FundiLearn,
+  FundiCalculate,
+  FundiBudget,
+  FundiGoals,
+  FundiProgress,
+  FundiProfile,
+} from "@/components/icons/FundiIcons";
+import { usePathname } from "next/navigation";
+import { StatsPanel } from "@/components/StatsPanel";
+
+function AppNavigation() {
+  const { route, setRoute } = useFundi();
+
+  // Replicating the handleNav logic from pageViews.tsx
+  const handleNav = (name: string) => {
+    // We just dispatch setRoute; the FundiContext will do router.push()
+    setRoute({ name: name as any });
+  };
+
+  return (
+    <MobileBottomNav
+      items={[
+        {
+          key: "learn",
+          label: "Learn",
+          icon: <FundiLearn size={24} className="text-current" />,
+          isActive: route.name === "learn" || route.name === "course" || route.name === "lesson",
+          onClick: () => handleNav("learn"),
+          order: "order-1",
+        },
+        {
+          key: "calculator",
+          label: "Calculate",
+          icon: <FundiCalculate size={24} className="text-current" />,
+          isActive: route.name === "calculator",
+          onClick: () => handleNav("calculator"),
+          order: "order-2",
+        },
+        {
+          key: "budget",
+          label: "Budget",
+          icon: <FundiBudget size={24} className="text-current" />,
+          isActive: route.name === "budget",
+          onClick: () => handleNav("budget"),
+          order: "order-3",
+        },
+        {
+          key: "quests",
+          label: "Goals",
+          icon: <FundiGoals size={24} className="text-current" />,
+          isActive: route.name === "quests",
+          onClick: () => handleNav("quests"),
+          order: "order-4",
+        },
+        {
+          key: "progress",
+          label: "Progress",
+          icon: <FundiProgress size={24} className="text-current" />,
+          isActive: route.name === "leaderboard",
+          onClick: () => handleNav("leaderboard"),
+          order: "order-5",
+        },
+        {
+          key: "profile",
+          label: "Profile",
+          icon: <FundiProfile size={24} className="text-current" />,
+          isActive: route.name === "profile",
+          onClick: () => handleNav("profile"),
+          order: "order-6",
+        },
+      ]}
+    />
+  );
+}
+
+import { AuthGate } from "@/components/AuthGate";
+
+export default function AppLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  return (
+    <FundiProvider>
+      <AuthGate>
+        <div className="app-container">
+          <DesktopSidebar />
+          <div className="main-content">
+            <div style={{ paddingBottom: "70px" }}>{children}</div>
+          </div>
+          {(pathname === "/learn" || pathname === "/") && (
+            <StatsPanelWrapper />
+          )}
+        </div>
+        <AppNavigation />
+      </AuthGate>
+    </FundiProvider>
+  );
+}
+
+function StatsPanelWrapper() {
+  const { userData, hearts, maxHearts, freezeCount, buyStreakFreeze, useFreeze } = useFundi();
+  
+  if (!userData) return null;
+
+  const handleBuyFreeze = () => buyStreakFreeze();
+  const handleUseFreeze = () => useFreeze();
+  const freezeUsedToday = userData.lessonsToday > 0 && freezeCount > 0;
+
+  return (
+    <StatsPanel
+      userData={userData}
+      hearts={hearts}
+      maxHearts={maxHearts}
+      freezeCount={freezeCount}
+      onBuyFreeze={handleBuyFreeze}
+      onUseFreeze={handleUseFreeze}
+      freezeUsedToday={freezeUsedToday}
+    />
+  );
+}

@@ -7,23 +7,32 @@
  */
 import { Page, expect } from "@playwright/test";
 
-export const TEST_EMAIL = process.env.TEST_EMAIL ?? "e2e-test@fundi.test";
-export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "FundiTest123!";
+export const TEST_EMAIL = process.env.TEST_EMAIL ?? "e2e-test@fundiapp.co.za";
+export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "FundiE2E_Test#2026";
 export const BASE_URL =
   process.env.BASE_URL ?? "https://fundiapp.co.za";
 
 /** Sign in with email/password, wait for the app shell to appear */
 export async function signIn(page: Page) {
-  await page.goto(BASE_URL);
-  // Splash animation can take 20-25s on slow CI runners — wait for the form directly.
+  await page.goto(BASE_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+  // Splash animation can take 20-25s on slow CI runners — wait for the landing page or form directly.
+  const signInButton = page.locator('button', { hasText: /I Already Have an Account/i }).first();
+  // Try to wait for the landing screen button; if visible, click it.
+  try {
+    await signInButton.waitFor({ state: "visible", timeout: 15_000 });
+    await signInButton.click();
+  } catch (e) {
+    // If button doesn't appear, maybe we're already on the signin form.
+  }
+
   const emailInput = page.locator('input[type="email"]').first();
-  await emailInput.waitFor({ state: "visible", timeout: 30_000 });
+  await emailInput.waitFor({ state: "visible", timeout: 15_000 });
   await emailInput.fill(TEST_EMAIL);
   await page.locator('input[type="password"]').first().fill(TEST_PASSWORD);
   // Click the primary sign-in/up submit button (has data-testid="auth-submit")
   await page.locator('[data-testid="auth-submit"]').click();
-  // Wait for nav bar (Learn tab) — means auth succeeded and app loaded
-  await expect(page.locator("text=Learn").first()).toBeVisible({
+  // Wait for app container — means auth succeeded and app loaded
+  await expect(page.locator(".app-container").first()).toBeVisible({
     timeout: 20_000,
   });
 }
@@ -39,12 +48,20 @@ export async function openFirstLesson(page: Page): Promise<string> {
   await goToTab(page, "Learn");
   // Click first course card
   await page.locator(".course-card").first().click();
-  await page.waitForTimeout(500);
-  // Click first playable lesson node
-  const lesson = page.locator(".lesson-node.playable, .lesson-node.completed").first();
+  // Wait for the course page to load (compilation in dev mode can take time)
+  await page.locator(".lesson-node").first().waitFor({ state: "visible", timeout: 15_000 });
+  
+  // Prefer an uncompleted playable lesson
+  let lesson = page.locator(".lesson-node.playable:not(.completed)").first();
+  if (await lesson.count() === 0) {
+    // Fall back to any playable/completed lesson
+    lesson = page.locator(".lesson-node.playable, .lesson-node.completed").first();
+  }
+  
   await lesson.click();
-  await page.waitForTimeout(600);
-  const title = await page.locator(".step-title, h2").first().textContent();
+  // Wait for lesson page to load
+  await page.locator(".step-title, h2, .question-text").first().waitFor({ state: "visible", timeout: 15_000 });
+  const title = await page.locator(".step-title, h2, .question-text").first().textContent();
   return title ?? "unknown";
 }
 

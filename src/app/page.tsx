@@ -1,7 +1,7 @@
 "use client";
 
-import HomePage from "@/app/pageViews";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <HomePage />;
+  redirect("/learn");
 }

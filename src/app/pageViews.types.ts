@@ -4,7 +4,7 @@
  */
 
 import { supabase } from "@/lib/supabaseClient";
-import { CONTENT_DATA } from "@/data/content";
+import { CONTENT_DATA, type Lesson } from "@/data/content";
 
 // ── Core app types ────────────────────────────────────────────────────────────
 
@@ -321,3 +321,37 @@ export async function persistUserGoalToStorageAndSupabase(
     await supabase.from("profiles").upsert(update, { onConflict: "user_id" });
   }
 }
+
+// Course accent colours, cycles through SA-themed palette
+export const COURSE_COLOURS = [
+  { bg: "#E8F5EE", accent: "#007A4D", light: "#C8EAD9" }, // green
+  { bg: "#FFF8E7", accent: "#FFB612", light: "#FFE9A0" }, // gold
+  { bg: "#FFF0EF", accent: "#E03C31", light: "#FCCFCC" }, // red
+  { bg: "#EEF4FF", accent: "#3B7DD8", light: "#C5D9F7" }, // blue
+  { bg: "#F3EEFF", accent: "#7C4DFF", light: "#D9C8FF" }, // purple
+  { bg: "#E8FAF0", accent: "#00BFA5", light: "#B2EFE3" }, // teal
+  { bg: "#FFF3E0", accent: "#F57C00", light: "#FFD9A8" }, // orange
+  { bg: "#FCE4EC", accent: "#C2185B", light: "#F5B8CE" }, // pink
+];
+
+export type SavedLessonProgress = {
+  courseId: string;
+  lessonId: string;
+  lessonTitle?: string;
+  completedAt: number; // timestamp
+};
+
+export const getNextLesson = (courseId: string, lessonId: string): Lesson | null => {
+  const course = CONTENT_DATA.courses.find((c) => c.id === courseId);
+  if (!course) return null;
+  const allLessons: Lesson[] = course.units.flatMap((u) =>
+    u.lessons.filter((l) => !l.comingSoon)
+  );
+  const currentIndex = allLessons.findIndex((l) => l.id === lessonId);
+  if (currentIndex === -1) return null;
+  for (let i = currentIndex + 1; i < allLessons.length; i++) {
+    const candidate = allLessons[i];
+    if (candidate.steps && candidate.steps.length > 0) return candidate;
+  }
+  return null;
+};

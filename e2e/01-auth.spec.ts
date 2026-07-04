@@ -11,20 +11,29 @@ test.describe("Authentication", () => {
     // Splash should show briefly
     const splash = page.locator(".splash-logo-wrap, #splashScreen, img[alt*='Fundi']");
     // It may already have animated out — just ensure no JS crash
-    await expect(page).toHaveURL(BASE_URL);
+    await expect(page).toHaveURL(new RegExp(BASE_URL + "(/learn|/)?"));
   });
 
   test("1.2 — Sign-in form is visible before login", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Splash can take 20-25s on CI mobile runners — wait for the form directly.
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 30_000 });
+    // Splash can take 20-25s on CI mobile runners — wait for the landing screen directly.
+    const signInButton = page.locator('button', { hasText: /I Already Have an Account/i }).first();
+    await signInButton.waitFor({ state: "visible", timeout: 30_000 });
+    await signInButton.click();
+    
+    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10_000 });
     await expect(page.locator('input[type="password"]').first()).toBeVisible({ timeout: 10_000 });
   });
 
   test("1.3 — Wrong password shows error", async ({ page }) => {
     await page.goto(BASE_URL);
-    // Wait for splash to finish before interacting
-    await page.locator('input[type="email"]').first().waitFor({ state: "visible", timeout: 30_000 });
+    // Wait for splash to finish and land on landing page
+    const signInButton = page.locator('button', { hasText: /I Already Have an Account/i }).first();
+    await signInButton.waitFor({ state: "visible", timeout: 30_000 });
+    await signInButton.click();
+    
+    const emailInput = page.locator('input[type="email"]').first();
+    await emailInput.waitFor({ state: "visible", timeout: 10_000 });
     await page.locator('input[type="email"]').first().fill("wrong@example.com");
     await page.locator('input[type="password"]').first().fill("wrongpassword");
     await page.locator('[data-testid="auth-submit"]').click();
@@ -44,18 +53,23 @@ test.describe("Authentication", () => {
   test("1.5 — Stats panel shows XP, Streak, Level after login", async ({ page }) => {
     await signIn(page);
     // Stats sidebar (desktop) or stats section
-    await expect(page.locator("#xpValue, text=Total XP").first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator("#streakValue, text=Day Streak").first()).toBeVisible({ timeout: 5_000 });
-    await expect(page.locator("#levelValue, text=Level").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("#xpValue").first()).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator("#streakValue").first()).toBeVisible({ timeout: 5_000 });
+    await expect(page.locator("#levelValue").first()).toBeVisible({ timeout: 5_000 });
   });
 
   test("1.6 — Sign out works", async ({ page }) => {
     await signIn(page);
     await goToTab(page, "Profile");
+    
+    // Navigate to Settings to find the Sign Out button
+    await page.getByLabel("Settings").click();
+    
     const signOutBtn = page.locator("button", { hasText: /Sign Out|Log Out/i }).last();
     await signOutBtn.waitFor({ state: "visible", timeout: 10_000 });
     await signOutBtn.click();
-    // Should return to auth screen
-    await expect(page.locator('input[type="email"]').first()).toBeVisible({ timeout: 10_000 });
+    // Should return to auth/landing screen
+    const signInButton = page.locator('button', { hasText: /I Already Have an Account/i }).first();
+    await expect(signInButton).toBeVisible({ timeout: 15_000 });
   });
 });

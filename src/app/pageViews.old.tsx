@@ -25,11 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import {
-  FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile,
-  FundiBriefcase, FundiBuilding, FundiCredit, FundiShield, FundiUmbrella,
-  FundiFlag, FundiHome, FundiDoc, FundiAlert, FundiBrain,
-} from "@/components/icons/FundiIcons";
+import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
 import {
   LineChart,
   Line,
@@ -110,7 +106,7 @@ import {
   WifiOff,
   X,
   Zap,
-} from "@/components/icons/FundiIcons";
+} from "lucide-react";
 import confetti from "canvas-confetti";
 
 import type { Course, Unit, Lesson, LessonStep } from "@/data/content";
@@ -457,33 +453,33 @@ function CourseIcon({ name, size = 48 }: { name: string; size?: number }) {
   const props = { size, className: "text-current" };
   switch (name) {
     case "wallet":
-      return <FundiBudget {...props} />;
+      return <Wallet {...props} />;
     case "briefcase":
-      return <FundiBriefcase {...props} />;
+      return <Briefcase {...props} />;
     case "building-2":
-      return <FundiBuilding {...props} />;
+      return <Building2 {...props} />;
     case "credit-card":
-      return <FundiCredit {...props} />;
+      return <CreditCard {...props} />;
     case "shield":
-      return <FundiShield {...props} />;
+      return <Shield {...props} />;
     case "umbrella":
-      return <FundiUmbrella {...props} />;
+      return <Umbrella {...props} />;
     case "trending-up":
-      return <FundiProgress {...props} />;
+      return <TrendingUp {...props} />;
     case "flag":
-      return <FundiFlag {...props} />;
+      return <Flag {...props} />;
     case "home":
-      return <FundiHome {...props} />;
+      return <HomeIcon {...props} />;
     case "file-text":
-      return <FundiDoc {...props} />;
+      return <FileText {...props} />;
     case "siren":
-      return <FundiAlert {...props} />;
+      return <Siren {...props} />;
     case "brain":
-      return <FundiBrain {...props} />;
+      return <Brain {...props} />;
     case "book-open":
-      return <FundiLearn {...props} />;
+      return <BookOpen {...props} />;
     default:
-      return <FundiBudget {...props} />;
+      return <Wallet {...props} />;
   }
 }
 
@@ -4283,7 +4279,7 @@ export default function Home() {
         />
       </div>
       <div className="app-container">
-        <nav className="sidebar">
+        <nav className="sidebar" style={{ background: "var(--sidebar-bg)", borderRightColor: "var(--color-border)" }}>
           {/* Branded sidebar header */}
           <div style={{
             padding: "20px 20px 16px",
@@ -4323,14 +4319,26 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
-                className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
-                style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("calculator")}
+                className={`nav-link ${route.name === "profile" ? "active" : ""}`}
+                style={route.name !== "profile" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("profile")}
               >
                 <span className="nav-icon">
-                  <FundiCalculate size={20} className="text-current" />
+                  <FundiProfile size={20} className="text-current" />
                 </span>
-                Calculate
+                Profile
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
+                className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
+                style={route.name !== "leaderboard" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("leaderboard")}
+              >
+                <span className="nav-icon">
+                  <FundiLeaderboard size={20} className="text-current" />
+                </span>
+                Leaderboard
               </button>
             </li>
             <li className="nav-item">
@@ -4347,6 +4355,18 @@ export default function Home() {
             </li>
             <li className="nav-item">
               <button
+                className={`nav-link ${route.name === "calculator" ? "active" : ""}`}
+                style={route.name !== "calculator" ? { color: "var(--nav-link-color)" } : {}}
+                onClick={() => handleNav("calculator")}
+              >
+                <span className="nav-icon">
+                  <FundiCalculate size={20} className="text-current" />
+                </span>
+                Calculate
+              </button>
+            </li>
+            <li className="nav-item">
+              <button
                 className={`nav-link ${route.name === "quests" ? "active" : ""}`}
                 style={route.name !== "quests" ? { color: "var(--nav-link-color)" } : {}}
                 onClick={() => handleNav("quests")}
@@ -4355,30 +4375,6 @@ export default function Home() {
                   <FundiGoals size={20} className="text-current" />
                 </span>
                 Goals
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${route.name === "leaderboard" ? "active" : ""}`}
-                style={route.name !== "leaderboard" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("leaderboard")}
-              >
-                <span className="nav-icon">
-                  <FundiProgress size={20} className="text-current" />
-                </span>
-                Progress
-              </button>
-            </li>
-            <li className="nav-item">
-              <button
-                className={`nav-link ${route.name === "profile" ? "active" : ""}`}
-                style={route.name !== "profile" ? { color: "var(--nav-link-color)" } : {}}
-                onClick={() => handleNav("profile")}
-              >
-                <span className="nav-icon">
-                  <FundiProfile size={20} className="text-current" />
-                </span>
-                Profile
               </button>
             </li>
           </ul>
