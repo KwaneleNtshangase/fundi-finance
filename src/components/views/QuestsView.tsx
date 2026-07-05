@@ -190,7 +190,7 @@ export function QuestsView({
 }) {
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
   return (
-    <main className="main-content main-with-stats">
+    <main >
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>

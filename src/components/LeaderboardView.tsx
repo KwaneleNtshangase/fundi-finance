@@ -165,7 +165,7 @@ export function LeaderboardView({
   const restLeaders = leaders.slice(3);
 
   return (
-    <main className="main-content main-with-stats">
+    <main >
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
         <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 4, flexWrap: "wrap", gap: 8 }}>
           <h2 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>Leaderboard</h2>

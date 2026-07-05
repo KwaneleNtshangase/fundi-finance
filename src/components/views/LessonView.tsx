@@ -894,7 +894,7 @@ export function LessonView({
   return (
     <>
       <ExitConfirmModal />
-      <main className="main-content main-with-stats">
+      <main >
         <div className="lesson-player">
           {/* Back button + progress bar + exit (hearts only in FundiTopBar) */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, position: "sticky", top: 0, zIndex: 50, background: "var(--color-bg)", paddingTop: 8, paddingBottom: 8, marginTop: -8 }}>

@@ -441,7 +441,7 @@ export function CalculatorView() {
   ];
 
   return (
-    <main className="main-content main-with-stats" id="mainContent">
+    <main id="mainContent">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, gap: 10 }}>
         <h2 style={{ fontSize: 28, fontWeight: 900, margin: 0 }}>Investment Calculator</h2>
         {solveMode === "goal" && (

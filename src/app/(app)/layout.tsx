@@ -91,8 +91,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AuthGate>
         <div className="app-container">
           <DesktopSidebar />
-          <div className="main-content">
-            <div style={{ paddingBottom: "70px" }}>{children}</div>
+          <div 
+            className={`main-content ${(pathname === "/learn" || pathname === "/") ? "main-with-stats" : ""}`}
+            style={{ display: 'flex', flexDirection: 'column' }}
+          >
+            <div style={{ paddingBottom: "70px", flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</div>
           </div>
           {(pathname === "/learn" || pathname === "/") && (
             <StatsPanelWrapper />

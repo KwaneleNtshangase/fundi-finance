@@ -131,7 +131,7 @@ test.describe("Lesson Flow", () => {
     while (safety < 40) {
       safety++;
       await page.waitForTimeout(500);
-      const done = page.locator("text=Lesson Complete!, text=Perfect Lesson!, text=XP Earned").first();
+      const done = page.locator("text=XP Earned").first();
       if (await done.isVisible()) break;
       const opts = page.locator(".option-button:not([disabled])");
       if ((await opts.count()) > 0) await opts.first().click();

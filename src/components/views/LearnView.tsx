@@ -744,7 +744,7 @@ export function LearnView({
     : courses;
 
   return (
-    <main className="main-content main-with-stats" id="mainContent">
+    <main id="mainContent">
       {savedProgress && onResumeLesson && (
         <button
           type="button"

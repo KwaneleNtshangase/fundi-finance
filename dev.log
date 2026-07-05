@@ -1,0 +1,57 @@
+
+> fundi-finance@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.101.114:3000
+- Environments: .env.local
+
+✓ Starting...
+
+thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'tokio-runtime-worker' (6035639) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035649) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035638) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035640) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035639) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+
+thread 'tokio-runtime-worker' (6035637) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
+range start index 18446744073709551252 out of range for slice of length 80
+[?25h

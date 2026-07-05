@@ -665,7 +665,7 @@ export function LessonView({
   return (
     <>
       <ExitConfirmModal />
-      <main className="main-content main-with-stats">
+      <main >
         <div className="lesson-player">
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             {goBack && (

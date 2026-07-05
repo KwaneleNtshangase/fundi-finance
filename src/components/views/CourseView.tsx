@@ -218,7 +218,7 @@ export function CourseView({
   }
 
   return (
-    <main className="main-content main-with-stats">
+    <main >
       <div className="course-map">
         <button className="back-button" onClick={goBack}>
           <span className="inline-flex items-center gap-2">

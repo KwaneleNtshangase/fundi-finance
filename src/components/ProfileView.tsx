@@ -257,7 +257,7 @@ export function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "ter
   const titles = { privacy: "Privacy Policy", terms: "Terms of Service", faq: "FAQ & Help" };
 
   return (
-    <main className="main-content" style={{ paddingBottom: 80 }}>
+    <main style={{ paddingBottom: 80 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "16px 0 20px" }}>
         <button type="button" onClick={onBack} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-primary)", display: "flex" }}>
           <ArrowLeft size={22} />
@@ -599,7 +599,7 @@ export function ProfileView({
   }
 
   return (
-    <main className="main-content main-with-stats">
+    <main >
       {/* Page header with gear icon */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
         <h2 style={{ fontSize: 24, fontWeight: 800, color: "var(--color-text-primary)" }}>Profile</h2>

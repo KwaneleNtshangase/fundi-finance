@@ -738,7 +738,7 @@ export function BudgetView() {
   });
 
   return (
-    <main className="main-content main-with-stats budget-page">
+    <main className="budget-page">
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: userGoalLabel ? 8 : 16 }}>

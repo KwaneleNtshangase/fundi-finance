@@ -241,7 +241,7 @@ export function SettingsView({
   }
 
   return (
-    <main className="main-content main-with-stats">
+    <main >
       <h2 className="text-gray-900 dark:text-gray-100" style={{ fontSize: 32, fontWeight: 800, marginBottom: 24 }}>Settings</h2>
 
       {/* ── Learning ── */}
