@@ -11,7 +11,7 @@ test.describe("Authentication", () => {
     // Splash should show briefly
     const splash = page.locator(".splash-logo-wrap, #splashScreen, img[alt*='Fundi']");
     // It may already have animated out — just ensure no JS crash
-    await expect(page).toHaveURL(new RegExp(BASE_URL + "(/learn|/)?"));
+    await expect(page).toHaveURL(/(\/learn|\/)?$/);
   });
 
   test("1.2 — Sign-in form is visible before login", async ({ page }) => {

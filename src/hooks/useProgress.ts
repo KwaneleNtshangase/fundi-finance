@@ -203,25 +203,41 @@ export function useProgress() {
       //    or completed on this device while offline). apply_progress_delta only
       //    ever adds to the set, so this can heal but never shrink the DB.
       const cachePre = readProgressCache(userId);
+      let rpcData: any = null;
       if (cachePre && cachePre.completedLessons.length > 0) {
-        await supabase.rpc("apply_progress_delta", {
+        const { data, error } = await supabase.rpc("apply_progress_delta", {
           p_user_id: userId,
           p_xp_delta: 0,
           p_weekly_delta: 0,
           p_week_key: null,
           p_completed_lessons: cachePre.completedLessons,
           p_longest_streak: cachePre.longestStreak,
-        }).then(() => null, () => null);
+        });
+        if (!error && data) {
+          rpcData = data;
+        }
       }
 
       // 3. Read the now-reconciled authoritative row. The DB is the source of
       //    truth for XP, weekly XP, and lessons - no client snapshot overwrites.
-      const { data } = await supabase
-        .from("user_progress")
-        .select("xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
-        .eq("user_id", userId)
-        .maybeSingle();
+      //    If the RPC succeeded, it returned the latest row, saving us a SELECT.
+      let data = rpcData;
+      if (!data) {
+        const { data: selectData } = await supabase
+          .from("user_progress")
+          .select("xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
+          .eq("user_id", userId)
+          .maybeSingle();
+        data = selectData;
+      }
+      
       const wk = getCurrentWeekKey();
+
+      // Defensive merge: never let completedLessons shrink locally to prevent UI regression
+      // from read-replica lag or dropped network requests.
+      const dbLessons = (data?.completed_lessons ?? []) as string[];
+      const localLessons = cachePre?.completedLessons ?? [];
+      const mergedLessons = Array.from(new Set([...localLessons, ...dbLessons]));
 
       const fresh: ProgressState = {
         xp: Math.max(0, Number(data?.xp ?? 0)),
@@ -229,7 +245,7 @@ export function useProgress() {
         streak: data?.streak ?? 0,
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
-        completedLessons: (data?.completed_lessons ?? []) as string[],
+        completedLessons: mergedLessons,
         freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
