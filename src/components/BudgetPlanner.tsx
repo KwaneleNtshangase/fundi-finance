@@ -1,6 +1,6 @@
 "use client";
-
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
@@ -712,8 +712,8 @@ export function BudgetView() {
   const needsTotal = realEntries.filter((e) => e.type === "expense" && ["food","transport","housing","airtime","healthcare","education"].includes(e.category)).reduce((s, e) => s + e.amount, 0);
   const wantsTotal = realEntries.filter((e) => e.type === "expense" && e.category === "entertainment").reduce((s, e) => s + e.amount, 0);
   const debtTotal = realEntries.filter((e) => e.type === "expense" && e.category === "debt").reduce((s, e) => s + e.amount, 0);
-  const savingsTotal = realEntries.filter((e) => e.type === "expense" && e.category === "savings").reduce((s, e) => s + e.amount, 0);
-  const savingsRate = income > 0 ? Math.round((savingsTotal / income) * 100) : 0;
+  const explicitSavingsTotal = realEntries.filter((e) => e.type === "expense" && e.category === "savings").reduce((s, e) => s + e.amount, 0);
+  const mathSavingsRate = income > 0 ? Math.round(((income - expenses) / income) * 100) : 0;
   const debtRate = income > 0 ? Math.round((debtTotal / income) * 100) : 0;
 
   const getCatLabel = (type: string, cat: string) => {
@@ -942,26 +942,49 @@ export function BudgetView() {
           ) : (
             <>
               {income > 0 && (
-                <div style={{ background: "linear-gradient(135deg,rgba(0,122,77,0.07) 0%,rgba(255,182,18,0.05) 100%)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20 }}>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14, marginBottom: 12 }}>
-                    <Lightbulb size={16} style={{ color: "var(--color-primary)" }} /> Fundi Insights
+                    <Lightbulb size={16} style={{ color: "var(--color-primary)" }} /> Spending Insights
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
-                      <span style={{ color: "var(--color-text-secondary)" }}>Savings rate</span>
-                      <span style={{ fontWeight: 700, color: savingsRate >= 10 ? "#007A4D" : "#E03C31" }}>{savingsRate}% {savingsRate >= 10 ? "On track" : "aim for 10%+"}</span>
+                      <span style={{ color: "var(--color-text-secondary)" }}>Savings rate (Net)</span>
+                      <span style={{ fontWeight: 700, color: mathSavingsRate >= 10 ? "#007A4D" : "#E03C31" }}>
+                        {mathSavingsRate}% {mathSavingsRate >= 10 ? "Great job!" : "Aim for 10%+"}
+                      </span>
                     </div>
-                    {debtTotal > 0 && (
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
-                        <span style={{ color: "var(--color-text-secondary)" }}>Debt repayments</span>
-                        <span style={{ fontWeight: 700, color: debtRate > 40 ? "#E03C31" : debtRate > 20 ? "#FFB612" : "var(--color-text-primary)" }}>{debtRate}% of income</span>
+
+                    {catTotals.length > 0 && (
+                      <div>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-secondary)", marginBottom: 6 }}>Top Expenses</div>
+                        {catTotals.slice(0, 3).map((c) => (
+                          <div key={c.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13, marginBottom: 4 }}>
+                            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color }} />
+                              {c.label}
+                            </span>
+                            <span style={{ fontWeight: 600 }}>{formatRand(c.total)} <span style={{ color: "var(--color-text-secondary)", fontSize: 11, fontWeight: 500 }}>({expenses > 0 ? Math.round((c.total / expenses) * 100) : 0}%)</span></span>
+                          </div>
+                        ))}
                       </div>
                     )}
+
                     {needsTotal + wantsTotal > 0 && (
-                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
-                        Needs: {formatRand(needsTotal)} · Wants: {formatRand(wantsTotal)}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
+                        <span style={{ color: "var(--color-text-secondary)" }}>Needs vs Wants</span>
+                        <span style={{ fontWeight: 600 }}>
+                          {expenses > 0 ? Math.round((needsTotal / expenses) * 100) : 0}% / {expenses > 0 ? Math.round((wantsTotal / expenses) * 100) : 0}%
+                        </span>
                       </div>
                     )}
+
+                    <Link href="/learn?course=saving-investing" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(0,122,77,0.06)", borderRadius: 10, textDecoration: "none" }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-primary)" }}>{mathSavingsRate < 10 ? "Boost your savings" : "Grow your wealth"}</div>
+                        <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{mathSavingsRate < 10 ? "Learn how to build an emergency fund." : "Level up your investing skills."}</div>
+                      </div>
+                      <ChevronRight size={16} style={{ color: "var(--color-primary)" }} />
+                    </Link>
                   </div>
                 </div>
               )}

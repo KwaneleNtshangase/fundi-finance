@@ -155,6 +155,7 @@ import {
 } from "@/lib/dailyChallengeFlags";
 import { useFundiState } from "@/hooks/useFundiState";
 import { SettingsView } from "@/components/SettingsView";
+import { StokvelDashboard } from "@/components/StokvelDashboard";
 
 function getDailyFact(): string {
   const start = new Date(new Date().getFullYear(), 0, 0);
@@ -247,6 +248,7 @@ export function QuestsView({
         </div>
       )}
       <DailyChallenges streak={streak} onXpClaimed={addXP} />
+      <StokvelDashboard />
       </div>
     </main>
   );

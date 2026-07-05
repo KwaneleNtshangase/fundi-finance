@@ -38,7 +38,7 @@ export async function signIn(page: Page) {
 }
 
 /** Navigate to a specific tab using the bottom nav */
-export async function goToTab(page: Page, tab: "Learn" | "Calculate" | "Budget" | "Progress" | "Profile") {
+export async function goToTab(page: Page, tab: "Learn" | "Calculate" | "Budget" | "Progress" | "Profile" | "Goals") {
   await page.locator(`text=${tab}`).first().click();
   await page.waitForTimeout(300);
 }
@@ -60,8 +60,8 @@ export async function openFirstLesson(page: Page): Promise<string> {
   
   await lesson.click();
   // Wait for lesson page to load
-  await page.locator(".step-title, h2, .question-text").first().waitFor({ state: "visible", timeout: 15_000 });
-  const title = await page.locator(".step-title, h2, .question-text").first().textContent();
+  await page.locator(".step-title, .question-text").first().waitFor({ state: "visible", timeout: 15_000 });
+  const title = await page.locator(".step-title, .question-text").first().textContent();
   return title ?? "unknown";
 }
 
@@ -71,7 +71,7 @@ export async function completeLesson(page: Page) {
   while (safety < 40) {
     safety++;
     // Check if we're on a completion screen
-    const done = page.locator("text=Back to Course, text=Done — Back to Course").first();
+    const done = page.locator("text=Back to Course, text=Lesson Complete!, text=Perfect Lesson!, text=XP Earned").first();
     if (await done.isVisible()) break;
 
     // MCQ — click first option
@@ -88,10 +88,10 @@ export async function completeLesson(page: Page) {
       await page.waitForTimeout(400);
     }
 
-    // Continue / Finish / Next
+    // Continue / Finish / Next / Calculate
     const continueBtn = page
-      .locator("button", { hasText: /Continue|Finish|Next Lesson/ })
-      .first();
+    .locator("main button", { hasText: /Continue|Finish|Next Lesson|Calculate/i })
+    .first();
     if (await continueBtn.isVisible()) {
       await continueBtn.click();
       await page.waitForTimeout(600);
@@ -102,6 +102,15 @@ export async function completeLesson(page: Page) {
     const doneBtn = page.locator("button", { hasText: /I.ve done this|Done/i }).first();
     if (await doneBtn.isVisible()) {
       await doneBtn.click();
+      await page.waitForTimeout(400);
+      continue;
+    }
+
+    // Fill blank
+    const fillInput = page.locator('input[type="text"]').first();
+    if (await fillInput.isVisible()) {
+      await fillInput.fill("0");
+      await page.locator("button", { hasText: "Check" }).first().click();
       await page.waitForTimeout(400);
       continue;
     }

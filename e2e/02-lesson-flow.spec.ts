@@ -106,8 +106,12 @@ test.describe("Lesson Flow", () => {
       if (await tBtn.isVisible() && !(await tBtn.isDisabled())) { await tBtn.click(); await page.waitForTimeout(300); }
 
       // Action check done
-      const doneAct = page.locator("button", { hasText: /I.ve done this/i }).first();
+      const doneAct = page.locator("button", { hasText: /I.ve done this|Done - I did it/i }).first();
       if (await doneAct.isVisible()) { await doneAct.click(); await page.waitForTimeout(300); }
+
+      // Fill blank
+      const fillInput = page.locator('input[type="text"]').first();
+      if (await fillInput.isVisible()) { await fillInput.fill("0"); await page.locator("button", { hasText: "Check" }).first().click(); await page.waitForTimeout(300); }
 
       // Continue/Finish
       const cont = page.locator("button", { hasText: /Continue|Finish/i }).first();
@@ -127,42 +131,56 @@ test.describe("Lesson Flow", () => {
     while (safety < 40) {
       safety++;
       await page.waitForTimeout(500);
-      const done = page.locator("text=Lesson Complete!, text=Back to Course").first();
+      const done = page.locator("text=Lesson Complete!, text=Perfect Lesson!, text=XP Earned").first();
       if (await done.isVisible()) break;
       const opts = page.locator(".option-button:not([disabled])");
       if ((await opts.count()) > 0) await opts.first().click();
       const tBtn = page.locator("button", { hasText: "True" }).first();
       if (await tBtn.isVisible() && !(await tBtn.isDisabled())) await tBtn.click();
-      const doneAct = page.locator("button", { hasText: /I.ve done this/i }).first();
+      const doneAct = page.locator("button", { hasText: /I.ve done this|Done - I did it/i }).first();
       if (await doneAct.isVisible()) await doneAct.click();
-      const cont = page.locator("button", { hasText: /Continue|Finish/i }).first();
+      const fillInput = page.locator('input[type="text"]').first();
+      if (await fillInput.isVisible()) { await fillInput.fill("0"); await page.locator("button", { hasText: "Check" }).first().click(); }
+      const cont = page.locator("main button", { hasText: /Continue|Finish|Next Lesson|Calculate/i }).first();
       if (await cont.isVisible()) { await cont.click(); await page.waitForTimeout(600); continue; }
       await page.waitForTimeout(300);
     }
     // Completion screen should show
     const xpText = page.locator("text=XP").first();
     await expect(xpText).toBeVisible({ timeout: 5_000 });
-    const backBtn = page.locator("button", { hasText: /Back to Course|Done/i }).first();
+    const backBtn = page.locator("button", { hasText: /Continue/i }).first();
     await expect(backBtn).toBeVisible({ timeout: 5_000 });
   });
 
   test("2.9 — Back to Course returns to course map", async ({ page }) => {
+    page.on("pageerror", err => console.log("PAGE ERROR:", err));
+    page.on("console", msg => console.log("PAGE CONSOLE:", msg.text()));
     await openFirstLesson(page);
     // Complete the lesson quickly
     let safety = 0;
     while (safety < 40) {
       safety++;
       await page.waitForTimeout(500);
-      const backBtn = page.locator("button", { hasText: /Back to Course|Done.*Course/i }).first();
-      if (await backBtn.isVisible()) { await backBtn.click(); break; }
+      const summaryVisible = await page.locator("text=XP Earned").isVisible();
+      if (summaryVisible) {
+        console.log(`[test] summary screen visible`);
+        const contSummary = page.locator("button", { hasText: /^Continue$/i }).last();
+        console.log(`[test] clicking contSummary`);
+        await contSummary.click();
+        break;
+      }
       const opts = page.locator(".option-button:not([disabled])");
-      if ((await opts.count()) > 0) await opts.first().click();
+      if ((await opts.count()) > 0) { console.log(`[test] clicking opts`); await opts.first().click(); }
       const tBtn = page.locator("button", { hasText: "True" }).first();
-      if (await tBtn.isVisible() && !(await tBtn.isDisabled())) await tBtn.click();
-      const doneAct = page.locator("button", { hasText: /I.ve done this/i }).first();
-      if (await doneAct.isVisible()) await doneAct.click();
-      const cont = page.locator("button", { hasText: /Continue|Finish/i }).first();
-      if (await cont.isVisible()) { await cont.click(); await page.waitForTimeout(500); continue; }
+      if (await tBtn.isVisible() && !(await tBtn.isDisabled())) { console.log(`[test] clicking true`); await tBtn.click(); }
+      const doneAct = page.locator("button", { hasText: /I.ve done this|Done - I did it/i }).first();
+      if (await doneAct.isVisible()) { console.log(`[test] clicking doneAct`); await doneAct.click(); }
+      const fillInput = page.locator('input[type="text"]').first();
+      if (await fillInput.isVisible()) { console.log(`[test] fillInput`); await fillInput.fill("0"); await page.locator("button", { hasText: "Check" }).first().click(); }
+      const backBtn = page.locator("button", { hasText: /Back to Course/i }).first();
+      if (await backBtn.isVisible()) { console.log(`[test] clicking backBtn`); await backBtn.click(); await page.waitForTimeout(500); continue; }
+      const cont = page.locator("main button", { hasText: /Continue|Finish|Next Lesson|Calculate/i }).first();
+      if (await cont.isVisible()) { console.log(`[test] clicking cont`); await cont.click(); await page.waitForTimeout(500); continue; }
       await page.waitForTimeout(300);
     }
     await page.waitForTimeout(500);
@@ -179,16 +197,27 @@ test.describe("Lesson Flow", () => {
     let safety = 0;
     while (safety < 40) {
       safety++;
-      const backBtn = page.locator("button", { hasText: /Back to Course|Done.*Course/i }).first();
-      if (await backBtn.isVisible()) { await backBtn.click(); break; }
+      const summaryVisible = await page.locator("text=XP Earned").isVisible();
+      if (summaryVisible) {
+        const contSummary = page.locator("button", { hasText: /^Continue$/i }).last();
+        await contSummary.click();
+        break;
+      }
       const opts = page.locator(".option-button:not([disabled])");
       if ((await opts.count()) > 0) await opts.first().click();
       const tBtn = page.locator("button", { hasText: "True" }).first();
       if (await tBtn.isVisible() && !(await tBtn.isDisabled())) await tBtn.click();
-      const cont = page.locator("button", { hasText: /Continue|Finish/i }).first();
+      const doneAct = page.locator("button", { hasText: /I.ve done this|Done - I did it/i }).first();
+      if (await doneAct.isVisible()) await doneAct.click();
+      const fillInput = page.locator('input[type="text"]').first();
+      if (await fillInput.isVisible()) { await fillInput.fill("0"); await page.locator("button", { hasText: "Check" }).first().click(); }
+      const backBtn = page.locator("button", { hasText: /Back to Course/i }).first();
+      if (await backBtn.isVisible()) { await backBtn.click(); await page.waitForTimeout(500); continue; }
+      const cont = page.locator("main button", { hasText: /Continue|Finish|Next Lesson|Calculate/i }).first();
       if (await cont.isVisible()) { await cont.click(); await page.waitForTimeout(400); continue; }
       await page.waitForTimeout(300);
     }
+    await goToTab(page, "Learn");
     await page.waitForTimeout(1000); // wait for XP animation
     const updatedXP = parseInt((await xpEl.textContent() ?? "0").replace(/\D/g, ""), 10);
     expect(updatedXP).toBeGreaterThanOrEqual(initialXP); // XP should not decrease

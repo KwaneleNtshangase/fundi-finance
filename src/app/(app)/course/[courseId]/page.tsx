@@ -7,7 +7,7 @@ import { CONTENT_DATA } from "@/data/content";
 
 export default function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = use(params);
-  const { setRoute, isLessonCompleted, completedLessons } = useFundi();
+  const { setRoute, isLessonCompleted, completedLessons, setCurrentLessonState } = useFundi();
   const course = CONTENT_DATA.courses.find(c => c.id === courseId);
 
   if (!course) {
@@ -20,6 +20,17 @@ export default function CoursePage({ params }: { params: Promise<{ courseId: str
       isLessonCompleted={isLessonCompleted}
       goBack={() => setRoute({ name: "learn" })}
       goToLesson={(lessonId) => {
+        const lessonInfo = course.units.flatMap((u) => u.lessons).find((l) => l.id === lessonId);
+        if (lessonInfo) {
+          setCurrentLessonState({
+            courseId,
+            lessonId,
+            stepIndex: 0,
+            answers: {},
+            correctCount: 0,
+            steps: lessonInfo.steps || [],
+          });
+        }
         setRoute({ name: "lesson", courseId, lessonId });
       }}
     />

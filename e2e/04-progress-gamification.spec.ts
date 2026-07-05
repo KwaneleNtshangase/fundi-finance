@@ -19,13 +19,13 @@ test.describe("Progress & Gamification", () => {
   });
 
   test("4.2 — Daily challenges section appears on Learn tab", async ({ page }) => {
-    await goToTab(page, "Learn");
-    const challenges = page.locator("text=Daily Challenge, text=Today's Challenge").first();
+    await goToTab(page, "Goals");
+    const challenges = page.locator("text=/Daily Challenge/i").first();
     await expect(challenges).toBeVisible({ timeout: 10_000 });
   });
 
   test("4.3 — Daily challenges show 3 items", async ({ page }) => {
-    await goToTab(page, "Learn");
+    await goToTab(page, "Goals");
     // Give challenges time to load
     await page.waitForTimeout(1000);
     const challengeItems = page.locator(".challenge-item, [data-challenge]");
@@ -75,11 +75,11 @@ test.describe("Progress & Gamification", () => {
   });
 
   test("4.8 — Weekly challenges track correctly", async ({ page }) => {
-    await goToTab(page, "Learn");
+    await goToTab(page, "Goals");
     const wc = page.locator("text=/This Week|Weekly Challenge/i").first();
     await expect(wc).toBeVisible({ timeout: 10_000 });
     // Progress indicator should be visible
-    const progress = page.locator("text=/ 7, text=/ 5").first();
+    const progress = page.locator("text=/[0-9]+\/[0-9]+/").first();
     if (await progress.isVisible()) {
       const text = await progress.textContent();
       expect(text).toMatch(/\d/);

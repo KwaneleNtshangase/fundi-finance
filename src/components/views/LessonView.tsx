@@ -471,7 +471,8 @@ export function LessonView({
     // ── Action Check step (behaviour change) ──────────────────────────────
     if ((step as any).type === "action-check") {
       const s = step as any;
-      const didAction = lessonState.answers[lessonState.stepIndex] as string | undefined;
+      const didAction = lessonState.answers[lessonState.stepIndex] as number | undefined;
+      console.log("LessonView action-check render:", { didAction, stepIndex: lessonState.stepIndex, answers: lessonState.answers });
       return (
         <div className="flex flex-col gap-4">
           <div style={{
@@ -499,12 +500,17 @@ export function LessonView({
                 className="btn btn-primary"
                 style={{ flex: 2, padding: "14px 16px", fontSize: 15, fontWeight: 800 }}
                 onClick={() => {
+                  console.log("CLICKED DONE BUTTON! CALLING answerQuestion(1)");
                   // Track action completed
-                  const key = "fundi-actions-completed";
-                  const count = parseInt(localStorage.getItem(key) ?? "0", 10);
-                  localStorage.setItem(key, String(count + 1));
+                  try {
+                    const key = "fundi-actions-completed";
+                    const count = parseInt(localStorage.getItem(key) ?? "0", 10);
+                    localStorage.setItem(key, String(count + 1));
+                  } catch (err) {
+                    console.error("LOCALSTORAGE ERROR:", err);
+                  }
                   // Store answer as "done"
-                  (window as any).__actionCheckAnswer?.("done");
+                  answerQuestion(1);
                 }}
               >
                 <span className="inline-flex items-center gap-2">
@@ -517,7 +523,7 @@ export function LessonView({
                 className="btn btn-secondary"
                 style={{ flex: 1, padding: "14px 12px", fontSize: 13, fontWeight: 600 }}
                 onClick={() => {
-                  (window as any).__actionCheckAnswer?.("skipped");
+                  answerQuestion(0);
                 }}
               >
                 Skip for now
@@ -526,14 +532,14 @@ export function LessonView({
           ) : (
             <div style={{
               borderRadius: 14, padding: "16px",
-              background: didAction === "done" ? "rgba(0,122,77,0.08)" : "rgba(255,182,18,0.08)",
-              border: `1.5px solid ${didAction === "done" ? "var(--color-primary)" : "#FFB612"}`,
+              background: didAction === 1 ? "rgba(0,122,77,0.08)" : "rgba(255,182,18,0.08)",
+              border: `1.5px solid ${didAction === 1 ? "var(--color-primary)" : "#FFB612"}`,
             }}>
               <p style={{
                 fontSize: 14, lineHeight: 1.6, fontWeight: 600,
-                color: didAction === "done" ? "var(--color-primary)" : "#8B6914",
+                color: didAction === 1 ? "var(--color-primary)" : "#8B6914",
               }}>
-                {didAction === "done" ? s.successMessage : s.skipMessage}
+                {didAction === 1 ? s.successMessage : s.skipMessage}
               </p>
             </div>
           )}
@@ -586,111 +592,7 @@ export function LessonView({
 
     // ── Calculator Embed step ─────────────────────────────────────────────
     if ((step as any).type === "calculator-embed") {
-      const s = step as any;
-      const [embedCalcDone, setEmbedCalcDone] = React.useState(false);
-      const preset = s.preset ?? {};
-      const embedInputs: CalcInputs = {
-        principal: preset.principal ?? 0,
-        monthly: preset.monthly ?? 500,
-        rate: preset.rate ?? 10,
-        years: preset.years ?? 10,
-        escalation: preset.escalation ?? 5,
-        frequency: preset.frequency ?? "monthly",
-      };
-      const embedData = React.useMemo(() => calcGrowth(embedInputs), []);
-      const embedFinal = embedData.length > 0 ? embedData[embedData.length - 1] : { value: 0, contributions: 0, interest: 0 };
-      const embedChart = embedData.map((d) => ({
-        year: d.year,
-        "Portfolio Value": d.value,
-        "Total Contributions": d.contributions,
-      }));
-
-      return (
-        <div className="flex flex-col gap-4">
-          <div style={{
-            background: "linear-gradient(135deg, #3B7DD8 0%, #2563EB 100%)",
-            borderRadius: 16, padding: "20px", color: "white",
-          }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <Calculator size={22} className="shrink-0" />
-              <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.9 }}>
-                Interactive Calculator
-              </span>
-            </div>
-            <h3 style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.3, marginBottom: 6 }}>{s.title}</h3>
-            <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5 }}>{s.description}</p>
-          </div>
-
-          {!embedCalcDone ? (
-            <button
-              type="button"
-              className="btn btn-primary"
-              style={{ width: "100%", padding: "14px", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-              onClick={() => setEmbedCalcDone(true)}
-            >
-              <BarChart2 size={20} aria-hidden /> Calculate
-            </button>
-          ) : (
-            <>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <div style={{
-                  flex: 1, minWidth: 120, background: "var(--color-primary)", borderRadius: 12,
-                  padding: "14px 16px", textAlign: "center",
-                }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: 0.5 }}>Final Value</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "white" }}>{formatRand(embedFinal.value)}</div>
-                </div>
-                <div style={{
-                  flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
-                  borderRadius: 12, padding: "14px 16px", textAlign: "center",
-                }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>You Put In</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "var(--color-text-primary)" }}>{formatRand(embedFinal.contributions)}</div>
-                </div>
-                <div style={{
-                  flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
-                  borderRadius: 12, padding: "14px 16px", textAlign: "center",
-                }}>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>Interest Earned</div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "#007A4D" }}>{formatRand(embedFinal.interest)}</div>
-                </div>
-              </div>
-
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={embedChart} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                    <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} />
-                    <YAxis tickFormatter={(v) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} width={45} />
-                    <Tooltip
-                      formatter={(v) => formatRand(typeof v === "number" ? v : Number(v ?? 0))}
-                      labelFormatter={(l) => `Year ${l}`}
-                      contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }}
-                    />
-                    <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
-                    <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div style={{
-                background: "rgba(0,122,77,0.06)", border: "1.5px solid rgba(0,122,77,0.2)",
-                borderRadius: 12, padding: "14px 16px", borderLeft: "4px solid var(--color-primary)",
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <Lightbulb size={14} style={{ color: "var(--color-primary)" }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)" }}>Key Insight</span>
-                </div>
-                <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--color-text-primary)" }}>{s.insight}</p>
-              </div>
-            </>
-          )}
-
-          <div className="lesson-actions">
-            <button className="btn btn-primary" onClick={nextStep}>Continue</button>
-          </div>
-        </div>
-      );
+      return <CalculatorEmbedStep step={step} onNext={nextStep} />;
     }
 
     if (step.type === "mcq" || step.type === "scenario") {
@@ -1057,5 +959,112 @@ export function LessonView({
         </div>
       </main>
     </>
+  );
+}
+
+function CalculatorEmbedStep({ step, onNext }: { step: any; onNext: () => void }) {
+  const [embedCalcDone, setEmbedCalcDone] = React.useState(false);
+  const preset = step.preset ?? {};
+  const embedInputs: CalcInputs = {
+    principal: preset.principal ?? 0,
+    monthly: preset.monthly ?? 500,
+    rate: preset.rate ?? 10,
+    years: preset.years ?? 10,
+    escalation: preset.escalation ?? 5,
+    frequency: preset.frequency ?? "monthly",
+  };
+  const embedData = React.useMemo(() => calcGrowth(embedInputs), [embedInputs]);
+  const embedFinal = embedData.length > 0 ? embedData[embedData.length - 1] : { value: 0, contributions: 0, interest: 0 };
+  const embedChart = embedData.map((d: any) => ({
+    year: d.year,
+    "Portfolio Value": d.value,
+    "Total Contributions": d.contributions,
+  }));
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div style={{
+        background: "linear-gradient(135deg, #3B7DD8 0%, #2563EB 100%)",
+        borderRadius: 16, padding: "20px", color: "white",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+          <Calculator size={22} className="shrink-0" />
+          <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", opacity: 0.9 }}>
+            Interactive Calculator
+          </span>
+        </div>
+        <h3 style={{ fontSize: 18, fontWeight: 800, lineHeight: 1.3, marginBottom: 6 }}>{step.title}</h3>
+        <p style={{ fontSize: 13, opacity: 0.9, lineHeight: 1.5 }}>{step.description}</p>
+      </div>
+
+      {!embedCalcDone ? (
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ width: "100%", padding: "14px", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          onClick={() => setEmbedCalcDone(true)}
+        >
+          <BarChart2 size={20} aria-hidden /> Calculate
+        </button>
+      ) : (
+        <>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <div style={{
+              flex: 1, minWidth: 120, background: "var(--color-primary)", borderRadius: 12,
+              padding: "14px 16px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.8)", textTransform: "uppercase", letterSpacing: 0.5 }}>Final Value</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "white" }}>{formatRand(embedFinal.value)}</div>
+            </div>
+            <div style={{
+              flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
+              borderRadius: 12, padding: "14px 16px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>You Put In</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "var(--color-text-primary)" }}>{formatRand(embedFinal.contributions)}</div>
+            </div>
+            <div style={{
+              flex: 1, minWidth: 120, background: "var(--color-surface)", border: "1px solid var(--color-border)",
+              borderRadius: 12, padding: "14px 16px", textAlign: "center",
+            }}>
+              <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>Interest Earned</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#007A4D" }}>{formatRand(embedFinal.interest)}</div>
+            </div>
+          </div>
+
+          <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16 }}>
+            <ResponsiveContainer width="100%" height={200}>
+              <LineChart data={embedChart} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="year" tickFormatter={(v) => `Yr ${v}`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} />
+                <YAxis tickFormatter={(v: number) => `R${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 10, fill: "var(--color-text-secondary)" }} width={45} />
+                <Tooltip
+                  formatter={(v: any) => formatRand(typeof v === "number" ? v : Number(v ?? 0))}
+                  labelFormatter={(l) => `Year ${l}`}
+                  contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }}
+                />
+                <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
+                <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div style={{
+            background: "rgba(0,122,77,0.06)", border: "1.5px solid rgba(0,122,77,0.2)",
+            borderRadius: 12, padding: "14px 16px", borderLeft: "4px solid var(--color-primary)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <Lightbulb size={14} style={{ color: "var(--color-primary)" }} />
+              <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)" }}>Key Insight</span>
+            </div>
+            <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--color-text-primary)" }}>{step.insight}</p>
+          </div>
+        </>
+      )}
+
+      <div className="lesson-actions">
+        <button className="btn btn-primary" onClick={onNext}>Continue</button>
+      </div>
+    </div>
   );
 }
