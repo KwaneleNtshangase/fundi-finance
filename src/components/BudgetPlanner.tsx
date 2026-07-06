@@ -319,7 +319,7 @@ export function BudgetView() {
       .lte("entry_date", endDate)
       .order("entry_date", { ascending: false })
       .order("created_at", { ascending: false });
-    setEntries((data ?? []) as BudgetEntry[]);
+    setEntries((data ?? []) as unknown as BudgetEntry[]);
     setLoading(false);
   }, [startDate, endDate]);
 
@@ -521,7 +521,7 @@ export function BudgetView() {
       .eq("user_id", user.id)
       .gte("entry_date", `${yr}-01-01`)
       .lte("entry_date", `${yr}-12-31`);
-    setYearEntries((data ?? []) as BudgetEntry[]);
+    setYearEntries((data ?? []) as unknown as BudgetEntry[]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { if (viewMode === "year") loadYearEntries(); }, [viewMode, loadYearEntries]);
@@ -1530,38 +1530,40 @@ export function BudgetView() {
                 </div>
               </>
             ) : (
-            {/* Funding Source Selector */}
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
-              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
-                <button type="button" onClick={() => setAddAccountId(null)}
-                  style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
-                  Cash
-                </button>
-                {bankAccounts.map((b) => (
-                  <button key={b.id} type="button" onClick={() => setAddAccountId(b.id)}
-                    style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
-                    {b.institution_name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {(addType === "expense" ? allExpCats : allIncCats).map((c) => (
-                  <button key={c.id} type="button" onClick={() => setAddCategory(c.id)}
-                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
-                    <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
-                    <span>{c.label}</span>
-                  </button>
-                ))}
-                <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType(addType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
-                  style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", textAlign: "left" }}>
-                  <Plus size={14} style={{ flexShrink: 0 }} aria-hidden /> <span>Add category</span>
-                </button>
-              </div>
-            </div>
+              <>
+                {/* Funding Source Selector */}
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
+                  <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                    <button type="button" onClick={() => setAddAccountId(null)}
+                      style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                      Cash
+                    </button>
+                    {bankAccounts.map((b) => (
+                      <button key={b.id} type="button" onClick={() => setAddAccountId(b.id)}
+                        style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                        {b.institution_name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div style={{ marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    {(addType === "expense" ? allExpCats : allIncCats).map((c) => (
+                      <button key={c.id} type="button" onClick={() => setAddCategory(c.id)}
+                        style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
+                        <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
+                        <span>{c.label}</span>
+                      </button>
+                    ))}
+                    <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType(addType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
+                      style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)", textAlign: "left" }}>
+                      <Plus size={14} style={{ flexShrink: 0 }} aria-hidden /> <span>Add category</span>
+                    </button>
+                  </div>
+                </div>
+              </>
             )}
             <div style={{ marginBottom: 14 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 6 }}>Amount (R)</div>

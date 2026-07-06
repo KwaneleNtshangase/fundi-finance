@@ -15,6 +15,7 @@ export type LessonStep =
       options: string[];
       correct: number;
       feedback: { correct: string; incorrect: string };
+      explanation?: string;
       content?: string;
     }
   | {
