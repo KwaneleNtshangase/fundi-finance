@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@source "../components/views";
+
 
 .scrollbar-hide {
   -ms-overflow-style: none;

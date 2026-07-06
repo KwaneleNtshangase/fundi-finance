@@ -611,24 +611,18 @@ export function LessonView({
           ) : null}
           <div className="flex flex-col gap-3 my-4">
             {step.options.map((option, index) => {
-              let optionClass = "option-button w-full text-left transition-all p-5 rounded-2xl border-2 ";
-              
-              if (answered) {
-                if (index === selectedAnswer) {
-                  optionClass += isCorrect ? " correct border-green-500 font-bold" : " incorrect border-red-500 font-bold";
-                } else if (index === step.correct) {
-                  optionClass += " correct border-green-500";
-                } else {
-                  optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
-                }
-              } else {
-                optionClass += " border-zinc-700 bg-zinc-900 hover:border-green-500 text-white font-medium";
-              }
-
               return (
                 <button
                   key={option}
-                  className={optionClass}
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${
+                    answered
+                      ? index === step.correct
+                        ? "correct border-green-500 font-bold"
+                        : index === selectedAnswer
+                        ? "incorrect border-red-500 font-bold"
+                        : "opacity-50"
+                      : "font-medium"
+                  }`}
                   onClick={() => answerQuestion(index)}
                   disabled={answered}
                 >
@@ -756,24 +750,18 @@ export function LessonView({
           </div>
           <div className="flex flex-col gap-3 my-4">
             {[true, false].map((value) => {
-              let optionClass = "option-button w-full text-left transition-all p-5 rounded-2xl border-2 ";
-              
-              if (answered) {
-                if (value === selectedAnswer) {
-                  optionClass += isCorrect ? " correct border-green-500 font-bold" : " incorrect border-red-500 font-bold";
-                } else if (value === step.correct) {
-                  optionClass += " correct border-green-500";
-                } else {
-                  optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
-                }
-              } else {
-                optionClass += " border-zinc-700 bg-zinc-900 hover:border-green-500 text-white font-medium";
-              }
-
               return (
                 <button
                   key={String(value)}
-                  className={optionClass}
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${
+                    answered
+                      ? value === step.correct
+                        ? "correct border-green-500 font-bold"
+                        : value === selectedAnswer
+                        ? "incorrect border-red-500 font-bold"
+                        : "opacity-50"
+                      : "font-medium"
+                  }`}
                   onClick={() => answerTrueFalse(value)}
                   disabled={answered}
                 >
