@@ -65,6 +65,13 @@ import { BudgetImportPanel } from "@/components/BudgetImportPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+type BankAccount = {
+  id: string;
+  institution_name: string;
+  custom_label: string | null;
+  created_at: string;
+};
+
 type BudgetEntry = {
   id: string;
   type: "income" | "expense";
@@ -73,6 +80,9 @@ type BudgetEntry = {
   description?: string;
   entry_date: string;
   is_transfer?: boolean;
+  account_id?: string | null;
+  entry_method?: "imported" | "manual";
+  bank_accounts?: { institution_name: string; custom_label: string | null } | null;
 };
 
 type CustomBudgetCat = {
@@ -246,6 +256,11 @@ export function BudgetView() {
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
 
+  // New states for account attribution
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
+  const [addAccountId, setAddAccountId] = useState<string | null>(null);
+  const [editAccountId, setEditAccountId] = useState<string | null>(null);
+
   // Read the user's onboarding goal from localStorage to show as header context
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -281,13 +296,24 @@ export function BudgetView() {
   const lastDay = new Date(year, month + 1, 0).getDate();
   const endDate = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
 
+  const loadBankAccounts = React.useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data } = await supabase
+      .from("bank_accounts")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true });
+    setBankAccounts((data ?? []) as BankAccount[]);
+  }, []);
+
   const loadEntries = React.useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
     const { data } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts(institution_name, custom_label)")
       .eq("user_id", user.id)
       .gte("entry_date", startDate)
       .lte("entry_date", endDate)
@@ -297,7 +323,7 @@ export function BudgetView() {
     setLoading(false);
   }, [startDate, endDate]);
 
-  useEffect(() => { loadEntries(); }, [loadEntries]);
+  useEffect(() => { loadEntries(); loadBankAccounts(); }, [loadEntries, loadBankAccounts]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -491,7 +517,7 @@ export function BudgetView() {
     const yr = now.getFullYear();
     const { data } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts(institution_name, custom_label)")
       .eq("user_id", user.id)
       .gte("entry_date", `${yr}-01-01`)
       .lte("entry_date", `${yr}-12-31`);
@@ -529,6 +555,7 @@ export function BudgetView() {
     await supabase.from("budget_entries").insert({
       user_id: user.id, type: addType, category: addCategory,
       amount: Number(addAmount), description: addDesc.trim() || null, entry_date: addDate,
+      account_id: addAccountId || null, entry_method: "manual",
     });
     if (addType === "expense" && budgetTargets[addCategory]) {
       const catSpent = entries.filter(e => e.type === "expense" && e.category === addCategory).reduce((s, e) => s + e.amount, 0) + Number(addAmount);
@@ -612,6 +639,7 @@ export function BudgetView() {
     setEditEntry(e); setEditType(e.type); setEditCategory(e.category);
     setEditAmount(String(e.amount)); setEditDesc(e.description ?? ""); setEditDate(e.entry_date);
     setEditIsTransfer(!!e.is_transfer);
+    setEditAccountId(e.account_id ?? null);
   };
 
   const handleEditSave = async () => {
@@ -620,9 +648,10 @@ export function BudgetView() {
     await supabase.from("budget_entries").update({
       type: editType, category: editCategory, amount: Number(editAmount),
       description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
+      account_id: editAccountId || null, entry_method: "manual",
     }).eq("id", editEntry.id);
     setEntries((prev) => prev.map((e) => e.id === editEntry.id
-      ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate, is_transfer: editIsTransfer }
+      ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate, is_transfer: editIsTransfer, account_id: editAccountId || null, entry_method: "manual" }
       : e));
     setEditSaving(false); setEditEntry(null);
   };
@@ -1150,6 +1179,9 @@ export function BudgetView() {
                         <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
                         </div>
+                        <div style={{ fontSize: 10, color: "var(--color-text-secondary)", opacity: 0.8, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {e.bank_accounts?.institution_name || "Cash"} • {e.entry_method === "imported" ? "Imported" : "Manual"}
+                        </div>
                       </div>
                       <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
                         {e.is_transfer ? "⇄ " : e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
@@ -1403,22 +1435,36 @@ export function BudgetView() {
                 <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>Money moved between accounts - kept out of income &amp; expenses</div>
               </div>
             </button>
+            {/* Funding Source Selector */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                <button type="button" onClick={() => setEditAccountId(null)}
+                  style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                  Cash
+                </button>
+                {bankAccounts.map((b) => (
+                  <button key={b.id} type="button" onClick={() => setEditAccountId(b.id)}
+                    style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                    {b.institution_name}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {(editType === "expense" ? allExpCats : allIncCats).map((c) => (
                   <button key={c.id} type="button" onClick={() => setEditCategory(c.id)}
-                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${editCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
-                    <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${editCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
+                    <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
                     <span>{c.label}</span>
                   </button>
                 ))}
-                {editType === "expense" && (
-                  <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType("expense"); setShowAddCustomCat(true); }}
-                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-secondary)" }}>
-                    <Plus size={14} style={{ flexShrink: 0 }} /> <span>Add category</span>
-                  </button>
-                )}
+                <button type="button" onClick={() => { resetCustomCatForm(); setNewCatType(editType === "income" ? "income" : "expense"); setShowAddCustomCat(true); }}
+                  style={{ marginTop: 2, padding: "11px 12px", borderRadius: 10, cursor: "pointer", border: "2px dashed var(--color-border)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontWeight: 700, fontSize: 13, color: "var(--color-text-secondary)" }}>
+                  <Plus size={15} aria-hidden /> Add a category
+                </button>
               </div>
             </div>
             <div style={{ marginBottom: 14 }}>
@@ -1484,6 +1530,22 @@ export function BudgetView() {
                 </div>
               </>
             ) : (
+            {/* Funding Source Selector */}
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
+              <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                <button type="button" onClick={() => setAddAccountId(null)}
+                  style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                  Cash
+                </button>
+                {bankAccounts.map((b) => (
+                  <button key={b.id} type="button" onClick={() => setAddAccountId(b.id)}
+                    style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                    {b.institution_name}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div style={{ marginBottom: 16 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Category</div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>

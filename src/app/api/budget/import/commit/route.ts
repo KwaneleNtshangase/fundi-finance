@@ -106,6 +106,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: batchError?.message ?? "Failed to create batch" }, { status: 500 });
   }
 
+  // Account attribution handling
+  let accountId: string | null = null;
+  const institutionName = body.accountLabel || "Unknown Bank";
+  
+  if (institutionName) {
+    // 1. Try to find an existing bank account by name
+    const { data: bankAccounts, error: findError } = await admin
+      .from("bank_accounts")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("institution_name", institutionName)
+      .limit(1);
+
+    if (findError) {
+      console.error("Error finding bank account:", findError);
+    }
+
+    if (bankAccounts && bankAccounts.length > 0) {
+      accountId = bankAccounts[0].id;
+    } else {
+      // 2. If it doesn't exist, create it
+      const { data: newBank, error: createError } = await admin
+        .from("bank_accounts")
+        .insert({
+          user_id: user.id,
+          institution_name: institutionName,
+          custom_label: body.accountLabel ?? null,
+        })
+        .select("id")
+        .single();
+        
+      if (createError) {
+        console.error("Error creating bank account:", createError);
+      } else if (newBank) {
+        accountId = newBank.id;
+      }
+    }
+  }
+
   const inserts = rowsToInsert.map((row) => {
     const { type, amount } = txnToBudgetEntryFields({ amountZAR: row.amountZAR });
     return {
@@ -120,6 +159,8 @@ export async function POST(req: NextRequest) {
       dedupe_hash: row.dedupeHash,
       account_label: row.accountLabel ?? body.accountLabel ?? null,
       is_transfer: row.isTransfer ?? false,
+      account_id: accountId,
+      entry_method: "imported",
     };
   });
 
