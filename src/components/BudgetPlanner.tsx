@@ -311,15 +311,50 @@ export function BudgetView() {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
-    const { data } = await supabase
+    let { data, error } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts(institution_name, custom_label)")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method")
       .eq("user_id", user.id)
       .gte("entry_date", startDate)
       .lte("entry_date", endDate)
       .order("entry_date", { ascending: false })
       .order("created_at", { ascending: false });
-    setEntries((data ?? []) as unknown as BudgetEntry[]);
+
+    // Fallback if the new schema is not yet available on the remote environment
+    if (error && (error.code === "PGRST200" || error.code === "42703" || error.message?.includes("does not exist") || error.message?.includes("Could not find"))) {
+      const fallback = await supabase
+        .from("budget_entries")
+        .select("id, type, category, amount, description, entry_date, is_transfer")
+        .eq("user_id", user.id)
+        .gte("entry_date", startDate)
+        .lte("entry_date", endDate)
+        .order("entry_date", { ascending: false })
+        .order("created_at", { ascending: false });
+      data = fallback.data;
+      error = fallback.error;
+    }
+
+    let finalData = data ?? [];
+
+    // Manually merge bank accounts to guarantee no rows are dropped by PostgREST joins
+    if (finalData.length > 0) {
+      const { data: accountsData } = await supabase
+        .from("bank_accounts")
+        .select("id, institution_name, custom_label")
+        .eq("user_id", user.id);
+        
+      if (accountsData && accountsData.length > 0) {
+        const accountMap = new Map();
+        accountsData.forEach(acc => accountMap.set(acc.id, acc));
+        
+        finalData = finalData.map(entry => ({
+          ...entry,
+          bank_accounts: entry.account_id ? accountMap.get(entry.account_id) || null : null
+        }));
+      }
+    }
+
+    setEntries(finalData as unknown as BudgetEntry[]);
     setLoading(false);
   }, [startDate, endDate]);
 
@@ -552,11 +587,20 @@ export function BudgetView() {
     setSaving(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setSaving(false); return; }
-    await supabase.from("budget_entries").insert({
+    const { error: insertError } = await supabase.from("budget_entries").insert({
       user_id: user.id, type: addType, category: addCategory,
       amount: Number(addAmount), description: addDesc.trim() || null, entry_date: addDate,
       account_id: addAccountId || null, entry_method: "manual",
     });
+
+    if (insertError) {
+      // Fallback if new schema isn't deployed
+      await supabase.from("budget_entries").insert({
+        user_id: user.id, type: addType, category: addCategory,
+        amount: Number(addAmount), description: addDesc.trim() || null, entry_date: addDate,
+      });
+    }
+
     if (addType === "expense" && budgetTargets[addCategory]) {
       const catSpent = entries.filter(e => e.type === "expense" && e.category === addCategory).reduce((s, e) => s + e.amount, 0) + Number(addAmount);
       const limit = budgetTargets[addCategory];
@@ -645,14 +689,28 @@ export function BudgetView() {
   const handleEditSave = async () => {
     if (!editEntry || !editCategory || !editAmount || Number(editAmount) <= 0) return;
     setEditSaving(true);
-    await supabase.from("budget_entries").update({
+    
+    const payloadWithSchema = {
       type: editType, category: editCategory, amount: Number(editAmount),
       description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
-      account_id: editAccountId || null, entry_method: "manual",
-    }).eq("id", editEntry.id);
+      account_id: editAccountId || null, entry_method: "manual"
+    };
+
+    const { error: updateError } = await supabase.from("budget_entries")
+      .update(payloadWithSchema)
+      .eq("id", editEntry.id);
+    
+    if (updateError) {
+      await supabase.from("budget_entries").update({
+        type: editType, category: editCategory, amount: Number(editAmount),
+        description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
+      }).eq("id", editEntry.id);
+    }
+
     setEntries((prev) => prev.map((e) => e.id === editEntry.id
-      ? { ...e, type: editType, category: editCategory, amount: Number(editAmount), description: editDesc.trim() || undefined, entry_date: editDate, is_transfer: editIsTransfer, account_id: editAccountId || null, entry_method: "manual" }
+      ? { ...e, ...payloadWithSchema }
       : e));
+      
     setEditSaving(false); setEditEntry(null);
   };
 
