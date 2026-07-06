@@ -622,7 +622,7 @@ export function LessonView({
                   optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
                 }
               } else {
-                optionClass += " border-zinc-200 bg-white hover:border-green-500 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-green-500 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 font-medium";
+                optionClass += " border-zinc-700 bg-zinc-900 hover:border-green-500 text-white font-medium";
               }
 
               return (
@@ -767,7 +767,7 @@ export function LessonView({
                   optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
                 }
               } else {
-                optionClass += " border-zinc-200 bg-white hover:border-green-500 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-green-500 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 font-medium";
+                optionClass += " border-zinc-700 bg-zinc-900 hover:border-green-500 text-white font-medium";
               }
 
               return (
