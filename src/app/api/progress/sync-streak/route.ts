@@ -50,35 +50,41 @@ export async function POST(req: NextRequest) {
   }
 
   const today = isoToday();
-  const yesterday = isoYesterday();
   const lastActive = data?.last_activity_date ? String(data.last_activity_date) : null;
   const current = Number(data?.streak ?? 0);
   const freezeCount = Math.max(0, Number(data?.streak_freeze_count ?? 0));
   const prevLongest = Number(data?.longest_streak ?? 0);
 
-  let nextStreak = current;
-  let nextFreezeCount = freezeCount;
+  // Evaluate the streak state before applying today's lesson completion
+  const { sastDateDiffDays, evaluateStreak } = require("@/lib/dates");
+  const evalResult = evaluateStreak(current, freezeCount, lastActive, today);
 
-  if (!lastActive) {
-    // First ever lesson - start streak at 1
-    nextStreak = 1;
-  } else if (lastActive === today) {
-    // Already did a lesson today - keep streak (at least 1)
-    nextStreak = Math.max(current, 1);
-  } else if (lastActive === yesterday) {
-    // Consecutive day - increment
-    nextStreak = current + 1;
-  } else if (freezeCount > 0) {
-    // Missed a day but has a freeze - consume it and keep streak
-    nextStreak = current;
-    nextFreezeCount = freezeCount - 1;
-    console.info("[sync-streak] Consumed streak freeze", {
+  let nextStreak = evalResult.streak;
+  let nextFreezeCount = evalResult.freezeCount;
+
+  if (evalResult.freezeCount < freezeCount) {
+    console.info("[sync-streak] Consumed streak freeze(s)", {
       userId,
       previousStreak: current,
       remainingFreezes: nextFreezeCount,
+      used: freezeCount - nextFreezeCount
     });
+  }
+
+  // Now apply today's lesson completion
+  const gapAfterEval = evalResult.lastActivityDate ? sastDateDiffDays(today, evalResult.lastActivityDate) : null;
+
+  if (!evalResult.lastActivityDate) {
+    // First ever lesson - start streak at 1
+    nextStreak = 1;
+  } else if (gapAfterEval === 0) {
+    // Already did a lesson today - keep streak (at least 1)
+    nextStreak = Math.max(evalResult.streak, 1);
+  } else if (gapAfterEval === 1) {
+    // Consecutive day - increment
+    nextStreak = evalResult.streak + 1;
   } else {
-    // Missed one or more days with no freeze - start a new streak from today
+    // Should only reach here if gap > 1 and streak was reset to 0 in evaluateStreak
     nextStreak = 1;
   }
 

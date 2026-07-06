@@ -250,9 +250,30 @@ export function useProgress() {
         weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
         weekKey: wk,
       };
-      setState(fresh);
+      
+      // Strict date-diff evaluate on load. If the user missed >1 days and had freezes,
+      // consume them now. If not enough freezes, reset streak locally so the UI updates immediately.
+      const { evaluateStreak } = await import("@/lib/dates");
+      const effective = evaluateStreak(fresh.streak, fresh.freezeCount, fresh.lastActivityDate);
+      
+      const finalState: ProgressState = {
+        ...fresh,
+        streak: effective.streak,
+        freezeCount: effective.freezeCount,
+        lastActivityDate: effective.lastActivityDate,
+      };
+
+      setState(finalState);
       // Update the offline-first cache so next load is instant even without network
-      writeProgressCache(fresh, userId);
+      writeProgressCache(finalState, userId);
+      
+      if (effective.streak !== fresh.streak || effective.freezeCount !== fresh.freezeCount) {
+        void supabase.from("user_progress").update({
+          streak: effective.streak,
+          streak_freeze_count: effective.freezeCount,
+          last_activity_date: effective.lastActivityDate
+        }).eq("user_id", userId);
+      }
 
       // Retry streak sync after a lesson completed while offline / network failed
       if (

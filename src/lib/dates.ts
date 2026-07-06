@@ -54,3 +54,56 @@ export function sastSundayDate(): string {
   const d = String(sunday.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
+
+/**
+ * Calculates the number of days between two SAST date strings (YYYY-MM-DD).
+ * e.g., if dateA is tomorrow and dateB is today, returns 1.
+ */
+export function sastDateDiffDays(dateA: string, dateB: string): number {
+  const tA = new Date(dateA).getTime();
+  const tB = new Date(dateB).getTime();
+  return Math.round((tA - tB) / 86_400_000);
+}
+
+/**
+ * Reconciles the user's streak based on the current date and their last activity.
+ * Consumes freezes for missed days. If not enough freezes, streak resets to 0.
+ * Returns the updated streak, freezeCount, and the effectively "caught up" lastActivityDate
+ * (which will be yesterday if freezes were used, so they still need to play today to extend it).
+ */
+export function evaluateStreak(
+  streak: number,
+  freezeCount: number,
+  lastActivityDate: string | null,
+  currentDate: string = sastToday()
+): { streak: number; freezeCount: number; lastActivityDate: string | null } {
+  if (!lastActivityDate) {
+    return { streak, freezeCount, lastActivityDate };
+  }
+  
+  const gap = sastDateDiffDays(currentDate, lastActivityDate);
+  
+  // They played today or yesterday - streak is fine, no freezes needed.
+  if (gap <= 1) {
+    return { streak, freezeCount, lastActivityDate };
+  }
+  
+  // Missed days = gap - 1
+  const missedDays = gap - 1;
+  
+  if (freezeCount >= missedDays) {
+    return {
+      streak,
+      freezeCount: freezeCount - missedDays,
+      // Advance lastActivityDate to yesterday so we don't double-charge freezes on next load
+      lastActivityDate: sastOffset(-1)
+    };
+  } else {
+    // Not enough freezes to cover the gap. Streak is lost.
+    return {
+      streak: 0,
+      freezeCount, // keeping any remaining freezes since they weren't enough
+      lastActivityDate
+    };
+  }
+}
