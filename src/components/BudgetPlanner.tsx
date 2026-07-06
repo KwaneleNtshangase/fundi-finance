@@ -552,7 +552,7 @@ export function BudgetView() {
     const yr = now.getFullYear();
     const { data } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts(institution_name, custom_label)")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts!left(institution_name, custom_label)")
       .eq("user_id", user.id)
       .gte("entry_date", `${yr}-01-01`)
       .lte("entry_date", `${yr}-12-31`);
