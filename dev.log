@@ -2,56 +2,34 @@
 > fundi-finance@0.1.0 dev
 > next dev
 
+⚠ Port 3000 is in use by process 54408, using available port 3001 instead.
 ▲ Next.js 16.1.6 (Turbopack)
-- Local:         http://localhost:3000
-- Network:       http://192.168.101.114:3000
+- Local:         http://localhost:3001
+- Network:       http://192.168.101.114:3001
 - Environments: .env.local
 
 ✓ Starting...
-
-thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
-
-thread 'tokio-runtime-worker' (6035639) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035636) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035641) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035643) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035649) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035638) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035640) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035639) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-
-thread 'tokio-runtime-worker' (6035637) panicked at turbopack/crates/turbo-persistence/src/static_sorted_file.rs:387:51:
-range start index 18446744073709551252 out of range for slice of length 80
-[?25h
+✓ Ready in 949ms
+ GET / 307 in 2.6s (compile: 2.4s, render: 151ms)
+ GET /learn 200 in 1283ms (compile: 1099ms, render: 184ms)
+ GET /learn 200 in 108ms (compile: 13ms, render: 95ms)
+ GET / 307 in 81ms (compile: 8ms, render: 73ms)
+ GET /learn 200 in 35ms (compile: 3ms, render: 32ms)
+ GET /learn 200 in 35ms (compile: 2ms, render: 33ms)
+ GET /budget 200 in 65ms (compile: 23ms, render: 43ms)
+ GET / 307 in 50ms (compile: 3ms, render: 47ms)
+ GET /learn 200 in 22ms (compile: 1424µs, render: 21ms)
+ GET /learn 200 in 27ms (compile: 1683µs, render: 25ms)
+ GET /budget 200 in 73ms (compile: 11ms, render: 62ms)
+ GET / 307 in 54ms (compile: 5ms, render: 49ms)
+ GET /learn 200 in 22ms (compile: 1417µs, render: 21ms)
+ GET /learn 200 in 31ms (compile: 1699µs, render: 29ms)
+ GET /budget 200 in 44ms (compile: 7ms, render: 37ms)
+ GET / 307 in 47ms (compile: 1952µs, render: 45ms)
+ GET /learn 200 in 23ms (compile: 1333µs, render: 22ms)
+ GET /learn 200 in 31ms (compile: 2ms, render: 29ms)
+ GET /budget 200 in 24ms (compile: 6ms, render: 17ms)
+ GET / 307 in 77ms (compile: 1845µs, render: 75ms)
+ GET /learn 200 in 42ms (compile: 3ms, render: 39ms)
+ GET /learn 200 in 51ms (compile: 3ms, render: 48ms)
+ GET /budget 200 in 32ms (compile: 9ms, render: 23ms)

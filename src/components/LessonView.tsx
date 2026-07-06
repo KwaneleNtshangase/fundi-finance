@@ -497,15 +497,29 @@ export function LessonView({
         <>
           <h2 className="step-title">{step.question}</h2>
           {step.content ? <div className="step-content" dangerouslySetInnerHTML={{ __html: step.content }} /> : null}
-          <div className="question-options">
+          <div className="flex flex-col gap-3 my-4">
             {step.options.map((option: string, index: number) => {
-              let optionClass = "option-button";
+              let optionClass = "option-button w-full text-left transition-all p-5 rounded-2xl border-2 ";
+              
               if (answered) {
-                if (index === selectedAnswer) optionClass += isCorrect ? " correct" : " incorrect";
-                if (index === step.correct && selectedAnswer !== step.correct) optionClass += " correct";
+                if (index === selectedAnswer) {
+                  optionClass += isCorrect ? " correct border-green-500 font-bold" : " incorrect border-red-500 font-bold";
+                } else if (index === step.correct) {
+                  optionClass += " correct border-green-500";
+                } else {
+                  optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
+                }
+              } else {
+                optionClass += " border-zinc-200 bg-white hover:border-green-500 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-green-500 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 font-medium";
               }
+
               return (
-                <button key={option} className={optionClass} onClick={() => answerQuestion(index)} disabled={answered}>
+                <button
+                  key={option}
+                  className={optionClass}
+                  onClick={() => answerQuestion(index)}
+                  disabled={answered}
+                >
                   {option}
                 </button>
               );
@@ -574,15 +588,29 @@ export function LessonView({
         <>
           <h2 className="step-title">True or False?</h2>
           <div className="step-content"><p>{step.statement}</p></div>
-          <div className="question-options">
+          <div className="flex flex-col gap-3 my-4">
             {[true, false].map((value) => {
-              let optionClass = "option-button";
+              let optionClass = "option-button w-full text-left transition-all p-5 rounded-2xl border-2 ";
+              
               if (answered) {
-                if (value === selectedAnswer) optionClass += isCorrect ? " correct" : " incorrect";
-                if (value === step.correct && selectedAnswer !== step.correct) optionClass += " correct";
+                if (value === selectedAnswer) {
+                  optionClass += isCorrect ? " correct border-green-500 font-bold" : " incorrect border-red-500 font-bold";
+                } else if (value === step.correct) {
+                  optionClass += " correct border-green-500";
+                } else {
+                  optionClass += " border-zinc-200 bg-zinc-50 opacity-50 dark:border-zinc-800 dark:bg-zinc-900/50";
+                }
+              } else {
+                optionClass += " border-zinc-200 bg-white hover:border-green-500 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-green-500 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-100 font-medium";
               }
+
               return (
-                <button key={String(value)} className={optionClass} onClick={() => answerTrueFalse(value)} disabled={answered}>
+                <button
+                  key={String(value)}
+                  className={optionClass}
+                  onClick={() => answerTrueFalse(value)}
+                  disabled={answered}
+                >
                   {value ? "True" : "False"}
                 </button>
               );
