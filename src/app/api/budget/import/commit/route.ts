@@ -145,12 +145,32 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Fetch valid custom categories to prevent rogue UUIDs (like file/batch IDs) from being saved as categories
+  const { data: customCats } = await admin
+    .from("custom_budget_categories")
+    .select("id")
+    .eq("user_id", user.id);
+  const validCustomCatIds = new Set((customCats ?? []).map(c => c.id));
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
   const inserts = rowsToInsert.map((row) => {
     const { type, amount } = txnToBudgetEntryFields({ amountZAR: row.amountZAR });
+    
+    // Prevent file names or UUID-like strings (like batch IDs) that end in extensions from being saved as categories
+    let safeCategory = row.category;
+    if (safeCategory && (safeCategory.toLowerCase().endsWith(".pdf") || safeCategory.toLowerCase().endsWith(".csv") || safeCategory.toLowerCase().endsWith(".ofx"))) {
+      safeCategory = type === "income" ? "other-income" : "other";
+    }
+    
+    // Prevent raw UUIDs that don't match a custom category ID (e.g. batch_id or file_id)
+    if (safeCategory && UUID_REGEX.test(safeCategory) && !validCustomCatIds.has(safeCategory)) {
+      safeCategory = type === "income" ? "other-income" : "other";
+    }
+
     return {
       user_id: user.id,
       type: row.type ?? type,
-      category: row.category,
+      category: safeCategory,
       amount,
       description: row.description,
       entry_date: row.date,

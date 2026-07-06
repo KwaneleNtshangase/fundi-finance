@@ -474,15 +474,32 @@ export function BudgetView() {
       id: c.id, label: c.name, color: c.color, tag: "custom" as const, Icon: getIconByName(c.icon_name),
     }));
     const other = BUDGET_EXPENSE_CATS.find(c => c.id === "other")!;
-    return [...statics, ...custom, other];
-  }, [customCats]);
+
+    const knownIds = new Set([...statics.map(s => s.id), ...custom.map(c => c.id), "other", "transfer"]);
+    const historicalIds = new Set(
+      yearEntries.filter(e => e.type === "expense" && !knownIds.has(e.category)).map(e => e.category)
+    );
+    const historical = Array.from(historicalIds).map(id => ({
+      id, label: id, color: "#9E9E9E", tag: "historical" as const, Icon: getIconByName("MoreHorizontal"),
+    }));
+
+    return [...statics, ...custom, ...historical, other];
+  }, [customCats, yearEntries]);
 
   const allIncCats = useMemo(() => {
     const custom = customCats.filter(c => c.type === "income").map(c => ({
       id: c.id, label: c.name, Icon: getIconByName(c.icon_name),
     }));
-    return [...BUDGET_INCOME_CATS, ...custom];
-  }, [customCats]);
+    const knownIds = new Set([...BUDGET_INCOME_CATS.map(s => s.id), ...custom.map(c => c.id), "transfer"]);
+    const historicalIds = new Set(
+      yearEntries.filter(e => e.type === "income" && !knownIds.has(e.category)).map(e => e.category)
+    );
+    const historical = Array.from(historicalIds).map(id => ({
+      id, label: id, Icon: getIconByName("MoreHorizontal"),
+    }));
+
+    return [...BUDGET_INCOME_CATS, ...custom, ...historical];
+  }, [customCats, yearEntries]);
 
   const openSetBudget = (scope: "default" | "month" = monthIsCustomised ? "month" : "default") => {
     setBudgetScope(scope);
