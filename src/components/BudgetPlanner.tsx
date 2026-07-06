@@ -77,7 +77,7 @@ type BudgetEntry = {
   type: "income" | "expense";
   category: string;
   amount: number;
-  description?: string;
+  description?: string | null;
   entry_date: string;
   is_transfer?: boolean;
   account_id?: string | null;
@@ -330,7 +330,7 @@ export function BudgetView() {
         .lte("entry_date", endDate)
         .order("entry_date", { ascending: false })
         .order("created_at", { ascending: false });
-      data = fallback.data;
+      data = fallback.data as any;
       error = fallback.error;
     }
 
@@ -693,7 +693,7 @@ export function BudgetView() {
     const payloadWithSchema = {
       type: editType, category: editCategory, amount: Number(editAmount),
       description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
-      account_id: editAccountId || null, entry_method: "manual"
+      account_id: editAccountId || null, entry_method: "manual" as const
     };
 
     const { error: updateError } = await supabase.from("budget_entries")
