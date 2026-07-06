@@ -1169,6 +1169,13 @@ export function BudgetView() {
                   )}
                 </div>
                 {(() => {
+                  const getAccountName = (e: BudgetEntry) => {
+                    if (!e.bank_accounts) return "Legacy/Cash";
+                    if (Array.isArray(e.bank_accounts)) {
+                      return e.bank_accounts.length > 0 ? (e.bank_accounts[0].institution_name || "Legacy/Cash") : "Legacy/Cash";
+                    }
+                    return e.bank_accounts.institution_name || "Legacy/Cash";
+                  };
                   const rowInner = (e: BudgetEntry) => (
                     <>
                       <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -1180,7 +1187,7 @@ export function BudgetView() {
                           {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
                         </div>
                         <div style={{ fontSize: 10, color: "var(--color-text-secondary)", opacity: 0.8, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {e.bank_accounts?.institution_name || "Cash"} • {e.entry_method === "imported" ? "Imported" : "Manual"}
+                          {getAccountName(e)} • {e.entry_method === "imported" ? "Imported" : "Manual"}
                         </div>
                       </div>
                       <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
