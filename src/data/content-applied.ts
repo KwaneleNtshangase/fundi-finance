@@ -45,10 +45,16 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
       },
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Crunch the numbers",
-      prompt:
-        "If Thabo invests R500/month into an equity ETF averaging 11% per year for 36 years, he will accumulate approximately R ___ million. (Choose the closest answer.)\n\nA) R1.2 million\nB) R2.6 million\nC) R4.1 million\nD) R216 000",
+      question:
+        "If Thabo invests R500/month into an equity ETF averaging 11% per year for 36 years, he will accumulate approximately R ___ million. (Choose the closest answer.)",
+      options: [
+        "R1.2 million",
+        "R2.6 million",
+        "R4.1 million",
+        "R216 000",
+      ],
       correct: 1,
       explanation:
         "B: R2.6 million. Using the compound interest formula for regular contributions: FV = 500 × [(1.0092^432 − 1) / 0.0092] ≈ R2.6M. This is why starting early matters enormously, 36 years of compounding turns R500/month into life-changing money.",
@@ -104,10 +110,16 @@ export const LESSON_PERSONAL_LOAN_TRAP: Lesson = {
         "Nomsa's car needs a R10 000 repair. She has two options:\n\n• Option A: Personal loan from her bank, R10 000 over 24 months at 21% per year (the maximum rate under the National Credit Act for personal loans).\n\n• Option B: Save R500/month for 20 months, do a cheaper temporary fix now for R800 from her emergency fund.\n\nShe earns R14 000/month take-home and has no other debt.",
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Calculate Option A",
-      prompt:
-        "A R10 000 loan at 21% per year over 24 months has a monthly repayment of roughly R509. The TOTAL amount Nomsa repays is approximately R ___.\n\nA) R10 000\nB) R12 216\nC) R14 000\nD) R11 450",
+      question:
+        "A R10 000 loan at 21% per year over 24 months has a monthly repayment of roughly R509. The TOTAL amount Nomsa repays is approximately R ___.",
+      options: [
+        "R10 000",
+        "R12 216",
+        "R14 000",
+        "R11 450",
+      ],
       correct: 1,
       explanation:
         "B: R12 216. She pays R509 × 24 = R12 216 for a R10 000 loan. That R2 216 of interest is the true cost of borrowing. At 21% per year, credit is expensive.",
@@ -276,10 +288,16 @@ export const LESSON_BUY_OR_RENT: Lesson = {
       },
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Transfer duty threshold",
-      prompt:
-        "First-time buyers in South Africa pay zero transfer duty on properties below R ___ (as of the 2025/26 SARS tables).\n\nA) R500 000\nB) R1 000 000\nC) R1 100 000\nD) R2 000 000",
+      question:
+        "First-time buyers in South Africa pay zero transfer duty on properties below R ___ (as of the 2025/26 SARS tables).",
+      options: [
+        "R500 000",
+        "R1 000 000",
+        "R1 100 000",
+        "R2 000 000",
+      ],
       correct: 1,
       explanation:
         "B: R1 100 000. Properties purchased at R1 100 000 or below attract zero transfer duty for all buyers. Between R1.1M and R1.512M, duty is 3% on the amount above R1.1M. Zanele's R1.35M property would incur transfer duty on R250 000 at 3% = R7 500, not R42 000 as estimated, the actual amount depends on the exact purchase price.",
@@ -392,10 +410,16 @@ export const LESSON_WHATSAPP_SCHEME: Lesson = {
       },
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Verify before you invest",
-      prompt:
-        "In South Africa, financial service providers must be licensed by the ___. You can verify any licence on their public register.\n\nA) JSE (Johannesburg Stock Exchange)\nB) FSCA (Financial Sector Conduct Authority)\nC) SARB (South African Reserve Bank)\nD) NCC (National Consumer Commission)",
+      question:
+        "In South Africa, financial service providers must be licensed by the ___. You can verify any licence on their public register.",
+      options: [
+        "JSE (Johannesburg Stock Exchange)",
+        "FSCA (Financial Sector Conduct Authority)",
+        "SARB (South African Reserve Bank)",
+        "NCC (National Consumer Commission)",
+      ],
       correct: 1,
       explanation:
         "B: the FSCA. Go to fsca.co.za and search the FSP register. If 'Wealth Masters SA' or any entity connected to this scheme is not licensed, stop. Even if they are listed, check what they are licensed FOR, a licence to sell insurance does not authorise them to offer investment products.",
@@ -471,10 +495,16 @@ export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
       },
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "The 30-60-90 rule",
-      prompt:
-        "Lebo's corporate client has 30-day payment terms. Her supplier wants payment in 7 days. The gap between when she pays suppliers and when she collects from customers is called her ___.\n\nA) Gross margin\nB) Cash conversion cycle\nC) Break-even period\nD) Credit score",
+      question:
+        "Lebo's corporate client has 30-day payment terms. Her supplier wants payment in 7 days. The gap between when she pays suppliers and when she collects from customers is called her ___.",
+      options: [
+        "Gross margin",
+        "Cash conversion cycle",
+        "Break-even period",
+        "Credit score",
+      ],
       correct: 1,
       explanation:
         "B: the cash conversion cycle (CCC). A negative CCC (collecting before you pay) is healthy. A positive CCC (paying before you collect) creates cash flow strain. Lebo's solution options: negotiate 60-day supplier terms, offer clients a 2% discount for 7-day payment, or use invoice discounting (selling the R60 000 receivable to a funder at a small fee).",
@@ -533,10 +563,16 @@ export const LESSON_REPO_RATE_IMPACT: Lesson = {
         "The South African Reserve Bank (SARB) announces a 50 basis point (0.50%) increase in the repo rate. The new repo rate is 8.25%. Prime rate (what banks charge consumers) = repo + 3.5% = now 11.75%.\n\nThis one decision affects every rand you borrow or save. Let's see exactly how.",
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Impact on a home loan",
-      prompt:
-        "Thabo has an outstanding home loan balance of R900 000 on a variable rate bond at prime (11.25% before the hike). After the 0.50% increase his rate becomes 11.75%. His monthly repayment increases by approximately R ___.\n\nA) R9 000\nB) R450\nC) R4 500\nD) R50",
+      question:
+        "Thabo has an outstanding home loan balance of R900 000 on a variable rate bond at prime (11.25% before the hike). After the 0.50% increase his rate becomes 11.75%. His monthly repayment increases by approximately R ___.",
+      options: [
+        "R9 000",
+        "R450",
+        "R4 500",
+        "R50",
+      ],
       correct: 1,
       explanation:
         "B: approximately R450/month. A 0.50% rate increase on R900 000 adds roughly 0.50% × R900 000 / 12 = R375–450/month depending on remaining term. Small percentage, big rand amount. Over 20 years that is R108 000 in extra interest payments, from just ONE rate hike.",
@@ -678,10 +714,16 @@ export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
         "The standard advice is 3 months of expenses. But consider:\n\n• If you are self-employed or on a contract: aim for 6 months\n• If you have dependants or a chronic illness: aim for 6 months\n• If you work in a stable government or corporate role: 3 months may suffice\n• If your income is commission-based: 6–9 months\n\nThe fund should cover: rent/bond, food, transport, medical, school fees, utilities. NOT Netflix, restaurants, or gym. Calculate your TRUE monthly survival number.",
     },
     {
-      type: "fill-blank",
+      type: "mcq",
       title: "Calculate your target",
-      prompt:
-        "Sipho's monthly survival expenses: rent R4 800, food R2 200, transport R1 100, utilities R600, medical aid R900, school fees R1 400 = total R11 000/month.\n\nIf Sipho targets a 4-month emergency fund (he is on a contract), his target is R ___.\n\nA) R11 000\nB) R33 000\nC) R44 000\nD) R55 000",
+      question:
+        "Sipho's monthly survival expenses: rent R4 800, food R2 200, transport R1 100, utilities R600, medical aid R900, school fees R1 400 = total R11 000/month.\n\nIf Sipho targets a 4-month emergency fund (he is on a contract), his target is R ___.",
+      options: [
+        "R11 000",
+        "R33 000",
+        "R44 000",
+        "R55 000",
+      ],
       correct: 2,
       explanation:
         "C: R44 000. R11 000 × 4 months = R44 000. This is his target. Every rand above zero in this fund reduces the chance that one emergency wrecks his financial life.",
