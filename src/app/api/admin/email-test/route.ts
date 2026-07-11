@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getUserFromRequest } from "@/lib/apiAuth";
-import { isAdminEmail } from "@/lib/admin";
+import { isAdminEmail, isAdminUser } from "@/lib/admin";
 import { buildWelcome, buildD1, buildMilestone, sendEmail, type EmailProfile } from "@/lib/emails/lifecycle";
 
 export const runtime = "nodejs";
@@ -20,10 +20,20 @@ function adminClient(): SupabaseClient | null {
 }
 
 export async function POST(req: NextRequest) {
+  // Build admin client first — needed for both the DB-flag check and profile lookup.
+  const admin = adminClient();
+  if (!admin) return NextResponse.json({ error: "Missing config" }, { status: 500 });
+
   const user = await getUserFromRequest(req).catch(() => null);
-  if (!user?.email || !isAdminEmail(user.email)) {
+  if (!user?.email) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+  // DB flag is authoritative; ADMIN_EMAILS env var is a secondary fallback.
+  const dbAdmin  = await isAdminUser(admin, user.id);
+  const envAdmin = isAdminEmail(user.email);
+  if (!dbAdmin && !envAdmin) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });
 
@@ -36,21 +46,18 @@ export async function POST(req: NextRequest) {
   // Pull the admin's own profile so the preview is realistic; fall back gracefully.
   let profile: EmailProfile = {};
   let streak = 3;
-  const admin = adminClient();
-  if (admin) {
-    const { data: p } = await admin
-      .from("profiles")
-      .select("username, full_name, goal")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (p) profile = p as EmailProfile;
-    const { data: prog } = await admin
-      .from("user_progress")
-      .select("streak")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (typeof prog?.streak === "number") streak = prog.streak;
-  }
+  const { data: p } = await admin
+    .from("profiles")
+    .select("username, full_name, goal")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (p) profile = p as EmailProfile;
+  const { data: prog } = await admin
+    .from("user_progress")
+    .select("streak")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (typeof prog?.streak === "number") streak = prog.streak;
 
   const email =
     kind === "welcome" ? buildWelcome(profile)

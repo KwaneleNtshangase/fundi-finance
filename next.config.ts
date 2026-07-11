@@ -14,7 +14,7 @@ const securityHeaders = [
     value: [
       "default-src 'self'",
       // Scripts: self + PostHog + CDN (fundiapp.co.za is the sole production domain)
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://us-assets.i.posthog.com https://us.i.posthog.com https://app.posthog.com https://cdn.jsdelivr.net",
+      "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com https://app.posthog.com https://cdn.jsdelivr.net",
       // Styles: self + inline (JSX style={{}}) + Google Fonts
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' data: https://fonts.gstatic.com",

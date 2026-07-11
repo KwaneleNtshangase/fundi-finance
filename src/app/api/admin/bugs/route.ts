@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getUserFromRequest } from "@/lib/apiAuth";
-import { isAdminEmail } from "@/lib/admin";
+import { isAdminEmail, isAdminUser } from "@/lib/admin";
 
 /** Escapes characters that are special in HTML to prevent XSS in email bodies. */
 function escapeHtml(s: string): string {
@@ -30,9 +30,13 @@ function adminClient(): SupabaseClient | null {
   return createClient(url, key);
 }
 
-async function requireAdmin(req: NextRequest) {
+async function requireAdmin(req: NextRequest, admin: SupabaseClient) {
   const user = await getUserFromRequest(req).catch(() => null);
-  if (!user || !isAdminEmail(user.email)) return null;
+  if (!user) return null;
+  // DB flag is authoritative; ADMIN_EMAILS env var is a secondary fallback.
+  const dbAdmin = await isAdminUser(admin, user.id);
+  const envAdmin = isAdminEmail(user.email);
+  if (!dbAdmin && !envAdmin) return null;
   return user;
 }
 
@@ -46,7 +50,7 @@ async function resolveUser(admin: SupabaseClient, userId: string | null, fallbac
       email = data.user?.email ?? email;
     } catch { /* ignore */ }
     try {
-      const { data } = await admin.from("profiles").select("full_name, display_name, username").eq("id", userId).maybeSingle();
+      const { data } = await admin.from("profiles").select("full_name, display_name, username").eq("user_id", userId).maybeSingle();
       const p = data as { full_name?: string; display_name?: string; username?: string } | null;
       name = (p?.full_name || p?.display_name || p?.username || "")?.trim() || null;
     } catch { /* ignore */ }
@@ -55,10 +59,10 @@ async function resolveUser(admin: SupabaseClient, userId: string | null, fallbac
 }
 
 export async function GET(req: NextRequest) {
-  const user = await requireAdmin(req);
-  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const admin = adminClient();
   if (!admin) return NextResponse.json({ error: "Missing config" }, { status: 500 });
+  const user = await requireAdmin(req, admin);
+  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const { data, error } = await admin
     .from("feedback")
@@ -96,10 +100,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = await requireAdmin(req);
-  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   const admin = adminClient();
   if (!admin) return NextResponse.json({ error: "Missing config" }, { status: 500 });
+  const user = await requireAdmin(req, admin);
+  if (!user) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
   const body = await req.json().catch(() => ({}));
   const id = body.id as string | undefined;
