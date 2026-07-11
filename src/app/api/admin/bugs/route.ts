@@ -3,6 +3,16 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getUserFromRequest } from "@/lib/apiAuth";
 import { isAdminEmail } from "@/lib/admin";
 
+/** Escapes characters that are special in HTML to prevent XSS in email bodies. */
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 type FeedbackRow = {
   id: string;
   user_id: string | null;
@@ -114,10 +124,15 @@ export async function POST(req: NextRequest) {
     } else if (!resendKey) {
       emailResult = "resend-not-configured";
     } else {
-      const greeting = name ? `Hi ${name.split(" ")[0]},` : "Hi there,";
+      // HTML-escape user-controlled values: name comes from profile data (user-
+      // controlled); note comes from the admin POST but is still escaped for
+      // defense in depth against stored-XSS if the admin UI ever renders it.
+      const firstName = name ? escapeHtml(name.split(" ")[0]) : null;
+      const greeting  = firstName ? `Hi ${firstName},` : "Hi there,";
       const fixedLine = note
-        ? `Here's what changed: ${note}`
+        ? `Here's what changed: ${escapeHtml(note)}`
         : "Whatever wasn't behaving has been sorted on our side.";
+
       const resp = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },

@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-html-link-for-pages */
 "use client";
-
+import DOMPurify from 'dompurify';
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
@@ -401,7 +401,7 @@ export function LessonView({
           <h2 className="step-title">{step.title}</h2>
           <div
             className="step-content"
-            dangerouslySetInnerHTML={{ __html: step.content }}
+            dangerouslySetInnerHTML={{ __html: typeof window !== 'undefined' ? DOMPurify.sanitize(step.content) : step.content }}
           />
           <div className="lesson-actions">
             {isOnLastStep ? (
@@ -563,8 +563,10 @@ export function LessonView({
                         </div>
                       )}
                       <button type="button" className="btn btn-secondary"
-                        style={{ width: "100%", padding: "12px 16px", fontSize: 15, fontWeight: 700,
-                          background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)" }}
+                        style={{
+                          width: "100%", padding: "12px 16px", fontSize: 15, fontWeight: 700,
+                          background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)"
+                        }}
                         onClick={() => finalizeLesson("course")}>
                         <span className="inline-flex items-center justify-center gap-2">
                           <CheckCircle2 size={18} aria-hidden /> Done - Back to Course
@@ -606,7 +608,7 @@ export function LessonView({
           {step.content ? (
             <div
               className="step-content"
-              dangerouslySetInnerHTML={{ __html: step.content }}
+              dangerouslySetInnerHTML={{ __html: typeof window !== 'undefined' ? DOMPurify.sanitize(step.content) : step.content }}
             />
           ) : null}
           <div className="flex flex-col gap-3 my-4">
@@ -614,15 +616,14 @@ export function LessonView({
               return (
                 <button
                   key={option}
-                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${
-                    answered
-                      ? index === step.correct
-                        ? "correct border-green-500 font-bold"
-                        : index === selectedAnswer
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${answered
+                    ? index === step.correct
+                      ? "correct border-green-500 font-bold"
+                      : index === selectedAnswer
                         ? "incorrect border-red-500 font-bold"
                         : "opacity-50"
-                      : "font-medium"
-                  }`}
+                    : "font-medium"
+                    }`}
                   onClick={() => answerQuestion(index)}
                   disabled={answered}
                 >
@@ -753,15 +754,14 @@ export function LessonView({
               return (
                 <button
                   key={String(value)}
-                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${
-                    answered
-                      ? value === step.correct
-                        ? "correct border-green-500 font-bold"
-                        : value === selectedAnswer
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${answered
+                    ? value === step.correct
+                      ? "correct border-green-500 font-bold"
+                      : value === selectedAnswer
                         ? "incorrect border-red-500 font-bold"
                         : "opacity-50"
-                      : "font-medium"
-                  }`}
+                    : "font-medium"
+                    }`}
                   onClick={() => answerTrueFalse(value)}
                   disabled={answered}
                 >
