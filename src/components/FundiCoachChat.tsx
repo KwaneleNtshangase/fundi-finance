@@ -172,7 +172,30 @@ export function FundiCoachChat() {
           .fundi-chat-fab { right: 24px; bottom: 24px; }
           .fundi-chat-panel { right: 24px; left: auto; bottom: 92px; width: 380px; }
         }
-        .fundi-chat-input::placeholder { color: #9ca3af; }
+        /* Class-based with !important: globals.css paints inputs dark in dark
+           mode (html.dark input) and strips borders globally, so inline styles
+           are not enough to keep this pill white in both themes. */
+        .fundi-chat-form {
+          display: flex;
+          align-items: center;
+          background: #fff !important;
+          border: none;
+          border-radius: 999px;
+          padding: 4px 4px 4px 18px;
+          min-width: 0;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+        }
+        .fundi-chat-input {
+          flex: 1;
+          min-width: 0;
+          border: none;
+          outline: none;
+          background: transparent !important;
+          font-size: 14px;
+          padding: 9px 0;
+          color: #111827 !important;
+        }
+        .fundi-chat-input::placeholder { color: #9ca3af !important; }
         .fundi-chat-input:disabled { opacity: 0.6; }
       `}</style>
 
@@ -304,12 +327,7 @@ export function FundiCoachChat() {
 
               <form
                 onSubmit={(e) => { e.preventDefault(); send(); }}
-                style={{
-                  display: "flex", alignItems: "center",
-                  background: "#fff", border: "none",
-                  borderRadius: 999, padding: "4px 4px 4px 18px", minWidth: 0,
-                  boxShadow: "0 1px 4px rgba(0, 0, 0, 0.12)",
-                }}
+                className="fundi-chat-form"
               >
                 <input
                   value={input}
@@ -318,11 +336,6 @@ export function FundiCoachChat() {
                   placeholder="Ask about your month"
                   disabled={sending || remaining === 0}
                   className="fundi-chat-input"
-                  style={{
-                    flex: 1, minWidth: 0, border: "none", outline: "none",
-                    background: "transparent", fontSize: 14, padding: "9px 0",
-                    color: "#111827",
-                  }}
                 />
                 <button
                   type="submit"
