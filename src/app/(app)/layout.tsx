@@ -62,7 +62,7 @@ function AppNavigation() {
         },
         {
           key: "progress",
-          label: "Progress",
+          label: "Leaderboard",
           icon: <FundiProgress size={24} className="text-current" />,
           isActive: is("/leaderboard"),
           onClick: () => handleNav("leaderboard"),

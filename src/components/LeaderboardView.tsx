@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AlertTriangle, RefreshCcw } from "@/components/icons/FundiIcons";
 import { FundiTrophy } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
@@ -43,6 +44,8 @@ export function LeaderboardView({
   const [loadError, setLoadError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState("");
+  const [needsUsername, setNeedsUsername] = useState(false);
+  const router = useRouter();
 
   // Countdown to Sunday midnight SAST (new weekly XP period)
   useEffect(() => {
@@ -69,6 +72,17 @@ export function LeaderboardView({
         const { data: { user } } = await supabase.auth.getUser();
         const myId = user?.id ?? currentUserId ?? null;
         const currentWeekKey = getLeaderboardWeekKey();
+
+        // Prompt the user to pick a username if they haven't yet (their own
+        // profile row is readable under the own-row RLS policy).
+        if (myId) {
+          const { data: myProfile } = await supabase
+            .from("profiles")
+            .select("username")
+            .eq("user_id", myId)
+            .maybeSingle();
+          setNeedsUsername(!String(myProfile?.username ?? "").trim());
+        }
 
         // Privacy-safe roster via SECURITY DEFINER RPC (audit H3): returns
         // user_id, username, xp, weekly_xp, week_key only — never full_name
@@ -143,6 +157,31 @@ export function LeaderboardView({
         <p style={{ color: "var(--color-text-secondary)", marginBottom: 12, fontSize: 14 }}>
           This week&apos;s XP - everyone starts fresh every Sunday
         </p>
+
+        {/* Username prompt — shown until the user picks a handle */}
+        {needsUsername && !loading && (
+          <div style={{
+            background: "rgba(255,182,18,0.08)",
+            border: "1.5px solid var(--color-accent, #FFB612)",
+            borderRadius: 14, padding: "12px 16px", marginBottom: 16,
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            gap: 12, flexWrap: "wrap",
+          }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text-primary)" }}>
+              Pick a username to choose how you appear on the leaderboard
+            </div>
+            <button
+              onClick={() => router.push("/profile")}
+              style={{
+                background: "var(--color-primary)", color: "#fff", border: "none",
+                borderRadius: 10, padding: "8px 16px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", whiteSpace: "nowrap",
+              }}
+            >
+              Choose username
+            </button>
+          </div>
+        )}
 
         {/* Your rank summary card */}
         {myRank && !loading && (

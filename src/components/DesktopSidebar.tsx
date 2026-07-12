@@ -116,7 +116,7 @@ export function DesktopSidebar() {
             <span className="nav-icon">
               <FundiLeaderboard size={20} className="text-current" />
             </span>
-            Progress
+            Leaderboard
           </button>
         </li>
         <li className="nav-item">
