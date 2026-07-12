@@ -85,9 +85,11 @@ serve(async (req) => {
       jwtUserId = data.user.id;
     }
 
-    // Determine mode: "daily" (cron) or "budget-alert" (invoked with body)
+    // Modes: "daily" (all users), "budget-alert", "targeted" (single user,
+    // arbitrary title/body/url; service-role only, used by the push cron).
     let mode = "daily";
     let alertData: { user_id?: string; category?: string; pct?: number } = {};
+    let targeted: { user_id?: string; title?: string; body?: string; url?: string } = {};
 
     if (req.method === "POST") {
       try {
@@ -95,12 +97,15 @@ serve(async (req) => {
         if (body.mode === "budget-alert") {
           mode = "budget-alert";
           alertData = body;
+        } else if (body.mode === "targeted") {
+          mode = "targeted";
+          targeted = body;
         }
       } catch { /* default to daily */ }
     }
 
     // Non-service callers: may only push to themselves, and may not trigger
-    // the all-users daily broadcast.
+    // the all-users daily broadcast or arbitrary targeted pushes.
     if (!isServiceRole) {
       if (mode !== "budget-alert") {
         return new Response(JSON.stringify({ error: "Forbidden" }), {
@@ -108,6 +113,30 @@ serve(async (req) => {
         });
       }
       alertData.user_id = jwtUserId!; // derive from verified JWT, never the body
+    }
+
+    if (mode === "targeted") {
+      if (!targeted.user_id || !targeted.title || !targeted.body) {
+        return new Response(JSON.stringify({ error: "Missing fields" }), {
+          status: 400, headers: { "Content-Type": "application/json" },
+        });
+      }
+      const { data: subs } = await supabase
+        .from("push_subscriptions")
+        .select("*")
+        .eq("user_id", targeted.user_id);
+      if (!subs || subs.length === 0) {
+        return new Response(JSON.stringify({ sent: 0 }), { headers: { "Content-Type": "application/json" } });
+      }
+      let sent = 0;
+      for (const sub of subs) {
+        const result = await sendPush(
+          { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
+          { title: targeted.title, body: targeted.body, url: targeted.url ?? "/" }
+        );
+        if (result.ok) sent++;
+      }
+      return new Response(JSON.stringify({ sent }), { headers: { "Content-Type": "application/json" } });
     }
 
     if (mode === "daily") {
