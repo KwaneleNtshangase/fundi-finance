@@ -202,7 +202,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
         id: `savings-praise:${monthKey}`,
         severity: "praise",
         title: `You're saving ${Math.round(rate * 100)}% of your income`,
-        body: `${formatRand(saved)} set aside this month — ahead of the common 20% guideline. Keep the streak going.`,
+        body: `${formatRand(saved)} set aside this month, ahead of the common 20% guideline. Keep the streak going.`,
         priority: 50,
       });
     }
@@ -213,7 +213,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     insights.push({
       id: `no-budget:${monthKey}`,
       severity: "info",
-      title: "You're tracking spending — next step: set budgets",
+      title: "You're tracking spending. Next step: set budgets",
       body: `You've logged ${formatRand(total(spend))} of spending this month. Setting a limit per category turns tracking into a plan.`,
       lesson: LESSONS.buildingBudget,
       priority: 15,

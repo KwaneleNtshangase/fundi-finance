@@ -25,7 +25,6 @@ import {
   type CoachInsight,
 } from "@/lib/coach/insights";
 import { Lightbulb } from "@/components/icons/FundiIcons";
-import { FundiCoachChat } from "@/components/FundiCoachChat";
 
 const BUILT_IN_LABELS: Record<string, string> = {
   food: "Food & Groceries",
@@ -202,10 +201,8 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
         })}
       </div>
 
-      <FundiCoachChat />
-
       <p style={{ fontSize: 11, color: "var(--color-text-secondary)", margin: "12px 0 0" }}>
-        Educational information based on your budget data — not financial advice.
+        Educational information based on your budget data, not financial advice.
         Fundi Finance is not a registered financial services provider.
       </p>
     </section>

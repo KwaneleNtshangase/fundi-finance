@@ -1,7 +1,7 @@
 {
   "name": "Fundi Finance",
   "short_name": "Fundi",
-  "description": "Master your money the South African way — learn personal finance in 3-minute lessons.",
+  "description": "Master your money the South African way - learn personal finance in 3-minute lessons.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

@@ -3,10 +3,10 @@
 /**
  * Fundi Coach AI chat (Tier 2 client).
  *
- * Collapsed behind an "Ask Fundi" button inside the coach card. Gates on
- * explicit opt-in consent (user_settings.coach_ai_consent), then chats via
- * POST /api/coach/chat. History for today loads from coach_ai_logs (RLS:
- * read-own only; all writes happen server-side).
+ * Floating chat button (bottom-right) that opens a compact chat panel.
+ * Gates on explicit opt-in consent (user_settings.coach_ai_consent), then
+ * chats via POST /api/coach/chat. History for today loads from coach_ai_logs
+ * (RLS: read-own only; all writes happen server-side).
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -104,7 +104,7 @@ export function FundiCoachChat() {
       });
 
       if (res.status === 429) {
-        setNotice("You've used today's 10 coach messages — back tomorrow!");
+        setNotice("You've used today's 10 coach messages. More tomorrow!");
         setRemaining(0);
         return;
       }
@@ -127,174 +127,213 @@ export function FundiCoachChat() {
     }
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        style={{
-          display: "block", width: "100%", marginTop: 12,
-          background: "var(--color-surface, transparent)",
-          border: "1.5px solid var(--color-border)", borderRadius: 12,
-          padding: "10px 14px", fontSize: 14, fontWeight: 700,
-          color: "var(--color-primary)", cursor: "pointer", textAlign: "left",
-        }}
-      >
-        💬 Ask Fundi about this month
-      </button>
-    );
-  }
-
   return (
-    <div
-      style={{
-        marginTop: 12, border: "1.5px solid var(--color-border)",
-        borderRadius: 12, padding: 14,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-        <span style={{ fontSize: 14, fontWeight: 800 }}>💬 Ask Fundi</span>
-        {state.kind === "chat" && remaining !== null && (
-          <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
-            {remaining} left today
-          </span>
-        )}
-        <span style={{ marginLeft: "auto", display: "flex", gap: 10, alignItems: "center" }}>
-          {state.kind === "chat" && (
-            <button
-              type="button"
-              onClick={() => setConsent(false)}
-              style={{
-                background: "none", border: "none", cursor: "pointer",
-                fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)",
-                padding: 0,
-              }}
-            >
-              Turn AI off
-            </button>
-          )}
-          <button
-            type="button"
-            aria-label="Close chat"
-            onClick={() => setOpen(false)}
-            style={{
-              background: "none", border: "none", cursor: "pointer",
-              fontSize: 14, fontWeight: 700, color: "var(--color-text-secondary)",
-              padding: 0,
-            }}
-          >
-            ✕
-          </button>
-        </span>
-      </div>
+    <>
+      <style>{`
+        .fundi-chat-fab {
+          position: fixed;
+          right: 16px;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+          z-index: 60;
+          width: 56px;
+          height: 56px;
+          border-radius: 50%;
+          border: none;
+          background: var(--color-primary, #007A4D);
+          color: #fff;
+          font-size: 24px;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .fundi-chat-panel {
+          position: fixed;
+          right: 12px;
+          left: 12px;
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 92px);
+          z-index: 61;
+          max-width: 400px;
+          margin-left: auto;
+          border: 1.5px solid var(--color-border);
+          border-radius: 16px;
+          background: var(--color-background, var(--color-surface, #fff));
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+          padding: 14px;
+          display: flex;
+          flex-direction: column;
+        }
+        @media (min-width: 768px) {
+          .fundi-chat-fab { right: 24px; bottom: 24px; }
+          .fundi-chat-panel { right: 24px; left: auto; bottom: 92px; width: 380px; }
+        }
+      `}</style>
 
-      {state.kind === "loading" && (
-        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>Loading…</p>
+      {!open && (
+        <button
+          type="button"
+          className="fundi-chat-fab"
+          aria-label="Ask Fundi about your money"
+          onClick={() => setOpen(true)}
+        >
+          💬
+        </button>
       )}
 
-      {state.kind === "consent" && (
-        <div>
-          <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 6px" }}>
-            Ask Fundi questions about your month. Only anonymised category totals
-            are shared with the AI — never your name, transactions, or account details.
-          </p>
-          <button
-            type="button"
-            onClick={() => setConsent(true)}
-            style={{
-              background: "var(--color-primary)", color: "#fff", border: "none",
-              borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            Turn on AI coach
-          </button>
-          <p style={{ fontSize: 11, color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
-            You can turn this off anytime in this card.
-          </p>
-        </div>
-      )}
-
-      {state.kind === "chat" && (
-        <div>
-          <div
-            ref={listRef}
-            style={{
-              maxHeight: 260, overflowY: "auto", display: "flex",
-              flexDirection: "column", gap: 8, marginBottom: 10,
-            }}
-          >
-            {messages.length === 0 && !sending && (
-              <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
-                Try: “Why is my food spend up this month?”
-              </p>
+      {open && (
+        <div className="fundi-chat-panel" role="dialog" aria-label="Ask Fundi">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <span style={{ fontSize: 15, fontWeight: 800 }}>💬 Ask Fundi</span>
+            {state.kind === "chat" && remaining !== null && (
+              <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
+                {remaining} left today
+              </span>
             )}
-            {messages.map((m, i) => (
-              <div
-                key={i}
+            <span style={{ marginLeft: "auto", display: "flex", gap: 12, alignItems: "center" }}>
+              {state.kind === "chat" && (
+                <button
+                  type="button"
+                  onClick={() => setConsent(false)}
+                  style={{
+                    background: "none", border: "none", cursor: "pointer",
+                    fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)",
+                    padding: 0,
+                  }}
+                >
+                  Turn AI off
+                </button>
+              )}
+              <button
+                type="button"
+                aria-label="Close chat"
+                onClick={() => setOpen(false)}
                 style={{
-                  alignSelf: m.role === "user" ? "flex-end" : "flex-start",
-                  maxWidth: "85%",
-                  background: m.role === "user" ? "var(--color-primary)" : "var(--color-border)",
-                  color: m.role === "user" ? "#fff" : "var(--color-text-primary)",
-                  borderRadius: 12, padding: "8px 12px", fontSize: 13, lineHeight: 1.45,
-                  whiteSpace: "pre-wrap",
+                  background: "none", border: "none", cursor: "pointer",
+                  fontSize: 15, fontWeight: 700, color: "var(--color-text-secondary)",
+                  padding: 0,
                 }}
               >
-                {m.content}
-              </div>
-            ))}
-            {sending && (
-              <div
-                aria-label="Fundi is typing"
-                style={{
-                  alignSelf: "flex-start", background: "var(--color-border)",
-                  borderRadius: 12, padding: "8px 12px", fontSize: 13,
-                  color: "var(--color-text-secondary)",
-                }}
-              >
-                Fundi is typing…
-              </div>
-            )}
+                ✕
+              </button>
+            </span>
           </div>
 
-          {notice && (
-            <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 8px" }}>
-              {notice}
-            </p>
+          {state.kind === "loading" && (
+            <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>Loading…</p>
           )}
 
-          <form
-            onSubmit={(e) => { e.preventDefault(); send(); }}
-            style={{ display: "flex", gap: 8 }}
-          >
-            <input
-              value={input}
-              maxLength={INPUT_MAX}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about your month, e.g. why is my food spend up?"
-              disabled={sending || remaining === 0}
-              style={{
-                flex: 1, border: "1.5px solid var(--color-border)", borderRadius: 10,
-                padding: "9px 12px", fontSize: 13, background: "transparent",
-                color: "var(--color-text-primary)", outline: "none",
-              }}
-            />
-            <button
-              type="submit"
-              disabled={sending || !input.trim() || remaining === 0}
-              style={{
-                background: "var(--color-primary)", color: "#fff", border: "none",
-                borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 700,
-                cursor: sending || !input.trim() || remaining === 0 ? "default" : "pointer",
-                opacity: sending || !input.trim() || remaining === 0 ? 0.6 : 1,
-              }}
-            >
-              Send
-            </button>
-          </form>
+          {state.kind === "consent" && (
+            <div>
+              <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 8px" }}>
+                Ask Fundi questions about your month. Only anonymised category
+                totals are shared with the AI. Your name, transactions, and
+                account details are never shared.
+              </p>
+              <button
+                type="button"
+                onClick={() => setConsent(true)}
+                style={{
+                  background: "var(--color-primary)", color: "#fff", border: "none",
+                  borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                Turn on AI coach
+              </button>
+              <p style={{ fontSize: 11, color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
+                You can turn this off anytime.
+              </p>
+            </div>
+          )}
+
+          {state.kind === "chat" && (
+            <div style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+              <div
+                ref={listRef}
+                style={{
+                  height: "min(300px, 45vh)", overflowY: "auto", display: "flex",
+                  flexDirection: "column", gap: 8, marginBottom: 10,
+                }}
+              >
+                {messages.length === 0 && !sending && (
+                  <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: 0 }}>
+                    Try: &ldquo;Why is my food spend up this month?&rdquo;
+                  </p>
+                )}
+                {messages.map((m, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      alignSelf: m.role === "user" ? "flex-end" : "flex-start",
+                      maxWidth: "85%",
+                      background: m.role === "user" ? "var(--color-primary)" : "var(--color-border)",
+                      color: m.role === "user" ? "#fff" : "var(--color-text-primary)",
+                      borderRadius: 12, padding: "8px 12px", fontSize: 13, lineHeight: 1.45,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {m.content}
+                  </div>
+                ))}
+                {sending && (
+                  <div
+                    aria-label="Fundi is typing"
+                    style={{
+                      alignSelf: "flex-start", background: "var(--color-border)",
+                      borderRadius: 12, padding: "8px 12px", fontSize: 13,
+                      color: "var(--color-text-secondary)",
+                    }}
+                  >
+                    Fundi is typing…
+                  </div>
+                )}
+              </div>
+
+              {notice && (
+                <p style={{ fontSize: 12, color: "var(--color-text-secondary)", margin: "0 0 8px" }}>
+                  {notice}
+                </p>
+              )}
+
+              <form
+                onSubmit={(e) => { e.preventDefault(); send(); }}
+                style={{ display: "flex", gap: 8 }}
+              >
+                <input
+                  value={input}
+                  maxLength={INPUT_MAX}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask about your month"
+                  disabled={sending || remaining === 0}
+                  style={{
+                    flex: 1, minWidth: 0, border: "1.5px solid var(--color-border)",
+                    borderRadius: 10, padding: "9px 12px", fontSize: 13,
+                    background: "transparent", color: "var(--color-text-primary)",
+                    outline: "none",
+                  }}
+                />
+                <button
+                  type="submit"
+                  disabled={sending || !input.trim() || remaining === 0}
+                  style={{
+                    background: "var(--color-primary)", color: "#fff", border: "none",
+                    borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 700,
+                    cursor: sending || !input.trim() || remaining === 0 ? "default" : "pointer",
+                    opacity: sending || !input.trim() || remaining === 0 ? 0.6 : 1,
+                  }}
+                >
+                  Send
+                </button>
+              </form>
+
+              <p style={{ fontSize: 10, color: "var(--color-text-secondary)", margin: "8px 0 0" }}>
+                Educational information, not financial advice.
+              </p>
+            </div>
+          )}
         </div>
       )}
-    </div>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/bu
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
 import { FundiCoachCard } from "@/components/FundiCoachCard";
+import { FundiCoachChat } from "@/components/FundiCoachChat";
 import { reportClientError } from "@/lib/errorReporting";
 import {
   LineChart,
@@ -900,8 +901,11 @@ export function BudgetView() {
         </div>
       )}
 
-      {/* Fundi Coach — deterministic nudges from the user's own numbers */}
+      {/* Fundi Coach: deterministic nudges from the user's own numbers */}
       {viewMode === "month" && <FundiCoachCard />}
+
+      {/* Floating AI chat, always available on the budget page */}
+      <FundiCoachChat />
 
       {/* YEAR VIEW */}
       {viewMode === "year" && (
