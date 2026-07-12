@@ -79,6 +79,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
   "monthlySpend": [
     {
       "expenseCents": 750000,
+      "incomeCents": 2500000,
       "label": "Jun",
       "monthYear": "2026-06",
     },

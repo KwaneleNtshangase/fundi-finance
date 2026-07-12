@@ -72,7 +72,9 @@ describe("bank layout fixtures", () => {
     expect(rows).toHaveLength(6);
     expect(rows.some((r) => r.amountZAR > 0)).toBe(true);
     expect(rows.some((r) => r.amountZAR < 0)).toBe(true);
-    expect(rows.some((r) => r.description.includes("2474439413"))).toBe(true);
+    // Long reference numbers are deliberately trimmed from descriptions
+    // (import UX change) — assert they no longer leak through.
+    expect(rows.some((r) => r.description.includes("2474439413"))).toBe(false);
     expect(rows.filter((r) => r.description === "Bank Charges")).toHaveLength(2);
     expect(rows.find((r) => r.description.includes("Snapscan"))?.amountZAR).toBe(9.66);
     expect(rows.find((r) => r.description.includes("Uber"))?.amountZAR).toBe(-60);
@@ -112,7 +114,8 @@ describe("bank layout fixtures", () => {
     expect(rows.find((r) => r.description.includes("Savings"))?.amountZAR).toBe(-25000);
     expect(rows[0].date).toBe("2026-04-01");
     expect(rows.some((r) => r.description.includes("Decoy"))).toBe(false);
-    expect(rows.some((r) => r.description.includes("R25853"))).toBe(true);
+    // Trailing reference blobs are deliberately trimmed from descriptions.
+    expect(rows.some((r) => r.description.includes("R25853"))).toBe(false);
     const chain = reconcileBalanceChain(
       rows.map((r) => ({
         date: r.date,
@@ -163,7 +166,11 @@ describe("bank layout fixtures", () => {
 describe("bank detection", () => {
   it("detects banks from header text", () => {
     expect(detectBankFromText("Capitec Bank Statement")).toBe("capitec");
-    expect(detectBankFromText("FNB account")).toBe("fnb");
+    expect(detectBankFromText("First National Bank")).toBe("fnb");
+    expect(detectBankFromText("statement from fnb.co.za")).toBe("fnb");
+    // Bare bank words no longer match: transaction descriptions routinely
+    // name OTHER banks, which mis-routed the parser (header-only detection).
+    expect(detectBankFromText("FNB account")).toBeNull();
     expect(detectBankFromText("Standard Bank")).toBe("standard-bank");
     expect(detectBankFromText("Unknown Credit Union")).toBeNull();
   });

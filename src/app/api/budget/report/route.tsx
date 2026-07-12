@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceSupabase();
 
-  const [entriesRes, targetsRes, catsRes, profileRes] = await Promise.all([
+  const [entriesRes, targetsRes, catsRes, profileRes, progressRes] = await Promise.all([
     admin
       .from("budget_entries")
       .select("id, type, category, amount, description, entry_date, is_transfer")
@@ -55,6 +55,11 @@ export async function POST(req: NextRequest) {
     admin
       .from("profiles")
       .select("display_name, full_name, username")
+      .eq("user_id", user.id)
+      .maybeSingle(),
+    admin
+      .from("user_progress")
+      .select("display_name")
       .eq("user_id", user.id)
       .maybeSingle(),
   ]);
@@ -101,10 +106,16 @@ export async function POST(req: NextRequest) {
   const profile = profileRes.data as
     | { display_name?: string; full_name?: string; username?: string }
     | null;
+  const progress = progressRes.data as { display_name?: string } | null;
+  if (profileRes.error) console.error("[budget/report] profile lookup:", profileRes.error.message);
+
+  /** First word only — the report greets by first name, never the full name. */
+  const firstNameOf = (s?: string | null) => (s ?? "").trim().split(/\s+/)[0] ?? "";
   const displayName =
-    profile?.full_name?.trim() ||
+    firstNameOf(profile?.full_name) ||
     profile?.display_name?.trim() ||
     profile?.username?.trim() ||
+    progress?.display_name?.trim() ||
     "Fundi user";
 
   // Fetch the Fundi logo (public asset) and inline it as a data URI so the PDF
