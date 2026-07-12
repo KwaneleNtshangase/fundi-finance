@@ -11,9 +11,24 @@ const base: Omit<CoachInput, "entries" | "budgets"> = {
 };
 
 describe("buildCoachSummary", () => {
-  it("reports no data for an empty month", () => {
+  it("reports no data when both months are empty", () => {
     const s = buildCoachSummary({ ...base, entries: [], budgets: {} });
     expect(s.hasData).toBe(false);
+  });
+
+  it("falls back to last month's breakdown when this month is empty", () => {
+    const s = buildCoachSummary({
+      ...base,
+      entries: [
+        { type: "income", category: "salary", amount: 20000, entry_date: "2026-06-25" },
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-10" },
+      ],
+      budgets: {},
+    });
+    expect(s.hasData).toBe(true);
+    expect(s.text).toContain("No entries recorded for 2026-07 yet.");
+    expect(s.text).toContain("Last month (2026-06): income R20 000, total spend R3 000.");
+    expect(s.text).toContain("Food & Groceries: R3 000");
   });
 
   it("includes totals, budgets and percentages", () => {

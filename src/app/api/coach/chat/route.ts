@@ -173,30 +173,45 @@ export async function POST(req: NextRequest) {
     generationConfig: { temperature: 0.4, maxOutputTokens: 2048 },
   };
 
+  // Free-tier Gemini occasionally rate-limits (429) or hiccups (5xx); one
+  // short retry absorbs most of these instead of surfacing an error.
   let reply = "";
-  try {
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        body: JSON.stringify(geminiBody),
+  const MAX_ATTEMPTS = 2;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+          body: JSON.stringify(geminiBody),
+        }
+      );
+      if (!res.ok) {
+        const retryable = [429, 500, 502, 503].includes(res.status);
+        console.error("[coach/chat] provider", res.status, (await res.text()).slice(0, 300));
+        if (retryable && attempt < MAX_ATTEMPTS) {
+          await new Promise((r) => setTimeout(r, 1500));
+          continue;
+        }
+        return NextResponse.json({ error: "provider_error" }, { status: 502 });
       }
-    );
-    if (!res.ok) {
-      console.error("[coach/chat] provider", res.status, (await res.text()).slice(0, 300));
+      const data = (await res.json()) as {
+        candidates?: { content?: { parts?: { text?: string }[] } }[];
+      };
+      reply = (data.candidates?.[0]?.content?.parts ?? [])
+        .map((p) => p.text ?? "")
+        .join("")
+        .trim();
+      break;
+    } catch (err) {
+      console.error("[coach/chat] provider error:", err);
+      if (attempt < MAX_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, 1500));
+        continue;
+      }
       return NextResponse.json({ error: "provider_error" }, { status: 502 });
     }
-    const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
-    reply = (data.candidates?.[0]?.content?.parts ?? [])
-      .map((p) => p.text ?? "")
-      .join("")
-      .trim();
-  } catch (err) {
-    console.error("[coach/chat] provider error:", err);
-    return NextResponse.json({ error: "provider_error" }, { status: 502 });
   }
 
   if (!reply) {

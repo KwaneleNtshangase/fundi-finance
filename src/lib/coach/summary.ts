@@ -51,12 +51,28 @@ export function buildCoachSummary(input: CoachInput): CoachSummary {
   }
 
   const totalSpend = Object.values(cur).reduce((a, b) => a + b, 0);
+  const prevTotal = Object.values(prev).reduce((a, b) => a + b, 0);
   const cats = Object.keys({ ...cur, ...input.budgets }).sort(
     (a, b) => (cur[b] ?? 0) - (cur[a] ?? 0)
   );
 
   if (totalSpend === 0 && income === 0) {
-    return { hasData: false, text: "No budget data recorded for this month yet." };
+    // Nothing this month — but last month's data is still worth talking about.
+    if (prevTotal === 0 && prevIncome === 0) {
+      return {
+        hasData: false,
+        text: "No budget data recorded for this month or last month yet.",
+      };
+    }
+    const lines: string[] = [];
+    lines.push(`Month: ${input.monthKey} (day ${input.dayOfMonth} of ${input.daysInMonth})`);
+    lines.push(`No entries recorded for ${input.monthKey} yet.`);
+    lines.push(`Last month (${input.prevMonthKey}): income ${formatRand(prevIncome)}, total spend ${formatRand(prevTotal)}.`);
+    lines.push("Last month's spending by category:");
+    for (const [cat, amt] of Object.entries(prev).sort((a, b) => b[1] - a[1])) {
+      lines.push(`- ${label(cat)}: ${formatRand(amt)}`);
+    }
+    return { hasData: true, text: lines.join("\n") };
   }
 
   const lines: string[] = [];
