@@ -7,6 +7,7 @@ import { sastToday } from "@/lib/dates";
 import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
+import { FundiCoachCard } from "@/components/FundiCoachCard";
 import { reportClientError } from "@/lib/errorReporting";
 import {
   LineChart,
@@ -898,6 +899,9 @@ export function BudgetView() {
           </span>
         </div>
       )}
+
+      {/* Fundi Coach — deterministic nudges from the user's own numbers */}
+      {viewMode === "month" && <FundiCoachCard />}
 
       {/* YEAR VIEW */}
       {viewMode === "year" && (
