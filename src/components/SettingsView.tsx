@@ -91,16 +91,7 @@ function SettingsAccountSection() {
   );
 }
 
-const VAPID_PUBLIC_KEY = "BFfb98U0f0zXJaGdF9Tx7Sm7WkgGztyMxM701qNeJyMbOKJiKfGiPYov0CLCiihusSIOtbSTs-h_Z5JdOrBXiF0";
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) outputArray[i] = rawData.charCodeAt(i);
-  return outputArray;
-}
+import { ensurePushSubscription, disablePush } from "@/lib/push/subscribe";
 
 export function SettingsView({
   userData,
@@ -161,43 +152,11 @@ export function SettingsView({
     setPushLoading(true);
     try {
       if (pushEnabled) {
-        // Unsubscribe
-        const reg = await navigator.serviceWorker.getRegistration("/sw.js");
-        if (reg) {
-          const sub = await reg.pushManager.getSubscription();
-          if (sub) {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-              await supabase.from("push_subscriptions").delete().eq("user_id", user.id).eq("endpoint", sub.endpoint);
-            }
-            await sub.unsubscribe();
-          }
-        }
+        await disablePush();
         setPushEnabled(false);
       } else {
-        // Subscribe
-        const reg = await navigator.serviceWorker.register("/sw.js");
-        await navigator.serviceWorker.ready;
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") { setPushLoading(false); return; }
-        const sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-        });
-        const key = sub.getKey("p256dh");
-        const auth = sub.getKey("auth");
-        if (key && auth) {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await supabase.from("push_subscriptions").upsert({
-              user_id: user.id,
-              endpoint: sub.endpoint,
-              p256dh: btoa(String.fromCharCode(...new Uint8Array(key))),
-              auth: btoa(String.fromCharCode(...new Uint8Array(auth))),
-            }, { onConflict: "user_id,endpoint" });
-          }
-        }
-        setPushEnabled(true);
+        const result = await ensurePushSubscription(true);
+        setPushEnabled(result === "subscribed");
       }
     } catch (err) {
       console.error("Push toggle error:", err);

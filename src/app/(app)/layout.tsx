@@ -82,6 +82,8 @@ function AppNavigation() {
 }
 
 import { AuthGate } from "@/components/AuthGate";
+import { NotificationOptIn } from "@/components/NotificationOptIn";
+import { StreakRepairBanner } from "@/components/StreakRepairBanner";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -102,6 +104,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           )}
         </div>
         <AppNavigation />
+        <NotificationOptIn />
+        <StreakRepairBanner />
       </AuthGate>
     </FundiProvider>
   );
