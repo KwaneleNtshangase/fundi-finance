@@ -62,6 +62,29 @@ serve(async (req) => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
+    // ── Caller authorization (M3 fix) ─────────────────────────────────────
+    // Supabase's verify_jwt only checks the token is a valid JWT — ANY
+    // signed-in user's token (or the anon key) passes. Without this check a
+    // user could POST { mode: "budget-alert", user_id: <victim> } and push
+    // notifications to another user's devices.
+    //
+    //   • Service-role bearer (Next.js wrapper /api/budget-alert, cron)
+    //     → fully trusted, body.user_id honoured.
+    //   • Any other bearer → verify it as a user JWT and DERIVE user_id from
+    //     the token, ignoring whatever is in the body.
+    const bearer = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    const isServiceRole = bearer === SUPABASE_SERVICE_ROLE_KEY;
+    let jwtUserId: string | null = null;
+    if (!isServiceRole) {
+      const { data, error } = await supabase.auth.getUser(bearer);
+      if (error || !data?.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401, headers: { "Content-Type": "application/json" },
+        });
+      }
+      jwtUserId = data.user.id;
+    }
+
     // Determine mode: "daily" (cron) or "budget-alert" (invoked with body)
     let mode = "daily";
     let alertData: { user_id?: string; category?: string; pct?: number } = {};
@@ -74,6 +97,17 @@ serve(async (req) => {
           alertData = body;
         }
       } catch { /* default to daily */ }
+    }
+
+    // Non-service callers: may only push to themselves, and may not trigger
+    // the all-users daily broadcast.
+    if (!isServiceRole) {
+      if (mode !== "budget-alert") {
+        return new Response(JSON.stringify({ error: "Forbidden" }), {
+          status: 403, headers: { "Content-Type": "application/json" },
+        });
+      }
+      alertData.user_id = jwtUserId!; // derive from verified JWT, never the body
     }
 
     if (mode === "daily") {

@@ -34,6 +34,11 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      # Fails the build on high-severity advisories so a vulnerable
+      # dependency (like the Next.js CVEs in audit H1) can't linger unnoticed.
+      - name: Dependency audit
+        run: npm audit --audit-level=high
+
       - name: Build
         run: npm run build
         env:

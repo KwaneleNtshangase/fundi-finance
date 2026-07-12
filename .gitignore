@@ -54,3 +54,20 @@ prod.log
 
 # supabase CLI local temp
 /supabase/.temp/
+
+# scratch files & local test scripts (audit L2 — never ship these)
+/temp.tsx
+/page_content.html
+/scratch_query_categories.ts
+/check_auth.js
+/test-insert.js
+/test-query.js
+/test-select-error.js
+/screen.png
+/screenshot.png
+/cpanel_zone.png
+/posthog_funnel.png
+/print-console.js
+/print_errors.js
+/test-budget.sh
+/*.py
