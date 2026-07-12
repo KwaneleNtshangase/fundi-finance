@@ -128,13 +128,13 @@ export async function isUsernameAvailable(
 ): Promise<boolean> {
   const normalized = normalizeUsername(username);
   if (!normalized) return false;
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("user_id")
-    .eq("username", normalized);
+  // SECURITY DEFINER RPC — avoids needing SELECT access to other users' profiles.
+  const { data, error } = await supabase.rpc("username_taken", {
+    p_username: normalized,
+    p_exclude_user: excludeUserId ?? null,
+  });
   if (error) return false;
-  const rows = (data as { user_id: string }[] | null) ?? [];
-  return rows.every((row) => row.user_id === excludeUserId);
+  return data === false;
 }
 
 // ── Content helpers ───────────────────────────────────────────────────────────

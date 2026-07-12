@@ -37,7 +37,7 @@ export function LeaderboardView({
   currentUserId?: string;
 }) {
   const [leaders, setLeaders] = useState<
-    { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[]
+    { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -70,59 +70,25 @@ export function LeaderboardView({
         const myId = user?.id ?? currentUserId ?? null;
         const currentWeekKey = getLeaderboardWeekKey();
 
-        // 1. Fetch ALL profiles (every registered user, even brand-new ones)
-        const { data: profileRows, error: profileError } = await supabase
-          .from("profiles")
-          .select("user_id, username, full_name, age_range")
-          .limit(200);
+        // Privacy-safe roster via SECURITY DEFINER RPC (audit H3): returns
+        // user_id, username, xp, weekly_xp, week_key only — never full_name
+        // or age_range — and is restricted to authenticated callers.
+        const { data: rpcRows, error: rpcError } = await supabase.rpc("get_leaderboard");
 
-        if (profileError) {
+        if (rpcError) {
           setLoadError(true);
           setLoading(false);
           return;
         }
 
-        // 2. Fetch progress rows (weekly_xp + week_key + total xp)
-        const { data: progressRows } = await supabase
-          .from("user_progress")
-          .select("user_id, xp, weekly_xp, week_key")
-          .limit(200);
+        // Build rows - weekly XP only counts if week_key matches current week
+        const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number }[] = [];
 
-        // Build lookup maps
-        const profileMap: Record<string, { name: string; ageRange?: string }> = {};
-        (profileRows ?? []).forEach((p: any) => {
-          const username = p.username ? String(p.username).trim() : "";
-          const fullName = p.full_name ? String(p.full_name).trim() : "";
-          profileMap[p.user_id] = {
-            name: username || (fullName ? fullName.split(" ")[0] : ""),
-            ageRange: p.age_range ?? undefined,
-          };
-        });
-
-        const progressMap: Record<string, { xp: number; weeklyXp: number; weekKey: string }> = {};
-        (progressRows ?? []).forEach((r: any) => {
-          progressMap[r.user_id] = {
-            xp: r.xp ?? 0,
-            weeklyXp: r.weekly_xp ?? 0,
-            weekKey: r.week_key ?? "",
-          };
-        });
-
-        // 3. Union of all user IDs from both tables
-        const allIds = new Set([
-          ...Object.keys(profileMap),
-          ...Object.keys(progressMap),
-        ]);
-
-        // 4. Build rows - weekly XP only counts if week_key matches current week
-        const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number; ageRange?: string }[] = [];
-
-        allIds.forEach((uid) => {
-          const profile = profileMap[uid];
-          const progress = progressMap[uid];
-          const isCurrentWeek = progress?.weekKey === currentWeekKey;
-          const thisWeekXp = isCurrentWeek ? (progress?.weeklyXp ?? 0) : 0;
-          const totalXp = progress?.xp ?? 0;
+        (rpcRows ?? []).forEach((r: { user_id: string; username: string | null; xp: number | null; weekly_xp: number | null; week_key: string | null }) => {
+          const uid = String(r.user_id);
+          const isCurrentWeek = (r.week_key ?? "") === currentWeekKey;
+          const thisWeekXp = isCurrentWeek ? (r.weekly_xp ?? 0) : 0;
+          const totalXp = r.xp ?? 0;
           const isYou = uid === myId;
 
           // Merge: current user's local weekly XP takes priority (most up-to-date)
@@ -130,7 +96,7 @@ export function LeaderboardView({
             ? Math.max(thisWeekXp, weeklyXp ?? 0)
             : thisWeekXp;
 
-          const rawName = profile?.name ?? "";
+          const rawName = (r.username ?? "").trim();
           const name = isYou ? "You" : (rawName || "Learner " + uid.slice(0, 4).toUpperCase());
 
           rows.push({
@@ -140,7 +106,6 @@ export function LeaderboardView({
             totalXp,
             isYou,
             rank: 0,
-            ageRange: profile?.ageRange,
           });
         });
 
