@@ -22,7 +22,18 @@ type Stokvel = {
   frequency: string;
   invite_code: string;
   created_by: string;
+  created_at: string;
 };
+
+/** Whole months elapsed between a timestamp and now (>= 0). */
+function monthsSince(iso: string): number {
+  const start = new Date(iso);
+  const now = new Date();
+  return Math.max(
+    0,
+    (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth())
+  );
+}
 
 type StokvelMember = {
   id: string;
@@ -40,6 +51,8 @@ export function StokvelDashboard() {
   const [selectedStokvel, setSelectedStokvel] = useState<Stokvel | null>(null);
   const [members, setMembers] = useState<StokvelMember[]>([]);
   const [totalPot, setTotalPot] = useState(0);
+  const [paidUserIds, setPaidUserIds] = useState<string[]>([]);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -51,6 +64,19 @@ export function StokvelDashboard() {
   const [errorMsg, setErrorMsg] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const fetchStokvels = React.useCallback(async (uid?: string | null) => {
+    if (!uid) return;
+    setLoading(true);
+    // RLS: members can select stokvels
+    const { data } = await supabase
+      .from("stokvels")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (data) setStokvels(data);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
@@ -60,20 +86,7 @@ export function StokvelDashboard() {
         setLoading(false);
       }
     });
-  }, []);
-
-  const fetchStokvels = async (uid = userId) => {
-    if (!uid) return;
-    setLoading(true);
-    // RLS: members can select stokvels
-    const { data, error } = await supabase
-      .from("stokvels")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (data) setStokvels(data);
-    setLoading(false);
-  };
+  }, [fetchStokvels]);
 
   const openDetail = async (stokvel: Stokvel) => {
     setSelectedStokvel(stokvel);
@@ -83,19 +96,25 @@ export function StokvelDashboard() {
     const [membersRes, contributionsRes] = await Promise.all([
       supabase.from("stokvel_members").select("*").eq("stokvel_id", stokvel.id).order("joined_at", { ascending: true }),
       // Calculate current month cycle total
-      supabase.from("stokvel_contributions").select("amount, cycle").eq("stokvel_id", stokvel.id)
+      supabase.from("stokvel_contributions").select("amount, cycle, user_id").eq("stokvel_id", stokvel.id)
     ]);
 
-    if (membersRes.data) setMembers(membersRes.data);
-    
+    if (membersRes.data) {
+      const sorted = [...membersRes.data].sort(
+        (a: StokvelMember, b: StokvelMember) =>
+          (a.payout_position ?? 999) - (b.payout_position ?? 999)
+      );
+      setMembers(sorted);
+    }
+
     if (contributionsRes.data) {
-      // Sum contributions for the current month
+      // Sum contributions and track who has paid for the current month
       const now = new Date();
       const currentCyclePrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-      const sum = contributionsRes.data
-        .filter((c: any) => c.cycle.startsWith(currentCyclePrefix))
-        .reduce((acc: number, curr: any) => acc + Number(curr.amount), 0);
-      setTotalPot(sum);
+      const thisCycle = (contributionsRes.data as { amount: number; cycle: string; user_id: string }[])
+        .filter((c) => c.cycle.startsWith(currentCyclePrefix));
+      setTotalPot(thisCycle.reduce((acc, c) => acc + Number(c.amount), 0));
+      setPaidUserIds([...new Set(thisCycle.map((c) => c.user_id))]);
     }
     
     setLoading(false);
@@ -111,40 +130,22 @@ export function StokvelDashboard() {
         throw new Error("Please fill in valid name and amount.");
       }
 
-      const generatedCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-      
-      const { data: stokvelData, error: stokvelError } = await supabase
-        .from("stokvels")
-        .insert({
-          name: name.trim(),
-          description: desc.trim(),
-          contribution_amount: Number(amount),
-          invite_code: generatedCode,
-          created_by: userId
-        })
-        .select()
-        .single();
-
-      if (stokvelError) throw stokvelError;
-
-      const { error: memberError } = await supabase
-        .from("stokvel_members")
-        .insert({
-          stokvel_id: stokvelData.id,
-          user_id: userId,
-          is_admin: true,
-          display_name: "Admin" // Can be updated by profile sync later
-        });
-
-      if (memberError) throw memberError;
+      // Server-side RPC: generates a unique invite code, adds the creator as
+      // admin at payout position 1, and uses their real username.
+      const { error: rpcError } = await supabase.rpc("create_stokvel", {
+        p_name: name.trim(),
+        p_description: desc.trim(),
+        p_amount: Number(amount),
+      });
+      if (rpcError) throw new Error(rpcError.message);
 
       setName("");
       setDesc("");
       setAmount("");
-      await fetchStokvels();
+      await fetchStokvels(userId);
       setView("list");
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to create stokvel.");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to create stokvel.");
     } finally {
       setSaving(false);
     }
@@ -159,43 +160,63 @@ export function StokvelDashboard() {
       const code = inviteCode.trim().toUpperCase();
       if (!code) throw new Error("Please enter an invite code.");
 
-      // First call an RPC or rely on a bypass if available. 
-      // If the user can't select stokvels they are not in, we just attempt to select it.
-      // If it returns null, we show an error.
-      const { data: stokvelData, error: stokvelError } = await supabase
-        .from("stokvels")
-        .select("id")
-        .eq("invite_code", code)
-        .single();
-
-      if (stokvelError || !stokvelData) throw new Error("Invalid invite code or stokvel not found.");
-
-      const { error: memberError } = await supabase
-        .from("stokvel_members")
-        .insert({
-          stokvel_id: stokvelData.id,
-          user_id: userId,
-          is_admin: false,
-          display_name: "Member"
-        });
-
-      if (memberError) {
-        if (memberError.code === "23505") throw new Error("You are already a member of this stokvel.");
-        throw memberError;
-      }
+      // Server-side RPC: RLS hides stokvels from non-members, so the lookup
+      // must happen as SECURITY DEFINER. The code itself is the capability.
+      const { error: rpcError } = await supabase.rpc("join_stokvel_by_code", {
+        p_code: code,
+      });
+      if (rpcError) throw new Error(rpcError.message);
 
       setInviteCode("");
-      await fetchStokvels();
+      await fetchStokvels(userId);
       setView("list");
-    } catch (err: any) {
-      setErrorMsg(err.message || "Failed to join stokvel.");
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : "Failed to join stokvel.");
     } finally {
       setSaving(false);
     }
   };
 
+  /** Whose turn is the pot this month? Rotates through payout_position order. */
+  const currentRecipient = (): StokvelMember | null => {
+    if (!selectedStokvel || members.length === 0) return null;
+    const idx = monthsSince(selectedStokvel.created_at) % members.length;
+    return members[idx] ?? null;
+  };
+
+  const iAmAdmin = members.some((m) => m.user_id === userId && m.is_admin);
+  const iHavePaid = userId !== null && paidUserIds.includes(userId);
+
+  /** Admin: swap a member's payout position with their neighbour. */
+  const movePosition = async (index: number, direction: -1 | 1) => {
+    const a = members[index];
+    const b = members[index + direction];
+    if (!a || !b || saving) return;
+    setSaving(true);
+    try {
+      const posA = a.payout_position ?? index + 1;
+      const posB = b.payout_position ?? index + direction + 1;
+      await Promise.all([
+        supabase.from("stokvel_members").update({ payout_position: posB }).eq("id", a.id),
+        supabase.from("stokvel_members").update({ payout_position: posA }).eq("id", b.id),
+      ]);
+      if (selectedStokvel) await openDetail(selectedStokvel);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const copyInviteCode = async () => {
+    if (!selectedStokvel) return;
+    try {
+      await navigator.clipboard.writeText(selectedStokvel.invite_code);
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    } catch { /* clipboard unavailable */ }
+  };
+
   const handleLogContribution = async () => {
-    if (!selectedStokvel || !userId) return;
+    if (!selectedStokvel || !userId || iHavePaid) return;
     setSaving(true);
     
     try {
@@ -216,8 +237,8 @@ export function StokvelDashboard() {
       
       // Refresh details
       openDetail(selectedStokvel);
-    } catch (err: any) {
-      alert(err.message || "Failed to log contribution.");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to log contribution.");
     } finally {
       setSaving(false);
     }
@@ -338,7 +359,7 @@ export function StokvelDashboard() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div style={{ background: "var(--color-surface)", padding: 16, borderRadius: 14, textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>This Month's Pot</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>This Month&apos;s Pot</div>
               <div style={{ fontSize: 20, fontWeight: 900, color: "var(--color-primary)" }}>{formatRand(totalPot)}</div>
             </div>
             <div style={{ background: "var(--color-surface)", padding: 16, borderRadius: 14, textAlign: "center" }}>
@@ -347,29 +368,85 @@ export function StokvelDashboard() {
             </div>
           </div>
 
-          <div style={{ background: "var(--color-surface)", padding: 16, borderRadius: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h5 style={{ fontWeight: 800, fontSize: 14 }}>Members</h5>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-primary)", background: "rgba(0,122,77,0.1)", padding: "4px 8px", borderRadius: 8 }}>
-                Code: {selectedStokvel.invite_code}
+          {/* Whose turn is the pot this month? */}
+          {currentRecipient() && (
+            <div style={{
+              background: "rgba(0,122,77,0.08)", border: "1.5px solid var(--color-primary)",
+              padding: "14px 18px", borderRadius: 14, display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <Target size={18} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text-primary)" }}>
+                This month&apos;s payout goes to{" "}
+                <span style={{ color: "var(--color-primary)" }}>
+                  {currentRecipient()!.user_id === userId ? "you" : currentRecipient()!.display_name}
+                </span>
+                {" "}({new Date().toLocaleString("en-ZA", { month: "long" })})
               </div>
             </div>
-            
+          )}
+
+          <div style={{ background: "var(--color-surface)", padding: 16, borderRadius: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <h5 style={{ fontWeight: 800, fontSize: 14 }}>Members (payout order)</h5>
+              <button
+                type="button"
+                onClick={copyInviteCode}
+                style={{
+                  fontSize: 11, fontWeight: 700, color: "var(--color-primary)",
+                  background: "rgba(0,122,77,0.1)", padding: "4px 10px",
+                  borderRadius: 8, border: "none", cursor: "pointer",
+                }}
+              >
+                {codeCopied ? "Copied!" : `Code: ${selectedStokvel.invite_code}`}
+              </button>
+            </div>
+
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {members.map((m, i) => (
                 <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: i < members.length - 1 ? "1px solid var(--color-border)" : "none" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--color-bg)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <Users size={14} style={{ color: "var(--color-text-secondary)" }} />
+                  <div style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: paidUserIds.includes(m.user_id) ? "rgba(0,122,77,0.15)" : "var(--color-bg)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    {paidUserIds.includes(m.user_id)
+                      ? <Check size={14} style={{ color: "var(--color-primary)" }} />
+                      : <Users size={14} style={{ color: "var(--color-text-secondary)" }} />}
                   </div>
-                  <div style={{ flex: 1 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 600, fontSize: 13 }}>
                       {m.user_id === userId ? "You" : (m.display_name || "Member")}
                       {m.is_admin && <span style={{ marginLeft: 6, fontSize: 10, color: "var(--color-primary)", fontWeight: 700 }}>ADMIN</span>}
                     </div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
+                      {paidUserIds.includes(m.user_id)
+                        ? "Paid this month"
+                        : "Not paid yet"}
+                    </div>
                   </div>
-                  {m.payout_position && (
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-secondary)" }}>
-                      Payout #{m.payout_position}
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-secondary)", whiteSpace: "nowrap" }}>
+                    #{m.payout_position ?? i + 1}
+                  </div>
+                  {iAmAdmin && (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <button
+                        type="button"
+                        aria-label={`Move ${m.display_name} up`}
+                        disabled={i === 0 || saving}
+                        onClick={() => movePosition(i, -1)}
+                        style={{ background: "none", border: "none", cursor: i === 0 ? "default" : "pointer", color: "var(--color-text-secondary)", padding: 0, lineHeight: 1, opacity: i === 0 ? 0.3 : 1 }}
+                      >
+                        ▲
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Move ${m.display_name} down`}
+                        disabled={i === members.length - 1 || saving}
+                        onClick={() => movePosition(i, 1)}
+                        style={{ background: "none", border: "none", cursor: i === members.length - 1 ? "default" : "pointer", color: "var(--color-text-secondary)", padding: 0, lineHeight: 1, opacity: i === members.length - 1 ? 0.3 : 1 }}
+                      >
+                        ▼
+                      </button>
                     </div>
                   )}
                 </div>
@@ -377,14 +454,16 @@ export function StokvelDashboard() {
             </div>
           </div>
 
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={handleLogContribution}
-            disabled={saving}
-            className="btn btn-primary" 
-            style={{ padding: 16, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer" }}
+            disabled={saving || iHavePaid}
+            className="btn btn-primary"
+            style={{ padding: 16, fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: iHavePaid ? "default" : "pointer", opacity: iHavePaid ? 0.7 : 1 }}
           >
-            <Wallet size={18} /> {saving ? "Logging..." : "Log my contribution"}
+            {iHavePaid
+              ? <><Check size={18} /> Paid for {new Date().toLocaleString("en-ZA", { month: "long" })}</>
+              : <><Wallet size={18} /> {saving ? "Logging..." : "Log my contribution"}</>}
           </button>
         </div>
       )}
