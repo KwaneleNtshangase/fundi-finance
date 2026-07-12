@@ -201,7 +201,9 @@ export function StatsPanel({
             />
           </div>
           <div className="progress-text" id="dailyGoalText">
-            {userData.dailyXP} / {userData.dailyGoal} XP
+            {userData.dailyXP >= userData.dailyGoal
+              ? `Goal reached! ${userData.dailyXP} XP today (+${userData.dailyXP - userData.dailyGoal} extra)`
+              : `${userData.dailyXP} / ${userData.dailyGoal} XP`}
           </div>
         </div>
       </div>

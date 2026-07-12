@@ -322,7 +322,8 @@ html.dark .nav-link.active {
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  /* Progress toward a goal should end in the success colour, not red */
+  background: linear-gradient(90deg, var(--color-primary-hover), var(--color-primary));
   transition: width 0.6s ease-out;
 }
 

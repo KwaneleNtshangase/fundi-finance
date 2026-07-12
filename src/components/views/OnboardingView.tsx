@@ -416,6 +416,16 @@ export function OnboardingView({
           {current.cta}
         </button>
 
+        {/* Inline hint so a blocked Next never fails silently */}
+        {screen === 0 && !ageConfirmed && (
+          <div style={{
+            marginTop: 10, fontSize: 12, fontWeight: 600,
+            color: "var(--color-text-secondary)", textAlign: "center",
+          }}>
+            Tick the 18-or-older confirmation above to continue.
+          </div>
+        )}
+
         {/* Skip goal - allowed once age is confirmed */}
         {screen === 0 && (
           <button
@@ -424,7 +434,9 @@ export function OnboardingView({
             disabled={!ageConfirmed}
             style={{
               marginTop: 12, background: "none", border: "none",
-              color: ageConfirmed ? "var(--color-text-secondary)" : "var(--color-border)",
+              color: "var(--color-text-secondary)",
+              opacity: ageConfirmed ? 1 : 0.55,
+              textDecoration: "underline",
               cursor: ageConfirmed ? "pointer" : "default",
               fontSize: 14, width: "100%",
             }}

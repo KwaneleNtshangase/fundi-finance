@@ -98,6 +98,8 @@ export default function LearnPage() {
       challengeRewardClaimed={challengeRewardClaimed}
       claimChallengeReward={claimChallengeReward}
       streak={userData?.streak ?? 0}
+      userLevel={userData?.level ?? 1}
+      userXP={userData?.xp ?? 0}
       addXP={addXP}
     />
   );

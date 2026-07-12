@@ -83,6 +83,16 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  // Common auth URLs people type or that external links/password managers
+  // generate. Auth lives on the root page, so send them there instead of a 404.
+  async redirects() {
+    return [
+      { source: "/login", destination: "/", permanent: false },
+      { source: "/signin", destination: "/", permanent: false },
+      { source: "/signup", destination: "/", permanent: false },
+      { source: "/register", destination: "/", permanent: false },
+    ];
+  },
   // PostHog + OAuth callback redirects occasionally hit old paths; allow
   // Next to follow them without logging a warning in the build output.
   poweredByHeader: false,

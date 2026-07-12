@@ -19,7 +19,7 @@ export const maxDuration = 60;
  * Uses Resend's scheduled_at so delivery is handled by Resend at the set time.
  */
 
-const DEFAULT_SCHEDULED_AT = "2026-07-06T06:00:00.000Z"; // 08:00 SAST (UTC+2)
+const DEFAULT_SCHEDULED_AT = "2026-07-13T06:00:00.000Z"; // 08:00 SAST (UTC+2)
 const FROM = "Fundi Finance <hello@fundiapp.co.za>";
 const SUBJECT = "New: build your budget by importing your bank statement";
 const MAX_RECIPIENTS = 20000;

@@ -662,6 +662,7 @@ export function LearnView({
   showQuestSections = false,
   addXP,
   userLevel = 1,
+  userXP = 0,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
@@ -680,6 +681,8 @@ export function LearnView({
   addXP?: (amount: number) => void;
   /** Current user level (Math.floor(xp/500)+1). Used to show course lock gates. */
   userLevel?: number;
+  /** Current total XP. Used to show how much XP is still needed to unlock gated courses. */
+  userXP?: number;
 }) {
   const [search, setSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
@@ -711,15 +714,12 @@ export function LearnView({
   const recommendedCourseIds =
     userGoal && GOAL_COURSE_MAP[userGoal] ? GOAL_COURSE_MAP[userGoal] : [];
 
-  // Simple fuzzy match: returns true if query is a substring OR within 1 char edit distance
-  const fuzzyMatch = (text: string, query: string): boolean => {
-    const t = text.toLowerCase();
-    const q = query.toLowerCase().trim();
-    if (!q) return true;
+  // Fuzzy match a single query token: substring, word-prefix, or edit distance <= 1
+  const matchToken = (t: string, q: string): boolean => {
     if (t.includes(q)) return true;
     // Check if any word in t starts with q (prefix match)
-    if (t.split(/s+/).some(w => w.startsWith(q))) return true;
-    // Levenshtein distance <= 1 for short queries (<=5 chars)
+    if (t.split(/\s+/).some(w => w.startsWith(q))) return true;
+    // Levenshtein distance <= 1 for short tokens (<=5 chars)
     if (q.length <= 5) {
       const levenshtein = (a: string, b: string): number => {
         const dp = Array.from({ length: a.length + 1 }, (_, i) =>
@@ -730,18 +730,29 @@ export function LearnView({
             dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
         return dp[a.length][b.length];
       };
-      // Check each word in the text
-      const words = t.split(/s+/);
+      const words = t.split(/\s+/);
       if (words.some(w => levenshtein(w.slice(0, q.length + 1), q) <= 1)) return true;
     }
     return false;
   };
-  const filteredCourses = search.trim()
-    ? courses.filter(c =>
-        fuzzyMatch(c.title, search) ||
-        fuzzyMatch(c.description ?? "", search)
-      )
-    : courses;
+  // Multi-word queries: prefer courses matching ALL tokens; if none do,
+  // fall back to any-token matches so "tax refund" still surfaces the Taxes course.
+  const countTokenMatches = (text: string, query: string): number => {
+    const t = text.toLowerCase();
+    const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    return tokens.filter((q) => matchToken(t, q)).length;
+  };
+  const filteredCourses = (() => {
+    const q = search.trim();
+    if (!q) return courses;
+    const tokenCount = q.split(/\s+/).filter(Boolean).length;
+    // Match against title + description together so tokens can hit either
+    const scored = courses
+      .map((c) => ({ c, hits: countTokenMatches(`${c.title} ${c.description ?? ""}`, q) }))
+      .filter(({ hits }) => hits > 0);
+    const fullMatches = scored.filter(({ hits }) => hits === tokenCount);
+    return (fullMatches.length > 0 ? fullMatches : scored).map(({ c }) => c);
+  })();
 
   return (
     <main id="mainContent">
@@ -899,8 +910,8 @@ export function LearnView({
         </div>
       )}
 
-      {/* Weekly challenge card */}
-      {showQuestSections && weeklyChallenge && (
+      {/* Weekly challenge card — hidden while searching so results sit right under the search box */}
+      {showQuestSections && !search.trim() && weeklyChallenge && (
         <div style={{
           background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
           border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
@@ -958,7 +969,7 @@ export function LearnView({
       )}
 
       {/* Daily Challenges */}
-      {showQuestSections && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
+      {showQuestSections && !search.trim() && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
 
       {!contentLoaded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1030,6 +1041,7 @@ export function LearnView({
                   {isLocked ? (
                     <div className="course-description" style={{ color: "var(--color-text-secondary)" }}>
                       Keep earning XP to unlock this advanced content. Reach {levelReq.label} to continue.
+                      {" "}You&apos;re Level {userLevel} — {Math.max(0, (levelReq.level - 1) * 500 - userXP).toLocaleString("en-ZA")} XP to go.
                     </div>
                   ) : (
                     <div className="course-description">{course.description}</div>
@@ -1044,16 +1056,16 @@ export function LearnView({
               </div>
               {!isLocked && (
                 <>
-                  {/* Coloured progress bar */}
-                  <div style={{ height: 6, background: colour.light, borderRadius: 3, margin: "8px 0", overflow: "hidden" }}>
+                  {/* Coloured progress bar — neutral track so 0% never reads as complete */}
+                  <div style={{ height: 6, background: "var(--color-border)", borderRadius: 3, margin: "8px 0", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${percentage}%`, background: colour.accent, borderRadius: 3, transition: "width 0.4s" }} />
                   </div>
                   <div className="course-stats">
                     <div className="course-stat">
-                      <strong>{completedLessons}</strong> / {totalLessons} lessons
+                      <strong>{completedLessons}</strong> / {totalLessons} {totalLessons === 1 ? "lesson" : "lessons"}
                     </div>
                     <div className="course-stat">
-                      <strong>{course.units.length}</strong> units
+                      <strong>{course.units.length}</strong> {course.units.length === 1 ? "unit" : "units"}
                     </div>
                   </div>
                 </>
