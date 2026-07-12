@@ -42,3 +42,15 @@ client_secret_*.json
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# test artifacts (Playwright)
+/playwright-report/
+/test-results/
+
+# local logs
+dev.log
+prod.log
+*.log
+
+# supabase CLI local temp
+/supabase/.temp/
