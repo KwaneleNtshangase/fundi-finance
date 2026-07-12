@@ -112,8 +112,12 @@ export function FundiCoachChat() {
         setState({ kind: "consent" });
         return;
       }
+      if (res.status === 503) {
+        setNotice("The AI coach isn't set up yet. Please check back soon.");
+        return;
+      }
       if (!res.ok) {
-        setNotice("Coach is unavailable right now, try again later.");
+        setNotice(`Coach is unavailable right now (code ${res.status}), try again later.`);
         return;
       }
 
@@ -298,7 +302,11 @@ export function FundiCoachChat() {
 
               <form
                 onSubmit={(e) => { e.preventDefault(); send(); }}
-                style={{ display: "flex", gap: 8 }}
+                style={{
+                  display: "flex", alignItems: "center",
+                  background: "#fff", border: "1.5px solid var(--color-border)",
+                  borderRadius: 999, padding: "4px 4px 4px 16px", minWidth: 0,
+                }}
               >
                 <input
                   value={input}
@@ -307,23 +315,27 @@ export function FundiCoachChat() {
                   placeholder="Ask about your month"
                   disabled={sending || remaining === 0}
                   style={{
-                    flex: 1, minWidth: 0, border: "1.5px solid var(--color-border)",
-                    borderRadius: 10, padding: "9px 12px", fontSize: 13,
-                    background: "transparent", color: "var(--color-text-primary)",
-                    outline: "none",
+                    flex: 1, minWidth: 0, border: "none", outline: "none",
+                    background: "transparent", fontSize: 14, padding: "9px 0",
+                    color: "#1f2937",
                   }}
                 />
                 <button
                   type="submit"
+                  aria-label="Send"
                   disabled={sending || !input.trim() || remaining === 0}
                   style={{
-                    background: "var(--color-primary)", color: "#fff", border: "none",
-                    borderRadius: 10, padding: "9px 16px", fontSize: 13, fontWeight: 700,
+                    width: 38, height: 38, flexShrink: 0, marginLeft: 8,
+                    borderRadius: "50%", border: "none",
+                    background: "var(--color-primary)", color: "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: sending || !input.trim() || remaining === 0 ? "default" : "pointer",
-                    opacity: sending || !input.trim() || remaining === 0 ? 0.6 : 1,
+                    opacity: sending || !input.trim() || remaining === 0 ? 0.5 : 1,
                   }}
                 >
-                  Send
+                  <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" aria-hidden>
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+                  </svg>
                 </button>
               </form>
 

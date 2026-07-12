@@ -24,7 +24,7 @@ import type { CoachEntry } from "@/lib/coach/insights";
 const MAX_PER_DAY = 10;
 const MAX_MSG_LEN = 500;
 const HISTORY_TURNS = 8;
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash";
 
 const SYSTEM_PROMPT = `You are Fundi Coach, the friendly financial-education helper inside Fundi Finance, a South African money-skills app.
 

@@ -61,7 +61,14 @@ function daysInMonthOf(monthKey: string): number {
   return new Date(Date.UTC(y, m, 0)).getUTCDate();
 }
 
-export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
+export function FundiCoachCard({
+  maxInsights = 3,
+  monthYear,
+}: {
+  maxInsights?: number;
+  /** Month to analyse, "YYYY-MM". Defaults to the current SAST month. */
+  monthYear?: string;
+}) {
   const [insights, setInsights] = useState<CoachInsight[] | null>(null);
 
   useEffect(() => {
@@ -73,10 +80,18 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
         if (!user) return;
 
         const today = sastToday(); // YYYY-MM-DD (SAST)
-        const monthKey = monthKeyOf(today);
+        const currentMonth = monthKeyOf(today);
+        // Analyse the month the user is LOOKING AT, not blindly "now".
+        const monthKey = monthYear ?? currentMonth;
         const prevMonthKey = prevMonthKeyOf(monthKey);
-        const dayOfMonth = Number(today.slice(8, 10));
         const daysInMonth = daysInMonthOf(monthKey);
+        // Past months are complete; the current month runs to today's date.
+        const dayOfMonth =
+          monthKey === currentMonth ? Number(today.slice(8, 10)) : daysInMonth;
+        const rangeEnd =
+          monthKey === currentMonth
+            ? today
+            : `${monthKey}-${String(daysInMonth).padStart(2, "0")}`;
 
         const [entriesRes, targetsRes, catsRes] = await Promise.all([
           supabase
@@ -84,7 +99,7 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
             .select("type, category, amount, entry_date, is_transfer")
             .eq("user_id", user.id)
             .gte("entry_date", `${prevMonthKey}-01`)
-            .lte("entry_date", today),
+            .lte("entry_date", rangeEnd),
           supabase
             .from("budget_targets")
             .select("category, monthly_limit, month_year")
@@ -127,7 +142,7 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
 
     load();
     return () => { cancelled = true; };
-  }, [maxInsights]);
+  }, [maxInsights, monthYear]);
 
   // The card (and its chat) is always available; the insights list simply
   // stays empty until the rules engine has something worth saying.

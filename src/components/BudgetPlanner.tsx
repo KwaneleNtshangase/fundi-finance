@@ -902,7 +902,7 @@ export function BudgetView() {
       )}
 
       {/* Fundi Coach: deterministic nudges from the user's own numbers */}
-      {viewMode === "month" && <FundiCoachCard />}
+      {viewMode === "month" && <FundiCoachCard monthYear={monthYear} />}
 
       {/* Floating AI chat, always available on the budget page */}
       <FundiCoachChat />
