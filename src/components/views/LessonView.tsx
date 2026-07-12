@@ -940,6 +940,15 @@ export function LessonView({
             >
               <X size={22} />
             </button>
+            {/* Hearts belong where you can lose them — inline in the lesson header */}
+            <div
+              style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, fontWeight: 800, fontSize: 14, color: "#E03C31" }}
+              aria-label={`${hearts} of ${maxHearts} hearts remaining`}
+              title={`${hearts}/${maxHearts} hearts`}
+            >
+              {hearts > 0 ? <Heart size={18} fill="currentColor" /> : <HeartOff size={18} />}
+              {hearts}
+            </div>
           </div>
           <div className="lesson-step">{renderStep()}</div>
           {/* Financial education disclaimer */}

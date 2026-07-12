@@ -172,6 +172,10 @@ export async function POST(req: NextRequest) {
     scheduledAt?: string;
     test?: boolean;
     testEmail?: string;
+    /** dryRun only: include the full recipient list in the response. */
+    listAll?: boolean;
+    /** Restrict the send to these addresses (e.g. retrying failures). */
+    onlyTo?: string[];
   };
 
   // Test send: deliver a single copy immediately to the admin (or a given address).
@@ -195,6 +199,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Failed to list users: ${(e as Error).message}` }, { status: 500 });
   }
 
+  // Optional retry filter: only send to this subset of known users.
+  if (Array.isArray(body.onlyTo) && body.onlyTo.length > 0) {
+    const wanted = new Set(body.onlyTo.map((e) => e.trim().toLowerCase()));
+    emails = emails.filter((e) => wanted.has(e));
+  }
+
   if (emails.length > MAX_RECIPIENTS) {
     return NextResponse.json(
       { error: `Recipient count ${emails.length} exceeds safety cap ${MAX_RECIPIENTS}.` },
@@ -208,6 +218,7 @@ export async function POST(req: NextRequest) {
       recipients: emails.length,
       scheduledAt,
       sample: emails.slice(0, 5),
+      ...(body.listAll ? { all: emails } : {}),
     });
   }
 
@@ -220,7 +231,9 @@ export async function POST(req: NextRequest) {
 
   let scheduled = 0;
   const errors: { to: string; detail: string }[] = [];
-  const CHUNK = 8;
+  // Resend allows 10 req/s; 4 parallel per 1.1s (~3.6/s) leaves ample headroom
+  // for lifecycle/bug emails sharing the same key.
+  const CHUNK = 4;
   for (let i = 0; i < emails.length; i += CHUNK) {
     const chunk = emails.slice(i, i + CHUNK);
     const results = await Promise.all(chunk.map((to) => scheduleOne(resendKey, to, scheduledAt)));
@@ -228,8 +241,7 @@ export async function POST(req: NextRequest) {
       if (r.ok) scheduled++;
       else errors.push({ to: chunk[idx], detail: r.detail });
     });
-    // small pause to stay well under Resend rate limits
-    if (i + CHUNK < emails.length) await new Promise((res) => setTimeout(res, 600));
+    if (i + CHUNK < emails.length) await new Promise((res) => setTimeout(res, 1100));
   }
 
   return NextResponse.json({

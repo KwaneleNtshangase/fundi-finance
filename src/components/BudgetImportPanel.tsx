@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowLeftRight, CheckCircle2, FileUp, Plus, Shield, Upload, X } from "@/components/icons/FundiIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
@@ -124,6 +124,16 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
   const [addingCategoryFor, setAddingCategoryFor] = useState<string | null>(null);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [savingCategory, setSavingCategory] = useState(false);
+
+  // Escape closes the import dialog (unless a parse/import is mid-flight)
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !loading && !committing) setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, loading, committing]);
 
   const loadCustomCategories = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();

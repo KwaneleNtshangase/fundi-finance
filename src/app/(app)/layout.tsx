@@ -14,6 +14,7 @@ import {
 } from "@/components/icons/FundiIcons";
 import { usePathname } from "next/navigation";
 import { StatsPanel } from "@/components/StatsPanel";
+import { FundiTopBar } from "@/components/FundiTopBar";
 
 function AppNavigation() {
   const { setRoute } = useFundi();
@@ -93,10 +94,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <AuthGate>
         <div className="app-container">
           <DesktopSidebar />
-          <div 
+          <div
             className={`main-content ${(pathname === "/learn" || pathname === "/") ? "main-with-stats" : ""}`}
             style={{ display: 'flex', flexDirection: 'column' }}
           >
+            {(pathname === "/learn" || pathname === "/") && <MobileTopBarWrapper />}
             <div style={{ paddingBottom: "70px", flex: 1, display: 'flex', flexDirection: 'column' }}>{children}</div>
           </div>
           {(pathname === "/learn" || pathname === "/") && (
@@ -108,6 +110,29 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <StreakRepairBanner />
       </AuthGate>
     </FundiProvider>
+  );
+}
+
+// Compact streak/XP/hearts bar for phones and tablets — the desktop StatsPanel
+// only exists at >=1200px, so without this mobile users never see their hearts.
+function MobileTopBarWrapper() {
+  const { userData, hearts, maxHearts, heartsRegenInfo, freezeCount, buyStreakFreeze, useFreeze } = useFundi();
+  if (!userData) return null;
+  return (
+    <div className="mobile-top-bar">
+      <FundiTopBar
+        streak={userData.streak}
+        xp={userData.xp}
+        hearts={hearts}
+        maxHearts={maxHearts}
+        heartsRegenInfo={heartsRegenInfo}
+        freezeCount={freezeCount}
+        onBuyFreeze={() => buyStreakFreeze()}
+        onUseFreeze={async () => { await useFreeze(); }}
+        freezeUsedToday={userData.lessonsToday > 0 && freezeCount > 0}
+        lessonsToday={userData.lessonsToday}
+      />
+    </div>
   );
 }
 

@@ -263,6 +263,22 @@ export function BudgetView() {
   const [addAccountId, setAddAccountId] = useState<string | null>(null);
   const [editAccountId, setEditAccountId] = useState<string | null>(null);
 
+  // Escape closes the topmost open modal (keyboard parity with click-outside)
+  useEffect(() => {
+    const anyOpen = showAdd || !!editEntry || showExportModal || showSetBudget || showAddCustomCat;
+    if (!anyOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (showAddCustomCat) { setShowAddCustomCat(false); return; }
+      if (showAdd) { setShowAdd(false); return; }
+      if (editEntry) { setEditEntry(null); return; }
+      if (showExportModal) { setShowExportModal(false); return; }
+      if (showSetBudget) { setShowSetBudget(false); return; }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [showAdd, editEntry, showExportModal, showSetBudget, showAddCustomCat]);
+
   // Read the user's onboarding goal from localStorage to show as header context
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -292,7 +308,6 @@ export function BudgetView() {
   const year = targetDate.getFullYear();
   const month = targetDate.getMonth();
   const monthLabel = targetDate.toLocaleString("en-ZA", { month: "long", year: "numeric" });
-  const isCurrentMonth = monthOffset === 0;
 
   const startDate = `${year}-${String(month + 1).padStart(2, "0")}-01`;
   const lastDay = new Date(year, month + 1, 0).getDate();
@@ -994,8 +1009,9 @@ export function BudgetView() {
           <ChevronLeft size={20} />
         </button>
         <span style={{ fontWeight: 700, fontSize: 15 }}>{monthLabel}</span>
-        <button type="button" onClick={() => setMonthOffset((o) => Math.min(o + 1, 0))} disabled={isCurrentMonth}
-          style={{ background: "none", border: "none", cursor: isCurrentMonth ? "default" : "pointer", color: isCurrentMonth ? "var(--color-border)" : "var(--color-text-secondary)", padding: 4 }} aria-label="Next month">
+        {/* Allow planning up to 3 months ahead (was capped at the current month) */}
+        <button type="button" onClick={() => setMonthOffset((o) => Math.min(o + 1, 3))} disabled={monthOffset >= 3}
+          style={{ background: "none", border: "none", cursor: monthOffset >= 3 ? "default" : "pointer", color: monthOffset >= 3 ? "var(--color-border)" : "var(--color-text-secondary)", padding: 4 }} aria-label="Next month">
           <ChevronRight size={20} />
         </button>
       </div>
@@ -1005,7 +1021,7 @@ export function BudgetView() {
           {monthIsCustomised ? (
             <>
               <Target size={14} style={{ color: "#B8860B", flexShrink: 0 }} />
-              <span style={{ fontWeight: 600, color: "var(--color-text-primary)", flex: 1 }}>Customised for {monthLabel}</span>
+              <span style={{ fontWeight: 600, color: "var(--color-text-primary)", flex: 1 }}>Budget targets customised for {monthLabel}</span>
               <button type="button" onClick={resetMonthToDefault}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-primary)", fontWeight: 700, fontSize: 12.5, padding: 0 }}>
                 Reset to default

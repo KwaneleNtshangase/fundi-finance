@@ -98,8 +98,17 @@ export function LeaderboardView({
         // Build rows - weekly XP only counts if week_key matches current week
         const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number }[] = [];
 
+        // Internal QA accounts must never appear on the public leaderboard —
+        // being told to "overtake e2e_test_bot" destroys trust in the ranking.
+        const isTestAccount = (username: string | null): boolean => {
+          const n = (username ?? "").trim().toLowerCase();
+          return /(^|[^a-z])(e2e|test|tester|qa)([^a-z]|$)|_bot$|^bot_|^tester$/.test(n);
+        };
+
         (rpcRows ?? []).forEach((r: { user_id: string; username: string | null; xp: number | null; weekly_xp: number | null; week_key: string | null }) => {
           const uid = String(r.user_id);
+          // Never hide the signed-in user from themselves
+          if (uid !== myId && isTestAccount(r.username)) return;
           const isCurrentWeek = (r.week_key ?? "") === currentWeekKey;
           const thisWeekXp = isCurrentWeek ? (r.weekly_xp ?? 0) : 0;
           const totalXp = r.xp ?? 0;

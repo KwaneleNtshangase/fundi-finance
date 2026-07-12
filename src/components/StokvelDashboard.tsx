@@ -253,7 +253,12 @@ export function StokvelDashboard() {
       {view === "list" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {loading ? (
-            <div style={{ padding: 24, textAlign: "center", color: "var(--color-text-secondary)" }}>Loading...</div>
+            // Skeleton placeholder instead of bare text — the stokvel query can be slow
+            <>
+              {[0, 1].map((i) => (
+                <div key={i} className="skeleton" style={{ height: 76, borderRadius: 14 }} aria-hidden />
+              ))}
+            </>
           ) : stokvels.length === 0 ? (
             <div style={{ background: "var(--color-surface)", padding: 32, borderRadius: 14, textAlign: "center" }}>
               <Users size={40} style={{ color: "var(--color-text-secondary)", margin: "0 auto 12px" }} />

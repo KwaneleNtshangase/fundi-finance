@@ -268,6 +268,17 @@ html.dark .nav-link.active {
   }
 }
 
+/* Compact streak/XP/hearts bar for phones and tablets. Hidden on large
+   screens where the right-hand StatsPanel shows the same information. */
+.mobile-top-bar {
+  display: block;
+}
+@media (min-width: 1200px) {
+  .mobile-top-bar {
+    display: none;
+  }
+}
+
 .stats-section {
   margin-bottom: 32px;
 }
@@ -769,6 +780,8 @@ html.dark .nav-link.active {
 
 .btn-primary:disabled {
   background: var(--track-bg);
+  color: var(--color-text-secondary);
+  opacity: 0.6;
   cursor: not-allowed;
   transform: none;
 }
@@ -1427,9 +1440,11 @@ html.dark .stat-label {
 }
 
 html.dark .option-button {
-  background: #141414;
+  /* Slightly lifted surface + visible border so answer options read as
+     tappable cards, not plain text lines, on dark backgrounds */
+  background: #1A1C1E;
   color: #E6EDF3;
-  border-color: #2A2A2A;
+  border-color: #3A3F45;
 }
 
 html.dark .option-button:hover:not(:disabled) {
