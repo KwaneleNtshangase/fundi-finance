@@ -130,8 +130,9 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
     return () => { cancelled = true; };
   }, [maxInsights]);
 
-  // Render nothing while loading or when there's nothing useful to say.
-  if (!insights || insights.length === 0) return null;
+  // The card (and its chat) is always available; the insights list simply
+  // stays empty until the rules engine has something worth saying.
+  const showInsights = !!insights && insights.length > 0;
 
   return (
     <section
@@ -152,8 +153,15 @@ export function FundiCoachCard({ maxInsights = 3 }: { maxInsights?: number }) {
         </span>
       </div>
 
+      {!showInsights && (
+        <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
+          No nudges right now. Add entries or import a bank statement and Fundi
+          will spot what&apos;s worth a look.
+        </p>
+      )}
+
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        {insights.map((i) => {
+        {(insights ?? []).map((i) => {
           const s = SEVERITY_STYLES[i.severity];
           return (
             <div
