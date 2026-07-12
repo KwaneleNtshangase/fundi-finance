@@ -54,7 +54,9 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id),
     admin
       .from("profiles")
-      .select("display_name, full_name, username")
+      // NB: profiles has NO display_name column — selecting it made this whole
+      // query error (42703) and silently produced the "Fundi user" fallback.
+      .select("full_name, username")
       .eq("user_id", user.id)
       .maybeSingle(),
     admin
@@ -104,7 +106,7 @@ export async function POST(req: NextRequest) {
   );
 
   const profile = profileRes.data as
-    | { display_name?: string; full_name?: string; username?: string }
+    | { full_name?: string; username?: string }
     | null;
   const progress = progressRes.data as { display_name?: string } | null;
   if (profileRes.error) console.error("[budget/report] profile lookup:", profileRes.error.message);
@@ -113,7 +115,6 @@ export async function POST(req: NextRequest) {
   const firstNameOf = (s?: string | null) => (s ?? "").trim().split(/\s+/)[0] ?? "";
   const displayName =
     firstNameOf(profile?.full_name) ||
-    profile?.display_name?.trim() ||
     profile?.username?.trim() ||
     progress?.display_name?.trim() ||
     "Fundi user";
