@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { trackBehaviorEvent, BUDGET_RELATED_COURSE_IDS } from "@/lib/behaviorTracking";
+import { buildSearchIndex, fuzzySearch, getSuggestion } from "@/lib/fuzzySearch";
 import { CONTENT_DATA } from "@/data/content";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import {
@@ -682,6 +683,7 @@ export function LearnView({
   userLevel?: number;
 }) {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
   const [goalDescription, setGoalDescription] = useState<string>("");
   const [showGoalPicker, setShowGoalPicker] = useState(false);
@@ -689,6 +691,18 @@ export function LearnView({
   const [pickerGoalDescription, setPickerGoalDescription] = useState<string>("");
   const [showReview, setShowReview] = useState(false);
   const [dueCount, setDueCount] = useState(0);
+
+  // Debounce search input for performance (150ms)
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 150);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Build the search index once from courses + concept tags
+  const searchIndex = useMemo(
+    () => buildSearchIndex(courses, CONCEPTS),
+    [courses]
+  );
 
   // Refresh due count on mount and when returning from a review
   useEffect(() => {
@@ -711,36 +725,22 @@ export function LearnView({
   const recommendedCourseIds =
     userGoal && GOAL_COURSE_MAP[userGoal] ? GOAL_COURSE_MAP[userGoal] : [];
 
-  // Simple fuzzy match: returns true if query is a substring OR within 1 char edit distance
-  const fuzzyMatch = (text: string, query: string): boolean => {
-    const t = text.toLowerCase();
-    const q = query.toLowerCase().trim();
-    if (!q) return true;
-    if (t.includes(q)) return true;
-    // Check if any word in t starts with q (prefix match)
-    if (t.split(/s+/).some(w => w.startsWith(q))) return true;
-    // Levenshtein distance <= 1 for short queries (<=5 chars)
-    if (q.length <= 5) {
-      const levenshtein = (a: string, b: string): number => {
-        const dp = Array.from({ length: a.length + 1 }, (_, i) =>
-          Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
-        );
-        for (let i = 1; i <= a.length; i++)
-          for (let j = 1; j <= b.length; j++)
-            dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
-        return dp[a.length][b.length];
-      };
-      // Check each word in the text
-      const words = t.split(/s+/);
-      if (words.some(w => levenshtein(w.slice(0, q.length + 1), q) <= 1)) return true;
-    }
-    return false;
-  };
-  const filteredCourses = search.trim()
-    ? courses.filter(c =>
-        fuzzyMatch(c.title, search) ||
-        fuzzyMatch(c.description ?? "", search)
-      )
+  // Fuzzy search: weighted, ranked results across title, concept tags, and description
+  const searchResults = useMemo(() => {
+    if (!debouncedSearch.trim()) return null;
+    return fuzzySearch(debouncedSearch, searchIndex);
+  }, [debouncedSearch, searchIndex]);
+
+  // "Did you mean?" suggestion when results are empty
+  const suggestion = useMemo(() => {
+    if (!searchResults || searchResults.length > 0) return null;
+    return getSuggestion(debouncedSearch, searchIndex);
+  }, [searchResults, debouncedSearch, searchIndex]);
+
+  const filteredCourses = searchResults
+    ? searchResults
+        .map(r => courses.find(c => c.id === r.courseId)!)
+        .filter(Boolean)
     : courses;
 
   return (
@@ -893,9 +893,20 @@ export function LearnView({
           <p className="text-gray-700 dark:text-gray-300 font-semibold">
             No results for &quot;{search.trim()}&quot;
           </p>
-          <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
-            Try searching for a topic like &quot;budget&quot;, &quot;TFSA&quot;, or &quot;debt&quot;
-          </p>
+          {suggestion ? (
+            <button
+              type="button"
+              onClick={() => setSearch(suggestion)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-2 text-sm font-semibold text-green-700 dark:text-green-400 transition-colors hover:bg-green-100 dark:hover:bg-green-900/40"
+            >
+              <HelpCircle size={14} aria-hidden />
+              Did you mean &quot;{suggestion}&quot;?
+            </button>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+              Try searching for a topic like &quot;budget&quot;, &quot;TFSA&quot;, or &quot;debt&quot;
+            </p>
+          )}
         </div>
       )}
 
