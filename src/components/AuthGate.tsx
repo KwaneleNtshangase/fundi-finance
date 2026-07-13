@@ -74,7 +74,10 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const t = setTimeout(() => setSplashMinElapsed(true), 1500);
+    // Keep the splash just long enough to avoid a flash of unstyled logo.
+    // Returning users on slow SA mobile networks shouldn't wait on branding —
+    // the previous 1500ms minimum added 1.1s+ of pure dead time per load.
+    const t = setTimeout(() => setSplashMinElapsed(true), 400);
     return () => clearTimeout(t);
   }, []);
 
@@ -303,10 +306,31 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             </p>
             <p style={{
               fontSize: 13, color: "#9CA3AF", textAlign: "center",
-              lineHeight: 1.6, maxWidth: 260, margin: 0,
+              lineHeight: 1.6, maxWidth: 280, margin: "0 0 28px",
             }}>
               Learn how money works, build real habits, and take control of your finances.
             </p>
+
+            {/* Value prop — why sign up (kept compact for small screens) */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, width: "100%" }}>
+              {[
+                { icon: "📚", text: "Bite-size lessons on SA money life — payslips, debit orders, SARS, TFSAs" },
+                { icon: "📊", text: "Budget tracker with bank statement import — processed in memory, never stored" },
+                { icon: "🎯", text: "Calculators, goals and streaks that make finance stick" },
+              ].map((f) => (
+                <div key={f.text} style={{
+                  display: "flex", alignItems: "flex-start", gap: 10,
+                  background: "#F7FAF8", border: "1px solid #E5EFE9",
+                  borderRadius: 12, padding: "10px 14px",
+                }}>
+                  <span style={{ fontSize: 16, lineHeight: "20px" }} aria-hidden>{f.icon}</span>
+                  <span style={{ fontSize: 12.5, color: "#4B5563", lineHeight: 1.5, textAlign: "left" }}>{f.text}</span>
+                </div>
+              ))}
+              <p style={{ fontSize: 11, color: "#9CA3AF", textAlign: "center", margin: "4px 0 0" }}>
+                Free to use · Built for South Africa · Educational content only, not financial advice
+              </p>
+            </div>
           </div>
 
           {/* CTAs */}

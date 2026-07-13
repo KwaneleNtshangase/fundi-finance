@@ -153,6 +153,145 @@ function BroadcastPanel() {
   );
 }
 
+/** Normalise a blob of pasted addresses into a clean, de-duplicated list. */
+function parseEmails(raw: string): string[] {
+  return Array.from(
+    new Set(
+      raw
+        .split(/[\s,;]+/)
+        .map((s) => s.trim().toLowerCase())
+        .filter((s) => s.includes("@"))
+    )
+  );
+}
+
+/**
+ * Admin control to finish a partial broadcast: sends the announcement immediately
+ * to every confirmed user who is NOT in the pasted "already received" list.
+ * Guarantees no duplicates (excludes who already got it) and no omissions
+ * (targets the full confirmed-user list minus that set).
+ */
+function RetryUnsentPanel() {
+  const [alreadySent, setAlreadySent] = useState("");
+  const [remaining, setRemaining] = useState<string[] | null>(null);
+  const [unknownPasted, setUnknownPasted] = useState<string[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [status, setStatus] = useState<
+    "idle" | "previewing" | "ready" | "sending" | "done" | "error"
+  >("idle");
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const authToken = async () => {
+    const { data } = await supabase.auth.getSession();
+    return data.session?.access_token;
+  };
+
+  const preview = async () => {
+    setStatus("previewing"); setMsg(null); setRemaining(null);
+    const t = await authToken();
+    const res = await fetch("/api/admin/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ dryRun: true, listAll: true }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus("error"); setMsg(out.error ?? `Error ${res.status}`); return; }
+    const all: string[] = out.all ?? [];
+    const sentSet = new Set(parseEmails(alreadySent));
+    const rem = all.filter((e) => !sentSet.has(e));
+    const unknown = [...sentSet].filter((e) => !all.includes(e));
+    setTotal(all.length);
+    setRemaining(rem);
+    setUnknownPasted(unknown);
+    setStatus("ready");
+  };
+
+  const sendNow = async () => {
+    if (!remaining || remaining.length === 0) return;
+    if (!window.confirm(
+      `Send the announcement immediately to ${remaining.length} user(s) who haven't received it yet?\n\nThey will receive it within about a minute. This cannot be undone.`
+    )) return;
+    setStatus("sending"); setMsg(null);
+    const t = await authToken();
+    // A near-future scheduled_at delivers almost immediately AND keeps the real
+    // (non-[TEST]) subject line, which the route only uses when scheduledAt is set.
+    const scheduledAt = new Date(Date.now() + 30_000).toISOString();
+    const res = await fetch("/api/admin/broadcast", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${t}` },
+      body: JSON.stringify({ dryRun: false, confirm: true, onlyTo: remaining, scheduledAt }),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (!res.ok) { setStatus("error"); setMsg(out.error ?? `Error ${res.status}`); return; }
+    setStatus("done");
+    setMsg(
+      `Sent to ${out.scheduled}/${out.totalRecipients} user(s)${out.failed ? ` · ${out.failed} failed` : ""}. Delivering now.`
+    );
+  };
+
+  const box: React.CSSProperties = { border: "1px solid #e5e7eb", borderRadius: 14, padding: 16, background: "#FFF7ED", marginBottom: 20 };
+  const btn = (primary?: boolean): React.CSSProperties => ({
+    padding: "8px 16px", borderRadius: 8, border: primary ? "none" : "1px solid #C2410C",
+    background: primary ? "#C2410C" : "#fff", color: primary ? "#fff" : "#C2410C",
+    fontWeight: 700, fontSize: 13, cursor: "pointer",
+  });
+
+  return (
+    <div style={box}>
+      <div style={{ fontWeight: 800, fontSize: 15, marginBottom: 4, color: "#9A3412" }}>Finish a partial broadcast (retry unsent)</div>
+      <p style={{ fontSize: 13, color: "#374151", margin: "0 0 10px" }}>
+        Paste the addresses that <b>already received</b> the announcement (copy them from Resend). This sends immediately to every confirmed user who is <b>not</b> in that list, so no one is emailed twice.
+      </p>
+      <textarea
+        value={alreadySent}
+        onChange={(e) => { setAlreadySent(e.target.value); setStatus("idle"); setRemaining(null); }}
+        placeholder={"already-received addresses, one per line or comma-separated\n(e.g. from Resend > Emails)"}
+        rows={5}
+        style={{ width: "100%", boxSizing: "border-box", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", fontSize: 13, fontFamily: "ui-monospace, Menlo, monospace", marginBottom: 10 }}
+      />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
+        <button type="button" onClick={preview} disabled={status === "previewing" || status === "sending"} style={btn(false)}>
+          {status === "previewing" ? "Checking…" : "Preview who's left"}
+        </button>
+        {status === "ready" && remaining && (
+          <>
+            <span style={{ fontSize: 13, color: "#374151" }}>
+              {parseEmails(alreadySent).length} already sent · <b>{remaining.length}</b> still to send{total != null ? ` (of ${total} confirmed)` : ""}
+            </span>
+            {remaining.length > 0 && (
+              <button type="button" onClick={sendNow} style={btn(true)}>
+                Send now to {remaining.length}
+              </button>
+            )}
+          </>
+        )}
+        {status === "sending" && <span style={{ fontSize: 13, color: "#374151" }}>Sending…</span>}
+        {status === "done" && <span style={{ fontSize: 13, color: "#166534", fontWeight: 700 }}>{msg}</span>}
+        {status === "error" && <span style={{ fontSize: 13, color: "#E03C31", fontWeight: 700 }}>{msg}</span>}
+      </div>
+      {status === "ready" && remaining && (
+        <div style={{ marginTop: 12 }}>
+          {remaining.length === 0 ? (
+            <div style={{ fontSize: 13, color: "#166534", fontWeight: 700 }}>Everyone has already received it. Nothing to send. ✓</div>
+          ) : (
+            <div style={{ fontSize: 12.5, color: "#374151" }}>
+              <div style={{ fontWeight: 700, marginBottom: 4 }}>Will send to:</div>
+              <div style={{ maxHeight: 180, overflow: "auto", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 8, padding: 10, whiteSpace: "pre-wrap", wordBreak: "break-word", fontFamily: "ui-monospace, Menlo, monospace" }}>
+                {remaining.join("\n")}
+              </div>
+            </div>
+          )}
+          {unknownPasted.length > 0 && (
+            <div style={{ marginTop: 8, fontSize: 12, color: "#9A3412" }}>
+              Note: {unknownPasted.length} pasted address(es) don&apos;t match any confirmed user (ignored): {unknownPasted.join(", ")}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function prettyDate(iso: string | null): string {
   if (!iso) return "the scheduled time";
   try {
@@ -243,6 +382,7 @@ export default function AdminBugsPage() {
 
       <LifecycleTestPanel />
       <BroadcastPanel />
+      <RetryUnsentPanel />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {items.map((it) => {

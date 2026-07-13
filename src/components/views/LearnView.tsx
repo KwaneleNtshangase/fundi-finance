@@ -980,7 +980,15 @@ export function LearnView({
       )}
 
       <div className={`courses-grid ${!contentLoaded ? "hidden" : ""}`}>
-        {filteredCourses.map((course, courseIndex) => {
+        {(() => {
+          // Group the long list: core courses first, XP-gated advanced courses
+          // under their own header (flat list while searching).
+          const isSearching = Boolean(search.trim());
+          const gatedIds = new Set(Object.keys(COURSE_LEVEL_REQUIREMENTS));
+          const coreCourses = isSearching ? filteredCourses : filteredCourses.filter((c) => !gatedIds.has(c.id));
+          const advancedCourses = isSearching ? [] : filteredCourses.filter((c) => gatedIds.has(c.id));
+
+        const renderCourseCard = (course: Course) => {
           const originalIndex = courses.indexOf(course);
           const courseIndex2 = originalIndex;
           const colour = COURSE_COLOURS[(originalIndex ?? courseIndex2) % COURSE_COLOURS.length];
@@ -1072,7 +1080,32 @@ export function LearnView({
               )}
             </div>
           );
-        })}
+        };
+
+          return (
+            <>
+              {coreCourses.map(renderCourseCard)}
+              {advancedCourses.length > 0 && (() => {
+                const anyLocked = advancedCourses.some(
+                  (c) => userLevel < (COURSE_LEVEL_REQUIREMENTS[c.id]?.level ?? 0)
+                );
+                return (
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", display: "flex", alignItems: "center", gap: 8 }}>
+                      {anyLocked && <Lock size={13} aria-hidden />} Advanced courses
+                    </div>
+                    {anyLocked && (
+                      <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        Earn XP from any lesson to level up and open these courses.
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+              {advancedCourses.map(renderCourseCard)}
+            </>
+          );
+        })()}
       </div>
 
       {showGoalPicker && (
