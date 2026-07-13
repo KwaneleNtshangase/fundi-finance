@@ -23,6 +23,9 @@ const DEFAULT_SCHEDULED_AT = "2026-07-13T06:00:00.000Z"; // 08:00 SAST (UTC+2)
 const FROM = "Fundi Finance <hello@fundiapp.co.za>";
 const SUBJECT = "New: build your budget by importing your bank statement";
 const MAX_RECIPIENTS = 20000;
+// Stable key for the current announcement's dedupe ledger. Start a genuinely new
+// broadcast by bumping this together with SUBJECT so its ledger is separate.
+const CAMPAIGN = "budget-statement-import";
 
 function adminClient(): SupabaseClient | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -61,6 +64,29 @@ async function listAllEmails(admin: SupabaseClient): Promise<string[]> {
     if (users.length < perPage) break;
   }
   return [...seen];
+}
+
+/**
+ * Emails already sent for a campaign (dedupe ledger). Returns a lowercased Set,
+ * or null if the ledger is unavailable (e.g. the migration hasn't been applied
+ * yet) so the caller can proceed without crashing.
+ */
+async function loadSentSet(admin: SupabaseClient, campaign: string): Promise<Set<string> | null> {
+  const { data, error } = await admin
+    .from("broadcast_send_log")
+    .select("email")
+    .eq("campaign", campaign);
+  if (error) return null;
+  return new Set((data ?? []).map((r: { email: string }) => (r.email ?? "").trim().toLowerCase()));
+}
+
+/** Record successful sends in the dedupe ledger. Ignores anyone already logged. */
+async function recordSent(admin: SupabaseClient, campaign: string, emails: string[]): Promise<void> {
+  if (emails.length === 0) return;
+  const rows = emails.map((email) => ({ campaign, email: email.trim().toLowerCase() }));
+  await admin
+    .from("broadcast_send_log")
+    .upsert(rows, { onConflict: "campaign,email", ignoreDuplicates: true });
 }
 
 function buildHtml(): string {
@@ -205,6 +231,18 @@ export async function POST(req: NextRequest) {
     emails = emails.filter((e) => wanted.has(e));
   }
 
+  // Dedupe ledger: never send the same campaign to anyone twice. Applies to the
+  // full send AND the targeted retry. If the ledger is unavailable (migration
+  // not applied yet) we proceed without dedupe rather than block sending.
+  let alreadySent = 0;
+  const sentSet = await loadSentSet(admin, CAMPAIGN);
+  const ledgerAvailable = sentSet !== null;
+  if (sentSet) {
+    const before = emails.length;
+    emails = emails.filter((e) => !sentSet.has(e));
+    alreadySent = before - emails.length;
+  }
+
   if (emails.length > MAX_RECIPIENTS) {
     return NextResponse.json(
       { error: `Recipient count ${emails.length} exceeds safety cap ${MAX_RECIPIENTS}.` },
@@ -216,6 +254,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       dryRun: true,
       recipients: emails.length,
+      alreadySent,
+      ledgerAvailable,
       scheduledAt,
       sample: emails.slice(0, 5),
       ...(body.listAll ? { all: emails } : {}),
@@ -229,27 +269,45 @@ export async function POST(req: NextRequest) {
   const resendKey = process.env.RESEND_API_KEY;
   if (!resendKey) return NextResponse.json({ error: "RESEND_API_KEY not configured" }, { status: 500 });
 
+  // Never schedule in the past (Resend rejects it, and the default date may now
+  // be historical). Fall back to near-immediate delivery.
+  let effectiveScheduledAt = scheduledAt;
+  if (new Date(effectiveScheduledAt).getTime() <= Date.now()) {
+    effectiveScheduledAt = new Date(Date.now() + 60_000).toISOString();
+  }
+
   let scheduled = 0;
+  const sentOk: string[] = [];
   const errors: { to: string; detail: string }[] = [];
   // Resend allows 10 req/s; 4 parallel per 1.1s (~3.6/s) leaves ample headroom
   // for lifecycle/bug emails sharing the same key.
   const CHUNK = 4;
   for (let i = 0; i < emails.length; i += CHUNK) {
     const chunk = emails.slice(i, i + CHUNK);
-    const results = await Promise.all(chunk.map((to) => scheduleOne(resendKey, to, scheduledAt)));
+    const results = await Promise.all(chunk.map((to) => scheduleOne(resendKey, to, effectiveScheduledAt)));
     results.forEach((r, idx) => {
-      if (r.ok) scheduled++;
+      if (r.ok) { scheduled++; sentOk.push(chunk[idx]); }
       else errors.push({ to: chunk[idx], detail: r.detail });
     });
     if (i + CHUNK < emails.length) await new Promise((res) => setTimeout(res, 1100));
   }
 
+  // Log everyone we successfully queued so they can never be sent this campaign
+  // again. Best-effort: a ledger write failure must not fail the send response.
+  try {
+    await recordSent(admin, CAMPAIGN, sentOk);
+  } catch {
+    /* ledger unavailable (e.g. migration not applied) — send already succeeded */
+  }
+
   return NextResponse.json({
     dryRun: false,
-    scheduledAt,
+    scheduledAt: effectiveScheduledAt,
     totalRecipients: emails.length,
     scheduled,
     failed: errors.length,
+    alreadySkipped: alreadySent,
+    ledgerAvailable,
     errors: errors.slice(0, 20),
   });
 }
