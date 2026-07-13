@@ -136,7 +136,6 @@ import {
   isUsernameAvailable,
   getLessonTitle,
   generateShareText,
-  ONBOARDING_GOAL_OPTIONS,
   ONBOARDING_AGE_RANGES,
   GOAL_OPTIONS,
   GOAL_COURSE_MAP,
@@ -156,6 +155,7 @@ import {
 import { useFundiState } from "@/hooks/useFundiState";
 import { SettingsView } from "@/components/SettingsView";
 import { StokvelDashboard } from "@/components/StokvelDashboard";
+import { GoalCard } from "@/components/GoalCard";
 
 function getDailyFact(): string {
   const start = new Date(new Date().getFullYear(), 0, 0);
@@ -190,44 +190,13 @@ export function QuestsView({
 }) {
   const goalPct = Math.min(100, Math.round((dailyXP / Math.max(1, dailyGoal)) * 100));
 
-  // The page is called "Goals" — so the user's actual money goal belongs here,
-  // not only on the Learn page. Read the same localStorage keys LearnView uses.
-  const [moneyGoal, setMoneyGoal] = useState<string | null>(null);
-  const [moneyGoalDescription, setMoneyGoalDescription] = useState<string>("");
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setMoneyGoal(localStorage.getItem("fundi-user-goal"));
-    setMoneyGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
-  }, []);
-  const moneyGoalLabel = moneyGoal
-    ? (ONBOARDING_GOAL_OPTIONS.find((g) => g.id === moneyGoal)?.label ?? moneyGoal)
-    : null;
-
   return (
     <main >
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
-      {moneyGoalLabel && (
-        <div style={{
-          background: "rgba(0,122,77,0.06)", border: "1.5px solid var(--color-primary)",
-          borderRadius: 14, padding: "14px 16px", marginBottom: 16,
-          display: "flex", alignItems: "center", gap: 12,
-        }}>
-          <Target size={22} className="text-[var(--color-primary)]" aria-hidden style={{ flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 2 }}>
-              Your money goal
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700 }}>{moneyGoalLabel}</div>
-            {moneyGoalDescription && (
-              <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginTop: 2 }}>{moneyGoalDescription}</div>
-            )}
-          </div>
-          <a href="/learn" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-primary)", textDecoration: "none", flexShrink: 0 }}>
-            Edit
-          </a>
-        </div>
-      )}
+      {/* Editable money-goal card — the "Goals" tab now owns the goal, with an
+          inline picker instead of bouncing to the Learn page. */}
+      <GoalCard />
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
           <Target size={16} className="text-[var(--color-primary)]" aria-hidden />
