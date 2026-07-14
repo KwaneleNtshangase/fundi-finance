@@ -910,8 +910,8 @@ export function LearnView({
         </div>
       )}
 
-      {/* Weekly challenge card */}
-      {showQuestSections && weeklyChallenge && (
+      {/* Weekly challenge card — hidden during search */}
+      {showQuestSections && !search.trim() && weeklyChallenge && (
         <div style={{
           background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
           border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
@@ -968,8 +968,8 @@ export function LearnView({
         </div>
       )}
 
-      {/* Daily Challenges */}
-      {showQuestSections && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
+      {/* Daily Challenges — hidden during search */}
+      {showQuestSections && !search.trim() && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
 
       {!contentLoaded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
