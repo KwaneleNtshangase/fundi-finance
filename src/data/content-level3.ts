@@ -32,7 +32,7 @@ export const ADVANCED_TAX_COURSE: Course = {
       lessons: [
         {
           id: "cgt-fundamentals",
-          title: "Capital Gains Tax. The Full Picture",
+          title: "Capital Gains Tax: The Full Picture",
           steps: [
             {
               type: "info",
@@ -59,7 +59,7 @@ export const ADVANCED_TAX_COURSE: Course = {
               correct: 1,
               feedback: {
                 correct:
-                  "R280 000 − R40 000 exclusion = R240 000. × 40% inclusion = R96 000 added to taxable income. × 45% = R43 200. The effective CGT rate is 18%, not 45%.",
+                  "R280 000 - R40 000 exclusion = R240 000. × 40% inclusion = R96 000 added to taxable income. × 45% = R43 200. The effective CGT rate is 18%, not 45%.",
                 incorrect:
                   "Step 1: deduct R40 000 exclusion → R240 000. Step 2: × 40% inclusion rate → R96 000. Step 3: × 45% marginal rate → R43 200. The effective CGT rate for a top-bracket individual is always 18%.",
               },
@@ -103,7 +103,7 @@ export const ADVANCED_TAX_COURSE: Course = {
                 correct:
                   "Realising the R180 000 loss offsets the R500 000 gain → net gain R320 000. After R40 000 exclusion → R280 000 taxable. × 40% × 45% = R50 400 CGT. Without harvesting the loss, CGT would have been R82 800. Saving: R32 400.",
                 incorrect:
-                  "Selling the losing position in the same year offsets the gain rand-for-rand. Net gain R320 000 − R40 000 exclusion = R280 000 taxable, saving R32 400 vs selling winners alone.",
+                  "Selling the losing position in the same year offsets the gain rand-for-rand. Net gain R320 000 - R40 000 exclusion = R280 000 taxable, saving R32 400 vs selling winners alone.",
               },
             } satisfies LessonStep,
           ],
@@ -275,13 +275,13 @@ export const ADVANCED_TAX_COURSE: Course = {
               options: [
                 "R0, Dubai has no income tax",
                 "R3.2 million, all foreign income is taxable",
-                "R1.95 million (R3.2m − R1.25m exemption)",
+                "R1.95 million (R3.2m - R1.25m exemption)",
                 "R1.25 million (only the exempt portion is taxed)",
               ],
               correct: 2,
               feedback: {
                 correct:
-                  "R3.2m − R1.25m exemption = R1.95m taxable in SA. At the 45% bracket, SARS expects approximately R877 500. Dubai has no income tax to credit. Sipho must file a SA tax return.",
+                  "R3.2m - R1.25m exemption = R1.95m taxable in SA. At the 45% bracket, SARS expects approximately R877 500. Dubai has no income tax to credit. Sipho must file a SA tax return.",
                 incorrect:
                   "The exemption is R1.25 million. R3.2m minus R1.25m = R1.95m subject to SA tax. Dubai having zero income tax doesn't help. You can't credit zero against a SA liability.",
               },
@@ -348,7 +348,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
               type: "info",
               title: "The Real Cost of No Will",
               content:
-                "<p>Beyond the distribution formula, dying without a will causes:</p><ul><li><strong>The Master's Office appoints an executor:</strong> Often a bank trust company charging 3.5% + VAT on the gross estate value. On a R3 million estate, that is R139 650 in fees, vs under R20 000 if you nominated your own executor and fee.</li><li><strong>Delays of 12–24+ months:</strong> Without a clear mandate, the winding-up process drags through the Master's Office.</li><li><strong>Family conflict:</strong> The formula ignores relationships, promises, and practical needs. Minor children's inheritance is managed by the Guardian's Fund, not your surviving spouse.</li><li><strong>Guardian's Fund trap:</strong> If your minor children inherit, the money goes into the Government Guardian's Fund, earning below-market interest, until they turn 18.</li></ul>",
+                "<p>Beyond the distribution formula, dying without a will causes:</p><ul><li><strong>The Master's Office appoints an executor:</strong> Often a bank trust company charging 3.5% + VAT on the gross estate value. On a R3 million estate, that is R139 650 in fees, vs under R20 000 if you nominated your own executor and fee.</li><li><strong>Delays of 12-24+ months:</strong> Without a clear mandate, the winding-up process drags through the Master's Office.</li><li><strong>Family conflict:</strong> The formula ignores relationships, promises, and practical needs. Minor children's inheritance is managed by the Guardian's Fund, not your surviving spouse.</li><li><strong>Guardian's Fund trap:</strong> If your minor children inherit, the money goes into the Government Guardian's Fund, earning below-market interest, until they turn 18.</li></ul>",
             } satisfies LessonStep,
             {
               type: "true-false",
@@ -390,13 +390,13 @@ export const ESTATE_PLANNING_COURSE: Course = {
               type: "info",
               title: "Choosing an Executor. The Most Overlooked Decision",
               content:
-                "<p>Your executor administers your estate after death: collects assets, pays debts, pays estate duty, and distributes to beneficiaries. This process can take 1–3 years.</p><p><strong>Options:</strong></p><ul><li><strong>Family member:</strong> Possible if they are competent. Must appoint an agent (attorney or bank trust) if the estate exceeds R250 000. Not practical for complex estates.</li><li><strong>Attorney or financial advisor:</strong> Negotiate fees upfront. Statutory maximum is 3.5% + VAT of gross estate value, but many accept less, especially if the estate is large and straightforward.</li><li><strong>Bank trust company:</strong> Reliable but impersonal, and typically charges the full 3.5%.</li></ul><p><strong>Practical action:</strong> Name your executor in your will and negotiate their fee in writing before you die. For a R5 million estate, the difference between 3.5% (R202 750) and 1% (R57 930) is R144 820: preserved for your family.</p>",
+                "<p>Your executor administers your estate after death: collects assets, pays debts, pays estate duty, and distributes to beneficiaries. This process can take 1-3 years.</p><p><strong>Options:</strong></p><ul><li><strong>Family member:</strong> Possible if they are competent. Must appoint an agent (attorney or bank trust) if the estate exceeds R250 000. Not practical for complex estates.</li><li><strong>Attorney or financial advisor:</strong> Negotiate fees upfront. Statutory maximum is 3.5% + VAT of gross estate value, but many accept less, especially if the estate is large and straightforward.</li><li><strong>Bank trust company:</strong> Reliable but impersonal, and typically charges the full 3.5%.</li></ul><p><strong>Practical action:</strong> Name your executor in your will and negotiate their fee in writing before you die. For a R5 million estate, the difference between 3.5% (R202 750) and 1% (R57 930) is R144 820: preserved for your family.</p>",
             } satisfies LessonStep,
           ],
         },
         {
           id: "estate-duty-deep",
-          title: "Estate Duty. The Tax on Dying Rich",
+          title: "Estate Duty: The Tax on Dying Rich",
           steps: [
             {
               type: "info",
@@ -412,9 +412,9 @@ export const ESTATE_PLANNING_COURSE: Course = {
               correct: 2.5,
               feedback: {
                 correct:
-                  "R8m − R2m (spousal bequest) = R6m dutiable. − R3.5m abatement = R2.5m subject to duty. Estate duty = R2.5m × 20% = R500 000.",
+                  "R8m - R2m (spousal bequest) = R6m dutiable. - R3.5m abatement = R2.5m subject to duty. Estate duty = R2.5m × 20% = R500 000.",
                 incorrect:
-                  "Step 1: R8m − R2m spousal exemption = R6m. Step 2: − R3.5m abatement = R2.5m dutiable. Estate duty = R2.5m × 20% = R500 000.",
+                  "Step 1: R8m - R2m spousal exemption = R6m. Step 2: - R3.5m abatement = R2.5m dutiable. Estate duty = R2.5m × 20% = R500 000.",
               },
             } satisfies LessonStep,
             {
@@ -457,7 +457,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
         },
         {
           id: "beneficiary-strategy",
-          title: "Beneficiary Nominations. Your Most Powerful Estate Planning Tool",
+          title: "Beneficiary Nominations: Your Most Powerful Estate Planning Tool",
           steps: [
             {
               type: "info",
@@ -493,7 +493,7 @@ export const ESTATE_PLANNING_COURSE: Course = {
               type: "info",
               title: "Life Insurance Nominations vs Estate",
               content:
-                "<p>Life insurance policies follow the Insurance Act, not the Pension Funds Act. Here, your nominated beneficiary has a binding contractual right, the insurer pays them directly, bypassing your estate.</p><p><strong>Estate-duty implications:</strong></p><ul><li>Policies with nominated beneficiaries: included in estate duty calculation BUT the estate duty liability can be reduced by the 'Section 3(3)(a) deduction'</li><li>In practice: the first R3.5 million of life insurance to the estate is duty-free (part of the general abatement)</li></ul><p><strong>Common mistake:</strong> Naming your estate as life policy beneficiary (instead of a person). This means the payout goes into your estate, becomes available to creditors, and takes 12–24 months to reach your family. Name a person, not 'my estate'.</p>",
+                "<p>Life insurance policies follow the Insurance Act, not the Pension Funds Act. Here, your nominated beneficiary has a binding contractual right, the insurer pays them directly, bypassing your estate.</p><p><strong>Estate-duty implications:</strong></p><ul><li>Policies with nominated beneficiaries: included in estate duty calculation BUT the estate duty liability can be reduced by the 'Section 3(3)(a) deduction'</li><li>In practice: the first R3.5 million of life insurance to the estate is duty-free (part of the general abatement)</li></ul><p><strong>Common mistake:</strong> Naming your estate as life policy beneficiary (instead of a person). This means the payout goes into your estate, becomes available to creditors, and takes 12-24 months to reach your family. Name a person, not 'my estate'.</p>",
             } satisfies LessonStep,
             {
               type: "true-false",
@@ -551,7 +551,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
       lessons: [
         {
           id: "modern-portfolio-theory",
-          title: "Modern Portfolio Theory, Why Diversification Pays",
+          title: "Modern Portfolio Theory: Why Diversification Pays",
           steps: [
             {
               type: "info",
@@ -611,7 +611,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
         },
         {
           id: "factor-investing-sa",
-          title: "Factor Investing. The Evidence-Based Edge",
+          title: "Factor Investing: The Evidence-Based Edge",
           steps: [
             {
               type: "info",
@@ -623,7 +623,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
               type: "info",
               title: "Factor Investing on the JSE",
               content:
-                "<p>SA factor evidence broadly mirrors global findings:</p><p><strong>Value on the JSE:</strong> Resources stocks (Sasol, Anglo American, Exxaro) historically trade at lower P/E multiples and have delivered strong long-term returns when commodity cycles turn. A blended value tilt on the JSE has outperformed the SWIX by approximately 2–3% annually over 20-year periods.</p><p><strong>Quality on the JSE:</strong> Companies like Capitec, Clicks, and Sanlam demonstrate the quality factor, high ROE, consistent earnings growth, low leverage, and have significantly outperformed the index.</p><p><strong>Practical tools:</strong> Satrix launched a Quality ETF (STXQUA) and a Momentum ETF (STXMOM). Ashburton Investments offers a Global 1200 ETF with a quality screen. These give retail investors factor exposure without active management fees.</p>",
+                "<p>SA factor evidence broadly mirrors global findings:</p><p><strong>Value on the JSE:</strong> Resources stocks (Sasol, Anglo American, Exxaro) historically trade at lower P/E multiples and have delivered strong long-term returns when commodity cycles turn. A blended value tilt on the JSE has outperformed the SWIX by approximately 2-3% annually over 20-year periods.</p><p><strong>Quality on the JSE:</strong> Companies like Capitec, Clicks, and Sanlam demonstrate the quality factor, high ROE, consistent earnings growth, low leverage, and have significantly outperformed the index.</p><p><strong>Practical tools:</strong> Satrix launched a Quality ETF (STXQUA) and a Momentum ETF (STXMOM). Ashburton Investments offers a Global 1200 ETF with a quality screen. These give retail investors factor exposure without active management fees.</p>",
             } satisfies LessonStep,
             {
               type: "mcq",
@@ -647,7 +647,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
               type: "info",
               title: "Factor Risk Premiums Are Not Free",
               content:
-                "<p>Factor returns come with a catch: they can underperform for years. Value underperformed growth for the entire decade 2010–2020 before recovering strongly in 2021–2022. A disciplined investor who abandoned value in 2019 missed the recovery.</p><p><strong>Key disciplines for factor investing:</strong></p><ul><li>Use factors as long-term tilts (10+ year horizon), not short-term trades</li><li>Combine uncorrelated factors (value + momentum, quality + low vol) to smooth underperformance periods</li><li>Keep factor exposure cheap, Smart Beta ETFs give factor exposure at 0.2–0.5% fees vs 1.5–2.5% for active funds that claim factor tilts</li><li>Accept that any factor can underperform for 3–5 years without it 'being broken'</li></ul>",
+                "<p>Factor returns come with a catch: they can underperform for years. Value underperformed growth for the entire decade 2010-2020 before recovering strongly in 2021-2022. A disciplined investor who abandoned value in 2019 missed the recovery.</p><p><strong>Key disciplines for factor investing:</strong></p><ul><li>Use factors as long-term tilts (10+ year horizon), not short-term trades</li><li>Combine uncorrelated factors (value + momentum, quality + low vol) to smooth underperformance periods</li><li>Keep factor exposure cheap, Smart Beta ETFs give factor exposure at 0.2-0.5% fees vs 1.5-2.5% for active funds that claim factor tilts</li><li>Accept that any factor can underperform for 3-5 years without it 'being broken'</li></ul>",
             } satisfies LessonStep,
             {
               type: "true-false",
@@ -658,7 +658,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
                 correct:
                   "Factor investing is rules-based and systematic, a computer applies the factor screen (e.g., lowest P/B decile) and holds the qualifying stocks. It is between passive (market cap index) and active (human stock picking). Fees are typically much lower than active management.",
                 incorrect:
-                  "Factor (smart beta) strategies are systematic and rules-based. The rules are set by humans initially, but stock selection is algorithmic. They are passive in execution, no daily human decisions. This is why fees (0.2–0.5%) are far lower than active funds.",
+                  "Factor (smart beta) strategies are systematic and rules-based. The rules are set by humans initially, but stock selection is algorithmic. They are passive in execution, no daily human decisions. This is why fees (0.2-0.5%) are far lower than active funds.",
               },
             } satisfies LessonStep,
           ],
@@ -677,7 +677,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
               type: "info",
               title: "Regulation 28. The Rules for Retirement Funds",
               content:
-                "<p>If your RA or pension fund is governed by Regulation 28 (most local funds are), it limits offshore exposure:</p><ul><li>Maximum 45% offshore (increased from 30% in 2022)</li><li>Maximum 10% in Africa (excluding SA)</li><li>Maximum 25% in equities (listed and unlisted)</li></ul><p>This means your RA cannot be 100% offshore, it must hold at least 55% SA assets. This is a government policy decision to keep retirement savings partly funding SA infrastructure.</p><p><strong>Outside Regulation 28 (personal taxable investments and TFSA):</strong> No offshore limit. You can hold 100% global equity ETF in your TFSA if you choose. Many advisors recommend 50–75% offshore in the non-retirement portion of a SA investor's portfolio.</p>",
+                "<p>If your RA or pension fund is governed by Regulation 28 (most local funds are), it limits offshore exposure:</p><ul><li>Maximum 45% offshore (increased from 30% in 2022)</li><li>Maximum 10% in Africa (excluding SA)</li><li>Maximum 25% in equities (listed and unlisted)</li></ul><p>This means your RA cannot be 100% offshore, it must hold at least 55% SA assets. This is a government policy decision to keep retirement savings partly funding SA infrastructure.</p><p><strong>Outside Regulation 28 (personal taxable investments and TFSA):</strong> No offshore limit. You can hold 100% global equity ETF in your TFSA if you choose. Many advisors recommend 50-75% offshore in the non-retirement portion of a SA investor's portfolio.</p>",
             } satisfies LessonStep,
             {
               type: "mcq",
@@ -725,19 +725,19 @@ export const ADVANCED_INVESTING_COURSE: Course = {
         },
         {
           id: "sequence-of-returns",
-          title: "Sequence-of-Returns Risk. The Retirement Killer",
+          title: "Sequence-of-Returns Risk: The Retirement Killer",
           steps: [
             {
               type: "info",
               title: "Why Average Returns Lie in Retirement",
               content:
-                "<p>Imagine two retirees, both with R5 million and a 10% average annual return over 20 years. Retiree A gets good returns early (25%, 20%) then bad later (−25%, −20%). Retiree B gets the exact reverse, bad early, good later.</p><p>They have identical average returns. But Retiree B, who faced large losses early while withdrawing living expenses, runs out of money 8 years before Retiree A.</p><p>This is <strong>sequence-of-returns risk</strong>, the order of returns matters enormously in retirement. A market crash in year 2 of retirement permanently depletes capital that would otherwise have compounded.</p>",
+                "<p>Imagine two retirees, both with R5 million and a 10% average annual return over 20 years. Retiree A gets good returns early (25%, 20%) then bad later (-25%, -20%). Retiree B gets the exact reverse, bad early, good later.</p><p>They have identical average returns. But Retiree B, who faced large losses early while withdrawing living expenses, runs out of money 8 years before Retiree A.</p><p>This is <strong>sequence-of-returns risk</strong>, the order of returns matters enormously in retirement. A market crash in year 2 of retirement permanently depletes capital that would otherwise have compounded.</p>",
             } satisfies LessonStep,
             {
               type: "info",
               title: "The 4% Rule and Its SA-Specific Limits",
               content:
-                "<p>The 4% safe withdrawal rate comes from US research (Trinity Study, 1998) on US markets over 30 years. In SA, the picture is more complex:</p><ul><li>Higher inflation: SA's long-run CPI averages 5–6% vs US 2–3%. The 4% rule needs inflation adjustment.</li><li>Higher bond yields: SA bonds yield more, which helps income portfolios</li><li>Currency volatility: Rand depreciation affects purchasing power for imported goods</li><li>JSE volatility: Higher than most developed markets</li></ul><p><strong>Practical SA guidance:</strong> Financial advisors suggest 3–3.5% initial withdrawal rate for SA retirees with a 30-year horizon, rising to 4–4.5% if the portfolio has significant offshore exposure (which acts as a natural inflation and rand-weakness hedge).</p>",
+                "<p>The 4% safe withdrawal rate comes from US research (Trinity Study, 1998) on US markets over 30 years. In SA, the picture is more complex:</p><ul><li>Higher inflation: SA's long-run CPI averages 5-6% vs US 2-3%. The 4% rule needs inflation adjustment.</li><li>Higher bond yields: SA bonds yield more, which helps income portfolios</li><li>Currency volatility: Rand depreciation affects purchasing power for imported goods</li><li>JSE volatility: Higher than most developed markets</li></ul><p><strong>Practical SA guidance:</strong> Financial advisors suggest 3-3.5% initial withdrawal rate for SA retirees with a 30-year horizon, rising to 4-4.5% if the portfolio has significant offshore exposure (which acts as a natural inflation and rand-weakness hedge).</p>",
             } satisfies LessonStep,
             {
               type: "mcq",
@@ -761,7 +761,7 @@ export const ADVANCED_INVESTING_COURSE: Course = {
               type: "info",
               title: "Strategies to Manage Sequence Risk",
               content:
-                "<p><strong>1. Cash buffer:</strong> Hold 1–2 years of living expenses in cash or money market. Draw from this during market downturns, giving equities time to recover without forced selling.</p><p><strong>2. Bucket strategy:</strong> Divide the portfolio into short-term (cash, 1–3 years), medium-term (bonds and income assets, 3–7 years), and long-term (equities, 7+ years) buckets. Replenish the short-term bucket from the medium-term when markets are up.</p><p><strong>3. Flexible withdrawals:</strong> Reduce withdrawals in bad years (spend less, draw less). Even a 10% reduction in withdrawals in a down year significantly extends portfolio longevity.</p><p><strong>4. Living annuity vs guaranteed annuity:</strong> A guaranteed annuity transfers sequence risk to the insurer in exchange for surrendering capital. A living annuity retains flexibility but exposes the retiree to sequence risk. Many advisors recommend a blend.</p>",
+                "<p><strong>1. Cash buffer:</strong> Hold 1-2 years of living expenses in cash or money market. Draw from this during market downturns, giving equities time to recover without forced selling.</p><p><strong>2. Bucket strategy:</strong> Divide the portfolio into short-term (cash, 1-3 years), medium-term (bonds and income assets, 3-7 years), and long-term (equities, 7+ years) buckets. Replenish the short-term bucket from the medium-term when markets are up.</p><p><strong>3. Flexible withdrawals:</strong> Reduce withdrawals in bad years (spend less, draw less). Even a 10% reduction in withdrawals in a down year significantly extends portfolio longevity.</p><p><strong>4. Living annuity vs guaranteed annuity:</strong> A guaranteed annuity transfers sequence risk to the insurer in exchange for surrendering capital. A living annuity retains flexibility but exposes the retiree to sequence risk. Many advisors recommend a blend.</p>",
             } satisfies LessonStep,
             {
               type: "scenario",
@@ -813,13 +813,13 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "The Four Main Business Structures in SA",
               content:
-                "<p><strong>1. Sole Proprietor:</strong> No separation between you and the business. All profits taxed as personal income (up to 45%). Unlimited personal liability. Zero setup cost. Works for freelancers under R1m turnover.</p><p><strong>2. Private Company (Pty Ltd):</strong> Separate legal entity. 27% corporate tax rate. Personal liability protection (limited). Requires CIPC registration. Ideal for businesses above R500k turnover.</p><p><strong>3. Personal Service Provider (PSP):</strong> A Pty Ltd where 80%+ of income comes from services to one or two clients. SARS taxes PSPs at the 28–45% rate (not the 27% corporate rate), this is a trap many contractors fall into.</p><p><strong>4. Small Business Corporation (SBC):</strong> A Pty Ltd qualifying for reduced tax rates. Gross income under R20 million. No shareholder may hold shares in another company. Tax rate: 0% on first R95 750, then 7%–27% on tiers. For qualifying SMEs, this saves substantial tax.</p>",
+                "<p><strong>1. Sole Proprietor:</strong> No separation between you and the business. All profits taxed as personal income (up to 45%). Unlimited personal liability. Zero setup cost. Works for freelancers under R1m turnover.</p><p><strong>2. Private Company (Pty Ltd):</strong> Separate legal entity. 27% corporate tax rate. Personal liability protection (limited). Requires CIPC registration. Ideal for businesses above R500k turnover.</p><p><strong>3. Personal Service Provider (PSP):</strong> A Pty Ltd where 80%+ of income comes from services to one or two clients. SARS taxes PSPs at the 28-45% rate (not the 27% corporate rate), this is a trap many contractors fall into.</p><p><strong>4. Small Business Corporation (SBC):</strong> A Pty Ltd qualifying for reduced tax rates. Gross income under R20 million. No shareholder may hold shares in another company. Tax rate: 0% on first R95 750, then 7%-27% on tiers. For qualifying SMEs, this saves substantial tax.</p>",
             } satisfies LessonStep,
             {
               type: "info",
               title: "Small Business Corporation (SBC) Tax Rates 2024/25",
               content:
-                "<p>If your Pty Ltd qualifies as an SBC (gross income ≤ R20 million, shareholders are natural persons who hold no other shares, not a PSP, and not an investment company), the tax rate table is:</p><table style='width:100%;border-collapse:collapse;font-size:0.9em'><tr><th style='text-align:left;padding:4px 8px;border-bottom:1px solid #ddd'>Taxable Income</th><th style='text-align:left;padding:4px 8px;border-bottom:1px solid #ddd'>Rate</th></tr><tr><td style='padding:4px 8px'>R0 – R95 750</td><td style='padding:4px 8px'>0%</td></tr><tr><td style='padding:4px 8px'>R95 751 – R365 000</td><td style='padding:4px 8px'>7% on amount above R95 750</td></tr><tr><td style='padding:4px 8px'>R365 001 – R550 000</td><td style='padding:4px 8px'>R18 848 + 21% on amount above R365 000</td></tr><tr><td style='padding:4px 8px'>Above R550 000</td><td style='padding:4px 8px'>R57 698 + 27% on amount above R550 000</td></tr></table><p>Example: SBC with R500 000 taxable income. Tax = R18 848 + 21% × (R500 000 − R365 000) = R18 848 + R28 350 = R47 198. Effective rate: 9.4%. A large company pays 27% = R135 000. Saving: R87 802 per year.</p>",
+                "<p>If your Pty Ltd qualifies as an SBC (gross income ≤ R20 million, shareholders are natural persons who hold no other shares, not a PSP, and not an investment company), the tax rate table is:</p><table style='width:100%;border-collapse:collapse;font-size:0.9em'><tr><th style='text-align:left;padding:4px 8px;border-bottom:1px solid #ddd'>Taxable Income</th><th style='text-align:left;padding:4px 8px;border-bottom:1px solid #ddd'>Rate</th></tr><tr><td style='padding:4px 8px'>R0 - R95 750</td><td style='padding:4px 8px'>0%</td></tr><tr><td style='padding:4px 8px'>R95 751 - R365 000</td><td style='padding:4px 8px'>7% on amount above R95 750</td></tr><tr><td style='padding:4px 8px'>R365 001 - R550 000</td><td style='padding:4px 8px'>R18 848 + 21% on amount above R365 000</td></tr><tr><td style='padding:4px 8px'>Above R550 000</td><td style='padding:4px 8px'>R57 698 + 27% on amount above R550 000</td></tr></table><p>Example: SBC with R500 000 taxable income. Tax = R18 848 + 21% × (R500 000 - R365 000) = R18 848 + R28 350 = R47 198. Effective rate: 9.4%. A large company pays 27% = R135 000. Saving: R87 802 per year.</p>",
             } satisfies LessonStep,
             {
               type: "fill-blank",
@@ -829,9 +829,9 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               correct: 14268,
               feedback: {
                 correct:
-                  "R300 000 − R95 750 = R204 250 × 7% = R14 268. At the standard 27% corporate rate, tax would be R81 000. The SBC saves R66 732 on this profit level.",
+                  "R300 000 - R95 750 = R204 250 × 7% = R14 268. At the standard 27% corporate rate, tax would be R81 000. The SBC saves R66 732 on this profit level.",
                 incorrect:
-                  "R300 000 falls in the second SBC bracket (R95 751 – R365 000). Tax = (R300 000 − R95 750) × 7% = R204 250 × 7% = R14 268. Standard corporate tax would be R81 000, SBC saves R66 732.",
+                  "R300 000 falls in the second SBC bracket (R95 751 - R365 000). Tax = (R300 000 - R95 750) × 7% = R204 250 × 7% = R14 268. Standard corporate tax would be R81 000, SBC saves R66 732.",
               },
             } satisfies LessonStep,
             {
@@ -856,7 +856,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "Pty Ltd vs Trust: The Tax Comparison",
               content:
-                "<p>Both are used for wealth protection and tax planning, but they work very differently:</p><table style='width:100%;border-collapse:collapse;font-size:0.9em'><tr><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Feature</th><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Pty Ltd</th><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Inter Vivos Trust</th></tr><tr><td style='padding:4px 8px'>Income tax rate</td><td style='padding:4px 8px'>27% (SBC: 0–27%)</td><td style='padding:4px 8px'>45% flat if retained</td></tr><tr><td style='padding:4px 8px'>CGT inclusion</td><td style='padding:4px 8px'>80%</td><td style='padding:4px 8px'>80%</td></tr><tr><td style='padding:4px 8px'>Income splitting</td><td style='padding:4px 8px'>Via dividends</td><td style='padding:4px 8px'>Via vesting to beneficiaries</td></tr><tr><td style='padding:4px 8px'>Estate duty</td><td style='padding:4px 8px'>Shares included in estate</td><td style='padding:4px 8px'>Trust assets excluded from estate</td></tr><tr><td style='padding:4px 8px'>Best use</td><td style='padding:4px 8px'>Trading, operating businesses</td><td style='padding:4px 8px'>Holding assets, estate planning</td></tr></table><p><strong>Common advanced structure:</strong> Pty Ltd (operating company) earns income, declares dividends to a family trust (holding company). The trust vests income to lower-bracket beneficiaries. Estate duty avoided on trust assets. Operational simplicity of company retained.</p>",
+                "<p>Both are used for wealth protection and tax planning, but they work very differently:</p><table style='width:100%;border-collapse:collapse;font-size:0.9em'><tr><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Feature</th><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Pty Ltd</th><th style='padding:4px 8px;border-bottom:1px solid #ddd;text-align:left'>Inter Vivos Trust</th></tr><tr><td style='padding:4px 8px'>Income tax rate</td><td style='padding:4px 8px'>27% (SBC: 0-27%)</td><td style='padding:4px 8px'>45% flat if retained</td></tr><tr><td style='padding:4px 8px'>CGT inclusion</td><td style='padding:4px 8px'>80%</td><td style='padding:4px 8px'>80%</td></tr><tr><td style='padding:4px 8px'>Income splitting</td><td style='padding:4px 8px'>Via dividends</td><td style='padding:4px 8px'>Via vesting to beneficiaries</td></tr><tr><td style='padding:4px 8px'>Estate duty</td><td style='padding:4px 8px'>Shares included in estate</td><td style='padding:4px 8px'>Trust assets excluded from estate</td></tr><tr><td style='padding:4px 8px'>Best use</td><td style='padding:4px 8px'>Trading, operating businesses</td><td style='padding:4px 8px'>Holding assets, estate planning</td></tr></table><p><strong>Common advanced structure:</strong> Pty Ltd (operating company) earns income, declares dividends to a family trust (holding company). The trust vests income to lower-bracket beneficiaries. Estate duty avoided on trust assets. Operational simplicity of company retained.</p>",
             } satisfies LessonStep,
           ],
         },
@@ -874,7 +874,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "The Most Important Ratios for SA Business Owners",
               content:
-                "<p><strong>Gross Profit Margin:</strong> (Revenue − Cost of Goods Sold) ÷ Revenue. Measures how much you retain before overheads. A retail business at 25% GP margin is normal. A software business at 70%+ is normal. Compare to your industry benchmark.</p><p><strong>EBITDA Margin:</strong> Earnings Before Interest, Tax, Depreciation, and Amortisation ÷ Revenue. The cleanest measure of operational profitability. Used in business valuations (see next lesson).</p><p><strong>Current Ratio:</strong> Current Assets ÷ Current Liabilities. Above 1.5 = healthy. Below 1 = potential liquidity crisis, you may not be able to pay bills in 12 months.</p><p><strong>Debtor Days:</strong> (Debtors ÷ Revenue) × 365. How long customers take to pay. 30 days is standard; 90+ days is a cash flow problem. Every day of debtor days = revenue sitting uncollected.</p><p><strong>Net Profit Margin:</strong> Net profit ÷ Revenue. After all costs including tax. Most healthy SMEs: 8–20%.</p>",
+                "<p><strong>Gross Profit Margin:</strong> (Revenue - Cost of Goods Sold) ÷ Revenue. Measures how much you retain before overheads. A retail business at 25% GP margin is normal. A software business at 70%+ is normal. Compare to your industry benchmark.</p><p><strong>EBITDA Margin:</strong> Earnings Before Interest, Tax, Depreciation, and Amortisation ÷ Revenue. The cleanest measure of operational profitability. Used in business valuations (see next lesson).</p><p><strong>Current Ratio:</strong> Current Assets ÷ Current Liabilities. Above 1.5 = healthy. Below 1 = potential liquidity crisis, you may not be able to pay bills in 12 months.</p><p><strong>Debtor Days:</strong> (Debtors ÷ Revenue) × 365. How long customers take to pay. 30 days is standard; 90+ days is a cash flow problem. Every day of debtor days = revenue sitting uncollected.</p><p><strong>Net Profit Margin:</strong> Net profit ÷ Revenue. After all costs including tax. Most healthy SMEs: 8-20%.</p>",
             } satisfies LessonStep,
             {
               type: "mcq",
@@ -889,7 +889,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               correct: 1,
               feedback: {
                 correct:
-                  "EBITDA = Net Profit + Interest + Tax + Depreciation = R420k + R100k + R180k + R200k = R900k. EBITDA margin = R900k ÷ R5m = 18%. This is a healthy EBITDA for a distribution business (industry average typically 8–15%).",
+                  "EBITDA = Net Profit + Interest + Tax + Depreciation = R420k + R100k + R180k + R200k = R900k. EBITDA margin = R900k ÷ R5m = 18%. This is a healthy EBITDA for a distribution business (industry average typically 8-15%).",
                 incorrect:
                   "EBITDA = Net Profit + Interest + Tax + Depreciation = R420k + R100k + R180k + R200k = R900k. EBITDA margin = R900k ÷ R5m = 18%. EBITDA removes financing and accounting decisions to show pure operational profitability.",
               },
@@ -898,7 +898,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "Cash vs Profit, Why Profitable Businesses Fail",
               content:
-                "<p>A business can be profitable but have no cash. This is the most common cause of SME failure in SA.</p><p><strong>Example:</strong> Priya's catering company bills R500 000 in March. Customers pay in 60 days (May). She pays wages, food, and rent now. The income statement shows R500 000 revenue. Her bank account shows −R200 000. She is profitable and cash-flow negative simultaneously.</p><p><strong>The cash conversion cycle:</strong> How long between paying for inputs and collecting from customers. Shorter = better. Strategies to shorten: require deposits, offer early-payment discounts, delay supplier payments within agreed terms, factor debtors (sell invoices to a financier at a discount).</p><p><strong>Rule:</strong> Never confuse your accounting profit with your bank balance. Run a weekly cash flow forecast for the next 13 weeks. If it turns negative, you need to act months before the crisis hits.</p>",
+                "<p>A business can be profitable but have no cash. This is the most common cause of SME failure in SA.</p><p><strong>Example:</strong> Priya's catering company bills R500 000 in March. Customers pay in 60 days (May). She pays wages, food, and rent now. The income statement shows R500 000 revenue. Her bank account shows -R200 000. She is profitable and cash-flow negative simultaneously.</p><p><strong>The cash conversion cycle:</strong> How long between paying for inputs and collecting from customers. Shorter = better. Strategies to shorten: require deposits, offer early-payment discounts, delay supplier payments within agreed terms, factor debtors (sell invoices to a financier at a discount).</p><p><strong>Rule:</strong> Never confuse your accounting profit with your bank balance. Run a weekly cash flow forecast for the next 13 weeks. If it turns negative, you need to act months before the crisis hits.</p>",
             } satisfies LessonStep,
             {
               type: "true-false",
@@ -928,7 +928,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "The Three Main Valuation Methods",
               content:
-                "<p><strong>1. EBITDA Multiple (earnings-based):</strong> The most common for operating businesses. Value = EBITDA × industry multiple. SA SME multiples range from 2–5× EBITDA (vs 8–15× for listed companies). A profitable engineering firm with R2m EBITDA might sell for R6–8m (3–4× EBITDA). Factors increasing the multiple: recurring revenue, diversified customer base, management team not dependent on owner, strong growth trajectory.</p><p><strong>2. Discounted Cash Flow (DCF):</strong> Project future free cash flows, discount back at a risk-adjusted rate (WACC). More theoretically correct but highly sensitive to assumptions. Mainly used for larger businesses or by financial advisors during due diligence.</p><p><strong>3. Net Asset Value (NAV):</strong> Assets minus liabilities at market value. Used for asset-heavy businesses (property companies, mining, manufacturing). Often the floor value, a going concern should be worth more than its parts.</p>",
+                "<p><strong>1. EBITDA Multiple (earnings-based):</strong> The most common for operating businesses. Value = EBITDA × industry multiple. SA SME multiples range from 2-5× EBITDA (vs 8-15× for listed companies). A profitable engineering firm with R2m EBITDA might sell for R6-8m (3-4× EBITDA). Factors increasing the multiple: recurring revenue, diversified customer base, management team not dependent on owner, strong growth trajectory.</p><p><strong>2. Discounted Cash Flow (DCF):</strong> Project future free cash flows, discount back at a risk-adjusted rate (WACC). More theoretically correct but highly sensitive to assumptions. Mainly used for larger businesses or by financial advisors during due diligence.</p><p><strong>3. Net Asset Value (NAV):</strong> Assets minus liabilities at market value. Used for asset-heavy businesses (property companies, mining, manufacturing). Often the floor value, a going concern should be worth more than its parts.</p>",
             } satisfies LessonStep,
             {
               type: "fill-blank",
@@ -947,7 +947,7 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "What Kills a Business Valuation",
               content:
-                "<p>Buyers will discount (lower) your asking price for these red flags, which are all correctable before a sale:</p><ul><li><strong>Key person dependency:</strong> If the owner IS the business (all relationships, all knowledge), the business is worth far less without them. Solution: document processes, introduce the management team to key clients, create a 12-month transition plan.</li><li><strong>Customer concentration:</strong> If 60%+ of revenue comes from one client, the buyer is buying a client relationship, not a business. Solution: diversify before selling.</li><li><strong>Unclean books:</strong> Personal expenses through the company, informal transactions, mixed accounts. Solution: 2–3 years of clean, audited or reviewed annual financial statements increase both value and buyer confidence.</li><li><strong>No contracts:</strong> Verbal agreements with key customers or suppliers. Buyers need contractual revenue. Solution: formalise all key relationships into written agreements.</li></ul>",
+                "<p>Buyers will discount (lower) your asking price for these red flags, which are all correctable before a sale:</p><ul><li><strong>Key person dependency:</strong> If the owner IS the business (all relationships, all knowledge), the business is worth far less without them. Solution: document processes, introduce the management team to key clients, create a 12-month transition plan.</li><li><strong>Customer concentration:</strong> If 60%+ of revenue comes from one client, the buyer is buying a client relationship, not a business. Solution: diversify before selling.</li><li><strong>Unclean books:</strong> Personal expenses through the company, informal transactions, mixed accounts. Solution: 2-3 years of clean, audited or reviewed annual financial statements increase both value and buyer confidence.</li><li><strong>No contracts:</strong> Verbal agreements with key customers or suppliers. Buyers need contractual revenue. Solution: formalise all key relationships into written agreements.</li></ul>",
             } satisfies LessonStep,
             {
               type: "scenario",
@@ -977,13 +977,13 @@ export const BUSINESS_FINANCE_ADVANCED_COURSE: Course = {
               type: "info",
               title: "The Funding Spectrum for SA Businesses",
               content:
-                "<p>From cheapest to most expensive in terms of cost and control:</p><ol><li><strong>Bootstrapping:</strong> Revenue funds growth. No dilution, no interest. Slow.</li><li><strong>Government grants and incentives:</strong> Free money, but slow, bureaucratic, and restrictive. Worth pursuing if your business qualifies.</li><li><strong>Debt (bank loans, asset finance):</strong> You pay interest but keep equity. Banks lend against assets or cash flow. SA SME lending rates: prime + 2–6%.</li><li><strong>Revenue-based financing:</strong> Funder takes a % of monthly revenue until repaid. Flexible for cash-flow businesses.</li><li><strong>Angel investors:</strong> Private individuals investing R500k–R5m for equity (10–25%). Bring expertise and networks.</li><li><strong>Venture capital:</strong> R5m–R100m+ for fast-growth businesses. Expect significant dilution (20–40%) and board control requirements.</li><li><strong>Private equity:</strong> Larger investments in established businesses, typically for majority control.</li></ol>",
+                "<p>From cheapest to most expensive in terms of cost and control:</p><ol><li><strong>Bootstrapping:</strong> Revenue funds growth. No dilution, no interest. Slow.</li><li><strong>Government grants and incentives:</strong> Free money, but slow, bureaucratic, and restrictive. Worth pursuing if your business qualifies.</li><li><strong>Debt (bank loans, asset finance):</strong> You pay interest but keep equity. Banks lend against assets or cash flow. SA SME lending rates: prime + 2-6%.</li><li><strong>Revenue-based financing:</strong> Funder takes a % of monthly revenue until repaid. Flexible for cash-flow businesses.</li><li><strong>Angel investors:</strong> Private individuals investing R500k-R5m for equity (10-25%). Bring expertise and networks.</li><li><strong>Venture capital:</strong> R5m-R100m+ for fast-growth businesses. Expect significant dilution (20-40%) and board control requirements.</li><li><strong>Private equity:</strong> Larger investments in established businesses, typically for majority control.</li></ol>",
             } satisfies LessonStep,
             {
               type: "info",
               title: "SA Government Funding You Should Know",
               content:
-                "<p><strong>SEFA (Small Enterprise Finance Agency):</strong> Government-backed loans from R10 000 to R15 million. Cheaper than bank rates, designed for SMEs that don't qualify for commercial bank loans. Black-owned and women-owned businesses get priority.</p><p><strong>IDC (Industrial Development Corporation):</strong> R1m–R1 billion in loans and equity. Focus: manufacturing, agriculture, tourism, green economy. Longer terms, more flexible than banks.</p><p><strong>DTI Incentives (now DTIC):</strong> Manufacturing Development Incentive (MDI), Support Programme for Industrial Innovation (SPII), Aquaculture Development, Tourism Support Programme. Some are grants (non-repayable) for qualifying businesses.</p><p><strong>NDA (National Development Agency):</strong> Grants for NPOs and community-based organisations.</p><p><strong>Key insight:</strong> Most SA entrepreneurs never apply for government incentives. The process is bureaucratic but the money is non-dilutive (you don't give up equity). For capital-intensive businesses, a DTIC grant or IDC loan can make a real difference.</p>",
+                "<p><strong>SEFA (Small Enterprise Finance Agency):</strong> Government-backed loans from R10 000 to R15 million. Cheaper than bank rates, designed for SMEs that don't qualify for commercial bank loans. Black-owned and women-owned businesses get priority.</p><p><strong>IDC (Industrial Development Corporation):</strong> R1m-R1 billion in loans and equity. Focus: manufacturing, agriculture, tourism, green economy. Longer terms, more flexible than banks.</p><p><strong>DTI Incentives (now DTIC):</strong> Manufacturing Development Incentive (MDI), Support Programme for Industrial Innovation (SPII), Aquaculture Development, Tourism Support Programme. Some are grants (non-repayable) for qualifying businesses.</p><p><strong>NDA (National Development Agency):</strong> Grants for NPOs and community-based organisations.</p><p><strong>Key insight:</strong> Most SA entrepreneurs never apply for government incentives. The process is bureaucratic but the money is non-dilutive (you don't give up equity). For capital-intensive businesses, a DTIC grant or IDC loan can make a real difference.</p>",
             } satisfies LessonStep,
             {
               type: "mcq",

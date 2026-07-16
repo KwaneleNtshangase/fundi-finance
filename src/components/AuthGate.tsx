@@ -75,7 +75,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Keep the splash just long enough to avoid a flash of unstyled logo.
-    // Returning users on slow SA mobile networks shouldn't wait on branding —
+    // Returning users on slow SA mobile networks shouldn't wait on branding -
     // the previous 1500ms minimum added 1.1s+ of pure dead time per load.
     const t = setTimeout(() => setSplashMinElapsed(true), 400);
     return () => clearTimeout(t);
@@ -311,11 +311,11 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               Learn how money works, build real habits, and take control of your finances.
             </p>
 
-            {/* Value prop — why sign up (kept compact for small screens) */}
+            {/* Value prop - why sign up (kept compact for small screens) */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, width: "100%" }}>
               {[
-                { icon: "📚", text: "Bite-size lessons on SA money life — payslips, debit orders, SARS, TFSAs" },
-                { icon: "📊", text: "Budget tracker with bank statement import — processed in memory, never stored" },
+                { icon: "📚", text: "Bite-size lessons on SA money life - payslips, debit orders, SARS, TFSAs" },
+                { icon: "📊", text: "Budget tracker with bank statement import - processed in memory, never stored" },
                 { icon: "🎯", text: "Calculators, goals and streaks that make finance stick" },
               ].map((f) => (
                 <div key={f.text} style={{

@@ -127,7 +127,7 @@ function validateUsername(value: string): string | null {
 async function isUsernameAvailable(username: string, excludeUserId?: string): Promise<boolean> {
   const normalized = normalizeUsername(username);
   if (!normalized) return false;
-  // SECURITY DEFINER RPC — avoids needing SELECT access to other users' profiles.
+  // SECURITY DEFINER RPC - avoids needing SELECT access to other users' profiles.
   const { data, error } = await supabase.rpc("username_taken", {
     p_username: normalized,
     p_exclude_user: excludeUserId ?? null,

@@ -32,12 +32,12 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         type: "info",
         title: "Repo Rate → Prime Rate → Your Rate",
         content:
-          "<p>The transmission works in three steps:</p><ol><li><strong>Repo rate:</strong> Set by the SARB Monetary Policy Committee (MPC). Currently 7.75% (end 2024).</li><li><strong>Prime lending rate:</strong> Commercial banks add 3.5 percentage points. Prime = repo + 3.5%. At repo 7.75%, prime = <strong>11.25%</strong>.</li><li><strong>Your rate:</strong> Banks lend to you at prime minus or plus a spread based on your risk profile. A good home loan might be prime – 0.5% = 10.75%. A risky personal loan could be prime + 8% = 19.25%.</li></ol><p>When the MPC raises or cuts the repo rate, prime moves by exactly the same amount, and every variable-rate debt or deposit in the country is repriced immediately.</p>",
+          "<p>The transmission works in three steps:</p><ol><li><strong>Repo rate:</strong> Set by the SARB Monetary Policy Committee (MPC). Currently 7.75% (end 2024).</li><li><strong>Prime lending rate:</strong> Commercial banks add 3.5 percentage points. Prime = repo + 3.5%. At repo 7.75%, prime = <strong>11.25%</strong>.</li><li><strong>Your rate:</strong> Banks lend to you at prime minus or plus a spread based on your risk profile. A good home loan might be prime - 0.5% = 10.75%. A risky personal loan could be prime + 8% = 19.25%.</li></ol><p>When the MPC raises or cuts the repo rate, prime moves by exactly the same amount, and every variable-rate debt or deposit in the country is repriced immediately.</p>",
       },
       {
         type: "mcq",
         question:
-          "The SARB cuts the repo rate by 0.25%. Your home loan is at prime – 0.5%. What happens to your interest rate?",
+          "The SARB cuts the repo rate by 0.25%. Your home loan is at prime - 0.5%. What happens to your interest rate?",
         options: [
           "It stays the same, repo cuts don't affect home loans",
           "It drops by 0.25%, prime falls, so your rate falls by the same amount",
@@ -56,7 +56,7 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         type: "info",
         title: "How the MPC Decides. The Inflation Target",
         content:
-          "<p>The MPC meets <strong>six times a year</strong> and has one primary mandate: keep CPI inflation within a <strong>3–6% target band</strong>.</p><p><strong>When inflation rises above 6%:</strong> The MPC raises the repo rate. Higher rates make borrowing expensive, reduce consumer spending, and cool inflation. Side effect: growth slows, unemployment may rise.</p><p><strong>When inflation falls or growth weakens:</strong> The MPC cuts the repo rate. Cheaper borrowing stimulates spending, investment, and economic growth. Side effect: if cut too aggressively, inflation can reignite.</p><p>The MPC must balance inflation control against economic growth, it's always a trade-off. SA's 2022–2024 rate hike cycle (from 3.5% to 8.25% over 18 months) was the most aggressive in 15 years, triggered by post-COVID supply shocks and global rate hikes.</p>",
+          "<p>The MPC meets <strong>six times a year</strong> and has one primary mandate: keep CPI inflation within a <strong>3-6% target band</strong>.</p><p><strong>When inflation rises above 6%:</strong> The MPC raises the repo rate. Higher rates make borrowing expensive, reduce consumer spending, and cool inflation. Side effect: growth slows, unemployment may rise.</p><p><strong>When inflation falls or growth weakens:</strong> The MPC cuts the repo rate. Cheaper borrowing stimulates spending, investment, and economic growth. Side effect: if cut too aggressively, inflation can reignite.</p><p>The MPC must balance inflation control against economic growth, it's always a trade-off. SA's 2022-2024 rate hike cycle (from 3.5% to 8.25% over 18 months) was the most aggressive in 15 years, triggered by post-COVID supply shocks and global rate hikes.</p>",
       },
       {
         type: "true-false",
@@ -67,13 +67,13 @@ export const REPO_RATE_LESSONS: Lesson[] = [
           correct:
             "Exactly. Higher repo → higher prime → banks compete for deposits at higher rates. Money market funds, 32-day notice accounts, and fixed deposits all offer better returns when rates rise.",
           incorrect:
-            "True, rising repo rate increases both lending rates AND deposit rates. The 2022–2024 rate hike cycle raised SA money market fund rates from ~3.5% to ~8.5%, making cash deposits significantly more attractive.",
+            "True, rising repo rate increases both lending rates AND deposit rates. The 2022-2024 rate hike cycle raised SA money market fund rates from ~3.5% to ~8.5%, making cash deposits significantly more attractive.",
         },
       },
       {
         type: "scenario",
         question:
-          "You have a R1 200 000 home loan at prime – 0.5%. Prime is currently 11.25%. The MPC raises the repo rate by 0.5% at its next meeting. How does your monthly repayment change (20-year term)?",
+          "You have a R1 200 000 home loan at prime - 0.5%. Prime is currently 11.25%. The MPC raises the repo rate by 0.5% at its next meeting. How does your monthly repayment change (20-year term)?",
         options: [
           "Drops by approximately R340/month",
           "Stays the same, home loans are fixed rate",
@@ -127,16 +127,16 @@ export const REPO_RATE_LESSONS: Lesson[] = [
         correct: 2,
         feedback: {
           correct:
-            "Above-target inflation is the primary trigger for rate hikes. The SARB will tighten to reduce consumer spending, lower demand, and bring prices back within the 3–6% band.",
+            "Above-target inflation is the primary trigger for rate hikes. The SARB will tighten to reduce consumer spending, lower demand, and bring prices back within the 3-6% band.",
           incorrect:
-            "Above-target CPI = rate hike territory. The SARB's mandate is explicit: keep inflation in the 3–6% band. Readings above 6% trigger tightening, not cuts.",
+            "Above-target CPI = rate hike territory. The SARB's mandate is explicit: keep inflation in the 3-6% band. Readings above 6% trigger tightening, not cuts.",
         },
       },
       {
         type: "info",
         title: "Real vs Nominal Interest Rates",
         content:
-          "<p>The <strong>real interest rate</strong> = nominal rate – inflation rate. This is what your money actually earns after inflation erodes purchasing power.</p><p><strong>Example:</strong> Your savings account pays 9%. Inflation is 5.5%. Your real return is 3.5%, that's how much your wealth is actually growing in purchasing-power terms.</p><p><strong>Negative real rates:</strong> If inflation exceeds your savings rate, your purchasing power shrinks even while your rand balance grows. In 2020–2021, SA real rates were near zero or negative, cash was quietly losing value.</p><p>For long-term wealth building, you need assets that consistently beat inflation over time. That's the core argument for investing in equities rather than keeping all savings in cash.</p>",
+          "<p>The <strong>real interest rate</strong> = nominal rate - inflation rate. This is what your money actually earns after inflation erodes purchasing power.</p><p><strong>Example:</strong> Your savings account pays 9%. Inflation is 5.5%. Your real return is 3.5%, that's how much your wealth is actually growing in purchasing-power terms.</p><p><strong>Negative real rates:</strong> If inflation exceeds your savings rate, your purchasing power shrinks even while your rand balance grows. In 2020-2021, SA real rates were near zero or negative, cash was quietly losing value.</p><p>For long-term wealth building, you need assets that consistently beat inflation over time. That's the core argument for investing in equities rather than keeping all savings in cash.</p>",
       },
       {
         type: "fill-blank",
@@ -145,12 +145,12 @@ export const REPO_RATE_LESSONS: Lesson[] = [
           "Your fixed deposit earns 10.5% per year. CPI inflation is 4.8%. Your real return is ___% (subtract inflation from nominal rate).",
         correct: 5.7,
         explanation:
-          "10.5% – 4.8% = 5.7% real return. This means your purchasing power grows by 5.7% in real terms, a solid return for a low-risk fixed deposit.",
+          "10.5% - 4.8% = 5.7% real return. This means your purchasing power grows by 5.7% in real terms, a solid return for a low-risk fixed deposit.",
         feedback: {
           correct:
-            "10.5% – 4.8% = 5.7% real return. When evaluating any investment, always calculate the real return. A 10% return in a 9% inflation environment is barely keeping pace.",
+            "10.5% - 4.8% = 5.7% real return. When evaluating any investment, always calculate the real return. A 10% return in a 9% inflation environment is barely keeping pace.",
           incorrect:
-            "Real return = nominal rate – inflation rate = 10.5% – 4.8% = 5.7%. Always adjust for inflation when comparing investment returns.",
+            "Real return = nominal rate - inflation rate = 10.5% - 4.8% = 5.7%. Always adjust for inflation when comparing investment returns.",
         },
       },
       {
@@ -280,7 +280,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         type: "action",
         title: "The Fungibility Test",
         instruction:
-          "List any money you are holding in a savings account or money market fund at less than 10% interest, while simultaneously carrying debt at more than 10% interest. This gap is your mental accounting cost. Calculate the annual cost: (debt balance × debt rate) – (savings balance × savings rate). This is what mental accounting is costing you per year.",
+          "List any money you are holding in a savings account or money market fund at less than 10% interest, while simultaneously carrying debt at more than 10% interest. This gap is your mental accounting cost. Calculate the annual cost: (debt balance × debt rate) - (savings balance × savings rate). This is what mental accounting is costing you per year.",
         tip: "Most people discover they're paying thousands of rands per year in avoidable interest by keeping low-rate savings instead of paying down high-rate debt. The only valid exception is an emergency fund of 3 months' expenses.",
       },
     ] satisfies LessonStep[],
@@ -318,7 +318,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         type: "info",
         title: "The Dalbar Study: How Much Bias Costs You",
         content:
-          "<p>DALBAR's annual Quantitative Analysis of Investor Behaviour consistently shows that the <strong>average investor earns significantly less than the market index</strong>, not because markets fail but because of behavioural mistakes:</p><ul><li>Buying after strong performance (recency bias)</li><li>Selling during crashes (loss aversion)</li><li>Switching funds frequently (overconfidence and transaction costs)</li></ul><p>Over 20 years, the average US equity investor has earned roughly <strong>4–5% annually while the S&P 500 returned 9–10%</strong>. The gap, 4–5% per year compounded over 20 years, represents enormous missed wealth.</p><p><strong>SA equivalent:</strong> The JSE Capped SWIX has returned approximately 12–14% annually over the last 20 years. Most active SA unit trust investors have significantly underperformed this.</p>",
+          "<p>DALBAR's annual Quantitative Analysis of Investor Behaviour consistently shows that the <strong>average investor earns significantly less than the market index</strong>, not because markets fail but because of behavioural mistakes:</p><ul><li>Buying after strong performance (recency bias)</li><li>Selling during crashes (loss aversion)</li><li>Switching funds frequently (overconfidence and transaction costs)</li></ul><p>Over 20 years, the average US equity investor has earned roughly <strong>4-5% annually while the S&P 500 returned 9-10%</strong>. The gap, 4-5% per year compounded over 20 years, represents enormous missed wealth.</p><p><strong>SA equivalent:</strong> The JSE Capped SWIX has returned approximately 12-14% annually over the last 20 years. Most active SA unit trust investors have significantly underperformed this.</p>",
       },
       {
         type: "true-false",
@@ -345,7 +345,7 @@ export const BEHAVIORAL_FINANCE_LESSONS: Lesson[] = [
         correct: 1,
         feedback: {
           correct:
-            "Themba bought units at 30–35% discounts during the crash. When the market recovered, his lower-cost units generated higher returns. Zanele's recency bias cost her the best buying opportunity of the decade.",
+            "Themba bought units at 30-35% discounts during the crash. When the market recovered, his lower-cost units generated higher returns. Zanele's recency bias cost her the best buying opportunity of the decade.",
           incorrect:
             "Themba's consistent investing during the crash bought units at historic discounts. His average cost per unit was lower than Zanele's. When the market recovered, his returns were significantly higher. Crashes are buying opportunities for systematic investors.",
         },
@@ -405,7 +405,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Bond-Equity Trade-Off",
         content:
-          "<p>Bonds and shares (equities) have different roles in a portfolio:</p><table style='width:100%;border-collapse:collapse;font-size:14px;'><tr style='background:#f5f5f5;'><td style='padding:8px;border:1px solid #e5e7eb;'></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Bonds</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Equities</strong></td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Return</td><td style='padding:8px;border:1px solid #e5e7eb;'>Lower (8–11% in SA)</td><td style='padding:8px;border:1px solid #e5e7eb;'>Higher (12–16% long-term)</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Risk</td><td style='padding:8px;border:1px solid #e5e7eb;'>Lower volatility</td><td style='padding:8px;border:1px solid #e5e7eb;'>High short-term volatility</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Best for</td><td style='padding:8px;border:1px solid #e5e7eb;'>Stability, income, capital preservation</td><td style='padding:8px;border:1px solid #e5e7eb;'>Long-term growth</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>SA example</td><td style='padding:8px;border:1px solid #e5e7eb;'>Satrix Bond ETF, RSA Retail Bond</td><td style='padding:8px;border:1px solid #e5e7eb;'>Satrix ALSI ETF, Satrix S&P 500</td></tr></table><p>Bonds don't aim to beat equities, they aim to smooth the ride and provide income during periods when equities are falling.</p>",
+          "<p>Bonds and shares (equities) have different roles in a portfolio:</p><table style='width:100%;border-collapse:collapse;font-size:14px;'><tr style='background:#f5f5f5;'><td style='padding:8px;border:1px solid #e5e7eb;'></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Bonds</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Equities</strong></td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Return</td><td style='padding:8px;border:1px solid #e5e7eb;'>Lower (8-11% in SA)</td><td style='padding:8px;border:1px solid #e5e7eb;'>Higher (12-16% long-term)</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Risk</td><td style='padding:8px;border:1px solid #e5e7eb;'>Lower volatility</td><td style='padding:8px;border:1px solid #e5e7eb;'>High short-term volatility</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Best for</td><td style='padding:8px;border:1px solid #e5e7eb;'>Stability, income, capital preservation</td><td style='padding:8px;border:1px solid #e5e7eb;'>Long-term growth</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>SA example</td><td style='padding:8px;border:1px solid #e5e7eb;'>Satrix Bond ETF, RSA Retail Bond</td><td style='padding:8px;border:1px solid #e5e7eb;'>Satrix ALSI ETF, Satrix S&P 500</td></tr></table><p>Bonds don't aim to beat equities, they aim to smooth the ride and provide income during periods when equities are falling.</p>",
       },
     ] satisfies LessonStep[],
   },
@@ -418,7 +418,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Bond Price Paradox",
         content:
-          "<p>Here is something most investors get wrong: <strong>when interest rates rise, existing bond prices fall. When rates fall, bond prices rise.</strong></p><p><strong>Why this happens:</strong> Imagine you own a R10 000 bond paying 8% (R800/year). Interest rates then rise to 10%. New bonds now pay R1 000/year on the same R10 000. Your 8% bond is less attractive, who would pay R10 000 for it when they can get R1 000/year from a new bond? Your bond's market price must drop until its yield matches the new market rate.</p><p>This matters for bond ETFs and unit trusts, they hold bonds that are marked to market. During SA's 2022–2024 rate hike cycle, bond funds lost value even though the underlying coupons were still being paid.</p>",
+          "<p>Here is something most investors get wrong: <strong>when interest rates rise, existing bond prices fall. When rates fall, bond prices rise.</strong></p><p><strong>Why this happens:</strong> Imagine you own a R10 000 bond paying 8% (R800/year). Interest rates then rise to 10%. New bonds now pay R1 000/year on the same R10 000. Your 8% bond is less attractive, who would pay R10 000 for it when they can get R1 000/year from a new bond? Your bond's market price must drop until its yield matches the new market rate.</p><p>This matters for bond ETFs and unit trusts, they hold bonds that are marked to market. During SA's 2022-2024 rate hike cycle, bond funds lost value even though the underlying coupons were still being paid.</p>",
       },
       {
         type: "mcq",
@@ -442,7 +442,7 @@ export const BONDS_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "Duration: Your Sensitivity Measure",
         content:
-          "<p><strong>Duration</strong> measures how sensitive a bond's price is to interest rate changes. A bond with a duration of 5 years will change in price by approximately 5% for every 1% change in interest rates.</p><p>Long-duration bonds (10–20 years) are more sensitive to rate changes. Short-duration bonds (1–3 years) are less sensitive.</p><p><strong>SA context:</strong></p><ul><li>RSA Retail Bonds: no duration risk, you hold to maturity and the price is locked. Perfect for risk-averse investors.</li><li>Bond ETFs (Satrix Bond ETF, NewFunds GOVI ETF): hold a mix of government bonds. Have duration risk but also capital gain potential when rates fall.</li></ul><p>For a buy-and-hold investor, duration risk is mainly psychological. For investors who need to sell before maturity, it's a real risk.</p>",
+          "<p><strong>Duration</strong> measures how sensitive a bond's price is to interest rate changes. A bond with a duration of 5 years will change in price by approximately 5% for every 1% change in interest rates.</p><p>Long-duration bonds (10-20 years) are more sensitive to rate changes. Short-duration bonds (1-3 years) are less sensitive.</p><p><strong>SA context:</strong></p><ul><li>RSA Retail Bonds: no duration risk, you hold to maturity and the price is locked. Perfect for risk-averse investors.</li><li>Bond ETFs (Satrix Bond ETF, NewFunds GOVI ETF): hold a mix of government bonds. Have duration risk but also capital gain potential when rates fall.</li></ul><p>For a buy-and-hold investor, duration risk is mainly psychological. For investors who need to sell before maturity, it's a real risk.</p>",
       },
       {
         type: "true-false",
@@ -492,7 +492,7 @@ export const CREDIT_SCORE_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Five Pillars of Your Credit Score",
         content:
-          "<p>Your credit score (300–850 in SA) is calculated from five weighted factors. Understanding each gives you a blueprint to build or rebuild your score:</p><ul><li><strong>Payment History (~35%):</strong> The single biggest factor. Every on-time payment improves it. Every missed or late payment damages it, and stays on record for up to 7 years.</li><li><strong>Credit Utilisation (~30%):</strong> How much of your available credit you use. Using R9 000 of a R10 000 credit card limit = 90% utilisation. This signals financial stress to lenders. Keep utilisation below 30%, ideally below 10%.</li><li><strong>Length of Credit History (~15%):</strong> Older accounts improve your score. Don't close your oldest credit card even if unused, length of history matters.</li><li><strong>Credit Mix (~10%):</strong> Having different types of credit (home loan, credit card, store card) shows you can manage complexity. But don't open accounts just for mix.</li><li><strong>New Applications (~10%):</strong> Each credit application triggers a 'hard inquiry' which slightly drops your score. Multiple applications in a short period signals desperation.</li></ul>",
+          "<p>Your credit score (300-850 in SA) is calculated from five weighted factors. Understanding each gives you a blueprint to build or rebuild your score:</p><ul><li><strong>Payment History (~35%):</strong> The single biggest factor. Every on-time payment improves it. Every missed or late payment damages it, and stays on record for up to 7 years.</li><li><strong>Credit Utilisation (~30%):</strong> How much of your available credit you use. Using R9 000 of a R10 000 credit card limit = 90% utilisation. This signals financial stress to lenders. Keep utilisation below 30%, ideally below 10%.</li><li><strong>Length of Credit History (~15%):</strong> Older accounts improve your score. Don't close your oldest credit card even if unused, length of history matters.</li><li><strong>Credit Mix (~10%):</strong> Having different types of credit (home loan, credit card, store card) shows you can manage complexity. But don't open accounts just for mix.</li><li><strong>New Applications (~10%):</strong> Each credit application triggers a 'hard inquiry' which slightly drops your score. Multiple applications in a short period signals desperation.</li></ul>",
       },
       {
         type: "mcq",
@@ -556,7 +556,7 @@ export const CREDIT_SCORE_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Rebuild Timeline",
         content:
-          "<p>Credit repair is not instant, but it is systematic. Here is what SA credit bureaus retain and when it falls off your record:</p><ul><li><strong>Late payments:</strong> 1–2 years (on most bureau records)</li><li><strong>Defaults:</strong> 1–2 years after account is settled</li><li><strong>Debt review/administration:</strong> Removed within 5 business days of clearance certificate</li><li><strong>Judgements:</strong> 5 years or until rescinded, whichever is sooner</li><li><strong>Enquiries (hard checks):</strong> 12 months</li></ul><p>The fastest path from a damaged score to a good score (620+): clear all defaults, pay everything on time from this moment, reduce utilisation, and wait. Most people see significant improvement within 12–18 months of consistent behaviour.</p>",
+          "<p>Credit repair is not instant, but it is systematic. Here is what SA credit bureaus retain and when it falls off your record:</p><ul><li><strong>Late payments:</strong> 1-2 years (on most bureau records)</li><li><strong>Defaults:</strong> 1-2 years after account is settled</li><li><strong>Debt review/administration:</strong> Removed within 5 business days of clearance certificate</li><li><strong>Judgements:</strong> 5 years or until rescinded, whichever is sooner</li><li><strong>Enquiries (hard checks):</strong> 12 months</li></ul><p>The fastest path from a damaged score to a good score (620+): clear all defaults, pay everything on time from this moment, reduce utilisation, and wait. Most people see significant improvement within 12-18 months of consistent behaviour.</p>",
       },
       {
         type: "info",
@@ -586,7 +586,7 @@ export const CREDIT_SCORE_DEEP_LESSONS: Lesson[] = [
         type: "info",
         title: "The Real Cost of a Bad Credit Score",
         content:
-          "<p>A credit score of 550 vs 720 is not just a number, it translates directly into rands over a lifetime:</p><p><strong>Home loan example (R1 000 000, 20 years):</strong></p><ul><li>Score 720+ → prime – 0.5% → 10.75% → monthly repayment: R9 800, total repaid: R2 352 000</li><li>Score 550 → prime + 1.5% → 12.75% → monthly repayment: R11 400, total repaid: R2 736 000</li><li><strong>Difference: R384 000</strong> over 20 years, purely due to credit score</li></ul><p>A good credit score is worth more than most investment accounts for many South Africans. Building it is as important as building savings.</p>",
+          "<p>A credit score of 550 vs 720 is not just a number, it translates directly into rands over a lifetime:</p><p><strong>Home loan example (R1 000 000, 20 years):</strong></p><ul><li>Score 720+ → prime - 0.5% → 10.75% → monthly repayment: R9 800, total repaid: R2 352 000</li><li>Score 550 → prime + 1.5% → 12.75% → monthly repayment: R11 400, total repaid: R2 736 000</li><li><strong>Difference: R384 000</strong> over 20 years, purely due to credit score</li></ul><p>A good credit score is worth more than most investment accounts for many South Africans. Building it is as important as building savings.</p>",
       },
       {
         type: "action",
@@ -619,7 +619,7 @@ export const PORTFOLIO_CONSTRUCTION_LESSONS: Lesson[] = [
         type: "info",
         title: "The Time Horizon Rule",
         content:
-          "<p>The most important factor in asset allocation is <strong>how long until you need the money</strong>.</p><table style='width:100%;border-collapse:collapse;font-size:14px;'><tr style='background:#f5f5f5;'><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Time Horizon</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Suggested Equity Allocation</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Why</strong></td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Under 3 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>0–20%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Not enough time to recover from a market crash</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>3–7 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>20–50%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Balanced growth with some stability</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>7–15 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>50–75%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Time to ride volatility and capture equity premium</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>15+ years</td><td style='padding:8px;border:1px solid #e5e7eb;'>70–100%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Maximise compounding; short-term crashes are irrelevant</td></tr></table><p>A 28-year-old investing for retirement has a 37-year horizon. They should be heavily in equities. A 55-year-old retiring in 5 years should be predominantly in bonds and cash.</p>",
+          "<p>The most important factor in asset allocation is <strong>how long until you need the money</strong>.</p><table style='width:100%;border-collapse:collapse;font-size:14px;'><tr style='background:#f5f5f5;'><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Time Horizon</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Suggested Equity Allocation</strong></td><td style='padding:8px;border:1px solid #e5e7eb;'><strong>Why</strong></td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>Under 3 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>0-20%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Not enough time to recover from a market crash</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>3-7 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>20-50%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Balanced growth with some stability</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>7-15 years</td><td style='padding:8px;border:1px solid #e5e7eb;'>50-75%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Time to ride volatility and capture equity premium</td></tr><tr><td style='padding:8px;border:1px solid #e5e7eb;'>15+ years</td><td style='padding:8px;border:1px solid #e5e7eb;'>70-100%</td><td style='padding:8px;border:1px solid #e5e7eb;'>Maximise compounding; short-term crashes are irrelevant</td></tr></table><p>A 28-year-old investing for retirement has a 37-year horizon. They should be heavily in equities. A 55-year-old retiring in 5 years should be predominantly in bonds and cash.</p>",
       },
       {
         type: "mcq",
@@ -628,7 +628,7 @@ export const PORTFOLIO_CONSTRUCTION_LESSONS: Lesson[] = [
         options: [
           "20% equities, 80% bonds and cash, to avoid losses",
           "50% equities, 50% bonds, a balanced approach",
-          "75–85% equities, balance in bonds and cash",
+          "75-85% equities, balance in bonds and cash",
           "100% in SA cash, risk-free until he's closer to retirement",
         ],
         correct: 2,
@@ -636,14 +636,14 @@ export const PORTFOLIO_CONSTRUCTION_LESSONS: Lesson[] = [
           correct:
             "With a 33-year horizon, Siphamandla can tolerate significant equity volatility. Short-term crashes are irrelevant, he won't need the money for decades. Higher equity allocation maximises the compounding potential over 33 years.",
           incorrect:
-            "With 33 years until retirement, Siphamandla's biggest risk is NOT having enough money, not volatility. High equity allocation (75–85%) is appropriate. Cash and bonds earn too little over 33 years to fund retirement.",
+            "With 33 years until retirement, Siphamandla's biggest risk is NOT having enough money, not volatility. High equity allocation (75-85%) is appropriate. Cash and bonds earn too little over 33 years to fund retirement.",
         },
       },
       {
         type: "info",
         title: "A Practical SA Starter Portfolio",
         content:
-          "<p>For a 25–35 year old SA investor with a 25+ year horizon and moderate-to-high risk tolerance:</p><ul><li><strong>35% SA Equities:</strong> Satrix ALSI ETF or Satrix Capped SWIX ETF</li><li><strong>35% Global Equities:</strong> Satrix MSCI World ETF or Sygnia Itrix S&P 500</li><li><strong>10% SA Bonds:</strong> NewFunds GOVI Bond ETF or RSA Retail Bond</li><li><strong>10% SA Listed Property (REITs):</strong> Satrix Property ETF</li><li><strong>10% Cash:</strong> Money market fund (emergency buffer within portfolio)</li></ul><p>This portfolio: diversifies across geographies, asset classes, and sectors. Uses low-cost ETFs (annual fees 0.1–0.35%). Provides rand hedging through global equity exposure. Total estimated annual cost: under 0.5% in fees.</p><p>This is not financial advice. It's an illustrative example. Adjust based on your own situation.</p>",
+          "<p>For a 25-35 year old SA investor with a 25+ year horizon and moderate-to-high risk tolerance:</p><ul><li><strong>35% SA Equities:</strong> Satrix ALSI ETF or Satrix Capped SWIX ETF</li><li><strong>35% Global Equities:</strong> Satrix MSCI World ETF or Sygnia Itrix S&P 500</li><li><strong>10% SA Bonds:</strong> NewFunds GOVI Bond ETF or RSA Retail Bond</li><li><strong>10% SA Listed Property (REITs):</strong> Satrix Property ETF</li><li><strong>10% Cash:</strong> Money market fund (emergency buffer within portfolio)</li></ul><p>This portfolio: diversifies across geographies, asset classes, and sectors. Uses low-cost ETFs (annual fees 0.1-0.35%). Provides rand hedging through global equity exposure. Total estimated annual cost: under 0.5% in fees.</p><p>This is not financial advice. It's an illustrative example. Adjust based on your own situation.</p>",
       },
     ] satisfies LessonStep[],
   },
@@ -723,7 +723,7 @@ export const PORTFOLIO_CONSTRUCTION_LESSONS: Lesson[] = [
         title: "Build Your Target Allocation",
         instruction:
           "Write down your investment goal, the year you need the money, and your current age. Calculate your time horizon (years until you need the money). Using the time horizon table from this lesson, determine your target equity allocation. Then list the ETFs or funds you would use for each allocation. This is your personal investment policy statement.",
-        tip: "Keep it simple. A portfolio of 2–3 ETFs (SA equity, global equity, and one bond/cash) is more effective than 12 different funds. Complexity costs fees and creates decision paralysis.",
+        tip: "Keep it simple. A portfolio of 2-3 ETFs (SA equity, global equity, and one bond/cash) is more effective than 12 different funds. Complexity costs fees and creates decision paralysis.",
       },
     ] satisfies LessonStep[],
   },

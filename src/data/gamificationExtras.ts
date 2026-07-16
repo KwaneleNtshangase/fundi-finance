@@ -176,9 +176,9 @@ export const INVESTOR_QUIZ_QUESTIONS = [
     question: "How long do you wnt to invest for? (Your investment time horizon):",
     options: [
       { text: "Less than 1 year", score: 1 },
-      { text: "1–3 years", score: 2 },
-      { text: "3–7 years", score: 3 },
-      { text: "7–15 years", score: 4 },
+      { text: "1-3 years", score: 2 },
+      { text: "3-7 years", score: 3 },
+      { text: "7-15 years", score: 4 },
       { text: "15+ years", score: 5 },
     ],
   },
@@ -232,8 +232,8 @@ export const INVESTOR_QUIZ_QUESTIONS = [
     options: [
       { text: "Nothing at the moment", score: 1 },
       { text: "Less than 5%", score: 2 },
-      { text: "5–15%", score: 3 },
-      { text: "15–30%", score: 4 },
+      { text: "5-15%", score: 3 },
+      { text: "15-30%", score: 4 },
       { text: "More than 30%", score: 5 },
     ],
   },
@@ -243,8 +243,8 @@ export const INVESTOR_QUIZ_QUESTIONS = [
     options: [
       { text: "I don't have one", score: 1 },
       { text: "About 1 month", score: 2 },
-      { text: "2–3 months", score: 3 },
-      { text: "4–6 months", score: 4 },
+      { text: "2-3 months", score: 3 },
+      { text: "4-6 months", score: 4 },
       { text: "6+ months", score: 5 },
     ],
   },
@@ -320,6 +320,6 @@ export function getInvestorProfile(totalScore: number) {
     description:
       "You are a long-term, maximum-growth investor who accepts significant short-term volatility as the price of outstanding long-term returns. You have a strong financial foundation and a long time horizon.",
     allocation: "5% Cash • 95% Equities (Global-heavy)",
-    products: ["Satrix MSCI World ETF", "Sygnia Itrix S&P 500", "Individual JSE shares via EasyEquities", "VALR/Luno for crypto (max 3–5%)"],
+    products: ["Satrix MSCI World ETF", "Sygnia Itrix S&P 500", "Individual JSE shares via EasyEquities", "VALR/Luno for crypto (max 3-5%)"],
   };
 }

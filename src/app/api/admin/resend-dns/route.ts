@@ -6,7 +6,7 @@ import { isAdminEmail, isAdminUser } from "@/lib/admin";
 /** Admin-only: returns the exact DNS records Resend needs for the domain,
  *  read straight from the Resend API (so values aren't truncated). */
 export async function GET(req: NextRequest) {
-  // Build admin client first — needed for the DB-flag check.
+  // Build admin client first - needed for the DB-flag check.
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const svcKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !svcKey) return NextResponse.json({ error: "Missing config" }, { status: 500 });

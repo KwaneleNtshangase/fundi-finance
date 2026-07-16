@@ -47,7 +47,7 @@ function Icon({
   );
 }
 
-/* ── Learn — open book with page detail + growth spark ─────────────────── */
+/* ── Learn - open book with page detail + growth spark ─────────────────── */
 export function FundiLearn(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -63,7 +63,7 @@ export function FundiLearn(p: FundiIconProps) {
   );
 }
 
-/* ── Calculate — calculator ────────────────────────────────────────────── */
+/* ── Calculate - calculator ────────────────────────────────────────────── */
 export function FundiCalculate(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -78,7 +78,7 @@ export function FundiCalculate(p: FundiIconProps) {
   );
 }
 
-/* ── Budget — wallet with note tucked in + clasp ───────────────────────── */
+/* ── Budget - wallet with note tucked in + clasp ───────────────────────── */
 export function FundiBudget(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -90,7 +90,7 @@ export function FundiBudget(p: FundiIconProps) {
   );
 }
 
-/* ── Goals — arrow striking the bullseye (echoes the logo arrow) ────────── */
+/* ── Goals - arrow striking the bullseye (echoes the logo arrow) ────────── */
 export function FundiGoals(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -103,7 +103,7 @@ export function FundiGoals(p: FundiIconProps) {
   );
 }
 
-/* ── Progress — ascending bars + rising arrow (the logo's chart) ────────── */
+/* ── Progress - ascending bars + rising arrow (the logo's chart) ────────── */
 export function FundiProgress(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -116,7 +116,7 @@ export function FundiProgress(p: FundiIconProps) {
   );
 }
 
-/* ── Profile — person ──────────────────────────────────────────────────── */
+/* ── Profile - person ──────────────────────────────────────────────────── */
 export function FundiProfile(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -126,7 +126,7 @@ export function FundiProfile(p: FundiIconProps) {
   );
 }
 
-/* ── Leaderboard — podium + spark ──────────────────────────────────────── */
+/* ── Leaderboard - podium + spark ──────────────────────────────────────── */
 export function FundiLeaderboard(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -143,7 +143,7 @@ export function FundiLeaderboard(p: FundiIconProps) {
    Same house language so the top bar / stats feel custom, not stock.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* ── Streak — flame with an inner spark ────────────────────────────────── */
+/* ── Streak - flame with an inner spark ────────────────────────────────── */
 export function FundiStreak(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -153,7 +153,7 @@ export function FundiStreak(p: FundiIconProps) {
   );
 }
 
-/* ── XP — bold filled lightning bolt ───────────────────────────────────── */
+/* ── XP - bold filled lightning bolt ───────────────────────────────────── */
 export function FundiXP(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -162,7 +162,7 @@ export function FundiXP(p: FundiIconProps) {
   );
 }
 
-/* ── Hearts — rounded heart (supports filled state for the row) ─────────── */
+/* ── Hearts - rounded heart (supports filled state for the row) ─────────── */
 export function FundiHeart({ filled = true, ...p }: FundiIconProps & { filled?: boolean }) {
   return (
     <Icon {...p}>
@@ -174,7 +174,7 @@ export function FundiHeart({ filled = true, ...p }: FundiIconProps & { filled?: 
   );
 }
 
-/* ── Freeze — shield with a snowflake ──────────────────────────────────── */
+/* ── Freeze - shield with a snowflake ──────────────────────────────────── */
 export function FundiFreeze(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -185,7 +185,7 @@ export function FundiFreeze(p: FundiIconProps) {
   );
 }
 
-/* ── Level — medal with a star ─────────────────────────────────────────── */
+/* ── Level - medal with a star ─────────────────────────────────────────── */
 export function FundiLevel(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -200,7 +200,7 @@ export function FundiLevel(p: FundiIconProps) {
    Bespoke versions of the Learn-screen category icons.
    ════════════════════════════════════════════════════════════════════════ */
 
-/* ── Shield — protection / emergency fund (shield + check) ──────────────── */
+/* ── Shield - protection / emergency fund (shield + check) ──────────────── */
 export function FundiShield(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -221,7 +221,7 @@ export function FundiCredit(p: FundiIconProps) {
   );
 }
 
-/* ── Building — banks / institutions ───────────────────────────────────── */
+/* ── Building - banks / institutions ───────────────────────────────────── */
 export function FundiBuilding(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -234,7 +234,7 @@ export function FundiBuilding(p: FundiIconProps) {
   );
 }
 
-/* ── Briefcase — business / career ─────────────────────────────────────── */
+/* ── Briefcase - business / career ─────────────────────────────────────── */
 export function FundiBriefcase(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -246,7 +246,7 @@ export function FundiBriefcase(p: FundiIconProps) {
   );
 }
 
-/* ── Umbrella — insurance / cover ──────────────────────────────────────── */
+/* ── Umbrella - insurance / cover ──────────────────────────────────────── */
 export function FundiUmbrella(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -257,7 +257,7 @@ export function FundiUmbrella(p: FundiIconProps) {
   );
 }
 
-/* ── Flag — goals / milestones ─────────────────────────────────────────── */
+/* ── Flag - goals / milestones ─────────────────────────────────────────── */
 export function FundiFlag(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -267,7 +267,7 @@ export function FundiFlag(p: FundiIconProps) {
   );
 }
 
-/* ── Home — saving for a home ──────────────────────────────────────────── */
+/* ── Home - saving for a home ──────────────────────────────────────────── */
 export function FundiHome(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -278,7 +278,7 @@ export function FundiHome(p: FundiIconProps) {
   );
 }
 
-/* ── Document — tax / paperwork ────────────────────────────────────────── */
+/* ── Document - tax / paperwork ────────────────────────────────────────── */
 export function FundiDoc(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -289,7 +289,7 @@ export function FundiDoc(p: FundiIconProps) {
   );
 }
 
-/* ── Alert — emergencies / scams ───────────────────────────────────────── */
+/* ── Alert - emergencies / scams ───────────────────────────────────────── */
 export function FundiAlert(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -301,7 +301,7 @@ export function FundiAlert(p: FundiIconProps) {
   );
 }
 
-/* ── Brain — money psychology ──────────────────────────────────────────── */
+/* ── Brain - money psychology ──────────────────────────────────────────── */
 export function FundiBrain(p: FundiIconProps) {
   return (
     <Icon {...p}>
@@ -314,7 +314,7 @@ export function FundiBrain(p: FundiIconProps) {
   );
 }
 
-/* ── Trophy — wins / completion / leaderboard ──────────────────────────── */
+/* ── Trophy - wins / completion / leaderboard ──────────────────────────── */
 export function FundiTrophy(p: FundiIconProps) {
   return (
     <Icon {...p}>

@@ -910,7 +910,7 @@ export function LearnView({
         </div>
       )}
 
-      {/* Weekly challenge card — hidden while searching so results sit right under the search box */}
+      {/* Weekly challenge card - hidden while searching so results sit right under the search box */}
       {showQuestSections && !search.trim() && weeklyChallenge && (
         <div style={{
           background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
@@ -1049,7 +1049,7 @@ export function LearnView({
                   {isLocked ? (
                     <div className="course-description" style={{ color: "var(--color-text-secondary)" }}>
                       Keep earning XP to unlock this advanced content. Reach {levelReq.label} to continue.
-                      {" "}You&apos;re Level {userLevel} — {Math.max(0, (levelReq.level - 1) * 500 - userXP).toLocaleString("en-ZA")} XP to go.
+                      {" "}You&apos;re Level {userLevel} - {Math.max(0, (levelReq.level - 1) * 500 - userXP).toLocaleString("en-ZA")} XP to go.
                     </div>
                   ) : (
                     <div className="course-description">{course.description}</div>
@@ -1064,7 +1064,7 @@ export function LearnView({
               </div>
               {!isLocked && (
                 <>
-                  {/* Coloured progress bar — neutral track so 0% never reads as complete */}
+                  {/* Coloured progress bar - neutral track so 0% never reads as complete */}
                   <div style={{ height: 6, background: "var(--color-border)", borderRadius: 3, margin: "8px 0", overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${percentage}%`, background: colour.accent, borderRadius: 3, transition: "width 0.4s" }} />
                   </div>

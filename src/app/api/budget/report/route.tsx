@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id),
     admin
       .from("profiles")
-      // NB: profiles has NO display_name column — selecting it made this whole
+      // NB: profiles has NO display_name column - selecting it made this whole
       // query error (42703) and silently produced the "Fundi user" fallback.
       .select("full_name, username")
       .eq("user_id", user.id)
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
   const progress = progressRes.data as { display_name?: string } | null;
   if (profileRes.error) console.error("[budget/report] profile lookup:", profileRes.error.message);
 
-  /** First word only — the report greets by first name, never the full name. */
+  /** First word only - the report greets by first name, never the full name. */
   const firstNameOf = (s?: string | null) => (s ?? "").trim().split(/\s+/)[0] ?? "";
   const displayName =
     firstNameOf(profile?.full_name) ||

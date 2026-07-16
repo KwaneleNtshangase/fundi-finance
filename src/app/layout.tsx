@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 // Without this, mobile browsers render at ~980px virtual width and
 // CSS media queries like max-width: 1200px never match real phones.
-// Pinch-zoom stays enabled (WCAG 1.4.4) — never set maximumScale/userScalable.
+// Pinch-zoom stays enabled (WCAG 1.4.4) - never set maximumScale/userScalable.
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,

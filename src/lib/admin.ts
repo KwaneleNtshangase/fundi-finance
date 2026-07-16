@@ -4,8 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * Admin identity helpers for internal routes.
  *
  * Authority order (both conditions are OR'd in requireAdmin):
- *   1. DB flag   — profiles.is_admin = true (authoritative; survives env changes)
- *   2. Env list  — ADMIN_EMAILS env var (secondary; useful for bootstrap / CI)
+ *   1. DB flag   - profiles.is_admin = true (authoritative; survives env changes)
+ *   2. Env list  - ADMIN_EMAILS env var (secondary; useful for bootstrap / CI)
  *
  * The old hardcoded FALLBACK_ADMIN_EMAILS list has been removed so the system
  * fails closed: if neither the DB flag nor ADMIN_EMAILS is set, no one is admin.
@@ -13,7 +13,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 /**
  * Returns the list of admin emails from the ADMIN_EMAILS env var.
- * Returns an empty array if the env var is not set — fails closed.
+ * Returns an empty array if the env var is not set - fails closed.
  */
 export function getAdminEmails(): string[] {
   const env = process.env.ADMIN_EMAILS ?? "";
@@ -22,7 +22,7 @@ export function getAdminEmails(): string[] {
 
 /**
  * Returns true if the given email is in the ADMIN_EMAILS env var list.
- * Secondary check — only consulted when ADMIN_EMAILS is explicitly configured.
+ * Secondary check - only consulted when ADMIN_EMAILS is explicitly configured.
  */
 export function isAdminEmail(email?: string | null): boolean {
   if (!email) return false;
@@ -38,7 +38,7 @@ export function isAdminEmail(email?: string | null): boolean {
  * (which bypasses RLS), so the result is trustworthy regardless of
  * the caller's own RLS policies.
  *
- * Returns false on any error (network, missing row, etc.) — fails closed.
+ * Returns false on any error (network, missing row, etc.) - fails closed.
  *
  * @param adminClient  A Supabase client created with the service-role key.
  * @param userId       The auth.users.id of the user to check.

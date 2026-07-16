@@ -73,7 +73,7 @@ describe("bank layout fixtures", () => {
     expect(rows.some((r) => r.amountZAR > 0)).toBe(true);
     expect(rows.some((r) => r.amountZAR < 0)).toBe(true);
     // Long reference numbers are deliberately trimmed from descriptions
-    // (import UX change) — assert they no longer leak through.
+    // (import UX change) - assert they no longer leak through.
     expect(rows.some((r) => r.description.includes("2474439413"))).toBe(false);
     expect(rows.filter((r) => r.description === "Bank Charges")).toHaveLength(2);
     expect(rows.find((r) => r.description.includes("Snapscan"))?.amountZAR).toBe(9.66);

@@ -1,6 +1,8 @@
 // Extra lessons & daily facts live in `content-extra.ts` and are merged via `mergeContentExtras.ts`.
 import { mergeContentExtras } from "./mergeContentExtras";
 import { LEVEL_3_COURSES } from "./content-level3";
+import { RE5_COURSES } from "./content-re5";
+import { applyReinforcement } from "./content-reinforcement";
 
 export type LessonStep =
   | {
@@ -124,7 +126,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Money Loses Value",
-                  content: "<p>Have you noticed that R100 today doesn't buy as much as it did 5 years ago? That's because of <strong>inflation</strong>.</p><p>Inflation means the general increase in prices over time. In South Africa, the Reserve Bank aims to keep inflation between 3–6% per year.</p><p>This is why keeping cash under your mattress is a bad idea, it loses purchasing power every year!</p>",
+                  content: "<p>Have you noticed that R100 today doesn't buy as much as it did 5 years ago? That's because of <strong>inflation</strong>.</p><p>Inflation means the general increase in prices over time. In South Africa, the Reserve Bank aims to keep inflation between 3-6% per year.</p><p>This is why keeping cash under your mattress is a bad idea, it loses purchasing power every year!</p>",
                 },
                 {
                   type: "mcq",
@@ -386,7 +388,7 @@ const RAW_COURSES: Course[] = [
                   explanation: "R900 minus R600 leaves R300 that was not planned.",
                   feedback: {
                     correct: "Right. Naming the overrun helps you adjust next month.",
-                    incorrect: "Subtract planned from actual: R900 − R600 = R300 extra.",
+                    incorrect: "Subtract planned from actual: R900 - R600 = R300 extra.",
                   },
                 },
                 {
@@ -623,7 +625,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Where Your Money Leaks",
-                  content: "<p>Bank fees are silent killers. Common ones:</p><ul><li><strong>Monthly admin fee:</strong> R0–R200</li><li><strong>ATM withdrawal:</strong> R5–R15 per transaction</li><li><strong>Card swipe:</strong> Free or R2–R5</li><li><strong>Declined transaction:</strong> R5–R15 (yes, you pay even when it fails!)</li></ul><p>Switch to tap-to-pay to minimize transaction fees.</p>",
+                  content: "<p>Bank fees are silent killers. Common ones:</p><ul><li><strong>Monthly admin fee:</strong> R0-R200</li><li><strong>ATM withdrawal:</strong> R5-R15 per transaction</li><li><strong>Card swipe:</strong> Free or R2-R5</li><li><strong>Declined transaction:</strong> R5-R15 (yes, you pay even when it fails!)</li></ul><p>Switch to tap-to-pay to minimize transaction fees.</p>",
                 },
                 {
                   type: "mcq",
@@ -632,7 +634,7 @@ const RAW_COURSES: Course[] = [
                   correct: 1,
                   feedback: {
                     correct: "Frequent small ATM withdrawals stack up fast. Withdraw once a week in a larger amount instead.",
-                    incorrect: "Frequent ATM withdrawals are one of the biggest fee drains. Each one costs R5–R15.",
+                    incorrect: "Frequent ATM withdrawals are one of the biggest fee drains. Each one costs R5-R15.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -644,7 +646,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Banking With Zero Monthly Fees",
-                  content: "<p>Millions of South Africans pay R100–R200/month in bank fees they don't need to. Digital-first banks have changed the game.</p><p><strong>Zero or near-zero fee options:</strong></p><ul><li><strong>Capitec Global One:</strong> R7/month admin fee, low transaction costs, 9.5% interest on positive balance (2024 rate).</li><li><strong>TymeBank:</strong> R0 monthly fee, free swipes at PicknPay and Boxer, R0 balance notifications.</li><li><strong>FNB Easy Account:</strong> R0 monthly fee option with app-only banking.</li><li><strong>Discovery Bank:</strong> Fee-free if you hit Vitality Money milestones.</li></ul><p><strong>What to look for:</strong> Monthly fee, cost per ATM withdrawal, cost per online transfer, interest on positive balance, app functionality, customer support quality.</p><p>Scenario: Lungile switched from a traditional bank (R160/month fees) to TymeBank (R0 fees). Over 5 years she saved R9 600 - nearly a full month's salary in fees alone.</p>",
+                  content: "<p>Millions of South Africans pay R100-R200/month in bank fees they don't need to. Digital-first banks have changed the game.</p><p><strong>Zero or near-zero fee options:</strong></p><ul><li><strong>Capitec Global One:</strong> R7/month admin fee, low transaction costs, 9.5% interest on positive balance (2024 rate).</li><li><strong>TymeBank:</strong> R0 monthly fee, free swipes at PicknPay and Boxer, R0 balance notifications.</li><li><strong>FNB Easy Account:</strong> R0 monthly fee option with app-only banking.</li><li><strong>Discovery Bank:</strong> Fee-free if you hit Vitality Money milestones.</li></ul><p><strong>What to look for:</strong> Monthly fee, cost per ATM withdrawal, cost per online transfer, interest on positive balance, app functionality, customer support quality.</p><p>Scenario: Lungile switched from a traditional bank (R160/month fees) to TymeBank (R0 fees). Over 5 years she saved R9 600 - nearly a full month's salary in fees alone.</p>",
                 },
                 {
                   type: "mcq",
@@ -780,7 +782,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Your Financial Report Card",
-                  content: "<p>A bad credit score costs you money every single month - through higher interest rates on every loan you ever take. A good score is worth tens of thousands of rands in interest savings over a lifetime.</p><p>Your credit score (300–850 in SA) tells lenders how likely you are to repay. It's calculated by TransUnion, Experian, and Compuscan based on your payment history, credit utilisation, length of history, and number of recent applications.</p>",
+                  content: "<p>A bad credit score costs you money every single month - through higher interest rates on every loan you ever take. A good score is worth tens of thousands of rands in interest savings over a lifetime.</p><p>Your credit score (300-850 in SA) tells lenders how likely you are to repay. It's calculated by TransUnion, Experian, and Compuscan based on your payment history, credit utilisation, length of history, and number of recent applications.</p>",
                 },
                 {
                   type: "mcq",
@@ -922,7 +924,7 @@ const RAW_COURSES: Course[] = [
                   title: "Minimum payment trap",
                   prompt: "If your statement says minimum R450 but interest this month is R380, only about R___ of principal drops before new spend.",
                   correct: 70,
-                  explanation: "450 − 380 = 70; tiny principal cuts stretch repayment for years.",
+                  explanation: "450 - 380 = 70; tiny principal cuts stretch repayment for years.",
                   feedback: {
                     correct: "Small principal cuts are why minimums trap people.",
                     incorrect: "Subtract interest from the minimum to see real debt reduction.",
@@ -1021,16 +1023,16 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Your Financial Airbag",
-                  content: "<p>One unexpected expense - a R8 000 car repair, a R15 000 medical bill, two weeks without income - is all it takes to destroy a budget that has no safety net. This is how debt spirals start.</p><p>An emergency fund is 3–6 months of essential living expenses in cash, accessible within 24 hours. If your essential monthly expenses are R12 000, your target is R36 000–R72 000. Start with a mini-goal of R5 000 - it protects you from small emergencies immediately.</p>",
+                  content: "<p>One unexpected expense - a R8 000 car repair, a R15 000 medical bill, two weeks without income - is all it takes to destroy a budget that has no safety net. This is how debt spirals start.</p><p>An emergency fund is 3-6 months of essential living expenses in cash, accessible within 24 hours. If your essential monthly expenses are R12 000, your target is R36 000-R72 000. Start with a mini-goal of R5 000 - it protects you from small emergencies immediately.</p>",
                 },
                 {
                   type: "mcq",
                   question: "How many months of expenses should an emergency fund ideally cover?",
-                  options: ["1 month", "3–6 months", "10–12 months", "Just R1 000 is enough"],
+                  options: ["1 month", "3-6 months", "10-12 months", "Just R1 000 is enough"],
                   correct: 1,
                   feedback: {
-                    correct: "3–6 months is the standard. More if your income is irregular or you have dependants.",
-                    incorrect: "The target is 3–6 months of essential expenses, enough to survive job loss or a major crisis.",
+                    correct: "3-6 months is the standard. More if your income is irregular or you have dependants.",
+                    incorrect: "The target is 3-6 months of essential expenses, enough to survive job loss or a major crisis.",
                   },
                 },
                 {
@@ -1072,7 +1074,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Right Home for Your Safety Net",
-                  content: "<p>Your emergency fund needs to be:</p><ul><li><strong>Accessible:</strong> Withdrawable within 1–2 business days</li><li><strong>Safe:</strong> Not subject to market risk</li><li><strong>Earning something:</strong> At least keeping pace with inflation</li></ul><p>Best options in SA: High-interest savings account (Capitec, TymeBank), money market fund (Sygnia, Satrix), or 32-day notice account.</p>",
+                  content: "<p>Your emergency fund needs to be:</p><ul><li><strong>Accessible:</strong> Withdrawable within 1-2 business days</li><li><strong>Safe:</strong> Not subject to market risk</li><li><strong>Earning something:</strong> At least keeping pace with inflation</li></ul><p>Best options in SA: High-interest savings account (Capitec, TymeBank), money market fund (Sygnia, Satrix), or 32-day notice account.</p>",
                 },
                 {
                   type: "mcq",
@@ -1394,7 +1396,7 @@ const RAW_COURSES: Course[] = [
                   statement: "Once you set up a life insurance policy you should leave the cover amount unchanged for the duration of the policy.",
                   correct: false,
                   feedback: {
-                    correct: "Exactly. Your cover needs change as your salary, debt, and family change. Review your cover at least every 2–3 years or after major life events.",
+                    correct: "Exactly. Your cover needs change as your salary, debt, and family change. Review your cover at least every 2-3 years or after major life events.",
                     incorrect: "Cover needs change constantly. Salary increases, new debts, more children, and paying off loans all affect how much cover you need. Review regularly.",
                   },
                 },
@@ -1623,7 +1625,7 @@ const RAW_COURSES: Course[] = [
                   type: "action",
                   title: "Date-stamp one goal",
                   instruction:
-                    "Write one financial goal with the exact month and year you expect to spend it. Circle whether it is under 3 years, 3–7 years, or 7+ years. Keep the note where you review savings monthly.",
+                    "Write one financial goal with the exact month and year you expect to spend it. Circle whether it is under 3 years, 3-7 years, or 7+ years. Keep the note where you review savings monthly.",
                   tip: "If the date moved closer, revisit how much risk you still accept.",
                 },
               ] satisfies LessonStep[],
@@ -1923,7 +1925,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Save for Retirement AND Pay Less Tax",
-                  content: "<p>A Retirement Annuity (RA) is a long-term investment specifically for retirement. Contributions are <strong>tax-deductible</strong> up to 27.5% of your income (max R430 000/year).</p><p>Example: If you earn R50 000/month and contribute R5 000/month to an RA, you reduce your taxable income by R60 000/year, potentially saving R12 000–R18 000 in tax.</p>",
+                  content: "<p>A Retirement Annuity (RA) is a long-term investment specifically for retirement. Contributions are <strong>tax-deductible</strong> up to 27.5% of your income (max R430 000/year).</p><p>Example: If you earn R50 000/month and contribute R5 000/month to an RA, you reduce your taxable income by R60 000/year, potentially saving R12 000-R18 000 in tax.</p>",
                 },
                 {
                   type: "mcq",
@@ -2106,7 +2108,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "How a Bond Really Works",
-                  content: "<p>A home loan (called a <strong>bond</strong> in SA) is a secured loan where the property is the collateral. If you stop paying, the bank can repossess and sell the property to recover the debt.</p><p><strong>Key terms:</strong></p><ul><li><strong>LTV (Loan-to-Value):</strong> The ratio of the loan to the property value. A R900 000 loan on a R1 000 000 property = 90% LTV. Lower LTV means less risk for the bank, often a better rate.</li><li><strong>Prime Rate:</strong> Set by the SARB Monetary Policy Committee. Banks lend at prime minus or plus a spread. In 2024, prime was 11.25%.</li><li><strong>Spread:</strong> Your personal premium above or below prime based on your credit risk. A good profile earns prime minus 0.5%, a poor profile might be prime plus 1%.</li><li><strong>FLISP:</strong> Finance Linked Individual Subsidy Programme - a government grant for first-time buyers earning R3 501 to R22 000/month. The subsidy (R30 000–R130 000 depending on income) reduces your bond amount.</li></ul><p>Example: On a R1 000 000 bond at 11.5% over 20 years, you pay approximately R10 800/month. Over 20 years you pay back R2 600 000 - R1 600 000 in interest alone.</p>",
+                  content: "<p>A home loan (called a <strong>bond</strong> in SA) is a secured loan where the property is the collateral. If you stop paying, the bank can repossess and sell the property to recover the debt.</p><p><strong>Key terms:</strong></p><ul><li><strong>LTV (Loan-to-Value):</strong> The ratio of the loan to the property value. A R900 000 loan on a R1 000 000 property = 90% LTV. Lower LTV means less risk for the bank, often a better rate.</li><li><strong>Prime Rate:</strong> Set by the SARB Monetary Policy Committee. Banks lend at prime minus or plus a spread. In 2024, prime was 11.25%.</li><li><strong>Spread:</strong> Your personal premium above or below prime based on your credit risk. A good profile earns prime minus 0.5%, a poor profile might be prime plus 1%.</li><li><strong>FLISP:</strong> Finance Linked Individual Subsidy Programme - a government grant for first-time buyers earning R3 501 to R22 000/month. The subsidy (R30 000-R130 000 depending on income) reduces your bond amount.</li></ul><p>Example: On a R1 000 000 bond at 11.5% over 20 years, you pay approximately R10 800/month. Over 20 years you pay back R2 600 000 - R1 600 000 in interest alone.</p>",
                 },
                 {
                   type: "mcq",
@@ -2136,7 +2138,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Your Deposit Changes Everything",
-                  content: "<p>Most banks in SA require a deposit of <strong>10–20% of the purchase price</strong>, although 100% bonds exist for strong credit profiles.</p><p><strong>Why a bigger deposit helps:</strong></p><ul><li>Lower monthly repayment (smaller loan)</li><li>Better interest rate (lower LTV = less bank risk)</li><li>Avoids Lenders Mortgage Insurance in some structures</li><li>Immediate equity in the property</li></ul><p><strong>Saving for a deposit:</strong> Open a separate savings account (32-day notice or money market) immediately. Automate a debit order on payday. At 10%, a R1 500 000 property needs R150 000 in cash plus transfer costs.</p><p><strong>AIP (Approval in Principle):</strong> Before making an offer, get an AIP from a bank or bond originator (ooba, BetterBond, MortgageSA). This tells you exactly what you can afford and makes your offer more credible to sellers.</p><p><strong>Guarantor option:</strong> A parent or family member can stand surety on your bond. This helps if your credit profile is limited but increases risk for the guarantor - they are liable if you default.</p>",
+                  content: "<p>Most banks in SA require a deposit of <strong>10-20% of the purchase price</strong>, although 100% bonds exist for strong credit profiles.</p><p><strong>Why a bigger deposit helps:</strong></p><ul><li>Lower monthly repayment (smaller loan)</li><li>Better interest rate (lower LTV = less bank risk)</li><li>Avoids Lenders Mortgage Insurance in some structures</li><li>Immediate equity in the property</li></ul><p><strong>Saving for a deposit:</strong> Open a separate savings account (32-day notice or money market) immediately. Automate a debit order on payday. At 10%, a R1 500 000 property needs R150 000 in cash plus transfer costs.</p><p><strong>AIP (Approval in Principle):</strong> Before making an offer, get an AIP from a bank or bond originator (ooba, BetterBond, MortgageSA). This tells you exactly what you can afford and makes your offer more credible to sellers.</p><p><strong>Guarantor option:</strong> A parent or family member can stand surety on your bond. This helps if your credit profile is limited but increases risk for the guarantor - they are liable if you default.</p>",
                 },
                 {
                   type: "mcq",
@@ -2166,7 +2168,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Costs Nobody Tells You About",
-                  content: "<p>The purchase price is just the beginning. Budget for these once-off and ongoing costs:</p><p><strong>Once-off costs (when buying):</strong></p><ul><li><strong>Transfer Duty:</strong> Government tax on properties above R1 100 000 (2024). On R1 500 000 you pay R40 500.</li><li><strong>Bond Registration Costs:</strong> Attorney fees to register the bond - roughly R30 000–R50 000 depending on bond size.</li><li><strong>Transfer Costs:</strong> Attorney fees to transfer ownership - similar range.</li><li><strong>Moving costs, connection fees:</strong> Budget R5 000–R15 000.</li></ul><p><strong>Ongoing costs:</strong></p><ul><li><strong>Municipal rates and taxes:</strong> Based on property value, typically R500–R2 500/month.</li><li><strong>Levies (sectional title):</strong> R500–R3 000+/month for maintenance, security, garden.</li><li><strong>Home insurance:</strong> R500–R1 500/month for buildings and contents.</li><li><strong>Maintenance reserve:</strong> Budget 1% of property value per year (R15 000/year on a R1 500 000 home) for repairs and upgrades.</li></ul><p>Total hidden costs can add R80 000–R150 000 to the purchase price upfront, and R2 000–R6 000/month ongoing.</p>",
+                  content: "<p>The purchase price is just the beginning. Budget for these once-off and ongoing costs:</p><p><strong>Once-off costs (when buying):</strong></p><ul><li><strong>Transfer Duty:</strong> Government tax on properties above R1 100 000 (2024). On R1 500 000 you pay R40 500.</li><li><strong>Bond Registration Costs:</strong> Attorney fees to register the bond - roughly R30 000-R50 000 depending on bond size.</li><li><strong>Transfer Costs:</strong> Attorney fees to transfer ownership - similar range.</li><li><strong>Moving costs, connection fees:</strong> Budget R5 000-R15 000.</li></ul><p><strong>Ongoing costs:</strong></p><ul><li><strong>Municipal rates and taxes:</strong> Based on property value, typically R500-R2 500/month.</li><li><strong>Levies (sectional title):</strong> R500-R3 000+/month for maintenance, security, garden.</li><li><strong>Home insurance:</strong> R500-R1 500/month for buildings and contents.</li><li><strong>Maintenance reserve:</strong> Budget 1% of property value per year (R15 000/year on a R1 500 000 home) for repairs and upgrades.</li></ul><p>Total hidden costs can add R80 000-R150 000 to the purchase price upfront, and R2 000-R6 000/month ongoing.</p>",
                 },
                 {
                   type: "mcq",
@@ -2203,7 +2205,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Renting Is Not Wasted Money",
-                  content: "<p>The idea that renting is \"throwing money away\" is one of the most damaging myths in personal finance. Renting is often the smarter financial choice depending on your circumstances.</p><p><strong>Renting makes sense when:</strong></p><ul><li>You plan to move within 3–5 years (transaction costs of buying take years to break even)</li><li>Your deposit money is better invested elsewhere (equity at 12% vs property at 6–8% per year)</li><li>You are in a city with a high price-to-rent ratio (buying is expensive relative to renting)</li><li>You value flexibility - for career opportunities, relationship changes, or lifestyle</li><li>You cannot yet afford a property without stretching yourself dangerously thin</li></ul><p><strong>Opportunity cost of your deposit:</strong> R200 000 in a deposit reduces your loan and interest. But R200 000 invested in a diversified equity fund at 12%/year grows to R620 000 in 10 years. The question is always: which use of that capital creates more wealth?</p><p><strong>Rental yield perspective:</strong> If annual rent is R84 000 (R7 000/month) on a property worth R1 500 000, the yield is 5.6%. Investors who buy to let often earn less than 6% yield - sometimes less than you would in a money market account.</p>",
+                  content: "<p>The idea that renting is \"throwing money away\" is one of the most damaging myths in personal finance. Renting is often the smarter financial choice depending on your circumstances.</p><p><strong>Renting makes sense when:</strong></p><ul><li>You plan to move within 3-5 years (transaction costs of buying take years to break even)</li><li>Your deposit money is better invested elsewhere (equity at 12% vs property at 6-8% per year)</li><li>You are in a city with a high price-to-rent ratio (buying is expensive relative to renting)</li><li>You value flexibility - for career opportunities, relationship changes, or lifestyle</li><li>You cannot yet afford a property without stretching yourself dangerously thin</li></ul><p><strong>Opportunity cost of your deposit:</strong> R200 000 in a deposit reduces your loan and interest. But R200 000 invested in a diversified equity fund at 12%/year grows to R620 000 in 10 years. The question is always: which use of that capital creates more wealth?</p><p><strong>Rental yield perspective:</strong> If annual rent is R84 000 (R7 000/month) on a property worth R1 500 000, the yield is 5.6%. Investors who buy to let often earn less than 6% yield - sometimes less than you would in a money market account.</p>",
                 },
                 {
                   type: "mcq",
@@ -2211,7 +2213,7 @@ const RAW_COURSES: Course[] = [
                   options: ["Property values always fall over 2 years", "Transaction costs (transfer duty, agent fees) may exceed any price growth", "Bond interest rates are fixed so you overpay", "You cannot rent out the property during that time"],
                   correct: 1,
                   feedback: {
-                    correct: "That's right. Buying and selling costs (transfer duty, bond registration, agent commission of 5–6%) can easily total R100 000–R200 000. Property must appreciate significantly just to break even.",
+                    correct: "That's right. Buying and selling costs (transfer duty, bond registration, agent commission of 5-6%) can easily total R100 000-R200 000. Property must appreciate significantly just to break even.",
                     incorrect: "The break-even problem is transaction costs. Transfer duty, registration, and agent fees can consume all of a 2-year property gain and more.",
                   },
                 },
@@ -2250,7 +2252,7 @@ const RAW_COURSES: Course[] = [
                   statement: "In South Africa, property has historically outperformed equity (JSE) as a long-term investment.",
                   correct: false,
                   feedback: {
-                    correct: "The JSE All Share Index has historically returned 12–14% per year over 20-year periods, significantly outperforming residential property's 6–8% average appreciation.",
+                    correct: "The JSE All Share Index has historically returned 12-14% per year over 20-year periods, significantly outperforming residential property's 6-8% average appreciation.",
                     incorrect: "The JSE has historically outperformed residential property. Property's appeal is leverage, lifestyle, and tangibility - not raw investment return.",
                   },
                 },
@@ -2312,7 +2314,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "SARS eFiling: Who Has to Submit",
-                  content: "<p>Most salaried employees in SA don't need to file a tax return - PAYE handles it. But you <strong>must</strong> file if any of these apply:</p><ul><li>Your annual income exceeds R500 000 and you have more than one income source</li><li>You have a car allowance, travel allowance, or other taxable benefits not fully taxed via PAYE</li><li>You have investment income (interest, rental, dividends) not already taxed at source</li><li>You are self-employed or have freelance income</li><li>You want to claim deductions (retirement annuity, medical aid, home office)</li><li>SARS sends you an SMS or letter requesting a return</li></ul><p><strong>Provisional Tax:</strong> If you earn more than R30 000 per year from sources other than employment (side income, rental, freelance), you must register as a provisional taxpayer and submit estimates twice a year (August and February).</p><p><strong>Penalties:</strong> Late submission carries an administrative penalty of R250–R16 000/month depending on income. Filing correctly on time is always better than ignoring it.</p>",
+                  content: "<p>Most salaried employees in SA don't need to file a tax return - PAYE handles it. But you <strong>must</strong> file if any of these apply:</p><ul><li>Your annual income exceeds R500 000 and you have more than one income source</li><li>You have a car allowance, travel allowance, or other taxable benefits not fully taxed via PAYE</li><li>You have investment income (interest, rental, dividends) not already taxed at source</li><li>You are self-employed or have freelance income</li><li>You want to claim deductions (retirement annuity, medical aid, home office)</li><li>SARS sends you an SMS or letter requesting a return</li></ul><p><strong>Provisional Tax:</strong> If you earn more than R30 000 per year from sources other than employment (side income, rental, freelance), you must register as a provisional taxpayer and submit estimates twice a year (August and February).</p><p><strong>Penalties:</strong> Late submission carries an administrative penalty of R250-R16 000/month depending on income. Filing correctly on time is always better than ignoring it.</p>",
                 },
                 {
                   type: "mcq",
@@ -2659,7 +2661,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "No Investment Can Guarantee a Fixed Return",
-                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is the most reliable sign of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8–9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk - which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
+                  content: "<p>The phrase <strong>\"guaranteed returns\"</strong> is the most reliable sign of a scam in the investment world. Any investment promising a fixed, guaranteed return significantly above the risk-free rate (currently around 8-9% in SA) is almost certainly fraudulent.</p><p><strong>Why it's impossible:</strong> Legitimate investments carry risk. Banks, insurance companies, and investment managers cannot guarantee specific returns above prevailing interest rates without taking on unsustainable risk - which is exactly what Ponzi schemes do.</p><p><strong>Famous SA Ponzi schemes:</strong></p><ul><li><strong>Sharemax (2010):</strong> R4.5 billion raised from 40 000 investors. Promised above-market returns on property syndication. Collapsed and most investors lost everything.</li><li><strong>Masterbond (1990s):</strong> A syndication scheme that promised high guaranteed returns. Collapsed, leaving thousands of retirees destitute.</li><li><strong>MMM (2016):</strong> Global pyramid scheme that specifically targeted South Africa. Promised 30% monthly returns.</li></ul><p><strong>How to check:</strong> Any investment product offered to the public must be managed by an FSCA-licensed Financial Services Provider. Check the FSCA register at fsca.co.za before investing any money.</p>",
                 },
                 {
                   type: "mcq",
@@ -3009,7 +3011,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Why Losing Hurts Twice as Much as Winning Feels Good",
-                  content: "<p>Behavioural economists Daniel Kahneman and Amos Tversky proved that humans feel the pain of a loss approximately <strong>twice as intensely</strong> as the pleasure of an equivalent gain. Losing R1 000 hurts about twice as much as gaining R1 000 feels good.</p><p><strong>How loss aversion destroys investment returns:</strong></p><ul><li><strong>Holding losing investments too long:</strong> Selling a share at a loss feels devastating, so people hold losers indefinitely hoping to break even - even when the investment case is broken.</li><li><strong>Panic selling at market lows:</strong> When markets fall 20–30%, the emotional pain is so intense that people sell at the bottom to stop the psychological pain - crystallising losses at exactly the wrong moment.</li><li><strong>Avoiding investing altogether:</strong> The fear of potential losses keeps some people in cash forever, earning 8% while inflation erodes their purchasing power.</li></ul><p><strong>The rational response:</strong> Evaluate investments based on future prospects, not what you paid. If you would not buy the investment today at the current price, consider selling - regardless of whether it is above or below your purchase price. Past price is irrelevant to future performance.</p>",
+                  content: "<p>Behavioural economists Daniel Kahneman and Amos Tversky proved that humans feel the pain of a loss approximately <strong>twice as intensely</strong> as the pleasure of an equivalent gain. Losing R1 000 hurts about twice as much as gaining R1 000 feels good.</p><p><strong>How loss aversion destroys investment returns:</strong></p><ul><li><strong>Holding losing investments too long:</strong> Selling a share at a loss feels devastating, so people hold losers indefinitely hoping to break even - even when the investment case is broken.</li><li><strong>Panic selling at market lows:</strong> When markets fall 20-30%, the emotional pain is so intense that people sell at the bottom to stop the psychological pain - crystallising losses at exactly the wrong moment.</li><li><strong>Avoiding investing altogether:</strong> The fear of potential losses keeps some people in cash forever, earning 8% while inflation erodes their purchasing power.</li></ul><p><strong>The rational response:</strong> Evaluate investments based on future prospects, not what you paid. If you would not buy the investment today at the current price, consider selling - regardless of whether it is above or below your purchase price. Past price is irrelevant to future performance.</p>",
                 },
                 {
                   type: "mcq",
@@ -3116,7 +3118,7 @@ const RAW_COURSES: Course[] = [
                 { type: "info", title: "The Biggest Retirement Change in 30 Years", content: "<p>From 1 September 2024, every rand you contribute to a pension, provident, or retirement annuity fund is split into two pots. This affects every formal employee in South Africa, roughly 7 million people.</p>" },
                 { type: "info", title: "The Two Pots Explained", content: "<p><strong>Savings Pot (1/3):</strong> Access once per tax year (minimum R2 000 withdrawal). Taxed as income when withdrawn. Emergency provision only.</p><p><strong>Retirement Pot (2/3):</strong> Completely locked until retirement age. No exceptions.</p><p><strong>Vested Pot:</strong> Everything before 1 September 2024, old rules still apply.</p>" },
                 { type: "mcq", question: "You contribute R3 000/month to your RA. How much goes into the Savings Pot monthly?", options: ["R3 000", "R1 000", "R2 000", "R1 500"], correct: 1, feedback: { correct: "R3 000 ÷ 3 = R1 000 to the Savings Pot. R2 000 to the Retirement Pot.", incorrect: "One third goes to the Savings Pot. R3 000 ÷ 3 = R1 000." } },
-                { type: "info", title: "The Tax Catch", content: "<p>Withdrawing from your Savings Pot is taxed as income in that year. If you earn R420 000/year and withdraw R50 000, SARS taxes you on R470 000, costing roughly R15 000–R18 000 in additional tax. This is a last resort, not a bonus account.</p>" },
+                { type: "info", title: "The Tax Catch", content: "<p>Withdrawing from your Savings Pot is taxed as income in that year. If you earn R420 000/year and withdraw R50 000, SARS taxes you on R470 000, costing roughly R15 000-R18 000 in additional tax. This is a last resort, not a bonus account.</p>" },
                 { type: "true-false", statement: "You can withdraw from your Savings Pot every month if needed.", correct: false, feedback: { correct: "Only once per tax year, minimum R2 000. It was designed as an emergency provision.", incorrect: "Once per tax year maximum, with a R2 000 minimum withdrawal." } },
                 { type: "mcq", question: "Why was the two-pot system introduced?", options: ["To increase government tax revenue", "To stop people from cashing out all retirement savings on resignation", "To force people to invest in government bonds", "To simplify pension fund administration"], correct: 1, feedback: { correct: "90%+ of South Africans previously cashed out their entire retirement savings on resignation. The two-pot protects the Retirement Pot while giving emergency access through the Savings Pot.", incorrect: "The two-pot system protects retirement savings. Previously, 90%+ of people cashed out everything when changing jobs, arriving at retirement with nothing." } },
                 { type: "fill-blank", title: "Quick Calculation", prompt: "If you contribute R6 000/month to a pension fund, the Retirement Pot receives R___ per month.", correct: 4000, feedback: { correct: "R6 000 × 2/3 = R4 000 to the Retirement Pot. The other R2 000 goes to the Savings Pot.", incorrect: "Two-thirds of R6 000 = R4 000. The formula is: contribution × 2/3 = Retirement Pot." } },
@@ -3126,10 +3128,10 @@ const RAW_COURSES: Course[] = [
               id: "how-much-retire",
               title: "How Much Do You Need to Retire?",
               steps: [
-                { type: "info", title: "The Replacement Ratio", content: "<p>Financial planners target 70–80% of your final salary as annual retirement income. If you earn R60 000/month, you need R42 000–R48 000/month in retirement. Why less? No more savings contributions, lower work expenses, possibly lower tax.</p>" },
+                { type: "info", title: "The Replacement Ratio", content: "<p>Financial planners target 70-80% of your final salary as annual retirement income. If you earn R60 000/month, you need R42 000-R48 000/month in retirement. Why less? No more savings contributions, lower work expenses, possibly lower tax.</p>" },
                 { type: "info", title: "The 4% Rule", content: "<p>You can sustainably withdraw 4% of your retirement portfolio per year for 30+ years without depleting it.</p><p>Need R360 000/year (R30 000/month)? You need R360 000 ÷ 4% = <strong>R9 million</strong>. Need R240 000/year? R6 million. Need R120 000/year? R3 million.</p>" },
                 { type: "fill-blank", title: "4% Rule Calculation", prompt: "You want R20 000/month in retirement. Using the 4% rule, you need R___ million saved. (Enter the number of millions)", correct: 6, feedback: { correct: "R20 000 × 12 = R240 000/year. R240 000 ÷ 0.04 = R6 000 000. You need R6 million.", incorrect: "R20 000/month = R240 000/year. R240 000 ÷ 4% = R6 million." } },
-                { type: "mcq", question: "Research shows the minimum contribution rate to retire comfortably (starting at your first job) is:", options: ["5% of income", "10% of income", "15% of income", "25% of income"], correct: 2, feedback: { correct: "15% total (typically 7.5% employee + 7.5% employer in pension funds). Starting late requires 20–30%. Most SA pension funds that default to 7.5% employer + 7.5% employee hit this target.", incorrect: "15% from your first job. Most formal SA pension funds achieve this through employer + employee contributions. Starting after 35 requires 20–25%." } },
+                { type: "mcq", question: "Research shows the minimum contribution rate to retire comfortably (starting at your first job) is:", options: ["5% of income", "10% of income", "15% of income", "25% of income"], correct: 2, feedback: { correct: "15% total (typically 7.5% employee + 7.5% employer in pension funds). Starting late requires 20-30%. Most SA pension funds that default to 7.5% employer + 7.5% employee hit this target.", incorrect: "15% from your first job. Most formal SA pension funds achieve this through employer + employee contributions. Starting after 35 requires 20-25%." } },
                 { type: "true-false", statement: "Starting to save 15% of salary at 25 gives a better retirement outcome than saving 30% starting at 40.", correct: true, feedback: { correct: "Correct, 15 extra years of compounding at 15% beats doubling the contribution rate starting 15 years later. Time is the most powerful retirement tool.", incorrect: "Starting at 25 with 15% typically beats starting at 40 with 30%. The 15-year compounding advantage is more powerful than doubling the contribution rate." } },
                 { type: "scenario", question: "Nombuso is 42, earns R45 000/month, and has saved nothing. She starts contributing 15% (R6 750/month) at 10% annual return until 65. Approximately what will she have?", options: ["R2.8 million", "R6.8 million", "R14 million", "R1.2 million"], correct: 1, feedback: { correct: "R6 750/month for 23 years at 10% ≈ R6.8 million. At 4% withdrawal that's R272 000/year (R22 667/month). Better than nothing, but starting earlier would have made a significant difference.", incorrect: "R6 750/month × 23 years at 10% ≈ R6.8 million. This illustrates the cost of starting late, and why every year of delay is expensive." } },
               ] satisfies LessonStep[],
@@ -3160,7 +3162,7 @@ const RAW_COURSES: Course[] = [
                 { type: "info", title: "A Volatile Emerging Market Currency", content: "<p>The rand is one of the most traded and most volatile emerging-market currencies. When global investors get nervous, they sell 'risky' assets, including rand, and buy 'safe' assets like the US dollar. This happens even when nothing has changed inside South Africa.</p>" },
                 { type: "info", title: "What Drives Rand Weakness", content: "<ul><li><strong>Load shedding:</strong> Destroys growth forecasts, scares investors</li><li><strong>Political uncertainty:</strong> Unpredictable policy = capital flight</li><li><strong>US Fed rate hikes:</strong> Money moves from SA to USD for better yields</li><li><strong>Trade deficit:</strong> SA imports more than it exports</li><li><strong>FATF greylisting:</strong> Increased friction for foreign investment</li></ul>" },
                 { type: "mcq", question: "The US Federal Reserve raises interest rates sharply. What typically happens to the rand?", options: ["Rand strengthens, US growth is good for trade", "Rand weakens, capital flows to USD for better yields", "No effect, markets are independent", "Rand strengthens, investors seek diversification"], correct: 1, feedback: { correct: "Rising US rates pull global capital toward USD. Money exits SA, rand demand drops, and the rand weakens, this is called capital flight.", incorrect: "Rising US rates make USD assets more attractive. Capital leaves SA, reducing rand demand. The rand weakens." } },
-                { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20–R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },
+                { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20-R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },
                 { type: "true-false", statement: "A weaker rand is always bad for all South Africans.", correct: false, feedback: { correct: "A weaker rand benefits exporters, SA's mining sector earns dollars and pays costs in rand. A weaker rand increases their rand revenue and employment in mining communities.", incorrect: "A weaker rand hurts importers and consumers but benefits exporters (mining, agriculture, tourism) who earn foreign currency." } },
                 { type: "scenario", question: "You invested R100 000 in a Satrix S&P 500 ETF when the rand was R17/$. The rand weakens to R20/$, but US shares didn't move. Your investment is now worth approximately:", options: ["R100 000", "R117 647", "R85 000", "R70 000"], correct: 1, feedback: { correct: "R100 000 ÷ R17 = $5 882. At R20/$: $5 882 × R20 = R117 647. Rand weakness created a 17.6% gain from currency alone, this is why offshore investments hedge against rand depreciation.", incorrect: "R100 000 at R17/$ = $5 882. At R20/$: $5 882 × R20 = R117 647. The rand's weakness boosted rand returns by 17.6% even without any share price movement." } },
                 { type: "mcq", question: "Which SA investment provides the best protection against rand depreciation?", options: ["SA government bonds (RSA Retail Bonds)", "A Satrix MSCI World ETF (global equities)", "A fixed deposit at a SA bank", "SA listed property"], correct: 1, feedback: { correct: "Global ETFs give you exposure to foreign currencies. When the rand weakens, your ETF gains in rand terms even if underlying shares haven't moved. This is the most accessible rand hedge for ordinary investors.", incorrect: "Global ETFs provide currency exposure. When rand weakens, foreign-denominated assets gain in rand value. SA bonds, fixed deposits, and local property are fully rand-denominated with no currency protection." } },
@@ -3191,7 +3193,7 @@ const RAW_COURSES: Course[] = [
               steps: [
                 { type: "info", title: "The Technology", content: "<p>Cryptocurrency is digital money secured by cryptography and recorded on a blockchain, a shared public ledger maintained by thousands of computers. No single bank, government, or company controls it.</p><p>Bitcoin (2009) was the first. There are now thousands of cryptocurrencies. Most are worthless. Bitcoin and Ethereum have the longest track records.</p>" },
                 { type: "info", title: "What Crypto Is and Isn't", content: "<p><strong>It IS:</strong> A speculative asset class with real (but volatile) historical returns. Taxable in SA, SARS takes its cut.</p><p><strong>It ISN'T:</strong> A guaranteed investment. Anonymous, blockchain is traceable. A replacement for the rand for everyday purchases.</p>" },
-                { type: "mcq", question: "Bitcoin has dropped 70–80% in price three times historically, then recovered to new highs each time. This shows:", options: ["Bitcoin is a Ponzi scheme", "High volatility is normal for this asset class, not evidence of fraud", "The blockchain technology failed", "Government manipulation caused each crash"], correct: 1, feedback: { correct: "Large drawdowns are historically normal for Bitcoin (2011, 2014, 2018, 2022) and it has recovered each time. Extreme volatility is the defining characteristic, investors must be prepared for it.", incorrect: "Bitcoin has dropped 70–85% three times and recovered each time. Volatility is the defining feature of the asset class, not evidence of fraud or failure." } },
+                { type: "mcq", question: "Bitcoin has dropped 70-80% in price three times historically, then recovered to new highs each time. This shows:", options: ["Bitcoin is a Ponzi scheme", "High volatility is normal for this asset class, not evidence of fraud", "The blockchain technology failed", "Government manipulation caused each crash"], correct: 1, feedback: { correct: "Large drawdowns are historically normal for Bitcoin (2011, 2014, 2018, 2022) and it has recovered each time. Extreme volatility is the defining characteristic, investors must be prepared for it.", incorrect: "Bitcoin has dropped 70-85% three times and recovered each time. Volatility is the defining feature of the asset class, not evidence of fraud or failure." } },
                 { type: "info", title: "SARS and Crypto Tax", content: "<p>SARS is explicit: crypto is a taxable asset. <strong>Capital Gains Tax</strong> applies if you hold and sell (40% of gain included in income). <strong>Income tax</strong> applies if you trade actively. Keep records of every transaction: date, rand value at purchase, rand value at sale. SA exchanges (Luno, VALR) share data with SARS.</p>" },
                 { type: "true-false", statement: "Crypto transactions are anonymous, so SARS can't know about your gains.", correct: false, feedback: { correct: "Blockchain is pseudonymous, not anonymous. SA exchanges share transaction data with SARS. Non-disclosure is tax evasion with criminal consequences.", incorrect: "Blockchain is NOT anonymous. SA crypto exchanges (Luno, VALR) share data with SARS. Attempting to hide crypto gains is tax evasion." } },
                 { type: "info", title: "SA Crypto Scam Red Flags", content: "<p>South Africa lost over R60 billion to crypto scams. MTI (Mirror Trading International) defrauded over R9 billion. Africrypt took R54 billion. Red flags:</p><ul><li>Any guaranteed monthly returns</li><li>Returns paid in crypto you can't withdraw as rand</li><li>No explanation of trading strategy</li><li>Recruited through church/family groups</li><li>No FSCA licence</li></ul>" },
@@ -3224,9 +3226,9 @@ const RAW_COURSES: Course[] = [
                 { type: "info", title: "The Number One Entrepreneur Mistake", content: "<p>Using one bank account for personal and business money is the most common and costly financial mistake SA entrepreneurs make. You can't see if the business is profitable. SARS can claim personal assets for business tax debt. You can't access business loans without separate financials.</p>" },
                 { type: "info", title: "Business Account Basics", content: "<p>From day one: open a separate business bank account. Pay yourself a salary from it, don't dip in randomly. Every business expense from the business account. Keep every invoice and receipt, SARS can audit 5 years back.</p>" },
                 { type: "true-false", statement: "If your business makes R50 000 profit, you can spend it all as personal income immediately.", correct: false, feedback: { correct: "Business profit belongs to the business until properly distributed as salary or dividend. Random withdrawals create tax complications and make profitability impossible to track.", incorrect: "Business profit is not personal money until properly paid as salary or dividend. Random withdrawals create SARS complications and hide the business's real financial health." } },
-                { type: "info", title: "VAT, When You Must Register", content: "<p>VAT registration is mandatory when annual taxable turnover exceeds <strong>R1 million</strong>. You add 15% VAT to invoices, claim back VAT on business expenses, and pay SARS the net amount bi-monthly. The net formula: VAT collected − VAT paid on expenses = amount owed to SARS.</p>" },
-                { type: "fill-blank", title: "VAT Calculation", prompt: "You invoice R80 000 (ex-VAT) and paid R6 000 VAT on business expenses. VAT collected = R12 000. You owe SARS R___.", correct: 6000, feedback: { correct: "R12 000 VAT collected − R6 000 VAT paid = R6 000 net to SARS. VAT is a passthrough, you collect and net it.", incorrect: "VAT owed = VAT collected − VAT paid on inputs. R12 000 − R6 000 = R6 000." } },
-                { type: "info", title: "Provisional Tax", content: "<p>Self-employed people pay tax twice yearly: end of August and end of February. Under-estimate by more than 20% and SARS charges penalties plus interest.</p><p><strong>Rule of thumb:</strong> Set aside 25–35% of every payment received. This is your future tax bill.</p>" },
+                { type: "info", title: "VAT, When You Must Register", content: "<p>VAT registration is mandatory when annual taxable turnover exceeds <strong>R1 million</strong>. You add 15% VAT to invoices, claim back VAT on business expenses, and pay SARS the net amount bi-monthly. The net formula: VAT collected - VAT paid on expenses = amount owed to SARS.</p>" },
+                { type: "fill-blank", title: "VAT Calculation", prompt: "You invoice R80 000 (ex-VAT) and paid R6 000 VAT on business expenses. VAT collected = R12 000. You owe SARS R___.", correct: 6000, feedback: { correct: "R12 000 VAT collected - R6 000 VAT paid = R6 000 net to SARS. VAT is a passthrough, you collect and net it.", incorrect: "VAT owed = VAT collected - VAT paid on inputs. R12 000 - R6 000 = R6 000." } },
+                { type: "info", title: "Provisional Tax", content: "<p>Self-employed people pay tax twice yearly: end of August and end of February. Under-estimate by more than 20% and SARS charges penalties plus interest.</p><p><strong>Rule of thumb:</strong> Set aside 25-35% of every payment received. This is your future tax bill.</p>" },
                 { type: "scenario", question: "Thabo earns R80 000/month consulting (R960 000/year) and spends everything. At year end SARS bills him R280 000. What should he have done?", options: ["Nothing, SARS shouldn't tax self-employed people", "Set aside ~30% monthly (≈R24 000) and paid provisional tax twice yearly", "Registered as a company to avoid tax", "Kept earnings below R95 750 tax threshold"], correct: 1, feedback: { correct: "R960 000 × 30% ≈ R288 000, very close to the actual bill. Provisional tax requires self-employed people to pay estimated tax bi-annually. R80 000/month × 30% = R24 000 set aside monthly.", incorrect: "Self-employed people must pay provisional tax twice yearly. 30% of each payment set aside prevents the catastrophic year-end surprise." } },
               ] satisfies LessonStep[],
             },
@@ -3240,8 +3242,8 @@ const RAW_COURSES: Course[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 // LEVEL 3: Advanced Tax, Estate Planning, Advanced Investing, Business Advanced
 // ─────────────────────────────────────────────────────────────────────────────
-const ALL_COURSES = [...RAW_COURSES, ...LEVEL_3_COURSES];
+const ALL_COURSES = [...RAW_COURSES, ...LEVEL_3_COURSES, ...RE5_COURSES];
 
 export const CONTENT_DATA: { courses: Course[] } = {
-  courses: mergeContentExtras(ALL_COURSES),
+  courses: applyReinforcement(mergeContentExtras(ALL_COURSES)),
 };

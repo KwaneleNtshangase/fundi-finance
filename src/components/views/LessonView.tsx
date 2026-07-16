@@ -940,7 +940,7 @@ export function LessonView({
             >
               <X size={22} />
             </button>
-            {/* Hearts belong where you can lose them — inline in the lesson header */}
+            {/* Hearts belong where you can lose them - inline in the lesson header */}
             <div
               style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, fontWeight: 800, fontSize: 14, color: "#E03C31" }}
               aria-label={`${hearts} of ${maxHearts} hearts remaining`}

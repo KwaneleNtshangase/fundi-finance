@@ -1,5 +1,5 @@
 /**
- * Fundi Coach — anonymised month summary for the AI tier.
+ * Fundi Coach - anonymised month summary for the AI tier.
  *
  * This is the ONLY data that ever leaves the app for the AI provider.
  * By construction it contains category ids/labels and numbers ONLY:
@@ -7,7 +7,7 @@
  *   • no transaction descriptions or merchant names
  *   • no account numbers, bank names, or dates of individual transactions
  *
- * All figures are pre-computed here in code — the model is instructed to
+ * All figures are pre-computed here in code - the model is instructed to
  * quote them, never to calculate. Deterministic output for testability.
  */
 
@@ -57,7 +57,7 @@ export function buildCoachSummary(input: CoachInput): CoachSummary {
   );
 
   if (totalSpend === 0 && income === 0) {
-    // Nothing this month — but last month's data is still worth talking about.
+    // Nothing this month - but last month's data is still worth talking about.
     if (prevTotal === 0 && prevIncome === 0) {
       return {
         hasData: false,

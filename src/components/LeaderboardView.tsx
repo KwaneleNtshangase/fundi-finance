@@ -85,8 +85,8 @@ export function LeaderboardView({
         }
 
         // Privacy-safe roster via SECURITY DEFINER RPC (audit H3): returns
-        // user_id, username, xp, weekly_xp, week_key only — never full_name
-        // or age_range — and is restricted to authenticated callers.
+        // user_id, username, xp, weekly_xp, week_key only - never full_name
+        // or age_range - and is restricted to authenticated callers.
         const { data: rpcRows, error: rpcError } = await supabase.rpc("get_leaderboard");
 
         if (rpcError) {
@@ -98,7 +98,7 @@ export function LeaderboardView({
         // Build rows - weekly XP only counts if week_key matches current week
         const rows: { id: string; name: string; xp: number; totalXp: number; isYou: boolean; rank: number }[] = [];
 
-        // Internal QA accounts must never appear on the public leaderboard —
+        // Internal QA accounts must never appear on the public leaderboard -
         // being told to "overtake e2e_test_bot" destroys trust in the ranking.
         const isTestAccount = (username: string | null): boolean => {
           const n = (username ?? "").trim().toLowerCase();
@@ -167,7 +167,7 @@ export function LeaderboardView({
           This week&apos;s XP - everyone starts fresh every Sunday
         </p>
 
-        {/* Username prompt — shown until the user picks a handle */}
+        {/* Username prompt - shown until the user picks a handle */}
         {needsUsername && !loading && (
           <div style={{
             background: "rgba(255,182,18,0.08)",

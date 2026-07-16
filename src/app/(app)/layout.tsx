@@ -113,7 +113,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Compact streak/XP/hearts bar for phones and tablets — the desktop StatsPanel
+// Compact streak/XP/hearts bar for phones and tablets - the desktop StatsPanel
 // only exists at >=1200px, so without this mobile users never see their hearts.
 function MobileTopBarWrapper() {
   const { userData, hearts, maxHearts, heartsRegenInfo, freezeCount, buyStreakFreeze, useFreeze } = useFundi();

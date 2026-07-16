@@ -32,7 +32,7 @@ export function GoalCard() {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  // Esc closes the picker — keyboard parity with the app's other modals.
+  // Esc closes the picker - keyboard parity with the app's other modals.
   useEffect(() => {
     if (!showGoalPicker) return;
     const onKey = (e: KeyboardEvent) => {
@@ -79,7 +79,7 @@ export function GoalCard() {
           </div>
         </div>
       ) : (
-        // No goal set yet — invite the user to pick one so the tab is never empty.
+        // No goal set yet - invite the user to pick one so the tab is never empty.
         <button
           type="button"
           onClick={openPicker}

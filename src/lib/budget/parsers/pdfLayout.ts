@@ -1,7 +1,7 @@
 /** Parse monetary amounts from SA bank statement text. */
 export function parseAmountToken(raw: string): number | null {
   let s = raw.trim();
-  if (!s || s === "-" || s === "—") return null;
+  if (!s || s === "-" || s === "-") return null;
 
   const paren = s.match(/^\(([\d\s.,]+)\)$/);
   if (paren) s = `-${paren[1]}`;

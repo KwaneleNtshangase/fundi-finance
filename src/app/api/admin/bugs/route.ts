@@ -50,7 +50,7 @@ async function resolveUser(admin: SupabaseClient, userId: string | null, fallbac
       email = data.user?.email ?? email;
     } catch { /* ignore */ }
     try {
-      // NB: profiles has no display_name column — selecting it errors the query.
+      // NB: profiles has no display_name column - selecting it errors the query.
       const { data } = await admin.from("profiles").select("full_name, username").eq("user_id", userId).maybeSingle();
       const p = data as { full_name?: string; username?: string } | null;
       name = (p?.full_name || p?.username || "")?.trim() || null;

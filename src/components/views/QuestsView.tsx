@@ -194,7 +194,7 @@ export function QuestsView({
     <main >
       <div style={{ maxWidth: 760, margin: "0 auto", width: "100%" }}>
       <h2 style={{ fontSize: 28, fontWeight: 800, marginBottom: 16 }}>Goals</h2>
-      {/* Editable money-goal card — the "Goals" tab now owns the goal, with an
+      {/* Editable money-goal card - the "Goals" tab now owns the goal, with an
           inline picker instead of bouncing to the Learn page. */}
       <GoalCard />
       <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 14, marginBottom: 16 }}>

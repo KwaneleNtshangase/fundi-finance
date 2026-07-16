@@ -35,7 +35,7 @@ const RL_MAX_PER_IP  = 20;             // max submissions per IP per window
  * team can triage it in the admin console and (once fixed) notify the user.
  * Stored alongside manual reports; resolution state lives in email_status.
  *
- * Intentionally unauthenticated — errors happen on logged-out screens.
+ * Intentionally unauthenticated - errors happen on logged-out screens.
  */
 export async function POST(req: NextRequest) {
   // ── 1. Content-type + body-size guards ───────────────────────────────────
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
   const admin = createClient(supabaseUrl, serviceKey);
 
-  // ── 2. IP-based rate limiting (DB-count approach — see TODO above) ────────
+  // ── 2. IP-based rate limiting (DB-count approach - see TODO above) ────────
   const ip = clientIp(req);
   if (ip !== "unknown") {
     const windowStart = new Date(Date.now() - RL_WINDOW_MS).toISOString();
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     : "anonymous";
 
   const subject = `[Auto] ${area}: ${message}`.slice(0, 200);
-  // Values stored in the DB stay raw — the admin page renders them safely via
+  // Values stored in the DB stay raw - the admin page renders them safely via
   // React text nodes. Only the email HTML needs escaping.
   const description = [
     `Area: ${area}`,
@@ -146,9 +146,9 @@ export async function POST(req: NextRequest) {
       const eMessage   = escapeHtml(message);
       const eUrl       = escapeHtml((body.url       ?? "-").toString());
       const eUserAgent = escapeHtml((body.userAgent  ?? "-").toString());
-      // userIdentifier is a hex digest — safe, but escape for consistency.
+      // userIdentifier is a hex digest - safe, but escape for consistency.
       const eUserId    = escapeHtml(userIdentifier);
-      // body.extra is arbitrary JSON — serialise then escape the whole blob.
+      // body.extra is arbitrary JSON - serialise then escape the whole blob.
       const eExtra     = body.extra
         ? escapeHtml(JSON.stringify(body.extra).slice(0, 500))
         : null;

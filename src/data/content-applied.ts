@@ -5,7 +5,7 @@
 // Every lesson here is a real South African financial decision scenario.
 // Format per lesson: context → scenario/decision → fill-blank or action-check
 // → consequence reveal → "what smart people do" close.
-// Each lesson has 5–7 steps and at least 2 questions.
+// Each lesson has 5-7 steps and at least 2 questions.
 // ═══════════════════════════════════════════════════════════════════════
 
 import type { LessonStep } from "./content";
@@ -57,7 +57,7 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
       ],
       correct: 1,
       explanation:
-        "B: R2.6 million. Using the compound interest formula for regular contributions: FV = 500 × [(1.0092^432 − 1) / 0.0092] ≈ R2.6M. This is why starting early matters enormously, 36 years of compounding turns R500/month into life-changing money.",
+        "B: R2.6 million. Using the compound interest formula for regular contributions: FV = 500 × [(1.0092^432 - 1) / 0.0092] ≈ R2.6M. This is why starting early matters enormously, 36 years of compounding turns R500/month into life-changing money.",
       feedback: {
         correct: "Exactly right. Time is Thabo's most powerful asset.",
         incorrect:
@@ -181,7 +181,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
       type: "info",
       title: "Sipho's payslip",
       content:
-        "Sipho earns a gross salary of R25 000/month. His payslip shows:\n\n• Gross salary: R25 000\n• RA contribution (employer): R1 250 (5%)\n• RA contribution (employee): R1 250 (5%)\n• Medical aid (employee): R800\n• PAYE: R3 142\n• UIF: R148.72 (capped at 1% of R14 872 UIF ceiling)\n• SDL (Skills Development Levy): R250: paid by employer only\n\nNet pay = Gross − employee deductions.",
+        "Sipho earns a gross salary of R25 000/month. His payslip shows:\n\n• Gross salary: R25 000\n• RA contribution (employer): R1 250 (5%)\n• RA contribution (employee): R1 250 (5%)\n• Medical aid (employee): R800\n• PAYE: R3 142\n• UIF: R148.72 (capped at 1% of R14 872 UIF ceiling)\n• SDL (Skills Development Levy): R250: paid by employer only\n\nNet pay = Gross - employee deductions.",
     },
     {
       type: "scenario",
@@ -197,7 +197,7 @@ export const LESSON_READ_YOUR_PAYSLIP: Lesson = {
       correct: 2,
       feedback: {
         correct:
-          "Exactly. R25 000 − R5 340.72 = R19 659.28. And by contributing to his RA, Sipho is reducing his taxable income and saving for retirement simultaneously.",
+          "Exactly. R25 000 - R5 340.72 = R19 659.28. And by contributing to his RA, Sipho is reducing his taxable income and saving for retirement simultaneously.",
         incorrect:
           "The answer is R19 659.28. Subtract only employee deductions: RA R1 250 + Medical R800 + PAYE R3 142 + UIF R148.72 = R5 340.72. SDL (R250) is employer-only, never deducted from Sipho's pay.",
       },
@@ -265,7 +265,7 @@ export const LESSON_BUY_OR_RENT: Lesson = {
         correct:
           "Exactly. Owning costs Zanele R6 850 more per month in this scenario, and that does not include maintenance (budget 1% of property value per year = R13 500/year), unexpected repairs, or the opportunity cost of the R135 000 deposit invested elsewhere.",
         incorrect:
-          "R16 350 (own) − R9 500 (rent) = R6 850 more per month to own. Property ownership has many hidden costs that make the real cost much higher than just the bond payment.",
+          "R16 350 (own) - R9 500 (rent) = R6 850 more per month to own. Property ownership has many hidden costs that make the real cost much higher than just the bond payment.",
       },
     },
     {
@@ -575,7 +575,7 @@ export const LESSON_REPO_RATE_IMPACT: Lesson = {
       ],
       correct: 1,
       explanation:
-        "B: approximately R450/month. A 0.50% rate increase on R900 000 adds roughly 0.50% × R900 000 / 12 = R375–450/month depending on remaining term. Small percentage, big rand amount. Over 20 years that is R108 000 in extra interest payments, from just ONE rate hike.",
+        "B: approximately R450/month. A 0.50% rate increase on R900 000 adds roughly 0.50% × R900 000 / 12 = R375-450/month depending on remaining term. Small percentage, big rand amount. Over 20 years that is R108 000 in extra interest payments, from just ONE rate hike.",
       feedback: {
         correct:
           "Exactly, about R450/month more. And this is why rate hikes affect homeowners so directly. Variable rate bondholders bear all the interest rate risk.",
@@ -606,7 +606,7 @@ export const LESSON_REPO_RATE_IMPACT: Lesson = {
       type: "scenario",
       title: "Why does SARB raise rates?",
       question:
-        "CPI inflation has risen to 7.2%, above the SARB's 3–6% target band. The SARB raises the repo rate. What is the mechanism linking higher rates to lower inflation?",
+        "CPI inflation has risen to 7.2%, above the SARB's 3-6% target band. The SARB raises the repo rate. What is the mechanism linking higher rates to lower inflation?",
       options: [
         "Higher rates print less money, directly reducing prices",
         "Higher rates make borrowing more expensive → people spend less → demand drops → businesses raise prices more slowly",
@@ -711,7 +711,7 @@ export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
       type: "info",
       title: "Why 3 months is not always enough",
       content:
-        "The standard advice is 3 months of expenses. But consider:\n\n• If you are self-employed or on a contract: aim for 6 months\n• If you have dependants or a chronic illness: aim for 6 months\n• If you work in a stable government or corporate role: 3 months may suffice\n• If your income is commission-based: 6–9 months\n\nThe fund should cover: rent/bond, food, transport, medical, school fees, utilities. NOT Netflix, restaurants, or gym. Calculate your TRUE monthly survival number.",
+        "The standard advice is 3 months of expenses. But consider:\n\n• If you are self-employed or on a contract: aim for 6 months\n• If you have dependants or a chronic illness: aim for 6 months\n• If you work in a stable government or corporate role: 3 months may suffice\n• If your income is commission-based: 6-9 months\n\nThe fund should cover: rent/bond, food, transport, medical, school fees, utilities. NOT Netflix, restaurants, or gym. Calculate your TRUE monthly survival number.",
     },
     {
       type: "mcq",
@@ -748,7 +748,7 @@ export const LESSON_BUILD_EMERGENCY_FUND: Lesson = {
       correct: 1,
       feedback: {
         correct:
-          "An emergency fund needs to be liquid (accessible quickly) and stable (not subject to market crashes). A money market account or 32-day notice account pays 7–9% per year currently and is accessible within days. A TFSA equity ETF is the wrong choice, it can fall 30% right when you need the money most. Paying into a bond is smart for other savings, but an emergency fund must be instantly accessible.",
+          "An emergency fund needs to be liquid (accessible quickly) and stable (not subject to market crashes). A money market account or 32-day notice account pays 7-9% per year currently and is accessible within days. A TFSA equity ETF is the wrong choice, it can fall 30% right when you need the money most. Paying into a bond is smart for other savings, but an emergency fund must be instantly accessible.",
         incorrect:
           "Option B is correct. An emergency fund has two requirements: safety (no market risk) and accessibility (within days, not months). A money market or 32-day notice account meets both. An equity ETF in a TFSA can lose 40% in a crash, exactly when you are most likely to need emergency funds.",
       },

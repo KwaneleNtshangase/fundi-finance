@@ -20,7 +20,7 @@ function adminClient(): SupabaseClient | null {
 }
 
 export async function POST(req: NextRequest) {
-  // Build admin client first — needed for both the DB-flag check and profile lookup.
+  // Build admin client first - needed for both the DB-flag check and profile lookup.
   const admin = adminClient();
   if (!admin) return NextResponse.json({ error: "Missing config" }, { status: 500 });
 

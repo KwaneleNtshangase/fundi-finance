@@ -253,7 +253,7 @@ export function StokvelDashboard() {
       {view === "list" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {loading ? (
-            // Skeleton placeholder instead of bare text — the stokvel query can be slow
+            // Skeleton placeholder instead of bare text - the stokvel query can be slow
             <>
               {[0, 1].map((i) => (
                 <div key={i} className="skeleton" style={{ height: 76, borderRadius: 14 }} aria-hidden />

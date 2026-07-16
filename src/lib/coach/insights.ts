@@ -1,5 +1,5 @@
 /**
- * Fundi Coach — Tier 1 deterministic rules engine.
+ * Fundi Coach - Tier 1 deterministic rules engine.
  *
  * Turns a user's own budget data into educational nudges that link to
  * lessons. Design constraints (POPIA + FAIS):
@@ -128,7 +128,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
   const insights: CoachInsight[] = [];
   const monthProgress = Math.min(1, Math.max(0.01, dayOfMonth / daysInMonth));
 
-  // 1 & 2 — budget exceeded / nearly exceeded
+  // 1 & 2 - budget exceeded / nearly exceeded
   for (const [cat, limit] of Object.entries(budgets)) {
     if (limit <= 0) continue;
     const spent = spend[cat] ?? 0;
@@ -154,7 +154,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
         priority: 20,
       });
     } else if (monthProgress <= 0.6 && pct / 100 > monthProgress * 1.4 && spent >= MIN_MATERIAL_AMOUNT * 2) {
-      // 3 — early pace warning: spending much faster than the month is passing
+      // 3 - early pace warning: spending much faster than the month is passing
       insights.push({
         id: `pace:${cat}:${monthKey}`,
         severity: "info",
@@ -166,7 +166,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     }
   }
 
-  // 4 — month-over-month spike (works even without a budget set)
+  // 4 - month-over-month spike (works even without a budget set)
   for (const [cat, spent] of Object.entries(spend)) {
     const prev = prevSpend[cat] ?? 0;
     if (prev < MIN_MATERIAL_AMOUNT || spent < MIN_MATERIAL_AMOUNT) continue;
@@ -184,7 +184,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     }
   }
 
-  // 5 — savings rate (only when there's income this month)
+  // 5 - savings rate (only when there's income this month)
   if (income >= 1000) {
     const saved = (spend["savings"] ?? 0) + (spend["Investments"] ?? 0);
     const rate = saved / income;
@@ -208,7 +208,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     }
   }
 
-  // 6 — no budgets set but spending is being tracked
+  // 6 - no budgets set but spending is being tracked
   if (Object.keys(budgets).length === 0 && total(spend) >= MIN_MATERIAL_AMOUNT * 2) {
     insights.push({
       id: `no-budget:${monthKey}`,
@@ -220,7 +220,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     });
   }
 
-  // 7 — debt repayments consuming a large share of income
+  // 7 - debt repayments consuming a large share of income
   if (income >= 1000) {
     const debt = spend["debt"] ?? 0;
     if (debt / income >= 0.3) {
@@ -235,7 +235,7 @@ export function computeCoachInsights(input: CoachInput): CoachInsight[] {
     }
   }
 
-  // 8 — all budgeted categories comfortably under, late in the month
+  // 8 - all budgeted categories comfortably under, late in the month
   if (monthProgress >= 0.8 && Object.keys(budgets).length >= 2) {
     const allUnder = Object.entries(budgets).every(
       ([cat, limit]) => limit <= 0 || (spend[cat] ?? 0) / limit < 0.85

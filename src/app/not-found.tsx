@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-// Branded 404 — replaces Next's bare black default so lost visitors
+// Branded 404 - replaces Next's bare black default so lost visitors
 // (mistyped URLs, stale links) always have a way back into the app.
 export default function NotFound() {
   return (

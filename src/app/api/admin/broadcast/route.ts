@@ -297,7 +297,7 @@ export async function POST(req: NextRequest) {
   try {
     await recordSent(admin, CAMPAIGN, sentOk);
   } catch {
-    /* ledger unavailable (e.g. migration not applied) — send already succeeded */
+    /* ledger unavailable (e.g. migration not applied) - send already succeeded */
   }
 
   return NextResponse.json({
