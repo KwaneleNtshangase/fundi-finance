@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Fundi Coach — Tier 1 (deterministic, no AI).
+ * Fundi Coach - Tier 1 (deterministic, no AI).
  *
  * Self-contained card: fetches the user's current + previous month budget
  * data, runs the pure rules engine (src/lib/coach/insights.ts), and shows
@@ -150,7 +150,7 @@ export function FundiCoachCard({
 
   return (
     <section
-      aria-label="Fundi Coach insights"
+      aria-label="Cosmo insights"
       style={{
         border: "1.5px solid var(--color-border)",
         borderRadius: 16,
@@ -161,7 +161,7 @@ export function FundiCoachCard({
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
         <Lightbulb size={18} style={{ color: "var(--color-accent, #FFB612)" }} />
-        <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Fundi Coach</h3>
+        <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Cosmo</h3>
         <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", marginLeft: "auto" }}>
           Based on your own numbers
         </span>
@@ -169,7 +169,7 @@ export function FundiCoachCard({
 
       {!showInsights && (
         <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-          No nudges right now. Add entries or import a bank statement and Fundi
+          No nudges right now. Add entries or import a bank statement and Cosmo
           will spot what&apos;s worth a look.
         </p>
       )}

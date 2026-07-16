@@ -21,14 +21,21 @@ import type { CoachEntry } from "@/lib/coach/insights";
  * SAST day; 500-char message cap; full conversation logged server-side.
  */
 
+// Give the serverless function enough headroom for a slow model call plus one
+// retry, but keep it bounded so a hung request can never run indefinitely.
+export const maxDuration = 60;
+
 const MAX_PER_DAY = 10;
 const MAX_MSG_LEN = 500;
 const HISTORY_TURNS = 8;
 const GEMINI_MODEL = "gemini-3.5-flash";
+// Abort a single model call if it stalls, so the retry (or a clean error) kicks
+// in within seconds instead of leaving the user staring at a typing indicator.
+const GEMINI_TIMEOUT_MS = 20_000;
 
-const SYSTEM_PROMPT = `You are Fundi Coach, the friendly financial-education helper inside Fundi Finance, a South African money-skills app.
+const SYSTEM_PROMPT = `You are Cosmo, the friendly financial-education helper inside Fundi Finance, a South African money-skills app.
 
-STRICT RULES — never break these:
+STRICT RULES - never break these:
 1. You provide financial EDUCATION only. You are NOT a financial adviser and Fundi Finance is not a registered financial services provider (FSP).
 2. NEVER recommend, endorse, or name specific financial products, providers, banks, funds, shares, or cryptocurrencies. If asked "what should I buy/invest in/switch to", explain the general principles, point to a relevant lesson topic, and suggest speaking to a registered financial adviser for product decisions.
 3. NEVER perform calculations or invent numbers. Quote ONLY the figures given in the BUDGET SUMMARY below. If a figure is not in the summary, say you don't have that number.
@@ -163,7 +170,7 @@ export async function POST(req: NextRequest) {
 
   const geminiBody = {
     systemInstruction: {
-      parts: [{ text: `${SYSTEM_PROMPT}\n\nBUDGET SUMMARY (the user's own anonymised numbers — quote these exactly):\n${summary.text}` }],
+      parts: [{ text: `${SYSTEM_PROMPT}\n\nBUDGET SUMMARY (the user's own anonymised numbers - quote these exactly):\n${summary.text}` }],
     },
     contents: [...history, { role: "user", parts: [{ text: message }] }],
     // NB: Gemini 3.5 Flash "thinks" before replying and its thinking tokens
@@ -178,15 +185,23 @@ export async function POST(req: NextRequest) {
   let reply = "";
   const MAX_ATTEMPTS = 2;
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
     try {
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-          body: JSON.stringify(geminiBody),
-        }
-      );
+      let res: Response;
+      try {
+        res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+            body: JSON.stringify(geminiBody),
+            signal: controller.signal,
+          }
+        );
+      } finally {
+        clearTimeout(timer);
+      }
       if (!res.ok) {
         const retryable = [429, 500, 502, 503].includes(res.status);
         console.error("[coach/chat] provider", res.status, (await res.text()).slice(0, 300));
@@ -219,10 +234,12 @@ export async function POST(req: NextRequest) {
   }
 
   // Belt-and-braces: strip em/en dashes from model output regardless of the
-  // prompt rule (product decision: they must never appear in the app).
-  reply = reply.replace(/\s*—\s*/g, " - ").replace(/\s*–\s*/g, " - ");
+  // prompt rule (product decision: they must never appear in the app). Target
+  // the em (U+2014) and en (U+2013) dash code points only, so ordinary hyphens
+  // (e.g. "co-signing") are left untouched.
+  reply = reply.replace(/\s*[\u2014\u2013]\s*/g, " - ");
 
-  // ── Log the exchange (service role — clients cannot write this table) ─────
+  // ── Log the exchange (service role - clients cannot write this table) ─────
   await admin.from("coach_ai_logs").insert([
     { user_id: user.id, role: "user", content: message },
     { user_id: user.id, role: "assistant", content: reply },

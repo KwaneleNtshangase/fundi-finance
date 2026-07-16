@@ -94,14 +94,24 @@ export function FundiCoachChat() {
       const token = session?.access_token;
       if (!token) throw new Error("no-session");
 
-      const res = await fetch("/api/coach/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message }),
-      });
+      // Bound the wait so a slow model call can't leave the chat "typing"
+      // indefinitely; abort after 45s and show a clean retry message.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 45_000);
+      let res: Response;
+      try {
+        res = await fetch("/api/coach/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ message }),
+          signal: controller.signal,
+        });
+      } finally {
+        clearTimeout(timer);
+      }
 
       if (res.status === 429) {
         setNotice("You've used today's 10 coach messages. More tomorrow!");
@@ -124,8 +134,13 @@ export function FundiCoachChat() {
       const data = (await res.json()) as { reply: string; remaining: number };
       setMessages((m) => [...m, { role: "assistant", content: data.reply }]);
       setRemaining(data.remaining);
-    } catch {
-      setNotice("Coach is unavailable right now, try again later.");
+    } catch (err) {
+      const timedOut = err instanceof DOMException && err.name === "AbortError";
+      setNotice(
+        timedOut
+          ? "That took too long to answer. Please try again in a moment."
+          : "Coach is unavailable right now, try again later."
+      );
     } finally {
       setSending(false);
     }
@@ -203,7 +218,7 @@ export function FundiCoachChat() {
         <button
           type="button"
           className="fundi-chat-fab"
-          aria-label="Ask Fundi about your money"
+          aria-label="Ask Cosmo about your money"
           onClick={() => setOpen(true)}
         >
           💬
@@ -211,9 +226,9 @@ export function FundiCoachChat() {
       )}
 
       {open && (
-        <div className="fundi-chat-panel" role="dialog" aria-label="Ask Fundi">
+        <div className="fundi-chat-panel" role="dialog" aria-label="Ask Cosmo">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <span style={{ fontSize: 15, fontWeight: 800 }}>💬 Ask Fundi</span>
+            <span style={{ fontSize: 15, fontWeight: 800 }}>💬 Ask Cosmo</span>
             {state.kind === "chat" && remaining !== null && (
               <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>
                 {remaining} left today
@@ -255,7 +270,7 @@ export function FundiCoachChat() {
           {state.kind === "consent" && (
             <div>
               <p style={{ fontSize: 13, color: "var(--color-text-primary)", margin: "0 0 8px" }}>
-                Ask Fundi questions about your month. Only anonymised category
+                Ask Cosmo questions about your month. Only anonymised category
                 totals are shared with the AI. Your name, transactions, and
                 account details are never shared.
               </p>
@@ -307,14 +322,14 @@ export function FundiCoachChat() {
                 ))}
                 {sending && (
                   <div
-                    aria-label="Fundi is typing"
+                    aria-label="Cosmo is typing"
                     style={{
                       alignSelf: "flex-start", background: "var(--color-border)",
                       borderRadius: 12, padding: "8px 12px", fontSize: 13,
                       color: "var(--color-text-secondary)",
                     }}
                   >
-                    Fundi is typing…
+                    Cosmo is typing…
                   </div>
                 )}
               </div>

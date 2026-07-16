@@ -54,7 +54,7 @@ export function coachAlertPush(
   return {
     key: insight.id,
     title: "Budget alert",
-    body: `${insight.title}. Open Fundi Coach to see what changed and how to plan the rest of the month.`,
+    body: `${insight.title}. Open Cosmo to see what changed and how to plan the rest of the month.`,
     url: "/budget",
   };
 }
