@@ -47,6 +47,20 @@ export function inclusiveDayCount(start: string, end: string): number {
   return Math.floor((endMs - startMs) / 86_400_000) + 1;
 }
 
+export function addDays(ymd: string, days: number): string {
+  const { y, m, d } = parseYmd(ymd);
+  const dt = new Date(Date.UTC(y, m - 1, d + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+/** The equal-length period immediately before [periodStart, periodEnd]. */
+export function precedingPeriod(periodStart: string, periodEnd: string): PeriodRange {
+  const len = inclusiveDayCount(periodStart, periodEnd);
+  const prevEnd = addDays(periodStart, -1);
+  const prevStart = addDays(prevEnd, -(len - 1));
+  return { periodStart: prevStart, periodEnd: prevEnd };
+}
+
 export function enumerateMonths(start: string, end: string): string[] {
   const months: string[] = [];
   let { y, m } = parseYmd(start);

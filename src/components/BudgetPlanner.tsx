@@ -64,6 +64,7 @@ import {
 } from "@/components/icons/FundiIcons";
 import { formatRand } from "@/lib/viewHelpers";
 import { BudgetImportPanel } from "@/components/BudgetImportPanel";
+import { findSimilarEntries, merchantLabelFor, merchantPatternFor } from "@/lib/budget/similar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -232,6 +233,18 @@ export function BudgetView() {
   const [editDate, setEditDate] = useState("");
   const [editIsTransfer, setEditIsTransfer] = useState(false);
   const [editSaving, setEditSaving] = useState(false);
+  // "Apply to similar" flow: after a category change, offer to recategorise
+  // other transactions from the same merchant (and remember it for imports).
+  const [similarPrompt, setSimilarPrompt] = useState<{
+    candidates: BudgetEntry[];
+    newCategory: string;
+    type: "income" | "expense";
+    merchantLabel: string;
+    pattern: string;
+  } | null>(null);
+  const [similarSelected, setSimilarSelected] = useState<Set<string>>(new Set());
+  const [similarRemember, setSimilarRemember] = useState(true);
+  const [similarSaving, setSimilarSaving] = useState(false);
   const [yearEntries, setYearEntries] = useState<BudgetEntry[]>([]);
   const [budgetTargets, setBudgetTargets] = useState<Record<string, number>>({});
   const [defaultTargets, setDefaultTargets] = useState<Record<string, number>>({});
@@ -265,11 +278,12 @@ export function BudgetView() {
 
   // Escape closes the topmost open modal (keyboard parity with click-outside)
   useEffect(() => {
-    const anyOpen = showAdd || !!editEntry || showExportModal || showSetBudget || showAddCustomCat;
+    const anyOpen = showAdd || !!editEntry || showExportModal || showSetBudget || showAddCustomCat || !!similarPrompt;
     if (!anyOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== "Escape") return;
       if (showAddCustomCat) { setShowAddCustomCat(false); return; }
+      if (similarPrompt) { setSimilarPrompt(null); return; }
       if (showAdd) { setShowAdd(false); return; }
       if (editEntry) { setEditEntry(null); return; }
       if (showExportModal) { setShowExportModal(false); return; }
@@ -277,7 +291,7 @@ export function BudgetView() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [showAdd, editEntry, showExportModal, showSetBudget, showAddCustomCat]);
+  }, [showAdd, editEntry, showExportModal, showSetBudget, showAddCustomCat, similarPrompt]);
 
   // Read the user's onboarding goal from localStorage to show as header context
   useEffect(() => {
@@ -723,7 +737,7 @@ export function BudgetView() {
   const handleEditSave = async () => {
     if (!editEntry || !editCategory || !editAmount || Number(editAmount) <= 0) return;
     setEditSaving(true);
-    
+
     const payloadWithSchema = {
       type: editType, category: editCategory, amount: Number(editAmount),
       description: editDesc.trim() || null, entry_date: editDate, is_transfer: editIsTransfer,
@@ -733,7 +747,7 @@ export function BudgetView() {
     const { error: updateError } = await supabase.from("budget_entries")
       .update(payloadWithSchema)
       .eq("id", editEntry.id);
-    
+
     if (updateError) {
       await supabase.from("budget_entries").update({
         type: editType, category: editCategory, amount: Number(editAmount),
@@ -744,8 +758,95 @@ export function BudgetView() {
     setEntries((prev) => prev.map((e) => e.id === editEntry.id
       ? { ...e, ...payloadWithSchema }
       : e));
-      
+
+    const categoryChanged = editEntry.category !== editCategory && !editIsTransfer;
+    const descForMatch = editDesc.trim() || editEntry.description || "";
     setEditSaving(false); setEditEntry(null);
+
+    if (categoryChanged && descForMatch) {
+      void promptApplyToSimilar(
+        { id: editEntry.id, description: descForMatch, type: editType },
+        editCategory
+      );
+    }
+  };
+
+  /**
+   * After a category change, look across ALL of the user's transactions for
+   * others from the same merchant and offer to move them too - with a review
+   * step (select all or just some) and an opt-in rule for future imports.
+   */
+  const promptApplyToSimilar = async (
+    edited: { id: string; description: string; type: "income" | "expense" },
+    newCategory: string
+  ) => {
+    const pattern = merchantPatternFor(edited.description);
+    if (!pattern) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase
+      .from("budget_entries")
+      .select("id, type, category, amount, description, entry_date, is_transfer")
+      .eq("user_id", user.id)
+      .eq("type", edited.type)
+      .not("description", "is", null);
+    if (error) return; // best-effort: the single edit already saved
+    const candidates = findSimilarEntries((data ?? []) as BudgetEntry[], edited, newCategory)
+      .sort((a, b) => b.entry_date.localeCompare(a.entry_date));
+    if (candidates.length === 0) return;
+    setSimilarPrompt({
+      candidates,
+      newCategory,
+      type: edited.type,
+      merchantLabel: merchantLabelFor(edited.description),
+      pattern,
+    });
+    setSimilarSelected(new Set(candidates.map((c) => c.id)));
+    setSimilarRemember(true);
+  };
+
+  const toggleSimilarSelected = (id: string) => {
+    setSimilarSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const applySimilar = async () => {
+    if (!similarPrompt) return;
+    setSimilarSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setSimilarSaving(false); return; }
+    const ids = similarPrompt.candidates.filter((c) => similarSelected.has(c.id)).map((c) => c.id);
+    if (ids.length > 0) {
+      const { error } = await supabase
+        .from("budget_entries")
+        .update({ category: similarPrompt.newCategory })
+        .in("id", ids)
+        .eq("user_id", user.id);
+      if (!error) {
+        const idSet = new Set(ids);
+        const recat = (e: BudgetEntry) => (idSet.has(e.id) ? { ...e, category: similarPrompt.newCategory } : e);
+        setEntries((prev) => prev.map(recat));
+        setYearEntries((prev) => prev.map(recat));
+      }
+    }
+    if (similarRemember) {
+      // Future imports auto-categorise this merchant (import pipeline reads
+      // user_merchant_rules; pattern format matches the commit route's).
+      await supabase.from("user_merchant_rules").upsert(
+        {
+          user_id: user.id,
+          merchant_pattern: similarPrompt.pattern,
+          category: similarPrompt.newCategory,
+          type: similarPrompt.type,
+        },
+        { onConflict: "user_id,merchant_pattern" }
+      );
+    }
+    setSimilarSaving(false);
+    setSimilarPrompt(null);
   };
 
   const handleEditDelete = async () => {
@@ -1600,6 +1701,78 @@ export function BudgetView() {
           </div>
         </div>
       )}
+
+      {/* Apply-to-similar Modal: shown after a category edit when other
+          transactions from the same merchant exist. */}
+      {similarPrompt && (() => {
+        const catList = similarPrompt.type === "expense" ? allExpCats : allIncCats;
+        const catLabel = catList.find((c) => c.id === similarPrompt.newCategory)?.label ?? similarPrompt.newCategory;
+        const oldCatLabel = (id: string) => catList.find((c) => c.id === id)?.label ?? id;
+        const n = similarSelected.size;
+        return (
+          <div className="fixed inset-0 z-[410] flex items-end justify-center bg-black/60" role="dialog" aria-modal="true" onClick={() => setSimilarPrompt(null)}>
+            <div onClick={(e) => e.stopPropagation()} style={{ background: "var(--color-surface)", borderRadius: "20px 20px 0 0", padding: "24px 20px 0", width: "100%", maxWidth: 500, maxHeight: "85vh", display: "flex", flexDirection: "column" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <h3 style={{ fontWeight: 900, fontSize: 17 }}>Found {similarPrompt.candidates.length} similar transaction{similarPrompt.candidates.length === 1 ? "" : "s"}</h3>
+                <button type="button" onClick={() => setSimilarPrompt(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary)" }} aria-label="Close"><X size={20} /></button>
+              </div>
+              <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 12 }}>
+                Other transactions from <strong style={{ color: "var(--color-text-primary)" }}>{similarPrompt.merchantLabel}</strong> can also move to{" "}
+                <strong style={{ color: "var(--color-primary)" }}>{catLabel}</strong>. Untick any that should stay as they are.
+              </p>
+              <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                <button type="button" onClick={() => setSimilarSelected(new Set(similarPrompt.candidates.map((c) => c.id)))}
+                  style={{ padding: "6px 12px", borderRadius: 16, border: "1.5px solid var(--color-border)", background: "var(--color-bg)", fontSize: 12, fontWeight: 700, cursor: "pointer", color: "var(--color-text-primary)" }}>
+                  Select all
+                </button>
+                <button type="button" onClick={() => setSimilarSelected(new Set())}
+                  style={{ padding: "6px 12px", borderRadius: 16, border: "1.5px solid var(--color-border)", background: "var(--color-bg)", fontSize: 12, fontWeight: 700, cursor: "pointer", color: "var(--color-text-primary)" }}>
+                  Select none
+                </button>
+              </div>
+              <div style={{ overflowY: "auto", flex: 1, minHeight: 0, border: "1px solid var(--color-border)", borderRadius: 12 }}>
+                {similarPrompt.candidates.map((c, idx) => {
+                  const checked = similarSelected.has(c.id);
+                  return (
+                    <button key={c.id} type="button" onClick={() => toggleSimilarSelected(c.id)}
+                      style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", cursor: "pointer", textAlign: "left", background: "transparent", border: "none", borderTop: idx === 0 ? "none" : "1px solid var(--color-border)", color: "var(--color-text-primary)" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${checked ? "var(--color-primary)" : "var(--color-border)"}`, background: checked ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {checked && <Check size={12} style={{ color: "white" }} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.description}</div>
+                        <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>{c.entry_date} · currently {oldCatLabel(c.category)}</div>
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: 13, flexShrink: 0, color: c.type === "income" ? "var(--color-primary)" : "var(--color-text-primary)" }}>
+                        {c.type === "income" ? "+" : "-"}{formatRand(c.amount)}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <button type="button" onClick={() => setSimilarRemember((v) => !v)}
+                style={{ width: "100%", margin: "12px 0 0", padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${similarRemember ? "var(--color-primary)" : "var(--color-border)"}`, background: similarRemember ? "rgba(0,122,77,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
+                <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${similarRemember ? "var(--color-primary)" : "var(--color-border)"}`, background: similarRemember ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {similarRemember && <Check size={12} style={{ color: "white" }} />}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 700, fontSize: 13.5 }}>Remember for future imports</div>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)" }}>New {similarPrompt.merchantLabel} transactions will land in {catLabel} automatically</div>
+                </div>
+              </button>
+              <div style={{ display: "flex", gap: 10, padding: "12px 0 calc(16px + env(safe-area-inset-bottom))" }}>
+                <button type="button" onClick={() => setSimilarPrompt(null)} disabled={similarSaving}
+                  style={{ padding: "13px 16px", borderRadius: 12, border: "1.5px solid var(--color-border)", background: "transparent", color: "var(--color-text-secondary)", fontWeight: 700, cursor: "pointer" }}>
+                  Skip
+                </button>
+                <button type="button" className="btn btn-primary" style={{ flex: 1, padding: 14, fontSize: 15 }} disabled={similarSaving || (n === 0 && !similarRemember)} onClick={applySimilar}>
+                  {similarSaving ? "Applying..." : n > 0 ? `Move ${n} to ${catLabel}` : "Just remember the rule"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Add Entry Modal */}
       {showAdd && (

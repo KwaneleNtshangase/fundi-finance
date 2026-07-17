@@ -24,10 +24,25 @@ export type CategoryMeta = {
   type: "expense" | "income";
 };
 
+/**
+ * Spending groups, loosely following the 50/30/20 guideline:
+ *   needs        - essentials & obligations (rent, food, transport, family support)
+ *   wants        - lifestyle & discretionary
+ *   goals        - money set aside or paying down debt (savings, stokvel, debt)
+ *   business     - side-hustle costs; labelled spend that isn't personal consumption
+ *   unclassified - "Other" and anything we genuinely can't place
+ */
+export type CategoryGroup = "needs" | "wants" | "goals" | "business" | "unclassified";
+
 export type ExpenseCategoryRow = {
   categoryId: string;
   categoryName: string;
   color: string;
+  group: CategoryGroup;
+  /** True when this category is a savings vehicle (Savings, Stokvel, Investments…). */
+  isSavingsVehicle: boolean;
+  /** True when a budget exists for this category in the period. */
+  hasBudget: boolean;
   budgetedCents: number;
   actualCents: number;
   varianceCents: number;
@@ -44,8 +59,24 @@ export type IncomeCategoryRow = {
 };
 
 export type MerchantInsight = {
+  /** Cleaned, display-ready merchant name. */
   description: string;
   totalCents: number;
+  /** Number of transactions grouped under this merchant. */
+  count: number;
+};
+
+/** A detected recurring payment: same counterparty, similar amount, 3+ months. */
+export type RecurringCommitment = {
+  description: string;
+  categoryName: string;
+  group: CategoryGroup;
+  /** Typical (median) amount per occurrence. */
+  typicalCents: number;
+  count: number;
+  totalCents: number;
+  /** Number of distinct months the payment appeared in. */
+  monthsSeen: number;
 };
 
 export type LargestTxn = {
@@ -62,6 +93,103 @@ export type MonthlySpend = {
   label: string;
   expenseCents: number;
   incomeCents: number;
+  netCents: number;
+  /** True when the report period covers only part of this calendar month. */
+  isPartial: boolean;
+  daysCovered: number;
+  daysInMonth: number;
+};
+
+/** Comparison against the immediately preceding period of equal length. */
+export type PeriodComparison = {
+  prevStart: string;
+  prevEnd: string;
+  prevIncomeCents: number;
+  prevExpenseCents: number;
+  prevSetAsideCents: number;
+  /** Percentage deltas (current vs previous); null when previous is zero. */
+  incomeDeltaPct: number | null;
+  expenseDeltaPct: number | null;
+  setAsideDeltaPct: number | null;
+};
+
+export type DataQuality = {
+  /** Share of expenses sitting in "Other"/unresolvable categories (0-100). */
+  unclassifiedExpenseSharePct: number;
+  /** Share of income sitting in "Other income" (0-100). */
+  otherIncomeSharePct: number;
+  /** Expense transactions with no usable description. */
+  unlabelledCount: number;
+};
+
+export type SpendProjection = {
+  /** Average monthly spend over COMPLETE months in the period; null if none. */
+  avgMonthlyExpenseCents: number | null;
+  /** avgMonthly x 12; null if no complete month. */
+  annualisedExpenseCents: number | null;
+  monthsUsed: number;
+};
+
+export type InsightTone = "good" | "warn" | "bad" | "info";
+
+export type ReportHighlight = { tone: InsightTone; text: string };
+
+export type HealthComponent = {
+  label: string;
+  score: number;
+  max: number;
+  tone: InsightTone;
+  note: string;
+};
+
+export type ReportAction = {
+  title: string;
+  detail: string;
+  /** Estimated effect, e.g. "≈ +6% savings rate". */
+  impact?: string;
+  lesson?: { courseId: string; lessonId: string; title: string };
+  /** The single action to do if the user does nothing else. */
+  isTopPriority?: boolean;
+};
+
+export type ReportBenchmark = {
+  label: string;
+  /** The user's value, formatted for display (e.g. "12%"). */
+  value: string;
+  /** The guideline, e.g. "20% or more". */
+  target: string;
+  tone: InsightTone;
+};
+
+export type ReportInsights = {
+  /** 0-100 composite financial health score for the period (after any cap). */
+  healthScore: number;
+  /** Component sum before the data-quality cap; equals healthScore when uncapped. */
+  healthScoreRaw: number;
+  /** Set when poor data quality capped the score - shown next to the score. */
+  healthCapNote: string | null;
+  healthBand: "Strong" | "Steady" | "Fragile" | "Needs attention";
+  healthComponents: HealthComponent[];
+  /** Cover-page highlights (max 4). */
+  highlights: ReportHighlight[];
+  /** Fundi Coach narrative - plain sentences built from computed figures. */
+  coachParagraphs: string[];
+  wins: string[];
+  risks: string[];
+  /** 3-5 prioritised next steps with estimated impact. */
+  actions: ReportAction[];
+  benchmarks: ReportBenchmark[];
+  /** Set when unclassified spend is high enough to distort the report. */
+  dataQualityAlert: string | null;
+};
+
+export type ReportBuildOptions = {
+  /** Categories to treat as savings vehicles, overriding auto-detection. */
+  savingsCategoryIds?: string[];
+  /** Entries for the preceding equal-length period (enables comparison). */
+  prevEntries?: BudgetEntryInput[];
+  prevStart?: string;
+  prevEnd?: string;
 };
 
 export type ReportModel = {
@@ -70,18 +198,47 @@ export type ReportModel = {
   displayName: string;
   generatedAt: string;
   totalIncomeCents: number;
+  /** ALL expense-side outflows, including money set aside. */
   totalExpenseCents: number;
+  /** Outflows into savings vehicles (Savings, Stokvel, Investments…). */
+  setAsideCents: number;
+  /** totalExpenseCents - setAsideCents: money actually consumed. */
+  consumptionCents: number;
   netCents: number;
+  /** setAside / income - money deliberately put away, not the leftover. */
   savingsRatePct: number;
+  /** Sum of ALL category budgets in the period (incl. savings vehicles). */
   totalBudgetedExpenseCents: number;
+  /**
+   * Day-to-day (non-vehicle) budget comparison. Savings vehicles are excluded
+   * here - "over-contributing" to a stokvel is not overspending - and get
+   * their own plan-vs-actual figures below.
+   */
+  dayToDayBudgetedCents: number;
+  /** Actual day-to-day spend within budgeted non-vehicle categories. */
+  budgetedActualCents: number;
+  /** Day-to-day spend in categories that have no budget at all. */
+  unbudgetedActualCents: number;
+  /** budgetedActual - dayToDayBudgeted (like-for-like variance). */
   budgetVarianceCents: number;
+  /** budgetedActual / dayToDayBudgeted, null when no day-to-day budgets. */
   budgetUsedPct: number | null;
+  /** Planned contributions to savings vehicles (their budgets). */
+  setAsidePlannedCents: number;
   budgetIsEstimate: boolean;
+  /** Totals per spending group across ALL expense outflows. */
+  groupTotals: Record<CategoryGroup, number>;
   expenseCategories: ExpenseCategoryRow[];
   incomeCategories: IncomeCategoryRow[];
   monthlySpend: MonthlySpend[];
   topMerchants: MerchantInsight[];
+  recurringCommitments: RecurringCommitment[];
+  /** Largest single transactions, with recurring merchants collapsed out. */
   largestTransactions: LargestTxn[];
   topOverBudget: ExpenseCategoryRow[];
   topUnderBudget: ExpenseCategoryRow[];
+  comparison: PeriodComparison | null;
+  dataQuality: DataQuality;
+  projection: SpendProjection;
+  insights: ReportInsights;
 };

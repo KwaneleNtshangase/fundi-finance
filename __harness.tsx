@@ -1,59 +1,121 @@
+/**
+ * Dev harness: renders a sample budget report PDF through the REAL
+ * buildReport pipeline (categorisation, insights, comparison, the lot).
+ * Run: npx tsx __harness.tsx
+ */
 import React from "react";
 import { renderToFile } from "@react-pdf/renderer";
 import { BudgetReportDocument } from "@/lib/budget/report/pdf";
-import type { ReportModel } from "@/lib/budget/report/types";
+import { assertReportModel, buildReport } from "@/lib/budget/report/aggregate";
+import type { BudgetEntryInput, BudgetTargetInput, CategoryMeta } from "@/lib/budget/report/types";
 
-const months = ["Jun","Jul","Aug","Sep","Oct","Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
-const monthYears = ["2025-06","2025-07","2025-08","2025-09","2025-10","2025-11","2025-12","2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"];
-const incomeSeq = [1000,3000,5000,30000,55000,18000,22000,15000,12000,40000,131000,80000,24000];
-const expenseSeq = [800,2500,4000,20000,40000,17000,21000,13000,14000,38000,112000,68000,22000];
-
-const expenseCategories = [
-  { categoryId:"housing", categoryName:"Housing", color:"#E6B84C", budgetedCents:8000000, actualCents:12000000, varianceCents:4000000, variancePct:150, sharePct:32.0, overBudget:true },
-  { categoryId:"food", categoryName:"Food & Groceries", color:"#2AA39A", budgetedCents:4000000, actualCents:6800000, varianceCents:2800000, variancePct:170, sharePct:18.2, overBudget:true },
-  { categoryId:"transport", categoryName:"Transport", color:"#7C9CF5", budgetedCents:3000000, actualCents:2900000, varianceCents:-100000, variancePct:97, sharePct:7.8, overBudget:false },
-  { categoryId:"debt", categoryName:"Debt", color:"#E0584E", budgetedCents:0, actualCents:5400000, varianceCents:5400000, variancePct:null, sharePct:14.4, overBudget:false },
-  { categoryId:"insurance", categoryName:"Insurance", color:"#9AA7BD", budgetedCents:1500000, actualCents:1200000, varianceCents:-300000, variancePct:80, sharePct:3.2, overBudget:false },
-  { categoryId:"entertainment", categoryName:"Entertainment", color:"#C9A14A", budgetedCents:500000, actualCents:900000, varianceCents:400000, variancePct:180, sharePct:2.4, overBudget:true },
+const customCategories: CategoryMeta[] = [
+  { id: "stokvel", name: "Stokvel", color: "#00A9A5", type: "expense" },
+  { id: "tithe", name: "Tithe", color: "#8E6CC1", type: "expense" },
+  { id: "family", name: "Family Support", color: "#D97742", type: "expense" },
+  { id: "bank-charges", name: "Bank Charges", color: "#6B7280", type: "expense" },
+  { id: "business-exp", name: "Business", color: "#3B7DD8", type: "expense" },
+  { id: "stokvel-income", name: "Stokvel Payout", color: "#00A9A5", type: "income" },
 ];
 
-const model: ReportModel = {
-  periodStart:"2025-06-01",
-  periodEnd:"2026-06-27",
-  displayName:"Minenhle Ntshangase",
-  generatedAt:new Date().toISOString(),
-  totalIncomeCents:43647633,
-  totalExpenseCents:37445943,
-  netCents:6201690,
-  savingsRatePct:2,
-  totalBudgetedExpenseCents:16520000,
-  budgetVarianceCents:20925943,
-  budgetUsedPct:227,
-  budgetIsEstimate:true,
-  expenseCategories,
-  incomeCategories:[
-    { categoryId:"salary", categoryName:"Salary", actualCents:38000000, sharePct:87.1 },
-    { categoryId:"freelance", categoryName:"Freelance", actualCents:4000000, sharePct:9.2 },
-    { categoryId:"other-income", categoryName:"Other income", actualCents:1647633, sharePct:3.7 },
-  ],
-  monthlySpend: monthYears.map((my,i)=>({ monthYear:my, label:months[i], expenseCents:expenseSeq[i]*100, incomeCents:incomeSeq[i]*100 })),
-  topMerchants:[
-    { description:"checkers superspar sandton", totalCents:2300000 },
-    { description:"engen garage rivonia", totalCents:1800000 },
-    { description:"woolworths food", totalCents:1500000 },
-    { description:"netflix subscription", totalCents:19900 },
-    { description:"vodacom prepaid airtime", totalCents:50000 },
-  ],
-  largestTransactions:[
-    { id:"1", description:"Bond repayment SA Home Loans", category:"housing", categoryName:"Housing", cents:8500000, date:"2026-04-01" },
-    { id:"2", description:"Car instalment Wesbank", category:"debt", categoryName:"Debt", cents:4200000, date:"2026-04-02" },
-    { id:"3", description:"School fees term 2", category:"education", categoryName:"Education", cents:2500000, date:"2026-04-03" },
-    { id:"4", description:"Checkers Superspar", category:"food", categoryName:"Food & Groceries", cents:230000, date:"2026-04-05" },
-    { id:"5", description:"Engen Garage", category:"transport", categoryName:"Transport", cents:180000, date:"2026-04-06" },
-  ],
-  topOverBudget:[expenseCategories[1], expenseCategories[0], expenseCategories[5]],
-  topUnderBudget:[expenseCategories[2], expenseCategories[4]],
+const targets: BudgetTargetInput[] = [
+  { category: "food", monthly_limit: 4000, month_year: "default" },
+  { category: "stokvel", monthly_limit: 5500, month_year: "default" },
+  { category: "transport", monthly_limit: 1800, month_year: "default" },
+];
+
+const entries: BudgetEntryInput[] = [];
+let id = 0;
+const add = (
+  month: string,
+  day: number,
+  type: "income" | "expense",
+  category: string,
+  amount: number,
+  description: string
+) => {
+  entries.push({
+    id: String(++id),
+    type,
+    category,
+    amount,
+    description,
+    entry_date: `${month}-${String(day).padStart(2, "0")}`,
+  });
 };
 
-await renderToFile(<BudgetReportDocument model={model} logoDataUri={undefined} />, "/sessions/practical-funny-allen/mnt/outputs/test-report.pdf");
-console.log("rendered");
+// Six complete months + a partial July (report cuts off on the 12th).
+// Amounts vary month to month so the sample reads like real bank data.
+const MONTHS = ["2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06"];
+MONTHS.forEach((m, i) => {
+  const wiggle = (base: number, pct: number) =>
+    Math.round(base * (1 + pct * Math.sin(i * 2.1 + base % 7)));
+  add(m, 1, "income", "salary", 28500, "Salary - Umlazi Traders");
+  add(m, 15, "income", "business", wiggle(4100, 0.45), "Side hustle - sneaker resale");
+  if (i % 2 === 0) add(m, 20, "income", "other-income", wiggle(9500, 0.6), "FNB App Transfer From Unknown");
+  if (i >= 2) add(m, 25, "income", "stokvel-income", 6100, "Gogo Zwane Imizamo payout");
+
+  add(m, 2, "expense", "stokvel", 5500, "Mama Coka Imizamo-5,500.00 Fee: Payshap Sent R7.50");
+  add(m, 3, "expense", "debt", 4650, "Imizamo loan repayment Samke-4,650.00");
+  add(m, 4, "expense", "food", wiggle(1750, 0.3), "Checkers Sixty60");
+  add(m, 12, "expense", "food", wiggle(1400, 0.35), "Boxer Superstore Umlazi");
+  add(m, 5, "expense", "transport", wiggle(1500, 0.4), "Uber trips");
+  add(m, 6, "expense", "airtime", wiggle(450, 0.3), "Vodacom data bundle");
+  add(m, 7, "expense", "housing", 3800, "Rent - Room Umlazi");
+  add(m, 8, "expense", "tithe", 1200, "Church tithe");
+  add(m, 9, "expense", "family", wiggle(2000, 0.25), "Send Money Mama-2,000.00");
+  add(m, 10, "expense", "bank-charges", 185, "FEE: PAYSHAP + monthly account fee 12345678");
+  add(m, 11, "expense", "savings", wiggle(1650, 0.2), "FNB App Payment To Savings Pocket");
+  add(m, 18, "expense", "other", 6200, "DALITSO GROUP-6,200.00 ELECT");
+  if (i !== 3) add(m, 22, "expense", "other", wiggle(4900, 0.5), "");
+  add(m, 27, "expense", "entertainment", wiggle(850, 0.6), "Netflix + braai supplies");
+  add(m, 28, "expense", "business-exp", wiggle(3600, 0.5), "Stock purchase - sneakers");
+});
+// Partial July (1-12)
+add("2026-07", 1, "income", "salary", 28500, "Salary - Umlazi Traders");
+add("2026-07", 2, "expense", "stokvel", 5500, "Mama Coka Imizamo-5,500.00 Fee: Payshap Sent R7.50");
+add("2026-07", 3, "expense", "debt", 4650, "Imizamo loan repayment Samke-4,650.00");
+add("2026-07", 4, "expense", "food", 1600, "Checkers Sixty60");
+add("2026-07", 7, "expense", "housing", 3800, "Rent - Room Umlazi");
+add("2026-07", 10, "expense", "other", 5100, "DALITSO GROUP-5,100.00 ELECT");
+
+// Previous period (equal length before 1 Jan) - sparse, just enough for deltas.
+const prevEntries: BudgetEntryInput[] = [];
+for (const m of ["2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12"]) {
+  prevEntries.push(
+    { type: "income", category: "salary", amount: 26000, entry_date: `${m}-01`, description: "Salary" },
+    { type: "expense", category: "food", amount: 3400, entry_date: `${m}-05`, description: "Groceries" },
+    { type: "expense", category: "stokvel", amount: 4500, entry_date: `${m}-02`, description: "Stokvel" },
+    { type: "expense", category: "other", amount: 9800, entry_date: `${m}-15`, description: "Misc" }
+  );
+}
+
+const model = buildReport(
+  entries,
+  targets,
+  customCategories,
+  "2026-01-01",
+  "2026-07-12",
+  "Minenhle",
+  new Date().toISOString(),
+  {
+    prevEntries,
+    prevStart: "2025-07-05",
+    prevEnd: "2025-12-31",
+  }
+);
+assertReportModel(model);
+
+console.log("Health:", model.insights.healthScore, `(raw ${model.insights.healthScoreRaw})`, model.insights.healthBand);
+console.log("Cap note:", model.insights.healthCapNote);
+console.log("Savings rate:", model.savingsRatePct, "% | set aside:", model.setAsideCents / 100);
+console.log("Budget used:", model.budgetUsedPct, "% | unbudgeted:", model.unbudgetedActualCents / 100);
+console.log("Groups:", Object.fromEntries(Object.entries(model.groupTotals).map(([k, v]) => [k, v / 100])));
+console.log("Recurring:", model.recurringCommitments.map((r) => `${r.description} ~R${r.typicalCents / 100} x${r.count}`));
+console.log("Largest:", model.largestTransactions.map((t) => `${t.description} R${t.cents / 100}`));
+console.log("Actions:", model.insights.actions.map((a) => `${a.isTopPriority ? "[TOP] " : ""}${a.title}`));
+
+renderToFile(
+  <BudgetReportDocument model={model} logoDataUri={undefined} />,
+  `${process.env.HARNESS_OUT ?? "."}/test-report.pdf`
+).then(() => console.log("rendered"));

@@ -197,8 +197,315 @@ describe("buildReport", () => {
       "2026-06-01",
       "2026-06-30"
     );
-    expect(model.topMerchants[0].description).toBe("woolworths");
+    expect(model.topMerchants[0].description).toBe("Woolworths");
     expect(model.topMerchants[0].totalCents).toBe(15000);
+    expect(model.topMerchants[0].count).toBe(2);
+  });
+
+  it("groups merchants by cleaned name (amounts, fees, bank prefixes stripped)", () => {
+    const model = report(
+      [
+        {
+          type: "expense",
+          category: "other",
+          amount: 5500,
+          description: "Mama Coka Imizamo-5,500.00 Fee: Payshap Sent R7.50",
+          entry_date: "2026-06-01",
+        },
+        {
+          type: "expense",
+          category: "other",
+          amount: 500,
+          description: "FNB App Payment To mama coka imizamo",
+          entry_date: "2026-06-08",
+        },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(model.topMerchants).toHaveLength(1);
+    expect(model.topMerchants[0].description).toBe("Mama Coka Imizamo");
+    expect(model.topMerchants[0].count).toBe(2);
+    expect(model.topMerchants[0].totalCents).toBe(600000);
+  });
+
+  it("stokvel custom category counts as money set aside, not consumption", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "stokvel", amount: 1500, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 2000, entry_date: "2026-06-03" },
+      ],
+      [],
+      [{ id: "stokvel", name: "Stokvel", color: "#00A9A5", type: "expense" }],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    expect(model.setAsideCents).toBe(150000);
+    expect(model.consumptionCents).toBe(200000);
+    expect(model.savingsRatePct).toBe(15);
+    const row = model.expenseCategories.find((r) => r.categoryId === "stokvel");
+    expect(row?.isSavingsVehicle).toBe(true);
+    expect(row?.group).toBe("goals");
+  });
+
+  it("savingsCategoryIds override wins over auto-detection", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "savings", amount: 1000, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 500, entry_date: "2026-06-03" },
+      ],
+      [],
+      [],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT,
+      { savingsCategoryIds: ["food"] }
+    );
+    assertReportModel(model);
+    // Only "food" is a vehicle under the override; "savings" is not.
+    expect(model.setAsideCents).toBe(50000);
+    expect(model.savingsRatePct).toBe(5);
+  });
+
+  it("budget comparison is like-for-like (unbudgeted spend excluded)", () => {
+    const model = report(
+      [
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-05" },
+        { type: "expense", category: "other", amount: 50000, entry_date: "2026-06-06" },
+      ],
+      [{ category: "food", monthly_limit: 4000, month_year: "2026-06" }],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(model.totalBudgetedExpenseCents).toBe(400000);
+    expect(model.budgetedActualCents).toBe(300000);
+    expect(model.unbudgetedActualCents).toBe(5000000);
+    expect(model.budgetUsedPct).toBe(75); // NOT 1325%
+    expect(model.budgetVarianceCents).toBe(-100000);
+    const other = model.expenseCategories.find((r) => r.categoryId === "other");
+    expect(other?.hasBudget).toBe(false);
+    expect(other?.variancePct).toBeNull();
+  });
+
+  it("flags partial months and computes monthly net", () => {
+    const model = report(
+      [
+        { type: "income", category: "salary", amount: 1000, entry_date: "2026-05-10" },
+        { type: "expense", category: "food", amount: 400, entry_date: "2026-05-11" },
+        { type: "expense", category: "food", amount: 200, entry_date: "2026-06-05" },
+      ],
+      [],
+      "2026-05-01",
+      "2026-06-15"
+    );
+    expect(model.monthlySpend[0].isPartial).toBe(false);
+    expect(model.monthlySpend[0].netCents).toBe(60000);
+    expect(model.monthlySpend[1].isPartial).toBe(true);
+    expect(model.monthlySpend[1].daysCovered).toBe(15);
+    expect(model.monthlySpend[1].daysInMonth).toBe(30);
+  });
+
+  it("projection uses complete months only", () => {
+    const model = report(
+      [
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-04-10" },
+        { type: "expense", category: "food", amount: 5000, entry_date: "2026-05-10" },
+        { type: "expense", category: "food", amount: 100, entry_date: "2026-06-05" },
+      ],
+      [],
+      "2026-04-01",
+      "2026-06-10"
+    );
+    expect(model.projection.monthsUsed).toBe(2);
+    expect(model.projection.avgMonthlyExpenseCents).toBe(400000);
+    expect(model.projection.annualisedExpenseCents).toBe(4800000);
+  });
+
+  it("prior-period comparison computes deltas", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 11000, entry_date: "2026-06-01" },
+        { type: "expense", category: "food", amount: 500, entry_date: "2026-06-05" },
+      ],
+      [],
+      [],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT,
+      {
+        prevEntries: [
+          { type: "income", category: "salary", amount: 10000, entry_date: "2026-05-10" },
+          { type: "expense", category: "food", amount: 1000, entry_date: "2026-05-12" },
+        ],
+        prevStart: "2026-05-02",
+        prevEnd: "2026-05-31",
+      }
+    );
+    expect(model.comparison).not.toBeNull();
+    expect(model.comparison!.incomeDeltaPct).toBe(10);
+    expect(model.comparison!.expenseDeltaPct).toBe(-50);
+  });
+
+  it("insights: unclassified spend triggers data quality alert and action", () => {
+    const model = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "other", amount: 4000, entry_date: "2026-06-05" },
+        { type: "expense", category: "food", amount: 2000, entry_date: "2026-06-06" },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(model.dataQuality.unclassifiedExpenseSharePct).toBe(67);
+    expect(model.insights.dataQualityAlert).not.toBeNull();
+    expect(model.insights.actions[0].title).toMatch(/recategorise/i);
+  });
+
+  it("business custom category is its own group, not unclassified", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "business-exp", amount: 3000, entry_date: "2026-06-05" },
+        { type: "expense", category: "other", amount: 1000, entry_date: "2026-06-06" },
+      ],
+      [],
+      [{ id: "business-exp", name: "Business", color: "#3B7DD8", type: "expense" }],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    expect(model.groupTotals.business).toBe(300000);
+    expect(model.groupTotals.unclassified).toBe(100000);
+    expect(model.dataQuality.unclassifiedExpenseSharePct).toBe(25);
+  });
+
+  it("savings vehicles are excluded from like-for-like budget and overspend lists", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 20000, entry_date: "2026-06-01" },
+        { type: "expense", category: "stokvel", amount: 6000, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 3500, entry_date: "2026-06-05" },
+      ],
+      [
+        { category: "stokvel", monthly_limit: 5000, month_year: "2026-06" },
+        { category: "food", monthly_limit: 4000, month_year: "2026-06" },
+      ],
+      [{ id: "stokvel", name: "Stokvel", color: "#00A9A5", type: "expense" }],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    // Stokvel over-contribution is NOT overspending.
+    expect(model.topOverBudget).toHaveLength(0);
+    expect(model.dayToDayBudgetedCents).toBe(400000);
+    expect(model.setAsidePlannedCents).toBe(500000);
+    expect(model.budgetedActualCents).toBe(350000);
+    expect(model.budgetUsedPct).toBe(88); // food only, stokvel excluded
+    expect(model.unbudgetedActualCents).toBe(0);
+  });
+
+  it("detects recurring commitments and collapses them out of largest transactions", () => {
+    const entries: BudgetEntryInput[] = [];
+    for (const m of ["2026-01", "2026-02", "2026-03", "2026-04"]) {
+      entries.push({
+        type: "expense",
+        category: "housing",
+        amount: 3800,
+        description: "Rent - Room Umlazi",
+        entry_date: `${m}-07`,
+      });
+    }
+    entries.push({
+      type: "expense",
+      category: "food",
+      amount: 2500,
+      description: "Makro bulk shop",
+      entry_date: "2026-02-10",
+    });
+    const model = report(entries, [], "2026-01-01", "2026-04-30");
+    expect(model.recurringCommitments).toHaveLength(1);
+    expect(model.recurringCommitments[0].description).toBe("Rent - Room Umlazi");
+    expect(model.recurringCommitments[0].typicalCents).toBe(380000);
+    expect(model.recurringCommitments[0].count).toBe(4);
+    expect(model.recurringCommitments[0].monthsSeen).toBe(4);
+    // Rent occurrences no longer flood the largest-transactions list.
+    expect(model.largestTransactions.map((t) => t.description)).toEqual(["Makro Bulk Shop"]);
+  });
+
+  it("irregular amounts are not flagged as recurring", () => {
+    const entries: BudgetEntryInput[] = [
+      { type: "expense", category: "food", amount: 900, description: "Checkers", entry_date: "2026-01-05" },
+      { type: "expense", category: "food", amount: 2400, description: "Checkers", entry_date: "2026-02-05" },
+      { type: "expense", category: "food", amount: 1400, description: "Checkers", entry_date: "2026-03-05" },
+    ];
+    const model = report(entries, [], "2026-01-01", "2026-03-31");
+    expect(model.recurringCommitments).toHaveLength(0);
+    expect(model.largestTransactions).toHaveLength(3);
+  });
+
+  it("health score is capped when unclassified spend dominates", () => {
+    const model = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "savings", amount: 2500, entry_date: "2026-06-02" },
+        { type: "expense", category: "other", amount: 4000, entry_date: "2026-06-05" },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    // 62% of spending unclassified: strong cash flow + savings must not read as healthy.
+    expect(model.dataQuality.unclassifiedExpenseSharePct).toBeGreaterThanOrEqual(40);
+    expect(model.insights.healthScore).toBeLessThanOrEqual(50);
+    expect(model.insights.healthCapNote).not.toBeNull();
+    expect(model.insights.healthScore).toBeLessThanOrEqual(model.insights.healthScoreRaw);
+  });
+
+  it("flags identical complete-month totals as a data anomaly risk", () => {
+    const entries: BudgetEntryInput[] = [];
+    for (const m of ["2026-01", "2026-02", "2026-03"]) {
+      entries.push(
+        { type: "income", category: "salary", amount: 10000, entry_date: `${m}-01` },
+        { type: "expense", category: "food", amount: 5000, description: "Groceries", entry_date: `${m}-05` }
+      );
+    }
+    const model = report(entries, [], "2026-01-01", "2026-03-31");
+    expect(model.insights.risks.some((r) => /identical spending totals/.test(r))).toBe(true);
+  });
+
+  it("insights: health score is bounded and consistent", () => {
+    const good = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "savings", amount: 2500, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-03" },
+      ],
+      [{ category: "food", monthly_limit: 4000, month_year: "2026-06" }],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(good.insights.healthScore).toBeGreaterThanOrEqual(0);
+    expect(good.insights.healthScore).toBeLessThanOrEqual(100);
+    expect(good.insights.healthScoreRaw).toBe(
+      good.insights.healthComponents.reduce((s, c) => s + c.score, 0)
+    );
+    expect(good.insights.healthScore).toBeLessThanOrEqual(good.insights.healthScoreRaw);
+    expect(good.insights.healthBand).toBe("Strong");
+    expect(good.insights.actions.length).toBeGreaterThanOrEqual(1);
+    expect(good.insights.actions.length).toBeLessThanOrEqual(5);
   });
 
   it("fixed fixture snapshot", () => {

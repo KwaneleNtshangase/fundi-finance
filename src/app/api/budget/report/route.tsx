@@ -9,6 +9,7 @@ import {
   sumDbEntriesCents,
 } from "@/lib/budget/report/aggregate";
 import { BudgetReportDocument } from "@/lib/budget/report/pdf";
+import { precedingPeriod } from "@/lib/budget/report/period";
 import type { BudgetEntryInput, BudgetTargetInput, CategoryMeta } from "@/lib/budget/report/types";
 
 export async function POST(req: NextRequest) {
@@ -17,12 +18,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { periodStart?: string; periodEnd?: string };
+  let body: { periodStart?: string; periodEnd?: string; savingsCategoryIds?: string[] };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
+
+  const savingsCategoryIds = Array.isArray(body.savingsCategoryIds)
+    ? body.savingsCategoryIds.filter((s): s is string => typeof s === "string").slice(0, 50)
+    : undefined;
 
   const { periodStart, periodEnd } = body;
   if (
@@ -37,13 +42,22 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceSupabase();
 
-  const [entriesRes, targetsRes, catsRes, profileRes, progressRes] = await Promise.all([
+  // Preceding equal-length window - powers the "vs previous period" deltas.
+  const prev = precedingPeriod(periodStart, periodEnd);
+
+  const [entriesRes, prevEntriesRes, targetsRes, catsRes, profileRes, progressRes] = await Promise.all([
     admin
       .from("budget_entries")
       .select("id, type, category, amount, description, entry_date, is_transfer")
       .eq("user_id", user.id)
       .gte("entry_date", periodStart)
       .lte("entry_date", periodEnd),
+    admin
+      .from("budget_entries")
+      .select("id, type, category, amount, description, entry_date, is_transfer")
+      .eq("user_id", user.id)
+      .gte("entry_date", prev.periodStart)
+      .lte("entry_date", prev.periodEnd),
     admin
       .from("budget_targets")
       .select("category, monthly_limit, month_year")
@@ -76,25 +90,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: catsRes.error.message }, { status: 500 });
   }
 
-  const entries = (entriesRes.data ?? []).map(
-    (e: {
-      id: string;
-      type: "income" | "expense";
-      category: string;
-      amount: number;
-      description: string | null;
-      entry_date: string;
-      is_transfer?: boolean;
-    }) => ({
-      id: e.id,
-      type: e.type,
-      category: e.category,
-      amount: Number(e.amount),
-      description: e.description,
-      entry_date: e.entry_date,
-      is_transfer: e.is_transfer ?? false,
-    })
-  ) as BudgetEntryInput[];
+  type DbEntry = {
+    id: string;
+    type: "income" | "expense";
+    category: string;
+    amount: number;
+    description: string | null;
+    entry_date: string;
+    is_transfer?: boolean;
+  };
+  const mapEntry = (e: DbEntry): BudgetEntryInput => ({
+    id: e.id,
+    type: e.type,
+    category: e.category,
+    amount: Number(e.amount),
+    description: e.description,
+    entry_date: e.entry_date,
+    is_transfer: e.is_transfer ?? false,
+  });
+  const entries = ((entriesRes.data ?? []) as DbEntry[]).map(mapEntry);
+  // Comparison data is best-effort: a fetch error just disables the deltas.
+  const prevEntries = prevEntriesRes.error
+    ? []
+    : ((prevEntriesRes.data ?? []) as DbEntry[]).map(mapEntry);
   const targets = (targetsRes.data ?? []) as BudgetTargetInput[];
   const categories: CategoryMeta[] = (catsRes.data ?? []).map(
     (c: { id: string; name: string; color: string; type: "expense" | "income" }) => ({
@@ -139,7 +157,14 @@ export async function POST(req: NextRequest) {
     categories,
     periodStart,
     periodEnd,
-    displayName
+    displayName,
+    undefined,
+    {
+      savingsCategoryIds,
+      prevEntries,
+      prevStart: prev.periodStart,
+      prevEnd: prev.periodEnd,
+    }
   );
 
   try {
@@ -161,10 +186,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Report validation failed" }, { status: 500 });
   }
 
+  // Server-side @react-pdf render: element is constructed here, outside the
+  // try, because renderToBuffer rejects on failure - no error boundary exists.
+  const reportDoc = <BudgetReportDocument model={model} logoDataUri={logoDataUri} />;
   try {
-    const buffer = await renderToBuffer(
-      <BudgetReportDocument model={model} logoDataUri={logoDataUri} />
-    );
+    const buffer = await renderToBuffer(reportDoc);
     const filename = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
