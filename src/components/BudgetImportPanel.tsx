@@ -526,6 +526,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
 
   const importableCount = rowsWithTransfers.filter((r) => !r.skipReason && !r.isTransfer).length;
   const transferCount = rowsWithTransfers.filter((r) => r.isTransfer).length;
+  const possibleDuplicateCount = rowsWithTransfers.filter((r) => r.possibleDuplicate).length;
 
   if (!open) {
     return (
@@ -813,15 +814,27 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                         {fileRows.map((r) => (
                           <tr key={r.id} style={{ opacity: r.skipReason || r.isTransfer ? 0.45 : 1 }}>
                             <td style={{ padding: 8 }}>{r.date}</td>
-                            <td style={{ padding: 8, maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <td style={{ padding: 8, maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis" }}>
                               {r.description}
-                              {r.skipReason === "existing_import" && (
+                              {r.possibleDuplicate ? (
+                                <span style={{ display: "block", fontSize: 10, color: "#F57C00", marginTop: 2 }}>
+                                  ⚠ Possible duplicate{r.duplicateOfDescription ? ` of "${r.duplicateOfDescription}"` : ""}
+                                  <label style={{ display: "inline-flex", alignItems: "center", gap: 4, marginLeft: 6, color: "var(--color-text-secondary)", cursor: "pointer" }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={!r.skipReason}
+                                      onChange={(e) => updateRow(r.id, { skipReason: e.target.checked ? undefined : "existing_import" })}
+                                    />
+                                    Import anyway
+                                  </label>
+                                </span>
+                              ) : r.skipReason === "existing_import" ? (
                                 <span style={{ display: "block", fontSize: 10, color: "#9E9E9E" }}>Already imported</span>
-                              )}
+                              ) : null}
                               {r.isTransfer && (
                                 <span style={{ display: "block", fontSize: 10, color: "var(--color-primary)" }}>Transfer - excluded</span>
                               )}
-                              {selectiveNeedsReview(r, meta) && !r.skipReason && (
+                              {selectiveNeedsReview(r, meta) && !r.skipReason && !r.possibleDuplicate && (
                                 <span style={{ display: "block", fontSize: 10, color: "#F57C00" }}>Needs review</span>
                               )}
                             </td>
@@ -914,8 +927,15 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
               borderTop: "1px solid var(--color-border)",
               padding: "16px 20px max(20px, env(safe-area-inset-bottom))",
               display: "flex",
+              flexDirection: "column",
               gap: 10,
             }}>
+              {possibleDuplicateCount > 0 && (
+                <div style={{ fontSize: 12, color: "#F57C00", background: "rgba(245,124,0,0.08)", border: "1px solid rgba(245,124,0,0.3)", borderRadius: 8, padding: "8px 10px" }}>
+                  ⚠ {possibleDuplicateCount} possible duplicate{possibleDuplicateCount !== 1 ? "s" : ""} found (same date &amp; amount as existing transactions). Skipped by default - tick &ldquo;Import anyway&rdquo; on any that are genuinely new.
+                </div>
+              )}
+              <div style={{ display: "flex", gap: 10 }}>
               <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={reset}>Back</button>
               <button
                 type="button"
@@ -937,6 +957,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                   </span>
                 )}
               </button>
+              </div>
             </div>
           </>
         )}

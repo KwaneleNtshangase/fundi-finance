@@ -276,4 +276,36 @@ describe("applyBankTemplate", () => {
     expect(rows.length).toBe(9);
     expect(rows.some((r) => r.description.includes("Decoy"))).toBe(false);
   });
+
+  it("parses Discovery Date/Type/Details/Amount layout with correct signs", () => {
+    const fixture = loadLayout("pdf-discovery.layout.json");
+    const items = fixture.lines.flatMap(
+      (l: { y: number; page?: number; items: { x: number; text: string }[] }) =>
+        l.items.map((i: { x: number; text: string }) => ({
+          text: i.text,
+          x: i.x,
+          y: l.y,
+          page: l.page ?? 1,
+        }))
+    );
+    const lines = groupItemsIntoLines(items);
+    const rows = applyBankTemplate("discovery", lines, 2024);
+    expect(rows.length).toBe(5);
+    const byDesc = Object.fromEntries(rows.map((r) => [r.description, r.amountZAR]));
+    // Credits stay positive, debits (leading "-") go negative, and the "1.00%"
+    // interest rate is never mistaken for the R0.07 amount.
+    expect(byDesc["THEMBEKA FNB"]).toBe(300); // last write wins; both are +
+    expect(byDesc["Interest Earned at 1.00%"]).toBe(0.07);
+    expect(byDesc["Monthly Account fee"]).toBe(-14.5);
+    expect(byDesc["Vitality Money Premium"]).toBe(-9.67);
+    const sum = rows.reduce((s, r) => s + r.amountZAR, 0);
+    expect(Math.round(sum * 100)).toBe(32590); // opening 0 + sum = closing 325.90
+  });
+
+  it("detects Discovery bank and reconciles on signed sum", () => {
+    const fixture = loadLayout("pdf-discovery.layout.json");
+    const parsed = parseLayoutFixture(fixture);
+    expect(parsed.bankHint).toBe("discovery");
+    expect(parsed.rows.length).toBe(5);
+  });
 });

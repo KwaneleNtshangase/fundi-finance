@@ -24,6 +24,7 @@ export const BANK_TEMPLATES: BankTemplate[] = [
   { id: "capitec", detect: /capitec/i, dateFormat: "dmy" },
   { id: "standard-bank", detect: /standard\s+bank|std\s+bank/i, dateFormat: "dmy" },
   { id: "fnb", detect: /\bfnb\b|first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/i, dateFormat: "dMon" },
+  { id: "discovery", detect: /discovery\s+bank|discovery\s+gold\s+transaction|fsp\s+number\s+48657/i, dateFormat: "dMon" },
 ];
 
 const CAPITEC_HEADER_RE =
@@ -566,6 +567,124 @@ function amountToCents(n: number): number {
   return Math.round(n * 100);
 }
 
+// ── Discovery Bank ──────────────────────────────────────────────────────────
+// Layout: Date | Card no. | Type | Details | Amount. No per-row running balance.
+// Debits are marked with a leading "-" token before the R-amount; credits have
+// no sign. Amounts carry an "R" prefix ("R50.00") that parseAmountToken rejects,
+// so Discovery needs its own amount reader.
+const DISCOVERY_HEADER_RE = /\bdate\b.*\btype\b.*\bdetails\b.*\bamount\b/i;
+const DISCOVERY_SKIP_RE =
+  /opening\s+balance|closing\s+balance|total\s+vat|brought\s+forward|carried\s+forward|your\s+interest\s+rate|account\s+balance\s+up\s+to/i;
+
+/**
+ * Parse a Discovery amount token. unpdf emits the whole amount as one token,
+ * R-prefixed, with the debit sign attached: "R50.00", "R0.07", "- R14.50",
+ * "-R9.67", "(R9.67)". Requiring the R prefix cleanly ignores non-amount
+ * numbers on the row (e.g. the "1.00%" inside "Interest Earned at 1.00%").
+ */
+function parseDiscoveryAmount(raw: string): { value: number; isDebit: boolean } | null {
+  const compact = raw.trim().replace(/\s/g, "").replace(/,/g, "");
+  if (!/r\d/i.test(compact)) return null; // must be an R-amount
+  const isDebit = /^[-(]/.test(compact);
+  const s = compact.replace(/[()]/g, "").replace(/^-/, "").replace(/^r/i, "");
+  if (!/^\d+(\.\d{1,2})?$/.test(s)) return null;
+  const n = Math.round(parseFloat(s) * 100) / 100;
+  return Number.isFinite(n) ? { value: n, isDebit } : null;
+}
+
+/** Extract Discovery opening/closing balances (R-prefixed, dates in between). */
+export function extractDiscoveryBalances(lines: TextLine[]): {
+  openingBalance?: number;
+  closingBalance?: number;
+} {
+  let openingBalance: number | undefined;
+  let closingBalance: number | undefined;
+  for (const line of lines) {
+    const lower = line.text.toLowerCase();
+    // The timeline rows "Opening balance R0.00" / "Closing balance R325.90" are
+    // the cleanest source: the balance is the last R-amount on the line.
+    const rAmounts = line.items
+      .map((i) => parseDiscoveryAmount(i.text))
+      .filter((v): v is { value: number; isDebit: boolean } => v !== null);
+    if (/opening\s+balance/.test(lower) && rAmounts.length > 0 && openingBalance === undefined) {
+      openingBalance = rAmounts[rAmounts.length - 1].value;
+    }
+    if (/closing\s+balance/.test(lower) && rAmounts.length > 0) {
+      closingBalance = rAmounts[rAmounts.length - 1].value;
+    }
+  }
+  return { openingBalance, closingBalance };
+}
+
+/** Discovery-specific row parser using the Date/Type/Details/Amount columns. */
+export function parseDiscoveryLayout(
+  lines: TextLine[],
+  contextYear?: number
+): ParsedRow[] {
+  // Find the header first for column anchors. groupItemsIntoLines sorts lines
+  // by ascending y (bottom-of-page first in PDF coordinates), so the header can
+  // appear AFTER the rows - scan for it up front rather than gating on order.
+  let typeX: number | undefined;
+  let detailsX: number | undefined;
+  const headerLine = lines.find((l) => DISCOVERY_HEADER_RE.test(l.text));
+  if (headerLine) {
+    typeX = headerLine.items.find((it) => /^type$/i.test(it.text))?.x;
+    detailsX = headerLine.items.find((it) => /^details$/i.test(it.text))?.x;
+  }
+  if (!headerLine) return [];
+  // Column boundary is the midpoint between Type and Details anchors, so the
+  // parser adapts to whatever coordinate scale the PDF engine produces.
+  const detailsStart =
+    typeX !== undefined && detailsX !== undefined ? (typeX + detailsX) / 2 : -Infinity;
+
+  const rows: ParsedRow[] = [];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (line === headerLine) continue;
+    if (DISCOVERY_SKIP_RE.test(line.text)) continue;
+
+    // The date is a single token ("15 Jun 2024") left of the Type column.
+    const dateToken = findDateToken(line.text);
+    if (!dateToken) continue;
+    const iso = parseStatementDate(dateToken, contextYear);
+    if (!iso) continue;
+
+    // Amount: the R-prefixed money token (carries its own debit sign). Requiring
+    // the R prefix ignores stray numbers like the "1.00%" in an interest line.
+    let amount: { value: number; isDebit: boolean } | null = null;
+    let amountItemX = Infinity;
+    for (const it of line.items) {
+      const parsed = parseDiscoveryAmount(it.text);
+      if (parsed) {
+        amount = parsed;
+        amountItemX = it.x;
+      }
+    }
+    if (!amount || amount.value === 0) continue;
+    const amountZAR = amount.isDebit ? -amount.value : amount.value;
+
+    // Details column: tokens between the Type/Details midpoint and the amount.
+    const descItems = line.items
+      .filter((it) => it.x >= detailsStart && it.x < amountItemX && parseDiscoveryAmount(it.text) === null)
+      .sort((a, b) => a.x - b.x);
+    const desc = cleanDescription(descItems.map((it) => it.text).join(" "));
+
+    rows.push({
+      date: iso,
+      description: desc || "Transaction",
+      amountZAR,
+      balanceAfter: undefined,
+      lineIndex: i,
+      needsReview: !desc,
+    });
+  }
+
+  // Statement order (top-to-bottom = chronological here); rows were collected
+  // bottom-up, so restore by date then line position.
+  rows.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : b.lineIndex - a.lineIndex));
+  return rows;
+}
+
 function amountsOnLine(line: TextLine): { x: number; val: number }[] {
   return line.items
     .map((i) => ({ x: i.x, val: parseAmountToken(i.text) }))
@@ -587,6 +706,9 @@ export function applyBankTemplate(
   }
   if (bankId === "standard-bank") {
     return parseStandardBankLayout(lines, contextYear).rows;
+  }
+  if (bankId === "discovery") {
+    return parseDiscoveryLayout(lines, contextYear);
   }
 
   const rows: ParsedRow[] = [];
@@ -666,7 +788,7 @@ export function mergeTemplateRows(
   bankId: string
 ): ParsedRow[] {
   if (
-    (bankId === "capitec" || bankId === "fnb" || bankId === "standard-bank") &&
+    (bankId === "capitec" || bankId === "fnb" || bankId === "standard-bank" || bankId === "discovery") &&
     templateRows.length > 0
   ) {
     return templateRows.map((r) => ({ ...r, needsReview: r.needsReview ?? false }));

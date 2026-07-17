@@ -85,6 +85,8 @@ type BudgetEntry = {
   is_transfer?: boolean;
   account_id?: string | null;
   entry_method?: "imported" | "manual";
+  source?: string | null;
+  account_label?: string | null;
   bank_accounts?: { institution_name: string; custom_label: string | null } | null;
 };
 
@@ -344,18 +346,20 @@ export function BudgetView() {
     if (!user) { setLoading(false); return; }
     let { data, error } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, account_label, entry_method")
       .eq("user_id", user.id)
       .gte("entry_date", startDate)
       .lte("entry_date", endDate)
       .order("entry_date", { ascending: false })
       .order("created_at", { ascending: false });
 
-    // Fallback if the new schema is not yet available on the remote environment
+    // Fallback if the new schema (account_id/entry_method) is not yet applied on
+    // the remote environment. account_label + source DO exist wherever import
+    // works, so keep them - that's how imported rows still show their bank.
     if (error && (error.code === "PGRST200" || error.code === "42703" || error.message?.includes("does not exist") || error.message?.includes("Could not find"))) {
       const fallback = await supabase
         .from("budget_entries")
-        .select("id, type, category, amount, description, entry_date, is_transfer")
+        .select("id, type, category, amount, description, entry_date, is_transfer, account_label, source")
         .eq("user_id", user.id)
         .gte("entry_date", startDate)
         .lte("entry_date", endDate)
@@ -598,12 +602,23 @@ export function BudgetView() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     const yr = now.getFullYear();
-    const { data } = await supabase
+    let { data, error } = await supabase
       .from("budget_entries")
-      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, entry_method, bank_accounts!left(institution_name, custom_label)")
+      .select("id, type, category, amount, description, entry_date, is_transfer, account_id, account_label, entry_method, bank_accounts!left(institution_name, custom_label)")
       .eq("user_id", user.id)
       .gte("entry_date", `${yr}-01-01`)
       .lte("entry_date", `${yr}-12-31`);
+    // Same schema fallback as loadEntries - prod may lack account_id/entry_method.
+    if (error && (error.code === "PGRST200" || error.code === "42703" || error.message?.includes("does not exist") || error.message?.includes("Could not find"))) {
+      const fallback = await supabase
+        .from("budget_entries")
+        .select("id, type, category, amount, description, entry_date, is_transfer, account_label, source")
+        .eq("user_id", user.id)
+        .gte("entry_date", `${yr}-01-01`)
+        .lte("entry_date", `${yr}-12-31`);
+      data = fallback.data as any;
+      error = fallback.error;
+    }
     setYearEntries((data ?? []) as unknown as BudgetEntry[]);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -1371,11 +1386,16 @@ export function BudgetView() {
                 </div>
                 {(() => {
                   const getAccountName = (e: BudgetEntry) => {
-                    if (!e.bank_accounts) return "Legacy/Cash";
-                    if (Array.isArray(e.bank_accounts)) {
-                      return e.bank_accounts.length > 0 ? (e.bank_accounts[0].institution_name || "Legacy/Cash") : "Legacy/Cash";
+                    // Prefer the linked bank account; fall back to the account_label
+                    // string stored at import time; only then "Cash" (manual entries).
+                    const ba = e.bank_accounts;
+                    if (Array.isArray(ba)) {
+                      if (ba.length > 0 && ba[0].institution_name) return ba[0].institution_name;
+                    } else if (ba && ba.institution_name) {
+                      return ba.institution_name;
                     }
-                    return e.bank_accounts.institution_name || "Legacy/Cash";
+                    if (e.account_label && e.account_label.trim()) return e.account_label.trim();
+                    return e.entry_method === "imported" ? "Imported" : "Cash";
                   };
                   const rowInner = (e: BudgetEntry) => (
                     <>
@@ -1388,7 +1408,7 @@ export function BudgetView() {
                           {formatEntry(e.entry_date)}{e.description ? ` · ${e.description}` : ""}
                         </div>
                         <div style={{ fontSize: 10, color: "var(--color-text-secondary)", opacity: 0.8, marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                          {getAccountName(e)} • {e.entry_method === "imported" ? "Imported" : "Manual"}
+                          {getAccountName(e)} • {(e.entry_method === "imported" || e.source === "import") ? "Imported" : "Manual"}
                         </div>
                       </div>
                       <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>

@@ -11,6 +11,7 @@ import {
 import {
   applyBankTemplate,
   BANK_TEMPLATES,
+  extractDiscoveryBalances,
   mergeTemplateRows,
 } from "./pdfTemplates";
 
@@ -43,6 +44,14 @@ export async function parsePdfStatement(
   if (bankId && BANK_TEMPLATES.some((t) => t.id === bankId)) {
     const templateRows = applyBankTemplate(bankId, lines, contextYear);
     rows = mergeTemplateRows(generic.rows, templateRows, bankId);
+  }
+
+  // Discovery has no per-row running balance - pull opening/closing from the
+  // account summary so the signed-sum reconciliation can still run.
+  if (bankId === "discovery") {
+    const dbal = extractDiscoveryBalances(lines);
+    if (dbal.openingBalance !== undefined) generic.balances.openingBalance = dbal.openingBalance;
+    if (dbal.closingBalance !== undefined) generic.balances.closingBalance = dbal.closingBalance;
   }
 
   const accountLabel = accountLabelFromBank(bankId ?? detectBankFromText(fullText), options?.fileName);
@@ -82,6 +91,19 @@ export async function parsePdfStatement(
           openingBalance: generic.balances.openingBalance,
           closingBalance,
         });
+
+  // Discovery reconciles on the signed sum (opening + sum = closing), since it
+  // prints no per-row balance to chain.
+  if (
+    bankId === "discovery" &&
+    generic.balances.openingBalance !== undefined &&
+    closingBalance !== undefined
+  ) {
+    reconciliation = reconcileTransactions(transactions, {
+      openingBalance: generic.balances.openingBalance,
+      closingBalance,
+    });
+  }
 
   if (lowConfidence && reconciliation.ok) {
     reconciliation.warnings.push(

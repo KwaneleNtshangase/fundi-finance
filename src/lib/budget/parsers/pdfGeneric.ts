@@ -186,6 +186,9 @@ export function detectBankFromText(fullText: string): string | null {
   // "ABSA BANK FLAT 9") - matching a bare bank word mis-routes the parser, so
   // we require issuer-specific markers (e.g. "Capitec Bank" / a bank domain).
   const t = fullText.toLowerCase();
+  // Discovery Bank: distinctive account name + FSP number 48657 (their licence).
+  if (/discovery\s+bank|discovery\s+gold\s+transaction|discovery\s+(?:transaction|savings|credit\s+card)\s+account|fsp\s+number\s+48657/.test(t))
+    return "discovery";
   if (/capitec\s*bank|capitecbank\.co\.za/.test(t)) return "capitec";
   if (/standard\s+bank|standardbank\.co\.za/.test(t)) return "standard-bank";
   if (/first\s+national\s+bank|fnb\.co\.za|gold\s+business\s+account/.test(t)) return "fnb";
@@ -195,6 +198,7 @@ export function detectBankFromText(fullText: string): string | null {
 }
 
 export function accountLabelFromBank(bank: string | null, fileName?: string): string {
+  if (bank === "discovery") return "Discovery";
   if (bank === "capitec") return "Capitec";
   if (bank === "standard-bank") return "Standard Bank";
   if (bank === "fnb") return "FNB";

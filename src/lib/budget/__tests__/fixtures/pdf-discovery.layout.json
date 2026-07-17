@@ -1,0 +1,53 @@
+{
+  "headerText": "Discovery Gold Transaction Account statement Discovery Bank Limited FSP number 48657",
+  "openingBalance": 0,
+  "closingBalance": 325.90,
+  "expectedCount": 5,
+  "lines": [
+    { "y": 484, "items": [
+      { "x": 39, "text": "Date" },
+      { "x": 97, "text": "Card no." },
+      { "x": 155, "text": "Type" },
+      { "x": 219, "text": "Details" },
+      { "x": 524, "text": "Amount" }
+    ] },
+    { "y": 460, "items": [
+      { "x": 219, "text": "Opening balance" },
+      { "x": 534, "text": "R0.00" }
+    ] },
+    { "y": 437, "items": [
+      { "x": 39, "text": "15 Jun 2024" },
+      { "x": 155, "text": "EFT" },
+      { "x": 219, "text": "THEMBEKA FNB" },
+      { "x": 529, "text": "R50.00" }
+    ] },
+    { "y": 417, "items": [
+      { "x": 39, "text": "27 Jun 2024" },
+      { "x": 155, "text": "EFT" },
+      { "x": 219, "text": "THEMBEKA FNB" },
+      { "x": 525, "text": "R300.00" }
+    ] },
+    { "y": 397, "items": [
+      { "x": 39, "text": "3 Jul 2024" },
+      { "x": 155, "text": "Interest" },
+      { "x": 219, "text": "Interest Earned at 1.00%" },
+      { "x": 534, "text": "R0.07" }
+    ] },
+    { "y": 377, "items": [
+      { "x": 39, "text": "3 Jul 2024" },
+      { "x": 155, "text": "Fee" },
+      { "x": 219, "text": "Monthly Account fee" },
+      { "x": 525, "text": "- R14.50" }
+    ] },
+    { "y": 358, "items": [
+      { "x": 39, "text": "3 Jul 2024" },
+      { "x": 155, "text": "Fee" },
+      { "x": 219, "text": "Vitality Money Premium" },
+      { "x": 529, "text": "- R9.67" }
+    ] },
+    { "y": 338, "items": [
+      { "x": 219, "text": "Closing balance" },
+      { "x": 525, "text": "R325.90" }
+    ] }
+  ]
+}

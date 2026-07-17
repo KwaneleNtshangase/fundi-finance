@@ -3,7 +3,12 @@ import { getUserFromRequest } from "@/lib/apiAuth";
 import { createServiceSupabase } from "@/lib/supabaseServer";
 import { parseStatement, inferFileType } from "@/lib/budget/parsers";
 import { parsePdfStatement, SCANNED_MESSAGE } from "@/lib/budget/parsers/pdf";
-import { assignDedupeHashes, applyExistingImportSkips } from "@/lib/budget/dedupe";
+import {
+  assignDedupeHashes,
+  applyExistingImportSkips,
+  flagPossibleDuplicates,
+  type ExistingTxnKey,
+} from "@/lib/budget/dedupe";
 import { reconcileAfterImportSkips } from "@/lib/budget/reconciliation";
 import { isRefundLikeCredit } from "@/lib/budget/refunds";
 import { categorise } from "@/lib/categorisation";
@@ -30,6 +35,7 @@ function buildPreview(
   },
   userRules: UserMerchantRule[],
   existingHashes: Set<string>,
+  existingKeys: ExistingTxnKey[],
   fileName: string,
   accountLabelOverride?: string,
   customCategories: CustomBudgetCategory[] = []
@@ -61,6 +67,9 @@ function buildPreview(
   });
 
   preview = applyExistingImportSkips(preview, existingHashes);
+  // Second, softer pass: same date+amount+type as an existing entry but a
+  // different exact hash (overlapping statements / previously-missed rows).
+  preview = flagPossibleDuplicates(preview, existingKeys);
 
   const reconciliation = reconcileAfterImportSkips(
     txnsWithAccount,
@@ -76,7 +85,8 @@ function buildPreview(
     statementReconciliation: parsed.reconciliation,
     transactions: preview,
     importedCount: preview.filter((t) => !t.skipReason).length,
-    skippedCount: preview.filter((t) => t.skipReason === "existing_import").length,
+    skippedCount: preview.filter((t) => t.skipReason === "existing_import" && !t.possibleDuplicate).length,
+    possibleDuplicateCount: preview.filter((t) => t.possibleDuplicate).length,
     lowConfidence: parsed.lowConfidence,
     customCategories,
   };
@@ -120,6 +130,23 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id)
       .not("dedupe_hash", "is", null);
 
+    // For fuzzy duplicate detection we need each existing entry's date/amount/
+    // type/description - not just its hash. Exclude transfers (they legitimately
+    // mirror another leg).
+    const { data: existingEntryRows } = await admin
+      .from("budget_entries")
+      .select("entry_date, amount, type, description, is_transfer")
+      .eq("user_id", user.id);
+
+    const existingKeys: ExistingTxnKey[] = (existingEntryRows ?? [])
+      .filter((r) => !r.is_transfer)
+      .map((r) => ({
+        entry_date: r.entry_date as string,
+        amountCents: Math.round(Number(r.amount) * 100),
+        type: r.type as "income" | "expense",
+        description: (r.description as string | null) ?? null,
+      }));
+
     const { data: customCatRows } = await admin
       .from("custom_budget_categories")
       .select("id, name, type, color, icon_name")
@@ -156,6 +183,7 @@ export async function POST(req: NextRequest) {
         pdfResult,
         userRules ?? [],
         existingHashes,
+        existingKeys,
         file.name,
         accountLabelOverride,
         customCategories
@@ -170,6 +198,7 @@ export async function POST(req: NextRequest) {
       parsed,
       userRules ?? [],
       existingHashes,
+      existingKeys,
       file.name,
       accountLabelOverride,
       customCategories

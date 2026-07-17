@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { assignDedupeHashes, buildDedupeHash, dedupeTupleKey } from "../dedupe";
+import {
+  assignDedupeHashes,
+  buildDedupeHash,
+  dedupeTupleKey,
+  flagPossibleDuplicates,
+  type ExistingTxnKey,
+} from "../dedupe";
 import { reconcileAfterImportSkips } from "../reconciliation";
 import { isRefundLikeCredit } from "../refunds";
 import { txnToBudgetEntryFields } from "../types";
@@ -45,6 +51,54 @@ describe("dedupe hash", () => {
     };
     expect(buildDedupeHash(txn, 1)).toContain("id:fit-99");
     expect(buildDedupeHash(txn, 1)).not.toContain("occ:");
+  });
+});
+
+describe("flagPossibleDuplicates", () => {
+  const existing: ExistingTxnKey[] = [
+    { entry_date: "2026-05-12", amountCents: 200, type: "expense", description: "Bank Charges" },
+    { entry_date: "2026-05-15", amountCents: 500000, type: "expense", description: "MAMA COKA IMIZAMO" },
+  ];
+
+  it("flags a row matching an existing entry on date+amount+type across statements", () => {
+    const rows = [
+      { date: "2026-05-12", amountZAR: -2, description: "FEE MONTHLY", dedupeHash: "h1" },
+    ];
+    const out = flagPossibleDuplicates(rows, existing);
+    expect(out[0].possibleDuplicate).toBe(true);
+    expect(out[0].skipReason).toBe("existing_import");
+    expect(out[0].duplicateOfDescription).toBe("Bank Charges");
+  });
+
+  it("does not flag when amount or date differs", () => {
+    const rows = [
+      { date: "2026-05-13", amountZAR: -2, description: "FEE", dedupeHash: "h" }, // wrong date
+      { date: "2026-05-12", amountZAR: -3, description: "FEE", dedupeHash: "h" }, // wrong amount
+      { date: "2026-05-12", amountZAR: 2, description: "FEE", dedupeHash: "h" },  // wrong type (income)
+    ];
+    const out = flagPossibleDuplicates(rows, existing);
+    expect(out.every((r) => !r.possibleDuplicate)).toBe(true);
+  });
+
+  it("only absorbs as many matches as exist - genuine repeats past that still import", () => {
+    const rows = [
+      { date: "2026-05-12", amountZAR: -2, description: "FEE A", dedupeHash: "a" },
+      { date: "2026-05-12", amountZAR: -2, description: "FEE B", dedupeHash: "b" },
+    ];
+    // Only ONE existing R2 on 2026-05-12, so the first is flagged, the second is new.
+    const out = flagPossibleDuplicates(rows, existing);
+    expect(out[0].possibleDuplicate).toBe(true);
+    expect(out[1].possibleDuplicate).toBeUndefined();
+  });
+
+  it("leaves exact-hash skips and transfers untouched", () => {
+    const rows = [
+      { date: "2026-05-12", amountZAR: -2, description: "FEE", dedupeHash: "h", skipReason: "existing_import" as const },
+      { date: "2026-05-12", amountZAR: -2, description: "TRANSFER", dedupeHash: "t", isTransfer: true },
+    ];
+    const out = flagPossibleDuplicates(rows, existing);
+    expect(out[0].possibleDuplicate).toBeUndefined();
+    expect(out[1].possibleDuplicate).toBeUndefined();
   });
 });
 

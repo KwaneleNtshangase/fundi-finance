@@ -43,6 +43,14 @@ export type PreviewTxn = NormalizedTxn & {
   dedupeHash: string;
   /** Already in DB from a prior import */
   skipReason?: "existing_import" | "user_removed";
+  /**
+   * Same date + amount + type as an existing entry, but a different exact hash
+   * (e.g. an overlapping month across two statements, or a row missed before).
+   * Default-skipped so it can't silently re-import; user verifies and can keep.
+   */
+  possibleDuplicate?: boolean;
+  /** Description of the existing entry this looks like a duplicate of. */
+  duplicateOfDescription?: string;
   /** Same hash earlier in this file - user should confirm both */
   possibleDuplicateInFile?: boolean;
   /** Money-in line that may be a card refund - defaults to income unless re-categorised */
