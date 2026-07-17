@@ -579,26 +579,36 @@ function ExpenseTable({
 }
 
 function MonthTable({ months }: { months: MonthlySpend[] }) {
+  const anySetAside = months.some((m) => m.setAsideCents > 0);
+  // Columns reconcile: Income - Day-to-day - Set aside = Net. The Day-to-day
+  // column matches the headline "day-to-day spending" basis exactly.
+  const w = anySetAside
+    ? { month: "24%", inc: "19%", day: "19%", set: "17%", net: "21%" }
+    : { month: "26%", inc: "24%", day: "24%", set: "0%", net: "26%" };
   return (
     <View>
       <View style={styles.tableHeader}>
-        <Text style={{ width: "24%" }}>Month</Text>
-        <Text style={{ width: "24%", textAlign: "right" }}>Income</Text>
-        <Text style={{ width: "24%", textAlign: "right" }}>Spending</Text>
-        <Text style={{ width: "28%", textAlign: "right" }}>Net</Text>
+        <Text style={{ width: w.month }}>Month</Text>
+        <Text style={{ width: w.inc, textAlign: "right" }}>Income</Text>
+        <Text style={{ width: w.day, textAlign: "right" }}>Day-to-day</Text>
+        {anySetAside && <Text style={{ width: w.set, textAlign: "right" }}>Set aside</Text>}
+        <Text style={{ width: w.net, textAlign: "right" }}>Net</Text>
       </View>
       {months.map((m, idx) => (
         <View key={m.monthYear} style={[styles.tableRow, idx % 2 === 1 ? { backgroundColor: C.rowAlt } : {}]}>
-          <View style={{ width: "24%", flexDirection: "row", alignItems: "center" }}>
+          <View style={{ width: w.month, flexDirection: "row", alignItems: "center" }}>
             <View style={[styles.dot, { width: 7, height: 7, backgroundColor: m.netCents >= 0 ? C.teal : C.expense }]} />
             <Text>
               {m.label} {m.monthYear.slice(0, 4)}
               {m.isPartial ? ` (1-${m.daysCovered})` : ""}
             </Text>
           </View>
-          <Text style={{ width: "24%", textAlign: "right" }}>{zarWhole(m.incomeCents)}</Text>
-          <Text style={{ width: "24%", textAlign: "right" }}>{zarWhole(m.expenseCents)}</Text>
-          <Text style={{ width: "28%", textAlign: "right", fontWeight: 700, color: m.netCents >= 0 ? C.teal : C.expense }}>
+          <Text style={{ width: w.inc, textAlign: "right" }}>{zarWhole(m.incomeCents)}</Text>
+          <Text style={{ width: w.day, textAlign: "right" }}>{zarWhole(m.consumptionCents)}</Text>
+          {anySetAside && (
+            <Text style={{ width: w.set, textAlign: "right", color: C.gold }}>{zarWhole(m.setAsideCents)}</Text>
+          )}
+          <Text style={{ width: w.net, textAlign: "right", fontWeight: 700, color: m.netCents >= 0 ? C.teal : C.expense }}>
             {zarSigned(m.netCents)}
           </Text>
         </View>
@@ -640,10 +650,44 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         .filter((r) => r.group === topGroup && r.actualCents > 0)
         .sort((a, b) => b.actualCents - a.actualCents)[0]
     : undefined;
-  const sunburstStory =
-    topGroup && topGroupRow && model.totalExpenseCents > 0
-      ? `${GROUP_META[topGroup].label.split(" (")[0]} took the biggest share at ${Math.round((model.groupTotals[topGroup] / model.totalExpenseCents) * 100)}% - led by ${topGroupRow.categoryName} (${zarWhole(topGroupRow.actualCents)}).`
-      : null;
+  const topGroupPct =
+    topGroup && model.totalExpenseCents > 0
+      ? Math.round((model.groupTotals[topGroup] / model.totalExpenseCents) * 100)
+      : 0;
+  const topGroupUnbudgeted =
+    topGroup && !["unclassified"].includes(topGroup)
+      ? model.expenseCategories
+          .filter((r) => r.group === topGroup && r.actualCents > 0 && !r.hasBudget && !r.isSavingsVehicle)
+          .reduce((s, r) => s + r.actualCents, 0)
+      : 0;
+  // A real insight, not a restated legend: flag when the dominant slice is
+  // unclassified (blind), business (skews personal ratios), or a big
+  // unbudgeted block (running unmanaged).
+  const sunburstStory: { tone: InsightTone; text: string } | null = (() => {
+    if (!topGroup || !topGroupRow || model.totalExpenseCents <= 0) return null;
+    if (topGroup === "unclassified") {
+      return {
+        tone: "bad",
+        text: `The biggest slice (${topGroupPct}%) is unclassified - until it's categorised, this chart can't tell you where that money really went.`,
+      };
+    }
+    if (topGroup === "business") {
+      return {
+        tone: "info",
+        text: `Business is ${topGroupPct}% of all outflows (${zarWhole(model.groupTotals.business)}). If these are side-hustle costs that earn income, they're closer to investment than lifestyle spending - the personal ratios below exclude them.`,
+      };
+    }
+    if (topGroupUnbudgeted >= model.groupTotals[topGroup] * 0.7 && topGroupUnbudgeted > 100000) {
+      return {
+        tone: "warn",
+        text: `${GROUP_META[topGroup].label.split(" (")[0]} is your biggest area at ${topGroupPct}% (${zarWhole(model.groupTotals[topGroup])}) - and mostly unbudgeted, so it isn't being actively managed.`,
+      };
+    }
+    return {
+      tone: "info",
+      text: `${GROUP_META[topGroup].label.split(" (")[0]} took the biggest share at ${topGroupPct}%, led by ${topGroupRow.categoryName} (${zarWhole(topGroupRow.actualCents)}).`,
+    };
+  })();
 
   // Day-to-day only: a stokvel/savings contribution above plan is extra money
   // set aside, not an overspend - it must never appear in this list.
@@ -952,7 +996,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         </View>
         {sunburstStory && (
           <View style={{ marginBottom: 10 }}>
-            <ToneItem tone="info" size={8.5} text={sunburstStory} />
+            <ToneItem tone={sunburstStory.tone} size={8.5} text={sunburstStory.text} />
           </View>
         )}
 

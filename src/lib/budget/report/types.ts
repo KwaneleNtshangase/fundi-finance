@@ -91,8 +91,14 @@ export type LargestTxn = {
 export type MonthlySpend = {
   monthYear: string;
   label: string;
+  /** ALL expense outflows this month (day-to-day + set-aside). */
   expenseCents: number;
+  /** Outflows into savings vehicles this month. */
+  setAsideCents: number;
+  /** expenseCents - setAsideCents: day-to-day spending, matches the headline. */
+  consumptionCents: number;
   incomeCents: number;
+  /** income - expense (all outflows) = surplus/shortfall for the month. */
   netCents: number;
   /** True when the report period covers only part of this calendar month. */
   isPartial: boolean;
@@ -190,6 +196,12 @@ export type ReportBuildOptions = {
   prevEntries?: BudgetEntryInput[];
   prevStart?: string;
   prevEnd?: string;
+  /**
+   * Wider history (e.g. trailing 12 months) used ONLY for recurring-commitment
+   * detection, so a monthly payment still hits the 3-month threshold even in a
+   * single-month report. Falls back to the period's own entries when absent.
+   */
+  historyEntries?: BudgetEntryInput[];
 };
 
 export type ReportModel = {

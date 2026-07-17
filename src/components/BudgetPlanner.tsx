@@ -564,6 +564,7 @@ export function BudgetView() {
       // clear all month-specific budgets, so nothing keeps an older figure.
       await supabase.from("budget_targets").delete().eq("user_id", user.id);
       const rows = allExpCats
+        .filter((c) => c.id !== "other")
         .map((c) => ({ category: c.id, monthly_limit: Number(budgetDraft[c.id]) }))
         .filter((r) => r.monthly_limit > 0)
         .map((r) => ({ user_id: user.id, category: r.category, monthly_limit: r.monthly_limit, month_year: "default" }));
@@ -574,6 +575,7 @@ export function BudgetView() {
       // writes an override for just the selected month.
       const targetMonth = budgetScope === "default" ? `default:${monthYear}` : monthYear;
       for (const cat of allExpCats) {
+        if (cat.id === "other") continue;
         const val = Number(budgetDraft[cat.id]);
         if (val > 0) {
           await supabase.from("budget_targets").upsert(
@@ -1600,7 +1602,9 @@ export function BudgetView() {
                     : `Your default budget from ${monthLabel} onward. Earlier months keep the budget they already had, so this won't rewrite your history. You can still override individual months. Leave blank for no limit.`}
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {allExpCats.map((c) => (
+                {/* "Other" is the uncategorised bucket, not a spending envelope -
+                    budgeting it produces meaningless "over budget" alerts. */}
+                {allExpCats.filter((c) => c.id !== "other").map((c) => (
                   <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                     <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
                     <span style={{ fontWeight: 600, fontSize: 13, flex: 1, minWidth: 0 }}>{c.label}</span>

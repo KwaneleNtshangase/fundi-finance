@@ -370,6 +370,73 @@ describe("buildReport", () => {
     expect(model.insights.actions[0].title).toMatch(/recategorise/i);
   });
 
+  it("monthly rows reconcile: income - day-to-day - set aside = net", () => {
+    const model = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "food", amount: 2000, entry_date: "2026-06-05" },
+        { type: "expense", category: "savings", amount: 1500, entry_date: "2026-06-10" },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    const m = model.monthlySpend[0];
+    expect(m.setAsideCents).toBe(150000);
+    expect(m.consumptionCents).toBe(200000);
+    expect(m.incomeCents - m.consumptionCents - m.setAsideCents).toBe(m.netCents);
+    expect(m.netCents).toBe(650000);
+  });
+
+  it("ignores a budget set against Other/unclassified (no 2494%-over noise)", () => {
+    const model = report(
+      [
+        { type: "expense", category: "other", amount: 25000, entry_date: "2026-06-05" },
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-06" },
+      ],
+      [
+        { category: "other", monthly_limit: 1000, month_year: "2026-06" },
+        { category: "food", monthly_limit: 4000, month_year: "2026-06" },
+      ],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    const other = model.expenseCategories.find((r) => r.categoryId === "other");
+    expect(other?.hasBudget).toBe(false); // budget on Other is ignored
+    expect(other?.variancePct).toBeNull();
+    expect(model.topOverBudget.some((r) => r.categoryId === "other")).toBe(false);
+    // Only food's R4000 counts as the day-to-day budget.
+    expect(model.dayToDayBudgetedCents).toBe(400000);
+  });
+
+  it("detects a monthly recurring payment in a single-month report via history", () => {
+    const history: BudgetEntryInput[] = [];
+    for (const m of ["2026-04", "2026-05", "2026-06"]) {
+      history.push({
+        type: "expense",
+        category: "housing",
+        amount: 3800,
+        description: "Rent - Room Umlazi",
+        entry_date: `${m}-07`,
+      });
+    }
+    // The report window is just June, where Rent appears once.
+    const model = buildReport(
+      [{ type: "expense", category: "housing", amount: 3800, description: "Rent - Room Umlazi", entry_date: "2026-06-07" }],
+      [],
+      [],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT,
+      { historyEntries: history }
+    );
+    assertReportModel(model);
+    expect(model.recurringCommitments).toHaveLength(1);
+    expect(model.recurringCommitments[0].description).toBe("Rent - Room Umlazi");
+    expect(model.recurringCommitments[0].monthsSeen).toBe(3);
+  });
+
   it("business custom category is its own group, not unclassified", () => {
     const model = buildReport(
       [

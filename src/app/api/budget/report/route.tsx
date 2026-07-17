@@ -44,8 +44,13 @@ export async function POST(req: NextRequest) {
 
   // Preceding equal-length window - powers the "vs previous period" deltas.
   const prev = precedingPeriod(periodStart, periodEnd);
+  // Trailing ~12 months before the period end - used only to detect recurring
+  // commitments, so a monthly payment still clears the 3-month threshold even
+  // when the report itself covers a single month.
+  const [py, pm, pd] = periodEnd.split("-").map(Number);
+  const historyStart = `${py - 1}-${String(pm).padStart(2, "0")}-${String(pd).padStart(2, "0")}`;
 
-  const [entriesRes, prevEntriesRes, targetsRes, catsRes, profileRes, progressRes] = await Promise.all([
+  const [entriesRes, prevEntriesRes, historyRes, targetsRes, catsRes, profileRes, progressRes] = await Promise.all([
     admin
       .from("budget_entries")
       .select("id, type, category, amount, description, entry_date, is_transfer")
@@ -58,6 +63,12 @@ export async function POST(req: NextRequest) {
       .eq("user_id", user.id)
       .gte("entry_date", prev.periodStart)
       .lte("entry_date", prev.periodEnd),
+    admin
+      .from("budget_entries")
+      .select("type, category, amount, description, entry_date, is_transfer")
+      .eq("user_id", user.id)
+      .gte("entry_date", historyStart)
+      .lte("entry_date", periodEnd),
     admin
       .from("budget_targets")
       .select("category, monthly_limit, month_year")
@@ -113,6 +124,10 @@ export async function POST(req: NextRequest) {
   const prevEntries = prevEntriesRes.error
     ? []
     : ((prevEntriesRes.data ?? []) as DbEntry[]).map(mapEntry);
+  // History for recurring detection is best-effort too.
+  const historyEntries = historyRes.error
+    ? entries
+    : ((historyRes.data ?? []) as DbEntry[]).map((e) => mapEntry({ ...e, id: "" }));
   const targets = (targetsRes.data ?? []) as BudgetTargetInput[];
   const categories: CategoryMeta[] = (catsRes.data ?? []).map(
     (c: { id: string; name: string; color: string; type: "expense" | "income" }) => ({
@@ -164,6 +179,7 @@ export async function POST(req: NextRequest) {
       prevEntries,
       prevStart: prev.periodStart,
       prevEnd: prev.periodEnd,
+      historyEntries,
     }
   );
 

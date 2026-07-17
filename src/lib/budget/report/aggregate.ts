@@ -138,6 +138,10 @@ export function buildReport(
   const budgetedByCategory: Record<string, number> = {};
 
   for (const categoryId of expenseCategoryIds) {
+    // "Other"/unclassified is a categorisation gap, not a spending envelope -
+    // budgeting it produces meaningless "2494% over" alerts. Ignore any budget
+    // set against it so it never enters the like-for-like comparison.
+    if (metaOf(categoryId).group === "unclassified") continue;
     let categoryBudgetCents = 0;
     for (const monthYear of monthsInPeriod) {
       // Month override wins; otherwise the default version in force that month
@@ -252,11 +256,17 @@ export function buildReport(
   const monthlySpend: MonthlySpend[] = monthsInPeriod.map((monthYear) => {
     const slice = monthOverlapSlice(monthYear, periodStart, periodEnd)!;
     let expenseCents = 0;
+    let setAsideMonthCents = 0;
     let incomeCents = 0;
     for (const entry of periodEntries) {
       if (entry.entry_date < slice.overlapStart || entry.entry_date > slice.overlapEnd) continue;
-      if (entry.type === "expense") expenseCents += amountToCents(entry.amount);
-      else incomeCents += amountToCents(entry.amount);
+      if (entry.type === "expense") {
+        const cents = amountToCents(entry.amount);
+        expenseCents += cents;
+        if (isVehicle(entry.category)) setAsideMonthCents += cents;
+      } else {
+        incomeCents += amountToCents(entry.amount);
+      }
     }
     const [y, m] = monthYear.split("-").map(Number);
     const daysInMonth = daysInCalendarMonth(y, m);
@@ -265,6 +275,8 @@ export function buildReport(
       monthYear,
       label: MONTH_SHORT[m - 1],
       expenseCents,
+      setAsideCents: setAsideMonthCents,
+      consumptionCents: expenseCents - setAsideMonthCents,
       incomeCents,
       netCents: incomeCents - expenseCents,
       isPartial: daysCovered < daysInMonth,
@@ -316,13 +328,36 @@ export function buildReport(
     .slice(0, 5);
 
   // Recurring commitments: same counterparty, 3+ distinct months, amounts
-  // within a tight band. These are fixed commitments (rent, loan instalments,
-  // subscriptions) - listing each occurrence as a "largest transaction" was
-  // noise, so they're collapsed into one line here instead.
+  // within a tight band. Detection runs over the WIDER history (falling back to
+  // the period) so a monthly payment still qualifies in a single-month report -
+  // a 31-day window can only ever contain one occurrence. Only merchants that
+  // also appear in the current period are surfaced, so the list stays relevant.
+  const historyForRecurring =
+    options.historyEntries && options.historyEntries.length > 0
+      ? options.historyEntries.filter((e) => !e.is_transfer)
+      : periodEntries;
+  const historyMap = new Map<string, MerchantGroup>();
+  for (const entry of historyForRecurring) {
+    if (entry.type !== "expense") continue;
+    const key = merchantKey(entry.description);
+    const cents = amountToCents(entry.amount);
+    let g = historyMap.get(key);
+    if (!g) {
+      g = { totalCents: 0, count: 0, sample: entry.description ?? "", amounts: [], months: new Set(), categoryCounts: new Map() };
+      historyMap.set(key, g);
+    }
+    g.totalCents += cents;
+    g.count += 1;
+    g.amounts.push(cents);
+    g.months.add(entry.entry_date.slice(0, 7));
+    g.categoryCounts.set(entry.category, (g.categoryCounts.get(entry.category) ?? 0) + 1);
+  }
   const recurringKeys = new Set<string>();
-  const recurringCommitments = [...merchantMap.entries()]
+  const recurringCommitments = [...historyMap.entries()]
     .filter(([key, g]) => {
       if (key === "unlabelled" || g.count < 3 || g.months.size < 3) return false;
+      // Must also appear in the period being reported on.
+      if (!merchantMap.has(key)) return false;
       const min = Math.min(...g.amounts);
       const max = Math.max(...g.amounts);
       return min > 0 && max / min <= 1.25;

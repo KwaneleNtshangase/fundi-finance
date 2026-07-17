@@ -227,6 +227,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
   ],
   "monthlySpend": [
     {
+      "consumptionCents": 500000,
       "daysCovered": 30,
       "daysInMonth": 30,
       "expenseCents": 750000,
@@ -235,6 +236,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
       "label": "Jun",
       "monthYear": "2026-06",
       "netCents": 1750000,
+      "setAsideCents": 250000,
     },
   ],
   "netCents": 1750000,

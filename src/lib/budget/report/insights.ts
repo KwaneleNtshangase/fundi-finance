@@ -59,13 +59,22 @@ function debtCents(core: ReportCore): number {
 }
 
 /**
- * Biggest category where a cut is actually possible: needs/wants only.
- * Debt repayments and savings vehicles are commitments, not trimmable spend.
+ * Categories the user can't realistically cut by choice this month - bank fees,
+ * insurance, rent, tithe, tax. Recommending "trim these by 10%" is useless.
+ */
+const NON_TRIMMABLE = /\b(bank\s*charge|fee|insurance|funeral|rent|bond|housing|tithe|tax|levy|levies|medical\s+aid)\b/i;
+
+/**
+ * Biggest category where a cut is actually possible: needs/wants that aren't
+ * fixed obligations. Debt repayments and savings vehicles are commitments too.
  */
 function topTrimmableRow(core: ReportCore): ExpenseCategoryRow | null {
   return (
     core.expenseCategories.find(
-      (r) => (r.group === "needs" || r.group === "wants") && r.actualCents > 0
+      (r) =>
+        (r.group === "needs" || r.group === "wants") &&
+        r.actualCents > 0 &&
+        !NON_TRIMMABLE.test(`${r.categoryId} ${r.categoryName}`)
     ) ?? null
   );
 }
@@ -129,16 +138,16 @@ function scoreDebtLoad(core: ReportCore): HealthComponent {
   const dirty = core.dataQuality.unclassifiedExpenseSharePct >= GUIDELINES.unclassifiedWarnPct;
   const note = `${Math.round(share * 100)}% of income to debt (guideline: below ${GUIDELINES.debtShareOfIncomePct}%)`;
   if (share <= 0.15) {
-    // Same rigor as budget discipline: a clean-looking debt share can't earn
-    // full marks while a big slice of spending is unclassified - more debt
-    // could be hiding in there.
+    // A clean-looking debt share can't earn near-full marks while a big slice of
+    // spending is unclassified - undetected debt could be hiding in "Other". Cap
+    // it at half and mark it unverified so the score matches the inline caveat.
     if (dirty) {
       return {
         label: "Debt load",
-        score: 15,
+        score: 10,
         max,
         tone: "warn",
-        note: `${note} - but ${core.dataQuality.unclassifiedExpenseSharePct}% of spending is unclassified`,
+        note: `Unverified - ${core.dataQuality.unclassifiedExpenseSharePct}% of spending is unclassified, so hidden debt can't be ruled out`,
       };
     }
     return { label: "Debt load", score: 20, max, tone: "good", note };
@@ -455,8 +464,15 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   }
 
   // ── Benchmarks ──────────────────────────────────────────────────────────
-  const needsPct = pctOf(core.groupTotals.needs, core.totalExpenseCents);
-  const wantsPct = pctOf(core.groupTotals.wants, core.totalExpenseCents);
+  // 50/30/20 is about PERSONAL spending, so business and unclassified are
+  // excluded from the denominator - otherwise a big side-hustle month makes
+  // "Needs 6%" look alarming when personal life is actually fine.
+  const personalBase =
+    core.groupTotals.needs + core.groupTotals.wants + core.groupTotals.goals;
+  const needsPct = pctOf(core.groupTotals.needs, personalBase);
+  const wantsPct = pctOf(core.groupTotals.wants, personalBase);
+  const hasBusiness = core.groupTotals.business > 0;
+  const shareLabel = hasBusiness ? "% of personal spending" : "% of spending";
   const toneFor = (ok: boolean, mid: boolean): InsightTone => (ok ? "good" : mid ? "warn" : "bad");
   const benchmarks: ReportBenchmark[] = [
     {
@@ -473,13 +489,13 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     },
     {
       label: "Needs (essentials)",
-      value: `${needsPct}% of spending`,
+      value: `${needsPct}${shareLabel}`,
       target: `~${GUIDELINES.needsSharePct}% guideline`,
       tone: needsPct <= 65 ? "good" : "warn",
     },
     {
       label: "Wants (lifestyle)",
-      value: `${wantsPct}% of spending`,
+      value: `${wantsPct}${shareLabel}`,
       target: `~${GUIDELINES.wantsSharePct}% guideline`,
       tone: wantsPct <= GUIDELINES.wantsSharePct ? "good" : "warn",
     },

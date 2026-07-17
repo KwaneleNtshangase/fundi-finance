@@ -102,9 +102,15 @@ const model = buildReport(
     prevEntries,
     prevStart: "2025-07-05",
     prevEnd: "2025-12-31",
+    historyEntries: entries,
   }
 );
 assertReportModel(model);
+// Reconciliation check for the month-by-month table fix.
+for (const m of model.monthlySpend) {
+  const ok = m.incomeCents - m.consumptionCents - m.setAsideCents === m.netCents;
+  if (!ok) throw new Error(`Month ${m.monthYear} does not reconcile: ${m.incomeCents} - ${m.consumptionCents} - ${m.setAsideCents} !== ${m.netCents}`);
+}
 
 console.log("Health:", model.insights.healthScore, `(raw ${model.insights.healthScoreRaw})`, model.insights.healthBand);
 console.log("Cap note:", model.insights.healthCapNote);

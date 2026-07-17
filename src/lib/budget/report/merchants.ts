@@ -29,6 +29,15 @@ const SUFFIXES: RegExp[] = [
   /\bavailable\s+balance\b.*$/i,
   /\bfee[:\s].*$/i,
   /\belect(ronic)?\b.*$/i,
+  // SA payment-rail suffixes that TRAIL the counterparty name. Anchored to the
+  // end so the leading channel form ("Payshap payment to <name>") is left for
+  // the PREFIX rules to strip instead - only "<name> ... Payshap Payment From"
+  // at the end is removed here.
+  /\bpayshap\s+payment\s+(from|to|sent|received)\b\s*$/i,
+  /\bmagtape\s+(credit|debit)\b\s*$/i,
+  /\breal[\s-]?time\s+(transfer|credit|payment)\s*(from|to)?\b\s*$/i,
+  /\bimmediate\s+(trf|transfer)\b\s*$/i,
+  /\binternet\s+(trf|transfer)\b\s*$/i,
   /\b(ib|electronic\s+banking)\s+payment\s+(to|from|fr)\b.*$/i,
   /\bcheque\s+card\s+purchase\b.*$/i,
   /\bcredit\s+transfer\b.*$/i,
