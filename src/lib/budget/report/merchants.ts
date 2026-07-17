@@ -11,11 +11,14 @@
 
 /** Channel/verb prefixes that precede the actual counterparty name. */
 const PREFIXES: RegExp[] = [
-  /^(fnb|capitec|absa|nedbank|standard bank|tyme(bank)?|discovery bank)\b[\s:,-]*/i,
+  /^(fnb|capitec|absa( bank)?|nedbank|standard bank|tyme(bank)?|discovery bank)\b[\s:,-]*/i,
+  /^banking\s+app\s+(immediate|external|internal|prepaid)?\s*(payment|purchase|transfer)?[\s:,-]*/i,
   /^(app|online|internet|cellphone|mobile)\s+(banking\s+)?/i,
-  /^(payment|paym?t|pmt)\s+(to|from)\b[\s:,-]*/i,
+  /^recurring\s+(card\s+)?(purchase|payment)[\s:,-]*/i,
+  /^(payment|paym?t|pmt)\s+(to|from|received)\b[\s:,-]*/i,
   /^(pay\s+)?(payshap|shap)\s+(payment\s+)?(to|from|sent|rcvd|received)?\b[\s:,-]*/i,
-  /^(pos|card)\s+(purchase|payment)\b[\s:,-]*/i,
+  /^(pos|card|cheque\s+card)\s+(purchase|payment)\b[\s:,-]*/i,
+  /^(ib|electronic\s+banking)\s+payment\s+(to|from|fr)?\b[\s:,-]*/i,
   /^(debit\s+order|debit\s+ord|magtape\s+(debit|credit)|eft\s+(debit|credit)|immediate\s+trf|internet\s+trf|realtime\s+(payment|credit))\b[\s:,-]*/i,
   /^(send\s+money|cash\s+send|e-?wallet)\b[\s:,-]*/i,
   /^(to|from)\s+/i,
@@ -23,10 +26,15 @@ const PREFIXES: RegExp[] = [
 
 /** Trailing noise: fee suffixes, channel codes, references, card numbers. */
 const SUFFIXES: RegExp[] = [
+  /\bavailable\s+balance\b.*$/i,
   /\bfee[:\s].*$/i,
   /\belect(ronic)?\b.*$/i,
+  /\b(ib|electronic\s+banking)\s+payment\s+(to|from|fr)\b.*$/i,
+  /\bcheque\s+card\s+purchase\b.*$/i,
+  /\bcredit\s+transfer\b.*$/i,
   /\b(ref(erence)?( no)?\.?|reference)[:\s#]*\S*.*$/i,
   /\bcard\s*(no\.?|number)?\s*[x*\d]{4,}.*$/i,
+  /[([]\s*\d{3,}.*$/,
   /\b\d{6,}\b.*$/,
 ];
 

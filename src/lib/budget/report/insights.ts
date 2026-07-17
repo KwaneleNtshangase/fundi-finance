@@ -151,7 +151,7 @@ function scoreDebtLoad(core: ReportCore): HealthComponent {
 function scoreBudgetDiscipline(core: ReportCore): HealthComponent {
   const max = 15;
   if (core.dayToDayBudgetedCents <= 0) {
-    return { label: "Budget discipline", score: 4, max, tone: "warn", note: "No day-to-day budgets set yet" };
+    return { label: "Budget coverage", score: 4, max, tone: "warn", note: "No day-to-day budgets set yet" };
   }
   const used = core.budgetUsedPct ?? 0;
   // Coverage matters as much as adherence: staying under budget on two small
@@ -160,11 +160,11 @@ function scoreBudgetDiscipline(core: ReportCore): HealthComponent {
   const note = `${used}% of budget used, but budgets only cover ${covered}% of day-to-day spend`;
   const goodNote = `${used}% of budget used · budgets cover ${covered}% of day-to-day spend`;
   if (used <= 100 && covered >= 60)
-    return { label: "Budget discipline", score: 15, max, tone: "good", note: goodNote };
+    return { label: "Budget coverage", score: 15, max, tone: "good", note: goodNote };
   if (used <= 100 && covered >= 30)
-    return { label: "Budget discipline", score: 9, max, tone: "warn", note };
-  if (used <= 115) return { label: "Budget discipline", score: 7, max, tone: "warn", note };
-  return { label: "Budget discipline", score: 3, max, tone: "bad", note };
+    return { label: "Budget coverage", score: 9, max, tone: "warn", note };
+  if (used <= 115) return { label: "Budget coverage", score: 7, max, tone: "warn", note };
+  return { label: "Budget coverage", score: 3, max, tone: "bad", note };
 }
 
 function scoreDataQuality(core: ReportCore): HealthComponent {
@@ -272,6 +272,12 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   if (core.incomeCategories.length >= 2 && core.incomeCategories[0].sharePct < 60) {
     wins.push(`Income is spread across ${core.incomeCategories.length} sources - no single point of failure.`);
   }
+  const goalsSharePct = pctOf(core.groupTotals.goals, core.totalExpenseCents);
+  if (goalsSharePct >= 40) {
+    wins.push(
+      `${rand(core.groupTotals.goals)} (${goalsSharePct}%) of this period's money went toward building future wealth - savings, stokvel and debt payoff.`
+    );
+  }
 
   for (const r of core.topOverBudget.slice(0, 2)) {
     risks.push(`${r.categoryName}: ${rand(r.varianceCents)} over budget (${r.variancePct}% used).`);
@@ -302,6 +308,20 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     risks.push(
       `Recurring loan repayment detected: ${d.description} at ~${rand(d.typicalCents)}/month for ${d.monthsSeen} months running.`
     );
+  }
+  // Volatility: big swings vs the previous period are the most important
+  // thing happening in a report and must never pass silently.
+  if (core.comparison) {
+    const swings: string[] = [];
+    const inc = core.comparison.incomeDeltaPct;
+    const exp = core.comparison.expenseDeltaPct;
+    if (inc != null && Math.abs(inc) >= 40) swings.push(`income ${inc > 0 ? "up" : "down"} ${Math.abs(inc)}%`);
+    if (exp != null && Math.abs(exp) >= 40) swings.push(`spending ${exp > 0 ? "up" : "down"} ${Math.abs(exp)}%`);
+    if (swings.length > 0) {
+      risks.push(
+        `Big swing vs the previous period: ${swings.join(", ")}. If that isn't expected (bonus, once-off, seasonal), it's worth understanding before trusting the trend.`
+      );
+    }
   }
   // Data sanity: several complete months with IDENTICAL totals usually means
   // duplicated imports or templated entries, not real bank data.

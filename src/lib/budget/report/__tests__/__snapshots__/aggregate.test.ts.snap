@@ -161,7 +161,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
         "tone": "good",
       },
       {
-        "label": "Budget discipline",
+        "label": "Budget coverage",
         "max": 15,
         "note": "91% of budget used · budgets cover 100% of day-to-day spend",
         "score": 15,

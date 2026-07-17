@@ -20,6 +20,21 @@ describe("cleanMerchantName", () => {
     expect(cleanMerchantName("Payshap payment to Thabo")).toBe("Thabo");
   });
 
+  it("strips Banking App channel prefixes", () => {
+    expect(cleanMerchantName("Banking App Immediate Payment: Sakhile Kgaphola")).toBe("Sakhile Kgaphola");
+    expect(cleanMerchantName("Banking App External Payment Ns Dlamini")).toBe("Ns Dlamini");
+    expect(cleanMerchantName("Recurring Card Purchase Netflix")).toBe("Netflix");
+    expect(cleanMerchantName("Payment Received ABSA BANK Lindiwe")).toBe("Lindiwe");
+  });
+
+  it("strips running-balance and channel suffixes from statement lines", () => {
+    expect(cleanMerchantName("Jz Zulu Available Balance: 25 Jun 2026 Claremont")).toBe("Jz Zulu");
+    expect(cleanMerchantName("BUILD-IT NONGOMA 15,000.00 CHEQUE CARD PURCHASE")).toBe("Build-It Nongoma");
+    expect(cleanMerchantName("CAPITEC Z ZULU 1,510.00 IB PAYMENT TO")).toBe("Z Zulu");
+    expect(cleanMerchantName("FIXED MONTHLY FEE -300.00 CREDIT TRANSFER")).toBe("Fixed Monthly");
+    expect(cleanMerchantName("POS Purchase Mcd Westville (0679 *4893 27 May")).toBe("Mcd Westville");
+  });
+
   it("title-cases and collapses whitespace", () => {
     expect(cleanMerchantName("  boxer   superstore umlazi ")).toBe("Boxer Superstore Umlazi");
   });

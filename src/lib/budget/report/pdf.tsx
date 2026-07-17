@@ -261,6 +261,31 @@ function describeDonutSlice(cx: number, cy: number, outerR: number, innerR: numb
     "Z",
   ].join(" ");
 }
+const SUNBURST_ORDER: CategoryGroup[] = ["needs", "wants", "goals", "business", "unclassified"];
+
+function blendWithWhite(hex: string, f: number): string {
+  const n = hex.replace("#", "");
+  const ch = (i: number) => parseInt(n.slice(i, i + 2), 16);
+  const mix = (v: number) => Math.round(v + (255 - v) * f).toString(16).padStart(2, "0");
+  return `#${mix(ch(0))}${mix(ch(2))}${mix(ch(4))}`;
+}
+
+/**
+ * Outer-ring colors: shades of the parent group's color, so every slice
+ * visually belongs to its inner-ring group (category-identity colors made
+ * Stokvel/Business/Investments all look green - same dot, different meaning).
+ */
+function sunburstShades(rows: ExpenseCategoryRow[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const g of SUNBURST_ORDER) {
+    const inGroup = rows.filter((r) => r.group === g && r.actualCents > 0).sort((a, b) => b.actualCents - a.actualCents);
+    inGroup.forEach((r, i) => {
+      map.set(r.categoryId, blendWithWhite(GROUP_META[g].color, Math.min(0.12 + i * 0.16, 0.68)));
+    });
+  }
+  return map;
+}
+
 /**
  * Two-ring sunburst: inner ring = needs/wants/goals/business/unclassified
  * groups, outer ring = the categories inside each group. One glance shows
@@ -269,13 +294,15 @@ function describeDonutSlice(cx: number, cy: number, outerR: number, innerR: numb
 function SunburstChart({
   rows,
   groupTotals,
+  shades,
   size = 150,
 }: {
   rows: ExpenseCategoryRow[];
   groupTotals: Record<CategoryGroup, number>;
+  shades: Map<string, string>;
   size?: number;
 }) {
-  const order: CategoryGroup[] = ["needs", "wants", "goals", "business", "unclassified"];
+  const order = SUNBURST_ORDER;
   const total = order.reduce((s, g) => s + groupTotals[g], 0);
   const cx = size / 2;
   const cy = size / 2;
@@ -298,7 +325,10 @@ function SunburstChart({
   let a = -Math.PI / 2;
   for (const r of ordered) {
     const a1 = a + angleAt(r.actualCents);
-    outerSlices.push({ path: describeDonutSlice(cx, cy, outerR, midR + 1, a, a1), color: r.color });
+    outerSlices.push({
+      path: describeDonutSlice(cx, cy, outerR, midR + 1, a, a1),
+      color: shades.get(r.categoryId) ?? r.color,
+    });
     a = a1;
   }
   const innerSlices: { path: string; color: string }[] = [];
@@ -600,6 +630,20 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
   const legendRest = allSpendRows
     .filter((r) => !legendRows.includes(r))
     .reduce((s, r) => s + r.actualCents, 0);
+  const burstShades = sunburstShades(model.expenseCategories);
+  // One-line story for the sunburst: biggest group + what drives it.
+  const topGroup = SUNBURST_ORDER.filter((g) => model.groupTotals[g] > 0).sort(
+    (a, b) => model.groupTotals[b] - model.groupTotals[a]
+  )[0];
+  const topGroupRow = topGroup
+    ? model.expenseCategories
+        .filter((r) => r.group === topGroup && r.actualCents > 0)
+        .sort((a, b) => b.actualCents - a.actualCents)[0]
+    : undefined;
+  const sunburstStory =
+    topGroup && topGroupRow && model.totalExpenseCents > 0
+      ? `${GROUP_META[topGroup].label.split(" (")[0]} took the biggest share at ${Math.round((model.groupTotals[topGroup] / model.totalExpenseCents) * 100)}% - led by ${topGroupRow.categoryName} (${zarWhole(topGroupRow.actualCents)}).`
+      : null;
 
   // Day-to-day only: a stokvel/savings contribution above plan is extra money
   // set aside, not an overspend - it must never appear in this list.
@@ -848,10 +892,14 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
           </>
         )}
 
-        <Text style={styles.sectionTitle}>Income vs expenses over time</Text>
-        <View style={{ marginBottom: 16 }}>
-          <LineChart data={model.monthlySpend} />
-        </View>
+        {model.monthlySpend.length >= 2 && (
+          <>
+            <Text style={styles.sectionTitle}>Income vs expenses over time</Text>
+            <View style={{ marginBottom: 16 }}>
+              <LineChart data={model.monthlySpend} />
+            </View>
+          </>
+        )}
 
         <Text style={styles.sectionTitle}>Month by month</Text>
         <MonthTable months={model.monthlySpend} />
@@ -879,12 +927,12 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         <Text style={styles.sectionSub}>
           Inner ring: needs / wants / goals groups. Outer ring: the categories inside each. Set-aside contributions sit under Goals - they build assets, not consumption.
         </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
-          <SunburstChart rows={model.expenseCategories} groupTotals={model.groupTotals} size={144} />
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+          <SunburstChart rows={model.expenseCategories} groupTotals={model.groupTotals} shades={burstShades} size={144} />
           <View style={{ flex: 1, paddingLeft: 22 }}>
             {legendRows.map((r) => (
               <View key={r.categoryId} style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-                <View style={[styles.dot, { backgroundColor: r.color, width: 7, height: 7 }]} />
+                <View style={[styles.dot, { backgroundColor: burstShades.get(r.categoryId) ?? r.color, width: 7, height: 7 }]} />
                 <Text style={{ fontSize: 8.5, flex: 1 }}>
                   {r.categoryName}
                   {r.isSavingsVehicle ? " (set aside)" : ""}
@@ -902,6 +950,11 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
             )}
           </View>
         </View>
+        {sunburstStory && (
+          <View style={{ marginBottom: 10 }}>
+            <ToneItem tone="info" size={8.5} text={sunburstStory} />
+          </View>
+        )}
 
         <Text style={styles.sectionTitle}>Expenses by category</Text>
         <ExpenseTable rows={consumptionRows} />
@@ -947,6 +1000,14 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
           </Text>
         )}
 
+        {model.recurringCommitments.length === 0 && (
+          <>
+            <Text style={styles.sectionTitle}>Recurring commitments</Text>
+            <Text style={{ fontSize: 8.5, color: C.textMuted, marginBottom: 14 }}>
+              None detected yet - a payment shows up here once it repeats at a similar amount for three months or more.
+            </Text>
+          </>
+        )}
         {model.recurringCommitments.length > 0 && (
           <>
             <Text style={styles.sectionTitle}>Recurring commitments</Text>
