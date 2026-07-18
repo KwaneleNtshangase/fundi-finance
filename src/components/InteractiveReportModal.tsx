@@ -15,8 +15,17 @@ import {
 } from "recharts";
 import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
+import { resolvePeriod, formatPeriodLabel, type PeriodPreset } from "@/lib/budget/report/period";
 import { X, FileText, Lightbulb } from "@/components/icons/FundiIcons";
 import type { ReportModel, InsightTone } from "@/lib/budget/report/types";
+
+const PERIOD_OPTIONS: { key: PeriodPreset; label: string }[] = [
+  { key: "this_month", label: "This month" },
+  { key: "last_month", label: "Last month" },
+  { key: "quarter", label: "Quarter" },
+  { key: "year", label: "Year" },
+  { key: "custom", label: "Custom" },
+];
 
 type LightEntry = {
   category: string;
@@ -45,24 +54,32 @@ function zarSigned(cents: number): string {
 export function InteractiveReportModal({
   open,
   onClose,
-  periodStart,
-  periodEnd,
-  periodLabel,
+  initialStart,
+  initialEnd,
   onDownloadPdf,
   downloadingPdf,
 }: {
   open: boolean;
   onClose: () => void;
-  periodStart: string;
-  periodEnd: string;
-  periodLabel: string;
-  onDownloadPdf: () => void;
+  initialStart: string;
+  initialEnd: string;
+  onDownloadPdf: (periodStart: string, periodEnd: string) => void;
   downloadingPdf?: boolean;
 }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ReportData | null>(null);
   const [drill, setDrill] = useState<string | null>(null);
+  const [preset, setPreset] = useState<PeriodPreset>("this_month");
+  const [customStart, setCustomStart] = useState(initialStart);
+  const [customEnd, setCustomEnd] = useState(initialEnd);
+
+  // Resolve the active window from the picker; "custom" uses the date inputs.
+  const { periodStart, periodEnd } = useMemo(() => {
+    if (preset === "custom") return resolvePeriod("custom", { periodStart: customStart, periodEnd: customEnd });
+    return resolvePeriod(preset);
+  }, [preset, customStart, customEnd]);
+  const periodLabel = formatPeriodLabel(periodStart, periodEnd);
 
   useEffect(() => {
     if (!open) return;
@@ -135,7 +152,7 @@ export function InteractiveReportModal({
             <div style={{ fontWeight: 900, fontSize: 16 }}>Budget report</div>
             <div style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>{periodLabel}</div>
           </div>
-          <button type="button" onClick={onDownloadPdf} disabled={downloadingPdf}
+          <button type="button" onClick={() => onDownloadPdf(periodStart, periodEnd)} disabled={downloadingPdf}
             style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 12px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-bg)", color: "var(--color-text-primary)", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             <FileText size={15} /> {downloadingPdf ? "..." : "PDF"}
           </button>
@@ -143,6 +160,28 @@ export function InteractiveReportModal({
             style={{ background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 999, cursor: "pointer", padding: 7, display: "flex" }}>
             <X size={18} style={{ color: "var(--color-text-secondary)" }} />
           </button>
+        </div>
+
+        {/* Period selector */}
+        <div style={{ position: "sticky", top: 60, zIndex: 1, background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)", padding: "10px 14px", display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
+          {PERIOD_OPTIONS.map((o) => (
+            <button key={o.key} type="button" onClick={() => setPreset(o.key)}
+              style={{ padding: "6px 12px", borderRadius: 999, fontSize: 12.5, fontWeight: 700, cursor: "pointer",
+                border: `1.5px solid ${preset === o.key ? "var(--color-primary)" : "var(--color-border)"}`,
+                background: preset === o.key ? "var(--color-primary)" : "var(--color-surface)",
+                color: preset === o.key ? "#fff" : "var(--color-text-secondary)" }}>
+              {o.label}
+            </button>
+          ))}
+          {preset === "custom" && (
+            <div style={{ display: "flex", gap: 6, alignItems: "center", width: "100%", marginTop: 6 }}>
+              <input type="date" value={customStart} max={customEnd} onChange={(e) => setCustomStart(e.target.value)}
+                style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, background: "var(--color-surface)", color: "var(--color-text-primary)" }} />
+              <span style={{ color: "var(--color-text-secondary)", fontSize: 12 }}>to</span>
+              <input type="date" value={customEnd} min={customStart} onChange={(e) => setCustomEnd(e.target.value)}
+                style={{ flex: 1, padding: "7px 10px", borderRadius: 8, border: "1px solid var(--color-border)", fontSize: 13, background: "var(--color-surface)", color: "var(--color-text-primary)" }} />
+            </div>
+          )}
         </div>
 
         <div style={{ padding: "16px 18px 40px" }}>

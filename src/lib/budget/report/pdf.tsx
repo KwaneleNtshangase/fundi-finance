@@ -647,18 +647,6 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
 
   const consumptionRows = model.expenseCategories.filter((r) => !r.isSavingsVehicle && r.actualCents > 0);
   const setAsideRows = model.expenseCategories.filter((r) => r.isSavingsVehicle && r.actualCents > 0);
-  // Sunburst legend: top categories by size PLUS every budgeted category -
-  // a category the user actively budgets must never vanish into "Everything
-  // else" just because it's small.
-  const allSpendRows = model.expenseCategories.filter((r) => r.actualCents > 0);
-  const legendSet = new Set<string>([
-    ...allSpendRows.slice(0, 5).map((r) => r.categoryId),
-    ...allSpendRows.filter((r) => r.hasBudget).map((r) => r.categoryId),
-  ]);
-  const legendRows = allSpendRows.filter((r) => legendSet.has(r.categoryId)).slice(0, 8);
-  const legendRest = allSpendRows
-    .filter((r) => !legendRows.includes(r))
-    .reduce((s, r) => s + r.actualCents, 0);
   const burstShades = sunburstShades(model.expenseCategories);
   // One-line story for the sunburst: biggest group + what drives it.
   const topGroup = SUNBURST_ORDER.filter((g) => model.groupTotals[g] > 0).sort(
@@ -988,29 +976,41 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
 
         <Text style={styles.sectionTitle}>Where every rand went</Text>
         <Text style={styles.sectionSub}>
-          Inner ring: needs / wants / goals groups. Outer ring: the categories inside each. Set-aside contributions sit under Goals - they build assets, not consumption.
+          The inner ring is your money grouped into needs, wants, goals &amp; business. The outer ring breaks each group into its categories (same colour family). The legend below is grouped the same way, so you can see exactly which category sits where.
         </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
-          <SunburstChart rows={model.expenseCategories} groupTotals={model.groupTotals} shades={burstShades} size={144} />
-          <View style={{ flex: 1, paddingLeft: 22 }}>
-            {legendRows.map((r) => (
-              <View key={r.categoryId} style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-                <View style={[styles.dot, { backgroundColor: burstShades.get(r.categoryId) ?? r.color, width: 7, height: 7 }]} />
-                <Text style={{ fontSize: 8.5, flex: 1 }}>
-                  {r.categoryName}
-                  {r.isSavingsVehicle ? " (set aside)" : ""}
-                </Text>
-                <Text style={{ fontSize: 8.5, fontWeight: 700 }}>{zar(r.actualCents)}</Text>
-                <Text style={{ fontSize: 7.5, color: C.textMuted, width: 34, textAlign: "right" }}>{r.sharePct}%</Text>
-              </View>
-            ))}
-            {legendRest > 0 && (
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 5 }}>
-                <View style={[styles.dot, { backgroundColor: "#C8CDD6", width: 7, height: 7 }]} />
-                <Text style={{ fontSize: 8.5, flex: 1, color: C.textMuted }}>Everything else</Text>
-                <Text style={{ fontSize: 8.5, fontWeight: 700 }}>{zar(legendRest)}</Text>
-              </View>
-            )}
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 8 }}>
+          <SunburstChart rows={model.expenseCategories} groupTotals={model.groupTotals} shades={burstShades} size={150} />
+          <View style={{ flex: 1, paddingLeft: 20 }}>
+            {SUNBURST_ORDER.filter((g) => model.groupTotals[g] > 0).map((g) => {
+              const cats = model.expenseCategories
+                .filter((r) => r.group === g && r.actualCents > 0)
+                .sort((a, b) => b.actualCents - a.actualCents);
+              const gPct = model.totalExpenseCents > 0 ? Math.round((model.groupTotals[g] / model.totalExpenseCents) * 100) : 0;
+              return (
+                <View key={g} style={{ marginBottom: 5 }}>
+                  {/* group header - the inner-ring colour */}
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <View style={{ width: 9, height: 9, borderRadius: 2, backgroundColor: GROUP_META[g].color, marginRight: 5 }} />
+                    <Text style={{ fontSize: 8.5, fontWeight: 700, flex: 1 }}>{GROUP_META[g].label.split(" (")[0]}</Text>
+                    <Text style={{ fontSize: 8.5, fontWeight: 700 }}>{zar(model.groupTotals[g])}</Text>
+                    <Text style={{ fontSize: 7.5, color: C.textMuted, width: 30, textAlign: "right" }}>{gPct}%</Text>
+                  </View>
+                  {/* categories in this group - outer-ring shades */}
+                  {cats.slice(0, 4).map((r) => (
+                    <View key={r.categoryId} style={{ flexDirection: "row", alignItems: "center", paddingLeft: 14, marginTop: 1.5 }}>
+                      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: burstShades.get(r.categoryId) ?? r.color, marginRight: 5 }} />
+                      <Text style={{ fontSize: 7.5, color: C.text, flex: 1 }}>{r.categoryName}</Text>
+                      <Text style={{ fontSize: 7.5, color: C.textMuted }}>{zar(r.actualCents)}</Text>
+                    </View>
+                  ))}
+                  {cats.length > 4 && (
+                    <Text style={{ fontSize: 7, color: C.textMuted, paddingLeft: 14, marginTop: 1 }}>
+                      +{cats.length - 4} more
+                    </Text>
+                  )}
+                </View>
+              );
+            })}
           </View>
         </View>
         {sunburstStory && (

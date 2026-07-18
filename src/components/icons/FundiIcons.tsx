@@ -327,6 +327,68 @@ export function FundiTrophy(p: FundiIconProps) {
   );
 }
 
+/* ═══ Category icons (house style) - intuitive picks for budget categories ══ */
+export function Fuel(p: FundiIconProps) {
+  return <Icon {...p}><rect x="4" y="4" width="9" height="16" rx="1.6" /><path d="M4 10h9" /><path d="M13 8l3 3v6a2 2 0 0 0 2 2 2 2 0 0 0 2-2V9l-2.5-2.5" /><rect x="6" y="6.5" width="5" height="2.5" rx="0.6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Utensils(p: FundiIconProps) {
+  return <Icon {...p}><path d="M7 3v8a2 2 0 0 0 2 2h0V3" /><path d="M9 13v8" /><path d="M5 3v5" /><path d="M17 3c-1.5 0-2.5 2-2.5 5s1 4 2.5 4v9" /></Icon>;
+}
+export function Coffee(p: FundiIconProps) {
+  return <Icon {...p}><path d="M4 9h13v5a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V9z" /><path d="M17 10h2a2 2 0 0 1 0 4h-2" /><path d="M8 3v2M12 3v2" /></Icon>;
+}
+export function Dumbbell(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9 9v6M15 9v6M9 12h6" /><rect x="3" y="8" width="3" height="8" rx="1" fill="currentColor" stroke="none" /><rect x="18" y="8" width="3" height="8" rx="1" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Shirt(p: FundiIconProps) {
+  return <Icon {...p}><path d="M8 3l4 2 4-2 4 3-2.5 3L18 9v11H6V9l-1.5.9L2 6l4-3z" /></Icon>;
+}
+export function Gift(p: FundiIconProps) {
+  return <Icon {...p}><rect x="4" y="9" width="16" height="11" rx="1.4" /><path d="M4 13h16M12 9v11" /><path d="M12 9S10.5 4 8 5s-.5 4 4 4c4.5 0 6-3 4-4s-4 4-4 4z" /></Icon>;
+}
+export function Plane(p: FundiIconProps) {
+  return <Icon {...p}><path d="M10.5 2.5c.8-.8 2-.8 2 .5v6l7 4v2l-7-2v4l2 1.5V21l-3.5-1L7.5 21v-1.5L9.5 18v-4l-7 2v-2l7-4V3c0-1 .3-1 1.5-.5z" fill="currentColor" stroke="none" /></Icon>;
+}
+export function PawPrint(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="7" cy="9" r="1.7" fill="currentColor" stroke="none" /><circle cx="12" cy="6.5" r="1.7" fill="currentColor" stroke="none" /><circle cx="17" cy="9" r="1.7" fill="currentColor" stroke="none" /><path d="M12 12c-2.5 0-4.5 2-4.5 4.2 0 1.6 1.3 2.3 2.5 2.3 .9 0 1.3-.4 2-.4s1.1.4 2 .4c1.2 0 2.5-.7 2.5-2.3C16.5 14 14.5 12 12 12z" /></Icon>;
+}
+export function Users(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="9" cy="8" r="3" /><path d="M3.5 19a5.5 5.5 0 0 1 11 0" /><circle cx="17" cy="8.5" r="2.3" fill="currentColor" stroke="none" /><path d="M16 13.4a4.5 4.5 0 0 1 4.5 4.6" /></Icon>;
+}
+export function Church(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 2v4M10 4h4" /><path d="M12 6l5 4v10H7V10z" /><path d="M4 12l3-2M20 12l-3-2M4 12v8h3M20 12v8h-3" /><rect x="10.5" y="14" width="3" height="6" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Receipt(p: FundiIconProps) {
+  return <Icon {...p}><path d="M5 3h14v18l-2.3-1.5L14.3 21 12 19.5 9.7 21 7.3 19.5 5 21z" /><path d="M8 8h8M8 12h8" /></Icon>;
+}
+export function Scissors(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="6" cy="6" r="2.4" /><circle cx="6" cy="18" r="2.4" /><path d="M8 8l12 10M8 16L20 6M9.5 12l-1.7 1.4" /></Icon>;
+}
+export function Pill(p: FundiIconProps) {
+  return <Icon {...p}><rect x="3.5" y="8" width="17" height="8" rx="4" transform="rotate(-45 12 12)" /><path d="M8.7 8.7l6.6 6.6" /></Icon>;
+}
+export function Bus(p: FundiIconProps) {
+  return <Icon {...p}><rect x="4" y="4" width="16" height="13" rx="2" /><path d="M4 12h16" /><circle cx="8" cy="18.5" r="1.4" fill="currentColor" stroke="none" /><circle cx="16" cy="18.5" r="1.4" fill="currentColor" stroke="none" /><path d="M7.5 8h9" /></Icon>;
+}
+export function Wifi(p: FundiIconProps) {
+  return <Icon {...p}><path d="M2.5 9a13 13 0 0 1 19 0" /><path d="M5.5 12.5a9 9 0 0 1 13 0" /><path d="M8.5 16a5 5 0 0 1 7 0" /><circle cx="12" cy="19.5" r="1.2" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Droplet(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 3s6 6.5 6 10.5a6 6 0 0 1-12 0C6 9.5 12 3 12 3z" /><path d="M9.5 14a2.5 2.5 0 0 0 2.5 2.5" /></Icon>;
+}
+export function Wrench(p: FundiIconProps) {
+  return <Icon {...p}><path d="M15 4a4.5 4.5 0 0 0-1.5 8.7L5 21l-2-2 8.3-8.5A4.5 4.5 0 0 0 20 6l-2.7 2.7-2-2L18 4a4.5 4.5 0 0 0-3-.0z" /></Icon>;
+}
+export function Music(p: FundiIconProps) {
+  return <Icon {...p}><path d="M9 18V6l10-2v12" /><circle cx="6.5" cy="18" r="2.4" fill="currentColor" stroke="none" /><circle cx="16.5" cy="16" r="2.4" fill="currentColor" stroke="none" /></Icon>;
+}
+export function Baby(p: FundiIconProps) {
+  return <Icon {...p}><circle cx="12" cy="6.5" r="3" /><path d="M9 10c1 1.5 5 1.5 6 0" /><path d="M7 14c1.5 2 3 3 5 3s3.5-1 5-3" /><path d="M7 14v4M17 14v4" /></Icon>;
+}
+export function Sprout(p: FundiIconProps) {
+  return <Icon {...p}><path d="M12 20v-8" /><path d="M12 12C12 8 9 6 4 6c0 4 3 6 8 6z" fill="currentColor" stroke="none" /><path d="M12 14c0-3 2.5-5 7-5 0 3.5-2.5 5-7 5z" /></Icon>;
+}
+
 /* ═══ Drop-in replacements for lucide-react ════════════════════════════════
    Same export names as lucide so any `from "@/components/icons/FundiIcons"` import can be
    repointed here with no usage changes. Content/brand icons reuse the

@@ -370,6 +370,65 @@ describe("buildReport", () => {
     expect(model.insights.actions[0].title).toMatch(/recategorise/i);
   });
 
+  it("caps savings score and health score when the period runs a deficit", () => {
+    // High set-aside (30%) but spent more than earned -> can't be 'Strong'.
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "stokvel", amount: 3000, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-03" },
+        { type: "expense", category: "housing", amount: 5000, entry_date: "2026-06-04" },
+      ],
+      [],
+      [{ id: "stokvel", name: "Stokvel", color: "#00A9A5", type: "expense" }],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    expect(model.netCents).toBeLessThan(0);
+    const savings = model.insights.healthComponents.find((c) => c.label === "Savings habit")!;
+    expect(savings.score).toBeLessThanOrEqual(12); // capped, not full marks
+    expect(model.insights.healthBand).not.toBe("Strong");
+    // Consumption (8000) was within income (10000) - shortfall is the choice to
+    // set aside 3000. That should be reframed as an allocation win.
+    expect(model.insights.wins.some((w) => /allocation decision/.test(w))).toBe(true);
+  });
+
+  it("does not celebrate a category used under half its budget (misaligned)", () => {
+    const model = report(
+      [{ type: "expense", category: "business-exp", amount: 5000, description: "Stock", entry_date: "2026-06-05" }],
+      [{ category: "business-exp", monthly_limit: 50000, month_year: "2026-06" }],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    // 10% used of a huge budget is not a "win"; it should prompt recalibration.
+    expect(model.insights.wins.some((w) => /business/i.test(w) && /under budget/i.test(w))).toBe(false);
+    expect(model.insights.actions.some((a) => /recalibrate/i.test(a.title))).toBe(true);
+  });
+
+  it("classifies discretionary custom categories as Wants", () => {
+    const model = buildReport(
+      [
+        { type: "expense", category: "subs", amount: 300, entry_date: "2026-06-05" },
+        { type: "expense", category: "retail", amount: 500, entry_date: "2026-06-06" },
+      ],
+      [],
+      [
+        { id: "subs", name: "Subscriptions", color: "#7C4DFF", type: "expense" },
+        { id: "retail", name: "Retail", color: "#F43F5E", type: "expense" },
+      ],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    expect(model.groupTotals.wants).toBe(80000);
+    expect(model.groupTotals.unclassified).toBe(0);
+  });
+
   it("monthly rows reconcile: income - day-to-day - set aside = net", () => {
     const model = report(
       [

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
-import { formatPeriodLabel, monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
+import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
 import { FundiCoachCard } from "@/components/FundiCoachCard";
@@ -61,6 +61,26 @@ import {
   Wallet,
   X,
   Zap,
+  Fuel,
+  Utensils,
+  Coffee,
+  Dumbbell,
+  Shirt,
+  Gift,
+  Plane,
+  PawPrint,
+  Users,
+  Church,
+  Receipt,
+  Scissors,
+  Pill,
+  Bus,
+  Wifi,
+  Droplet,
+  Wrench,
+  Music,
+  Baby,
+  Sprout,
 } from "@/components/icons/FundiIcons";
 import { formatRand } from "@/lib/viewHelpers";
 import { BudgetImportPanel } from "@/components/BudgetImportPanel";
@@ -102,32 +122,50 @@ type CustomBudgetCat = {
 // ─── Icon palette ─────────────────────────────────────────────────────────────
 
 const ICON_PICKER_OPTIONS: { name: string; Icon: React.ComponentType<{ size?: number; style?: React.CSSProperties }> }[] = [
-  { name: "ShoppingCart",   Icon: ShoppingCart },
-  { name: "Car",            Icon: Car },
-  { name: "Home",           Icon: HomeIcon },
-  { name: "CreditCard",     Icon: CreditCard },
-  { name: "PiggyBank",      Icon: PiggyBank },
-  { name: "Tv",             Icon: Tv },
-  { name: "Smartphone",     Icon: Smartphone },
-  { name: "Heart",          Icon: Heart },
-  { name: "GraduationCap",  Icon: GraduationCap },
-  { name: "Briefcase",      Icon: Briefcase },
-  { name: "Building2",      Icon: Building2 },
-  { name: "Wallet",         Icon: Wallet },
-  { name: "Zap",            Icon: Zap },
-  { name: "Target",         Icon: Target },
-  { name: "TrendingUp",     Icon: TrendingUp },
-  { name: "BarChart2",      Icon: BarChart2 },
-  { name: "Flame",          Icon: Flame },
-  { name: "Award",          Icon: Award },
-  { name: "Flag",           Icon: Flag },
-  { name: "Landmark",       Icon: Landmark },
-  { name: "Lock",           Icon: Lock },
-  { name: "Umbrella",       Icon: Umbrella },
-  { name: "Shield",         Icon: Shield },
-  { name: "Brain",          Icon: Brain },
-  { name: "Hash",           Icon: Hash },
-  { name: "MoreHorizontal", Icon: MoreHorizontal },
+  { name: "ShoppingCart",   Icon: ShoppingCart },   // groceries
+  { name: "Utensils",       Icon: Utensils },       // dining / eating out
+  { name: "Coffee",         Icon: Coffee },         // coffee / snacks
+  { name: "Car",            Icon: Car },            // transport / car
+  { name: "Fuel",           Icon: Fuel },           // fuel / petrol
+  { name: "Bus",            Icon: Bus },            // taxi / public transport
+  { name: "Home",           Icon: HomeIcon },       // rent / housing
+  { name: "Zap",            Icon: Zap },            // electricity / utilities
+  { name: "Droplet",        Icon: Droplet },        // water
+  { name: "Wifi",           Icon: Wifi },           // internet / data
+  { name: "Smartphone",     Icon: Smartphone },     // airtime / phone
+  { name: "Tv",             Icon: Tv },             // subscriptions / streaming
+  { name: "Music",          Icon: Music },          // entertainment
+  { name: "Shirt",          Icon: Shirt },          // clothing
+  { name: "Scissors",       Icon: Scissors },       // beauty / salon
+  { name: "Dumbbell",       Icon: Dumbbell },       // gym / fitness
+  { name: "Heart",          Icon: Heart },          // healthcare
+  { name: "Pill",           Icon: Pill },           // pharmacy / medical
+  { name: "GraduationCap",  Icon: GraduationCap },  // education
+  { name: "Baby",           Icon: Baby },           // childcare
+  { name: "PawPrint",       Icon: PawPrint },       // pets
+  { name: "Gift",           Icon: Gift },           // gifts
+  { name: "Plane",          Icon: Plane },          // travel
+  { name: "Users",          Icon: Users },          // family
+  { name: "Church",         Icon: Church },         // tithe / church
+  { name: "PiggyBank",      Icon: PiggyBank },      // savings
+  { name: "Sprout",         Icon: Sprout },         // investments / growth
+  { name: "TrendingUp",     Icon: TrendingUp },     // investments
+  { name: "CreditCard",     Icon: CreditCard },     // debt / credit
+  { name: "Landmark",       Icon: Landmark },       // bank / stokvel
+  { name: "Umbrella",       Icon: Umbrella },       // insurance
+  { name: "Shield",         Icon: Shield },         // insurance / cover
+  { name: "Receipt",        Icon: Receipt },        // bills / tax / fees
+  { name: "Wrench",         Icon: Wrench },         // repairs / maintenance
+  { name: "Briefcase",      Icon: Briefcase },      // business
+  { name: "Building2",      Icon: Building2 },      // business / property
+  { name: "Wallet",         Icon: Wallet },         // general money
+  { name: "Target",         Icon: Target },         // goals
+  { name: "Flame",          Icon: Flame },          // streak / hot
+  { name: "Award",          Icon: Award },          // rewards
+  { name: "Flag",           Icon: Flag },           // milestone
+  { name: "Brain",          Icon: Brain },          // learning
+  { name: "Hash",           Icon: Hash },           // misc / number
+  { name: "MoreHorizontal", Icon: MoreHorizontal }, // other
 ];
 
 function getIconByName(name: string): React.ComponentType<{ size?: number; style?: React.CSSProperties }> {
@@ -1094,14 +1132,13 @@ export function BudgetView() {
       {/* Fundi Coach: deterministic nudges from the user's own numbers */}
       {viewMode === "month" && <FundiCoachCard monthYear={monthYear} />}
 
-      {/* Interactive in-app report */}
+      {/* Interactive in-app report (manages its own period selector) */}
       <InteractiveReportModal
         open={showInteractiveReport}
         onClose={() => setShowInteractiveReport(false)}
-        periodStart={reportPeriod.start}
-        periodEnd={reportPeriod.end}
-        periodLabel={formatPeriodLabel(reportPeriod.start, reportPeriod.end)}
-        onDownloadPdf={() => downloadReportPdf(reportPeriod.start, reportPeriod.end)}
+        initialStart={reportPeriod.start}
+        initialEnd={reportPeriod.end}
+        onDownloadPdf={(s, e) => downloadReportPdf(s, e)}
         downloadingPdf={exportLoading}
       />
 

@@ -107,6 +107,19 @@ function scoreSavingsHabit(core: ReportCore): HealthComponent {
   const max = 25;
   const r = core.savingsRatePct;
   const note = `${r}% of income set aside (guideline: ${GUIDELINES.savingsRatePct}%)`;
+  // You can't genuinely be credited for saving while you're spending more than
+  // you earn - that money is coming from reserves or debt, not surplus. Cap the
+  // score at half and flag it, rather than rewarding a possibly-borrowed habit.
+  if (core.netCents < 0 && r > 0) {
+    const capped = Math.min(r >= 15 ? 12 : r >= 5 ? 8 : 4, 12);
+    return {
+      label: "Savings habit",
+      score: capped,
+      max,
+      tone: "warn",
+      note: `${r}% set aside, but you ran a ${rand(-core.netCents)} deficit - saving on borrowed/reserve money doesn't fully count`,
+    };
+  }
   if (r >= 20) return { label: "Savings habit", score: 25, max, tone: "good", note };
   if (r >= 15) return { label: "Savings habit", score: 19, max, tone: "good", note };
   if (r >= 10) return { label: "Savings habit", score: 14, max, tone: "warn", note };
@@ -206,17 +219,29 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   ];
   const healthScoreRaw = healthComponents.reduce((s, c) => s + c.score, 0);
 
-  // Data quality is a bottleneck, not just a 15-point slice: when a third of
-  // spending is unclassified, the cash-flow and debt scores are built on data
-  // we can't see, so the headline number must not read as reassuring.
+  // Two bottleneck caps - the headline can't read "Strong" when the fundamentals
+  // say otherwise:
+  //   1. Data quality: unclassified spend means the other scores rest on data we
+  //      can't see.
+  //   2. Solvency: spending more than you earn is the single most important
+  //      signal - you can't be "Strong" while going backwards for the period.
   let healthCap = 100;
-  if (unclassifiedPct >= 40) healthCap = 50;
-  else if (unclassifiedPct >= 30) healthCap = 60;
-  else if (unclassifiedPct >= GUIDELINES.unclassifiedWarnPct) healthCap = 75;
+  let capReason: string | null = null;
+  if (unclassifiedPct >= 40) { healthCap = 50; capReason = `${unclassifiedPct}% of spending is unclassified`; }
+  else if (unclassifiedPct >= 30) { healthCap = 60; capReason = `${unclassifiedPct}% of spending is unclassified`; }
+  else if (unclassifiedPct >= GUIDELINES.unclassifiedWarnPct) { healthCap = 75; capReason = `${unclassifiedPct}% of spending is unclassified`; }
+  if (income > 0 && core.netCents < 0) {
+    const deficitRatio = -core.netCents / income;
+    const solvencyCap = deficitRatio >= 0.1 ? 60 : 72; // can't be "Strong" in deficit
+    if (solvencyCap < healthCap) {
+      healthCap = solvencyCap;
+      capReason = `you spent ${rand(-core.netCents)} more than you earned this period`;
+    }
+  }
   const healthScore = Math.min(healthScoreRaw, healthCap);
   const healthCapNote =
     healthScore < healthScoreRaw
-      ? `Capped at ${healthCap} (would be ${healthScoreRaw}): with ${unclassifiedPct}% of spending unclassified, the other scores can't be fully trusted.`
+      ? `Capped at ${healthCap} (components summed to ${healthScoreRaw}): ${capReason}.`
       : null;
   const healthBand =
     healthScore >= 80 ? "Strong" : healthScore >= 60 ? "Steady" : healthScore >= 40 ? "Fragile" : "Needs attention";
@@ -252,8 +277,16 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
       text: `Budgeted categories ran ${rand(core.budgetVarianceCents)} over plan.`,
     });
   }
-  if (core.topUnderBudget.length > 0 && highlights.length < 4) {
-    const w = core.topUnderBudget[0];
+  // A genuine "under budget" win means you came in under a REALISTIC budget -
+  // spending 25% of a budget 4x too big isn't discipline, it's a misconfigured
+  // limit. Only categories used between 50% and 100% count as controlled.
+  const realUnderBudget = core.topUnderBudget.filter((r) => r.variancePct != null && r.variancePct >= 50);
+  const misalignedBudget = core.expenseCategories
+    .filter((r) => r.hasBudget && !r.isSavingsVehicle && r.variancePct != null && r.variancePct < 40 && r.budgetedCents >= 500000)
+    .sort((a, b) => b.budgetedCents - a.budgetedCents)[0];
+
+  if (realUnderBudget.length > 0 && highlights.length < 4) {
+    const w = realUnderBudget[0];
     highlights.push({
       tone: "good",
       text: `${w.categoryName} came in ${rand(-w.varianceCents)} under budget - well controlled.`,
@@ -264,13 +297,14 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   const wins: string[] = [];
   const risks: string[] = [];
 
-  for (const r of core.topUnderBudget.slice(0, 2)) {
+  for (const r of realUnderBudget.slice(0, 2)) {
     wins.push(`${r.categoryName}: ${rand(-r.varianceCents)} under budget (${r.variancePct}% used).`);
   }
-  if (core.savingsRatePct >= GUIDELINES.savingsRatePct) {
-    wins.push(`Set aside ${rand(core.setAsideCents)} - a ${core.savingsRatePct}% savings rate.`);
+  // Only celebrate the savings rate when it's real surplus, not deficit-funded.
+  if (core.savingsRatePct >= GUIDELINES.savingsRatePct && core.netCents >= 0) {
+    wins.push(`Set aside ${rand(core.setAsideCents)} - a ${core.savingsRatePct}% savings rate, all from surplus.`);
   }
-  if (core.comparison?.setAsideDeltaPct != null && core.comparison.setAsideDeltaPct > 0) {
+  if (core.comparison?.setAsideDeltaPct != null && core.comparison.setAsideDeltaPct > 0 && core.netCents >= 0) {
     wins.push(`Money set aside is up ${core.comparison.setAsideDeltaPct}% vs the previous period.`);
   }
   const positiveMonths = core.monthlySpend.filter((m) => !m.isPartial && m.netCents >= 0).length;
@@ -282,9 +316,30 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     wins.push(`Income is spread across ${core.incomeCategories.length} sources - no single point of failure.`);
   }
   const goalsSharePct = pctOf(core.groupTotals.goals, core.totalExpenseCents);
-  if (goalsSharePct >= 40) {
+  if (goalsSharePct >= 40 && core.netCents >= 0) {
     wins.push(
       `${rand(core.groupTotals.goals)} (${goalsSharePct}%) of this period's money went toward building future wealth - savings, stokvel and debt payoff.`
+    );
+  }
+
+  // Deficit-while-saving: the most important nuance in a shortfall report.
+  if (core.netCents < 0 && core.setAsideCents > 0) {
+    if (core.setAsideCents >= -core.netCents) {
+      // Consumption alone was within income - the shortfall is a deliberate
+      // allocation choice, not overspending. Reframe it as such.
+      wins.push(
+        `Your day-to-day spending stayed within income - the ${rand(-core.netCents)} shortfall came entirely from choosing to set aside ${rand(core.setAsideCents)}. That's an allocation decision, not overspending.`
+      );
+    } else {
+      risks.push(
+        `You set aside ${rand(core.setAsideCents)} while running a ${rand(-core.netCents)} deficit - check you're not funding savings with debt or dwindling reserves.`
+      );
+    }
+  }
+  if (misalignedBudget) {
+    const timesBigger = Math.round(misalignedBudget.budgetedCents / Math.max(misalignedBudget.actualCents, 1));
+    risks.push(
+      `Your ${misalignedBudget.categoryName} budget (${rand(misalignedBudget.budgetedCents)}) is about ${timesBigger}x your actual spend - it's too loose to catch anything.`
     );
   }
 
@@ -348,6 +403,15 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   // ── Actions (3-5, prioritised, each with estimated impact) ──────────────
   const actions: ReportAction[] = [];
+
+  if (misalignedBudget) {
+    actions.push({
+      title: `Recalibrate your ${misalignedBudget.categoryName} budget`,
+      detail: `You budgeted ${rand(misalignedBudget.budgetedCents)} but spent ${rand(misalignedBudget.actualCents)} (${misalignedBudget.variancePct}% used). A budget you can't get near isn't a plan - set it closer to what you actually spend so variances mean something.`,
+      impact: "Your budget-vs-actual becomes a real signal, not noise",
+      lesson: LESSONS.buildingBudget,
+    });
+  }
 
   if (unclassifiedPct >= GUIDELINES.unclassifiedWarnPct) {
     actions.push({

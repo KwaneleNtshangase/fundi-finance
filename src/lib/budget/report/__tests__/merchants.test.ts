@@ -35,6 +35,12 @@ describe("cleanMerchantName", () => {
     expect(cleanMerchantName("POS Purchase Mcd Westville (0679 *4893 27 May")).toBe("Mcd Westville");
   });
 
+  it("drops empty / stray brackets left by a partial parse", () => {
+    expect(cleanMerchantName("( ): Gogo Dstv")).toBe("Gogo Dstv");
+    expect(cleanMerchantName("() Netflix")).toBe("Netflix");
+    expect(cleanMerchantName("[ ] Rent - Room")).toBe("Rent - Room");
+  });
+
   it("strips SA payment-rail suffixes (PayShap, Magtape, Real Time)", () => {
     expect(cleanMerchantName("CAPITEC KGAITSI 1,010.00 PAYSHAP PAYMENT FROM")).toBe("Kgaitsi");
     expect(cleanMerchantName("Gogo Zwane Imizamo Payshap Payment From")).toBe("Gogo Zwane Imizamo");

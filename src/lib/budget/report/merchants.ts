@@ -68,6 +68,10 @@ export function cleanMerchantName(raw: string | null | undefined, max = 34): str
     for (const rx of PREFIXES) s = s.replace(rx, "");
   }
   s = s.replace(/[|_]+/g, " ");
+  // Empty / stray brackets and colons left by a partial parse: "( ): Gogo Dstv",
+  // "() Netflix", "[ ] Rent" -> drop the bracket cruft, keep the name.
+  s = s.replace(/[([{]\s*[)\]}]?\s*[):.,-]*/g, " ");
+  s = s.replace(/[)\]}]/g, " ");
   s = s.replace(/\s*[-–—:,]+\s*$/g, "");
   s = s.replace(/^\s*[-–—:,]+\s*/g, "");
   s = s.replace(/\s+/g, " ").trim();

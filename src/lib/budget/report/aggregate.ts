@@ -450,7 +450,11 @@ export function buildReport(
 
   // Projection from COMPLETE months only - a partial month would otherwise
   // drag the average down and fake a "spending collapsed" trend.
-  const completeMonths = monthlySpend.filter((m) => !m.isPartial);
+  // Complete months WITH activity - a zero-data month (bank not yet synced)
+  // would drag the average pace and understate the annual projection.
+  const completeMonths = monthlySpend.filter(
+    (m) => !m.isPartial && (m.expenseCents > 0 || m.incomeCents > 0)
+  );
   const avgMonthlyExpenseCents =
     completeMonths.length > 0
       ? Math.round(completeMonths.reduce((s, m) => s + m.expenseCents, 0) / completeMonths.length)

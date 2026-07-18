@@ -40,7 +40,7 @@ export function isSavingsVehicleCategory(categoryId: string, name: string): bool
 const NEEDS_NAME =
   /\b(rent|bond|housing|electric|water|utilit|grocer|food|transport|taxi|bus|fuel|petrol|medical|health|clinic|school|tuition|educat|data|airtime|insurance|funeral cover|bank (charge|fee)s?|fees?|family|black tax|tithe|church|donation|childcare|creche)\b/i;
 const WANTS_NAME =
-  /\b(entertain|takeaway|take-away|eating out|restaurant|dstv|netflix|showmax|streaming|clothing|clothes|beauty|salon|hobby|gym|travel|holiday|gaming|alcohol|braai|gifts?|present|lobola)\b/i;
+  /\b(entertain|takeaway|take-away|eating out|restaurant|dstv|netflix|showmax|spotify|streaming|subscriptions?|clothing|clothes|apparel|fashion|shoes|retail|shopping|beauty|salon|hair|nails|cosmetic|hobby|gym|fitness|travel|holiday|vacation|gaming|games?|alcohol|liquor|bar|braai|gifts?|presents?|lobola|jewel|electronics|gadget)\b/i;
 const GOALS_NAME = /\b(debt|loan|repay|credit card|account payment)\b/i;
 // Side-hustle costs are labelled spend, NOT "unclassified" - lumping them in
 // with unknown money would inflate the data-quality problem they don't have.
