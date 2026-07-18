@@ -185,6 +185,7 @@ export async function POST(req: NextRequest) {
       prevStart: prev.periodStart,
       prevEnd: prev.periodEnd,
       historyEntries,
+      historyStart,
     }
   );
 

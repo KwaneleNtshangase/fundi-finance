@@ -9,6 +9,7 @@ import {
 } from "./period";
 import { resolveCategoryMeta } from "./categories";
 import { cleanMerchantName, merchantKey } from "./merchants";
+import { computeBehaviour } from "./behaviour";
 import { computeReportInsights } from "./insights";
 import { resolveMonthlyBudget } from "../budgetResolve";
 import type {
@@ -465,6 +466,18 @@ export function buildReport(
     monthsUsed: completeMonths.length,
   };
 
+  // Behavioural patterns run over the WIDER history when provided (falling
+  // back to the period), because patterns are cross-month by nature.
+  const hasHistory = !!options.historyEntries && options.historyEntries.length > 0;
+  const behaviour = computeBehaviour(
+    hasHistory ? options.historyEntries! : entries,
+    categories,
+    periodEnd,
+    // Without an explicit window start, history months must be derived from
+    // the data itself - using periodStart would mark them all as truncated.
+    { windowStart: hasHistory ? options.historyStart : periodStart }
+  );
+
   const core = {
     periodStart,
     periodEnd,
@@ -496,6 +509,7 @@ export function buildReport(
     comparison,
     dataQuality,
     projection,
+    behaviour,
   };
 
   return { ...core, insights: computeReportInsights(core) };

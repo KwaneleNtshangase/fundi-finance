@@ -2,6 +2,11 @@
 
 exports[`buildReport > fixed fixture snapshot 1`] = `
 {
+  "behaviour": {
+    "monthsAnalysed": 1,
+    "patterns": [],
+    "personality": null,
+  },
   "budgetIsEstimate": false,
   "budgetUsedPct": 91,
   "budgetVarianceCents": -50000,

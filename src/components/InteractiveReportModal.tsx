@@ -171,9 +171,17 @@ export function InteractiveReportModal({
   }, [history]);
   const topAction = model?.insights.actions.find((a) => a.isTopPriority) ?? model?.insights.actions[0];
 
-  // What-if sliders: top flexible categories, simulated with the SAME scoring
-  // the report itself uses (shared scoreHealth), so the numbers can't disagree.
-  const sliderRows = useMemo(() => (model ? flexibleRows(model, 4) : []), [model]);
+  // What-if sliders: top flexible categories plus the biggest savings vehicle
+  // ("what if I saved more?"), simulated with the SAME scoring the report
+  // itself uses (shared scoreHealth), so the numbers can't disagree.
+  const sliderRows = useMemo(() => {
+    if (!model) return [];
+    const flex = flexibleRows(model, 4);
+    const vehicle = model.expenseCategories
+      .filter((r) => r.isSavingsVehicle && r.actualCents > 0)
+      .sort((a, b) => b.actualCents - a.actualCents)[0];
+    return vehicle ? [...flex, vehicle] : flex;
+  }, [model]);
   const hasWhatIf = useMemo(() => Object.values(whatIf).some((v) => v !== 0), [whatIf]);
   const sim = useMemo(
     () => (model && hasWhatIf ? simulate(model, whatIf) : null),
@@ -327,6 +335,39 @@ export function InteractiveReportModal({
                 </Section>
               )}
 
+              {/* Behavioural patterns + money personality (Phase 2) */}
+              {model.behaviour && (model.behaviour.patterns.length > 0 || model.behaviour.monthsAnalysed >= 1) && (
+                <Section title="Your patterns">
+                  {model.behaviour.personality ? (
+                    <div style={{ background: "linear-gradient(135deg, rgba(230,184,76,0.12), rgba(230,184,76,0.04))", border: "1px solid rgba(230,184,76,0.35)", borderRadius: 10, padding: 12, marginBottom: model.behaviour.patterns.length ? 10 : 0 }}>
+                      <div style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.5, color: "#B8860B", marginBottom: 2 }}>Money personality</div>
+                      <div style={{ fontSize: 16, fontWeight: 900, marginBottom: 4 }}>{model.behaviour.personality.label}</div>
+                      {model.behaviour.personality.evidence.map((ev, i) => (
+                        <div key={i} style={{ fontSize: 12, color: "var(--color-text-secondary)", lineHeight: 1.45 }}>· {ev}</div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 12, color: "var(--color-text-secondary)", marginBottom: model.behaviour.patterns.length ? 10 : 0, lineHeight: 1.4 }}>
+                      Still learning your patterns - your money personality appears once 3 complete months of data are in ({model.behaviour.monthsAnalysed} so far).
+                    </div>
+                  )}
+                  {model.behaviour.patterns.map((p) => (
+                    <div key={p.id} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+                      <div style={{ width: 7, height: 7, borderRadius: 4, background: TONE[p.tone], marginTop: 5, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 800 }}>{p.title}</div>
+                        <div style={{ fontSize: 12, lineHeight: 1.45, color: "var(--color-text-secondary)" }}>{p.detail}</div>
+                      </div>
+                    </div>
+                  ))}
+                  {model.behaviour.monthsAnalysed >= 2 && (
+                    <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", marginTop: 4 }}>
+                      Based on your last {model.behaviour.monthsAnalysed} complete months of data, not just this period.
+                    </div>
+                  )}
+                </Section>
+              )}
+
               {/* Wins / Risks */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 16 }}>
                 <div>
@@ -362,17 +403,23 @@ export function InteractiveReportModal({
               {sliderRows.length > 0 && (
                 <Section title="What if?">
                   <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 10, lineHeight: 1.4 }}>
-                    Drag a slider to try a change to your flexible spending. A simple projection - income and everything else stay as they are.
+                    Drag a slider to try a change to your flexible spending - or to how much you set aside. A simple projection: income and everything else stay as they are.
                   </div>
                   {sliderRows.map((r) => {
                     const pct = whatIf[r.categoryId] ?? 0;
                     const adjusted = Math.round(r.actualCents * (1 + pct / 100));
+                    // For spending, cutting (-) is the good direction; for a
+                    // savings vehicle, putting MORE away (+) is the good one.
+                    const goodDir = r.isSavingsVehicle ? pct > 0 : pct < 0;
                     return (
                       <div key={r.categoryId} style={{ padding: "6px 0 10px", borderBottom: "1px solid var(--color-border)" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-                          <div style={{ width: 9, height: 9, borderRadius: "50%", background: r.color, flexShrink: 0 }} />
-                          <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{r.categoryName}</span>
-                          <span style={{ fontSize: 11.5, fontWeight: 800, color: pct === 0 ? "var(--color-text-secondary)" : pct < 0 ? TONE.good : TONE.bad, width: 44, textAlign: "right" }}>
+                          <div style={{ width: 9, height: 9, borderRadius: "50%", background: r.isSavingsVehicle ? "#E6B84C" : r.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>
+                            {r.categoryName}
+                            {r.isSavingsVehicle && <span style={{ fontSize: 10.5, fontWeight: 700, color: "var(--color-text-secondary)" }}> · set aside</span>}
+                          </span>
+                          <span style={{ fontSize: 11.5, fontWeight: 800, color: pct === 0 ? "var(--color-text-secondary)" : goodDir ? TONE.good : TONE.bad, width: 44, textAlign: "right" }}>
                             {pct === 0 ? "as is" : `${pct > 0 ? "+" : ""}${pct}%`}
                           </span>
                           <span style={{ fontSize: 12.5, fontWeight: 700, width: 130, textAlign: "right", color: "var(--color-text-secondary)" }}>
@@ -381,12 +428,12 @@ export function InteractiveReportModal({
                         </div>
                         <input
                           type="range" min={-30} max={30} step={5} value={pct}
-                          aria-label={`Change ${r.categoryName} spending`}
+                          aria-label={r.isSavingsVehicle ? `Change how much you set aside into ${r.categoryName}` : `Change ${r.categoryName} spending`}
                           onChange={(e) => {
                             const v = Number(e.target.value);
                             setWhatIf((cur) => ({ ...cur, [r.categoryId]: v }));
                           }}
-                          style={{ width: "100%", accentColor: pct <= 0 ? TONE.good : TONE.bad, cursor: "pointer" }}
+                          style={{ width: "100%", accentColor: pct === 0 || goodDir ? TONE.good : TONE.bad, cursor: "pointer" }}
                         />
                       </div>
                     );

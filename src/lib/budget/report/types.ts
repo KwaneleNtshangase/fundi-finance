@@ -191,6 +191,30 @@ export type ReportInsights = {
   dataQualityAlert: string | null;
 };
 
+/** One detected behavioural pattern (confidence-gated, never speculative). */
+export type BehaviourPattern = {
+  id: string;
+  tone: InsightTone;
+  title: string;
+  detail: string;
+};
+
+/** Identity derived ONLY from stable signals across ≥3 complete months. */
+export type MoneyPersonality = {
+  id: "saver" | "builder" | "planner" | "maximiser" | "impulse";
+  label: string;
+  /** Plain-number facts that earned the label - always shown with it. */
+  evidence: string[];
+};
+
+export type ReportBehaviour = {
+  patterns: BehaviourPattern[];
+  /** Null until enough history supports a stable read. */
+  personality: MoneyPersonality | null;
+  /** Complete months of history the analysis is based on. */
+  monthsAnalysed: number;
+};
+
 export type ReportBuildOptions = {
   /** Categories to treat as savings vehicles, overriding auto-detection. */
   savingsCategoryIds?: string[];
@@ -204,6 +228,11 @@ export type ReportBuildOptions = {
    * single-month report. Falls back to the period's own entries when absent.
    */
   historyEntries?: BudgetEntryInput[];
+  /**
+   * First day the history window covers. Behaviour detection uses it to know
+   * which months are truncated by the window (and must not be analysed).
+   */
+  historyStart?: string;
 };
 
 export type ReportModel = {
@@ -254,5 +283,7 @@ export type ReportModel = {
   comparison: PeriodComparison | null;
   dataQuality: DataQuality;
   projection: SpendProjection;
+  /** Cross-month behavioural patterns + money personality (may be empty). */
+  behaviour: ReportBehaviour;
   insights: ReportInsights;
 };
