@@ -186,11 +186,15 @@ function scoreDebtLoad(input: ScoreInput): HealthComponent {
   return { label: "Debt load", score: 0, max, tone: "bad", note };
 }
 
-/** A budget several times bigger than actual spend isn't a real constraint. */
-function hasMisalignedBudget(input: ScoreInput): boolean {
-  return input.expenseCategories.some(
+/** Budgets several times bigger than actual spend aren't real constraints. */
+export function misalignedBudgetCount(input: Pick<ScoreInput, "expenseCategories">): number {
+  return input.expenseCategories.filter(
     (r) => r.hasBudget && !r.isSavingsVehicle && r.variancePct != null && r.variancePct < 40 && r.budgetedCents >= 500000
-  );
+  ).length;
+}
+
+function hasMisalignedBudget(input: ScoreInput): boolean {
+  return misalignedBudgetCount(input) > 0;
 }
 
 function scoreBudgetDiscipline(input: ScoreInput): HealthComponent {

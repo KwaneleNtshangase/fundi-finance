@@ -17,8 +17,9 @@ import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
 import { resolvePeriod, formatPeriodLabel, type PeriodPreset } from "@/lib/budget/report/period";
 import { flexibleRows, simulate, type WhatIfChanges } from "@/lib/budget/report/simulate";
+import { computeStreaks, missionOutcome } from "@/lib/budget/report/snapshot";
 import { X, FileText, Lightbulb } from "@/components/icons/FundiIcons";
-import type { ReportModel, InsightTone } from "@/lib/budget/report/types";
+import type { ReportModel, InsightTone, ReportSnapshotMetrics } from "@/lib/budget/report/types";
 
 const PERIOD_OPTIONS: { key: PeriodPreset; label: string }[] = [
   { key: "this_month", label: "This month" },
@@ -36,7 +37,7 @@ type LightEntry = {
   entry_date: string;
 };
 
-type ReportData = { model: ReportModel; entries: LightEntry[] };
+type ReportData = { model: ReportModel; entries: LightEntry[]; prevSnapshot: ReportSnapshotMetrics | null };
 
 type ScorePoint = {
   monthYear: string;
@@ -124,7 +125,7 @@ export function InteractiveReportModal({
         const json = await res.json();
         if (cancelled) return;
         if (!res.ok || !json.ok) { setError(json.error || "Could not build the report."); }
-        else setData({ model: json.model, entries: json.entries ?? [] });
+        else setData({ model: json.model, entries: json.entries ?? [], prevSnapshot: json.prevSnapshot ?? null });
         if (histRes && histRes.ok) {
           const hj = await histRes.json().catch(() => null);
           if (!cancelled && hj?.ok) setHistory(hj.history ?? []);
@@ -169,6 +170,19 @@ export function InteractiveReportModal({
     const prev = history[history.length - 2];
     return { delta: last.healthScore - prev.healthScore, label: prev.label };
   }, [history]);
+
+  // Streaks over COMPLETE months only - the in-progress month can't break
+  // (or fake) a streak halfway through.
+  const streaks = useMemo(() => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    return computeStreaks(history, currentMonth);
+  }, [history]);
+
+  // Did last report's single most important action actually happen?
+  const mission = useMemo(
+    () => (data?.model ? missionOutcome(data.prevSnapshot, data.model) : null),
+    [data]
+  );
   const topAction = model?.insights.actions.find((a) => a.isTopPriority) ?? model?.insights.actions[0];
 
   // What-if sliders: top flexible categories plus the biggest savings vehicle
@@ -281,6 +295,20 @@ export function InteractiveReportModal({
                 {model.insights.healthCapNote && (
                   <div style={{ fontSize: 11, color: "#E6B84C", marginTop: 8 }}>{model.insights.healthCapNote}</div>
                 )}
+                {(streaks.greenMonths >= 2 || streaks.scoreUps >= 2) && (
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 10 }}>
+                    {streaks.greenMonths >= 2 && (
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 9px", borderRadius: 999, background: "rgba(0,169,122,0.18)", color: "#4ADE9F", border: "1px solid rgba(0,169,122,0.4)" }}>
+                        {streaks.greenMonths} green months in a row
+                      </span>
+                    )}
+                    {streaks.scoreUps >= 2 && (
+                      <span style={{ fontSize: 11, fontWeight: 800, padding: "3px 9px", borderRadius: 999, background: "rgba(59,125,216,0.18)", color: "#7FAEE8", border: "1px solid rgba(59,125,216,0.4)" }}>
+                        Score up {streaks.scoreUps} months running
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Key stats */}
@@ -307,6 +335,20 @@ export function InteractiveReportModal({
                 <Section title="At a glance">
                   {model.insights.highlights.map((h, i) => <ToneRow key={i} tone={h.tone} text={h.text} />)}
                 </Section>
+              )}
+
+              {/* Follow-through on the PREVIOUS report's top action. */}
+              {mission && (
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderLeft: `4px solid ${mission.status === "done" ? TONE.good : mission.status === "open" ? "#E6B84C" : "var(--color-border)"}`, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.4, flex: 1 }}>Last report&apos;s mission</span>
+                    <span style={{ fontSize: 10, fontWeight: 800, padding: "2px 8px", borderRadius: 999, color: "#fff", background: mission.status === "done" ? TONE.good : mission.status === "open" ? "#E6B84C" : "var(--color-text-secondary)" }}>
+                      {mission.status === "done" ? "DONE" : mission.status === "open" ? "STILL OPEN" : "CAN'T MEASURE"}
+                    </span>
+                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, marginBottom: 2 }}>{mission.title}</div>
+                  <div style={{ fontSize: 12.5, lineHeight: 1.4, color: "var(--color-text-secondary)" }}>{mission.detail}</div>
+                </div>
               )}
 
               {/* The single most important next step, surfaced in the summary. */}

@@ -84,6 +84,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
     "actions": [
       {
         "detail": "Moving money to savings first - before spending - is the habit that makes the rate stick. Your R17 500 surplus already covers it - it just needs a job.",
+        "id": "payday-setaside",
         "impact": "~ R1 250/month lifts your rate from 10% to ~15% - about R15 000 extra set aside over 12 months",
         "isTopPriority": true,
         "lesson": {
@@ -95,6 +96,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
       },
       {
         "detail": "Food & Groceries is your biggest flexible spending category at R3 200 (42.7% of spending). One change here beats ten small ones elsewhere.",
+        "id": "trim-food",
         "impact": "~ R320/month freed - enough to reach a ~11% set-aside rate",
         "lesson": {
           "courseId": "money-basics",

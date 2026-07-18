@@ -10,7 +10,13 @@ import {
 } from "@/lib/budget/report/aggregate";
 import { BudgetReportDocument } from "@/lib/budget/report/pdf";
 import { precedingPeriod } from "@/lib/budget/report/period";
-import type { BudgetEntryInput, BudgetTargetInput, CategoryMeta } from "@/lib/budget/report/types";
+import { snapshotMetricsOf } from "@/lib/budget/report/snapshot";
+import type {
+  BudgetEntryInput,
+  BudgetTargetInput,
+  CategoryMeta,
+  ReportSnapshotMetrics,
+} from "@/lib/budget/report/types";
 
 function inPeriodJson(date: string, start: string, end: string): boolean {
   return date >= start && date <= end;
@@ -208,6 +214,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Report validation failed" }, { status: 500 });
   }
 
+  // Phase 4: persist this period's metric snapshot and fetch the preceding
+  // period's one (for "last report's mission" follow-through). Best-effort:
+  // snapshot failures must never block the report itself.
+  let prevSnapshot: ReportSnapshotMetrics | null = null;
+  try {
+    const metrics = snapshotMetricsOf(model, entries, targets);
+    const [prevSnapRes] = await Promise.all([
+      admin
+        .from("report_snapshots")
+        .select("metrics")
+        .eq("user_id", user.id)
+        .eq("period_start", prev.periodStart)
+        .eq("period_end", prev.periodEnd)
+        .maybeSingle(),
+      admin.from("report_snapshots").upsert(
+        {
+          user_id: user.id,
+          period_start: periodStart,
+          period_end: periodEnd,
+          metrics,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,period_start,period_end" }
+      ),
+    ]);
+    prevSnapshot = (prevSnapRes.data?.metrics as ReportSnapshotMetrics | undefined) ?? null;
+  } catch (err) {
+    console.error("[budget/report] snapshot write/read failed", err);
+  }
+
   // Interactive in-app report: return the computed model + the period's entries
   // (for tap-to-drill by category) instead of rendering a static PDF.
   if (wantJson) {
@@ -220,7 +256,7 @@ export async function POST(req: NextRequest) {
         description: e.description ?? null,
         entry_date: e.entry_date,
       }));
-    return NextResponse.json({ ok: true, model, entries: lightEntries });
+    return NextResponse.json({ ok: true, model, entries: lightEntries, prevSnapshot });
   }
 
   // Server-side @react-pdf render: element is constructed here, outside the

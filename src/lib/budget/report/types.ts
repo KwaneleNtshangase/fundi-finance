@@ -149,6 +149,9 @@ export type HealthComponent = {
 };
 
 export type ReportAction = {
+  /** Stable machine id ("recategorise", "trim-food"…) so the NEXT report can
+   *  check whether this action's metric actually moved. */
+  id: string;
   title: string;
   detail: string;
   /** Estimated effect, e.g. "≈ +6% savings rate". */
@@ -213,6 +216,40 @@ export type ReportBehaviour = {
   personality: MoneyPersonality | null;
   /** Complete months of history the analysis is based on. */
   monthsAnalysed: number;
+};
+
+/**
+ * The metric snapshot persisted per (user, period) in `report_snapshots`.
+ * Everything needed for trends, streaks and mission follow-through WITHOUT
+ * rebuilding the report - plus a fingerprint so edited history invalidates
+ * the snapshot instead of serving stale numbers.
+ */
+export type ReportSnapshotMetrics = {
+  healthScore: number;
+  healthBand: string;
+  verdict: string;
+  savingsRatePct: number;
+  netCents: number;
+  incomeCents: number;
+  consumptionCents: number;
+  setAsideCents: number;
+  unclassifiedPct: number;
+  debtSharePct: number;
+  /** Share of day-to-day spend covered by budgets (0-100). */
+  budgetCoveredPct: number;
+  misalignedBudgetCount: number;
+  /** Complete months the period spanned. */
+  months: number;
+  topActionId: string | null;
+  topActionTitle: string | null;
+  /** For trim-<category> missions: that category's per-month spend then. */
+  trimCategoryMonthlyCents: number | null;
+  /** Fingerprint of the entries+targets the snapshot was computed from. */
+  fpCount: number;
+  fpSumCents: number;
+  /** Order-independent hash of category/type/amount/date - catches in-place
+   *  recategorisation, which count+sum alone would miss. */
+  fpMix: number;
 };
 
 export type ReportBuildOptions = {

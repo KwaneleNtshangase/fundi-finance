@@ -259,6 +259,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   if (misalignedBudget) {
     actions.push({
+      id: "recalibrate-budget",
       title: `Recalibrate your ${misalignedBudget.categoryName} budget`,
       detail: `You budgeted ${rand(misalignedBudget.budgetedCents)} but spent ${rand(misalignedBudget.actualCents)} (${misalignedBudget.variancePct}% used). A budget you can't get near isn't a plan - set it closer to what you actually spend so variances mean something.`,
       impact: "Your budget-vs-actual becomes a real signal, not noise",
@@ -268,6 +269,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   if (unclassifiedPct >= GUIDELINES.unclassifiedWarnPct) {
     actions.push({
+      id: "recategorise",
       title: "Recategorise your 'Other' transactions",
       detail: `${rand(core.groupTotals.unclassified)} of spending has no real category. Sorting it takes minutes and is the single biggest accuracy win.`,
       impact: `Your next report explains ${unclassifiedPct}% more of your money`,
@@ -277,6 +279,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   if (core.totalBudgetedExpenseCents <= 0) {
     actions.push({
+      id: "first-budgets",
       title: "Set your first category budgets",
       detail: "You're tracking spending but have no limits. A budget per category turns tracking into a plan.",
       lesson: LESSONS.buildingBudget,
@@ -292,6 +295,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
       .map((r) => r.categoryName);
     if (unbudgeted.length > 0) {
       actions.push({
+        id: "cover-unbudgeted",
         title: `Set budgets for ${unbudgeted.join(" and ")}`,
         detail: `${rand(core.unbudgetedActualCents)} (${pctOf(core.unbudgetedActualCents, core.totalExpenseCents)}% of spending) sits in categories with no budget, so it never gets flagged.`,
         impact: "Overspend alerts start working for your biggest categories",
@@ -309,6 +313,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
           ? ` Your ${rand(core.netCents)} surplus already covers it - it just needs a job.`
           : "";
       actions.push({
+        id: "payday-setaside",
         title: "Set aside a fixed amount on payday",
         detail: `Moving money to savings first - before spending - is the habit that makes the rate stick.${surplusHint}`,
         impact: `~ ${rand(extraPerMonth)}/month lifts your rate from ${core.savingsRatePct}% to ~${targetRate}% - about ${rand(extraPerMonth * 12)} extra set aside over 12 months`,
@@ -319,6 +324,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   if (debtSharePct >= 30) {
     actions.push({
+      id: "map-debts",
       title: "Map out your debts and pick a payoff order",
       detail: `${rand(debt)} went to debt repayments this period. A structured method shrinks the total interest paid and the stress.`,
       lesson: LESSONS.debtSnowball,
@@ -331,6 +337,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     if (monthlyCut >= 10000) {
       const newRate = Math.round(((core.setAsideCents + monthlyCut * months) / income) * 100);
       actions.push({
+        id: `trim-${trimRow.categoryId}`,
         title: `Trim ${trimRow.categoryName} by 10%`,
         detail: `${trimRow.categoryName} is your biggest flexible spending category at ${rand(trimRow.actualCents)} (${trimRow.sharePct}% of spending). One change here beats ten small ones elsewhere.`,
         impact: `~ ${rand(monthlyCut)}/month freed - enough to reach a ~${newRate}% set-aside rate`,
@@ -341,6 +348,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   if (actions.length === 0) {
     actions.push({
+      id: "keep-streak",
       title: "Keep the streak going",
       detail: "Cash flow is positive, budgets are holding and your data is clean. Consistency is the whole game now.",
     });
