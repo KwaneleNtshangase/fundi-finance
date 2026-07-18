@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
 import { resolvePeriod, formatPeriodLabel, type PeriodPreset } from "@/lib/budget/report/period";
+import { flexibleRows, simulate, type WhatIfChanges } from "@/lib/budget/report/simulate";
 import { X, FileText, Lightbulb } from "@/components/icons/FundiIcons";
 import type { ReportModel, InsightTone } from "@/lib/budget/report/types";
 
@@ -83,6 +84,7 @@ export function InteractiveReportModal({
   const [drill, setDrill] = useState<string | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [history, setHistory] = useState<ScorePoint[]>([]);
+  const [whatIf, setWhatIf] = useState<WhatIfChanges>({});
   const [preset, setPreset] = useState<PeriodPreset>("this_month");
   const [customStart, setCustomStart] = useState(initialStart);
   const [customEnd, setCustomEnd] = useState(initialEnd);
@@ -101,6 +103,7 @@ export function InteractiveReportModal({
       setLoading(true);
       setError(null);
       setDrill(null);
+      setWhatIf({});
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
@@ -167,6 +170,15 @@ export function InteractiveReportModal({
     return { delta: last.healthScore - prev.healthScore, label: prev.label };
   }, [history]);
   const topAction = model?.insights.actions.find((a) => a.isTopPriority) ?? model?.insights.actions[0];
+
+  // What-if sliders: top flexible categories, simulated with the SAME scoring
+  // the report itself uses (shared scoreHealth), so the numbers can't disagree.
+  const sliderRows = useMemo(() => (model ? flexibleRows(model, 4) : []), [model]);
+  const hasWhatIf = useMemo(() => Object.values(whatIf).some((v) => v !== 0), [whatIf]);
+  const sim = useMemo(
+    () => (model && hasWhatIf ? simulate(model, whatIf) : null),
+    [model, whatIf, hasWhatIf]
+  );
 
   if (!open) return null;
 
@@ -343,6 +355,81 @@ export function InteractiveReportModal({
                       </div>
                     </div>
                   ))}
+                </Section>
+              )}
+
+              {/* What-if sliders - try a change, watch the score move */}
+              {sliderRows.length > 0 && (
+                <Section title="What if?">
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-secondary)", marginBottom: 10, lineHeight: 1.4 }}>
+                    Drag a slider to try a change to your flexible spending. A simple projection - income and everything else stay as they are.
+                  </div>
+                  {sliderRows.map((r) => {
+                    const pct = whatIf[r.categoryId] ?? 0;
+                    const adjusted = Math.round(r.actualCents * (1 + pct / 100));
+                    return (
+                      <div key={r.categoryId} style={{ padding: "6px 0 10px", borderBottom: "1px solid var(--color-border)" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+                          <div style={{ width: 9, height: 9, borderRadius: "50%", background: r.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, fontWeight: 700, flex: 1 }}>{r.categoryName}</span>
+                          <span style={{ fontSize: 11.5, fontWeight: 800, color: pct === 0 ? "var(--color-text-secondary)" : pct < 0 ? TONE.good : TONE.bad, width: 44, textAlign: "right" }}>
+                            {pct === 0 ? "as is" : `${pct > 0 ? "+" : ""}${pct}%`}
+                          </span>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, width: 130, textAlign: "right", color: "var(--color-text-secondary)" }}>
+                            {pct === 0 ? zar(r.actualCents) : <>{zar(r.actualCents)} → <span style={{ color: "var(--color-text-primary)" }}>{zar(adjusted)}</span></>}
+                          </span>
+                        </div>
+                        <input
+                          type="range" min={-30} max={30} step={5} value={pct}
+                          aria-label={`Change ${r.categoryName} spending`}
+                          onChange={(e) => {
+                            const v = Number(e.target.value);
+                            setWhatIf((cur) => ({ ...cur, [r.categoryId]: v }));
+                          }}
+                          style={{ width: "100%", accentColor: pct <= 0 ? TONE.good : TONE.bad, cursor: "pointer" }}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  {sim ? (
+                    <div style={{ marginTop: 10, background: "var(--color-bg)", border: "1px solid var(--color-border)", borderRadius: 10, padding: 12 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1 }}>Health score</span>
+                        <span style={{ fontSize: 14, fontWeight: 900 }}>
+                          {sim.baseline.healthScore} → <span style={{ color: sim.scoreDelta > 0 ? TONE.good : sim.scoreDelta < 0 ? TONE.bad : "var(--color-text-primary)" }}>{sim.adjusted.healthScore}</span>
+                        </span>
+                        <span style={{ fontSize: 11, fontWeight: 800, padding: "2px 7px", borderRadius: 999, color: "#fff", background: sim.scoreDelta > 0 ? TONE.good : sim.scoreDelta < 0 ? TONE.bad : "var(--color-text-secondary)" }}>
+                          {sim.scoreDelta > 0 ? `▲ +${sim.scoreDelta}` : sim.scoreDelta < 0 ? `▼ ${sim.scoreDelta}` : "no change"}
+                        </span>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1 }}>{sim.adjusted.netCents >= 0 ? "Surplus" : "Net for period"}</span>
+                        <span style={{ fontSize: 13, fontWeight: 800 }}>
+                          {zarSigned(sim.baseline.netCents)} → <span style={{ color: sim.netDeltaCents > 0 ? TONE.good : sim.netDeltaCents < 0 ? TONE.bad : "var(--color-text-primary)" }}>{zarSigned(sim.adjusted.netCents)}</span>
+                        </span>
+                      </div>
+                      {sim.savingsRateDeltaPct !== 0 && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                          <span style={{ fontSize: 12.5, fontWeight: 700, flex: 1 }}>Set-aside rate</span>
+                          <span style={{ fontSize: 13, fontWeight: 800 }}>{sim.baseline.savingsRatePct}% → {sim.adjusted.savingsRatePct}%</span>
+                        </div>
+                      )}
+                      <div style={{ fontSize: 12, fontWeight: 700, color: sim.monthlyFreedCents >= 0 ? TONE.good : TONE.bad, marginTop: 2 }}>
+                        {sim.monthlyFreedCents >= 0
+                          ? `Frees ≈ ${zar(sim.monthlyFreedCents)}/month - about ${zar(sim.annualFreedCents)} over 12 months.`
+                          : `Costs ≈ ${zar(-sim.monthlyFreedCents)}/month more - about ${zar(-sim.annualFreedCents)} over 12 months.`}
+                      </div>
+                      <button type="button" onClick={() => setWhatIf({})}
+                        style={{ marginTop: 8, padding: "6px 12px", borderRadius: 8, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-secondary)", fontWeight: 700, fontSize: 11.5, cursor: "pointer" }}>
+                        Reset
+                      </button>
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 8, fontSize: 11.5, color: "var(--color-text-secondary)" }}>
+                      Move a slider to see the effect on your score, surplus and the next 12 months.
+                    </div>
+                  )}
                 </Section>
               )}
 

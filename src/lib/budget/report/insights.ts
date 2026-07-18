@@ -12,9 +12,9 @@
 
 import { formatZarCurrency } from "@/lib/currency";
 import { formatPeriodLabel } from "./period";
+import { GUIDELINES, debtCents, isFlexibleCategory, monthsSpanned, scoreHealth } from "./score";
 import type {
   ExpenseCategoryRow,
-  HealthComponent,
   InsightTone,
   ReportAction,
   ReportBenchmark,
@@ -25,6 +25,10 @@ import type {
 
 type ReportCore = Omit<ReportModel, "insights">;
 
+// Scoring lives in ./score (single source of truth for report, history and
+// what-if simulation). Re-exported here for existing import sites.
+export { GUIDELINES } from "./score";
+
 // Lesson links mirror the catalogue in src/lib/coach/insights.ts.
 const LESSONS = {
   buildingBudget: { courseId: "money-basics", lessonId: "lesson-3", title: "Building a Budget" },
@@ -32,15 +36,6 @@ const LESSONS = {
   needsVsWants: { courseId: "money-basics", lessonId: "lesson-2", title: "Needs vs Wants" },
   debtSnowball: { courseId: "credit-debt", lessonId: "lesson-5", title: "The Debt Snowball Method" },
   emergencyFund: { courseId: "emergency-fund", lessonId: "lesson-1", title: "How Much Do You Need?" },
-} as const;
-
-/** Guidelines quoted in the report (common budgeting rules of thumb). */
-export const GUIDELINES = {
-  savingsRatePct: 20, // "20% to savings & debt payoff" (50/30/20)
-  debtShareOfIncomePct: 35,
-  needsSharePct: 50,
-  wantsSharePct: 30,
-  unclassifiedWarnPct: 20,
 } as const;
 
 function rand(cents: number): string {
@@ -51,159 +46,12 @@ function pctOf(part: number, whole: number): number {
   return whole > 0 ? Math.round((part / whole) * 100) : 0;
 }
 
-/** Debt repayments = "goals" group rows that are NOT savings vehicles. */
-function debtCents(core: ReportCore): number {
-  return core.expenseCategories
-    .filter((r) => r.group === "goals" && !r.isSavingsVehicle)
-    .reduce((s, r) => s + r.actualCents, 0);
-}
-
-/**
- * Categories the user can't realistically cut by choice this month - bank fees,
- * insurance, rent, tithe, tax. Recommending "trim these by 10%" is useless.
- */
-const NON_TRIMMABLE = /\b(bank\s*charge|fee|insurance|funeral|rent|bond|housing|tithe|tax|levy|levies|medical\s+aid)\b/i;
-
 /**
  * Biggest category where a cut is actually possible: needs/wants that aren't
  * fixed obligations. Debt repayments and savings vehicles are commitments too.
  */
 function topTrimmableRow(core: ReportCore): ExpenseCategoryRow | null {
-  return (
-    core.expenseCategories.find(
-      (r) =>
-        (r.group === "needs" || r.group === "wants") &&
-        r.actualCents > 0 &&
-        !NON_TRIMMABLE.test(`${r.categoryId} ${r.categoryName}`)
-    ) ?? null
-  );
-}
-
-/** Approximate months in the period, for "per month" phrasing. */
-function monthsSpanned(core: ReportCore): number {
-  const complete = core.monthlySpend.filter((m) => !m.isPartial).length;
-  if (complete > 0) return complete;
-  return Math.max(1, core.monthlySpend.length);
-}
-
-// ─── Health score ─────────────────────────────────────────────────────────────
-
-function scoreCashFlow(core: ReportCore): HealthComponent {
-  const max = 25;
-  if (core.totalIncomeCents <= 0) {
-    return { label: "Cash flow", score: 0, max, tone: "bad", note: "No income recorded this period" };
-  }
-  const ratio = core.netCents / core.totalIncomeCents;
-  if (ratio >= 0.1)
-    return { label: "Cash flow", score: 25, max, tone: "good", note: `Ended ${rand(core.netCents)} ahead` };
-  if (ratio >= 0)
-    return { label: "Cash flow", score: 16, max, tone: "good", note: `Slightly ahead (${rand(core.netCents)})` };
-  if (ratio >= -0.1)
-    return { label: "Cash flow", score: 6, max, tone: "warn", note: `Spent ${rand(-core.netCents)} more than earned` };
-  return { label: "Cash flow", score: 0, max, tone: "bad", note: `Spent ${rand(-core.netCents)} more than earned` };
-}
-
-function scoreSavingsHabit(core: ReportCore): HealthComponent {
-  const max = 25;
-  const r = core.savingsRatePct;
-  const note = `${r}% of income set aside (guideline: ${GUIDELINES.savingsRatePct}%)`;
-  // You can't genuinely be credited for saving while you're spending more than
-  // you earn - that money is coming from reserves or debt, not surplus. Cap the
-  // score at half and flag it, rather than rewarding a possibly-borrowed habit.
-  if (core.netCents < 0 && r > 0) {
-    const capped = Math.min(r >= 15 ? 12 : r >= 5 ? 8 : 4, 12);
-    return {
-      label: "Savings habit",
-      score: capped,
-      max,
-      tone: "warn",
-      note: `${r}% set aside, but you ran a ${rand(-core.netCents)} deficit - saving on borrowed/reserve money doesn't fully count`,
-    };
-  }
-  if (r >= 20) return { label: "Savings habit", score: 25, max, tone: "good", note };
-  if (r >= 15) return { label: "Savings habit", score: 19, max, tone: "good", note };
-  if (r >= 10) return { label: "Savings habit", score: 14, max, tone: "warn", note };
-  if (r >= 5) return { label: "Savings habit", score: 8, max, tone: "warn", note };
-  if (r > 0) return { label: "Savings habit", score: 4, max, tone: "bad", note };
-  return { label: "Savings habit", score: 0, max, tone: "bad", note: "Nothing set aside this period" };
-}
-
-function scoreDebtLoad(core: ReportCore): HealthComponent {
-  const max = 20;
-  const debt = debtCents(core);
-  if (debt <= 0) {
-    // Be honest: with lots of unclassified spend, "no debt" may just mean
-    // "no debt we can see".
-    const dirty = core.dataQuality.unclassifiedExpenseSharePct >= GUIDELINES.unclassifiedWarnPct;
-    return {
-      label: "Debt load",
-      score: dirty ? 14 : 20,
-      max,
-      tone: dirty ? "warn" : "good",
-      note: dirty
-        ? `No debt repayments visible - but ${core.dataQuality.unclassifiedExpenseSharePct}% of spending is unclassified`
-        : "No debt repayments recorded",
-    };
-  }
-  if (core.totalIncomeCents <= 0)
-    return { label: "Debt load", score: 0, max, tone: "bad", note: "Debt repayments with no income recorded" };
-  const share = debt / core.totalIncomeCents;
-  const dirty = core.dataQuality.unclassifiedExpenseSharePct >= GUIDELINES.unclassifiedWarnPct;
-  const note = `${Math.round(share * 100)}% of income to debt (guideline: below ${GUIDELINES.debtShareOfIncomePct}%)`;
-  if (share <= 0.15) {
-    // A clean-looking debt share can't earn near-full marks while a big slice of
-    // spending is unclassified - undetected debt could be hiding in "Other". Cap
-    // it at half and mark it unverified so the score matches the inline caveat.
-    if (dirty) {
-      return {
-        label: "Debt load",
-        score: 10,
-        max,
-        tone: "warn",
-        note: `Unverified - ${core.dataQuality.unclassifiedExpenseSharePct}% of spending is unclassified, so hidden debt can't be ruled out`,
-      };
-    }
-    return { label: "Debt load", score: 20, max, tone: "good", note };
-  }
-  if (share <= 0.35) return { label: "Debt load", score: 12, max, tone: "warn", note };
-  if (share <= 0.5) return { label: "Debt load", score: 5, max, tone: "bad", note };
-  return { label: "Debt load", score: 0, max, tone: "bad", note };
-}
-
-function scoreBudgetDiscipline(core: ReportCore): HealthComponent {
-  const max = 15;
-  if (core.dayToDayBudgetedCents <= 0) {
-    return { label: "Budget coverage", score: 4, max, tone: "warn", note: "No day-to-day budgets set yet" };
-  }
-  const used = core.budgetUsedPct ?? 0;
-  // A budget that's wildly bigger than actual spend isn't a functioning
-  // constraint - it shouldn't earn full "coverage" marks just for existing.
-  const hasMisaligned = core.expenseCategories.some(
-    (r) => r.hasBudget && !r.isSavingsVehicle && r.variancePct != null && r.variancePct < 40 && r.budgetedCents >= 500000
-  );
-  // Coverage matters as much as adherence: staying under budget on two small
-  // categories while most spending runs unmanaged is not discipline.
-  const covered = pctOf(core.budgetedActualCents, core.consumptionCents);
-  const note = `${used}% of budget used, but budgets only cover ${covered}% of day-to-day spend`;
-  const goodNote = `${used}% of budget used · budgets cover ${covered}% of day-to-day spend`;
-  if (hasMisaligned)
-    return { label: "Budget coverage", score: 9, max, tone: "warn", note: `A budget is set several times bigger than actual spend, so coverage isn't a real constraint` };
-  if (used <= 100 && covered >= 60)
-    return { label: "Budget coverage", score: 15, max, tone: "good", note: goodNote };
-  if (used <= 100 && covered >= 30)
-    return { label: "Budget coverage", score: 9, max, tone: "warn", note };
-  if (used <= 115) return { label: "Budget coverage", score: 7, max, tone: "warn", note };
-  return { label: "Budget coverage", score: 3, max, tone: "bad", note };
-}
-
-function scoreDataQuality(core: ReportCore): HealthComponent {
-  const max = 15;
-  const share = core.dataQuality.unclassifiedExpenseSharePct;
-  const note = `${share}% of spending is unclassified`;
-  if (share <= 10) return { label: "Data quality", score: 15, max, tone: "good", note };
-  if (share <= 25) return { label: "Data quality", score: 9, max, tone: "warn", note };
-  if (share <= 40) return { label: "Data quality", score: 5, max, tone: "bad", note };
-  return { label: "Data quality", score: 0, max, tone: "bad", note };
+  return core.expenseCategories.find(isFlexibleCategory) ?? null;
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
@@ -212,7 +60,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   const income = core.totalIncomeCents;
   const debt = debtCents(core);
   const debtSharePct = pctOf(debt, income);
-  const months = monthsSpanned(core);
+  const months = monthsSpanned(core.monthlySpend);
   const avgMonthlyIncome = income / months;
   const unclassifiedPct = core.dataQuality.unclassifiedExpenseSharePct;
   const periodLabel = formatPeriodLabel(core.periodStart, core.periodEnd);
@@ -227,41 +75,10 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     .reduce((s, c) => s + c.actualCents, 0);
   const businessNetCents = businessIncomeCents - core.groupTotals.business;
 
-  const healthComponents = [
-    scoreCashFlow(core),
-    scoreSavingsHabit(core),
-    scoreDebtLoad(core),
-    scoreBudgetDiscipline(core),
-    scoreDataQuality(core),
-  ];
-  const healthScoreRaw = healthComponents.reduce((s, c) => s + c.score, 0);
-
-  // Two bottleneck caps - the headline can't read "Strong" when the fundamentals
-  // say otherwise:
-  //   1. Data quality: unclassified spend means the other scores rest on data we
-  //      can't see.
-  //   2. Solvency: spending more than you earn is the single most important
-  //      signal - you can't be "Strong" while going backwards for the period.
-  let healthCap = 100;
-  let capReason: string | null = null;
-  if (unclassifiedPct >= 40) { healthCap = 50; capReason = `${unclassifiedPct}% of spending is unclassified`; }
-  else if (unclassifiedPct >= 30) { healthCap = 60; capReason = `${unclassifiedPct}% of spending is unclassified`; }
-  else if (unclassifiedPct >= GUIDELINES.unclassifiedWarnPct) { healthCap = 75; capReason = `${unclassifiedPct}% of spending is unclassified`; }
-  if (income > 0 && core.netCents < 0) {
-    const deficitRatio = -core.netCents / income;
-    const solvencyCap = deficitRatio >= 0.1 ? 60 : 72; // can't be "Strong" in deficit
-    if (solvencyCap < healthCap) {
-      healthCap = solvencyCap;
-      capReason = `you spent ${rand(-core.netCents)} more than you earned this period`;
-    }
-  }
-  const healthScore = Math.min(healthScoreRaw, healthCap);
-  const healthCapNote =
-    healthScore < healthScoreRaw
-      ? `Capped at ${healthCap} (components summed to ${healthScoreRaw}): ${capReason}.`
-      : null;
-  const healthBand =
-    healthScore >= 80 ? "Strong" : healthScore >= 60 ? "Steady" : healthScore >= 40 ? "Fragile" : "Needs attention";
+  // Single source of truth - the same function scores the report, the history
+  // endpoint and the what-if simulator (see ./score and ./simulate).
+  const health = scoreHealth(core);
+  const { healthScore, healthBand } = health;
 
   // Cash flow AFTER day-to-day living (before deliberate saving). When this is
   // positive but the net is negative, the shortfall is a savings-allocation
@@ -653,11 +470,7 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
 
   return {
     verdict,
-    healthScore,
-    healthScoreRaw,
-    healthCapNote,
-    healthBand,
-    healthComponents,
+    ...health,
     highlights: highlights.slice(0, 4),
     coachParagraphs,
     wins: wins.slice(0, 4),
