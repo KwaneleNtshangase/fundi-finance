@@ -195,6 +195,7 @@ exports[`buildReport > fixed fixture snapshot 1`] = `
       "Transport: R300 over budget (120% used).",
       "100% of income comes from one source (Salary / Wages).",
     ],
+    "verdict": "A strong period - you finished R17 500 ahead and set aside 10% of income.",
     "wins": [
       "Food & Groceries: R800 under budget (80% used).",
     ],

@@ -396,6 +396,33 @@ describe("buildReport", () => {
     expect(model.insights.wins.some((w) => /allocation decision/.test(w))).toBe(true);
   });
 
+  it("produces a one-line verdict that leads with the period's story", () => {
+    const strong = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "savings", amount: 2500, entry_date: "2026-06-02" },
+        { type: "expense", category: "food", amount: 3000, entry_date: "2026-06-03" },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(typeof strong.insights.verdict).toBe("string");
+    expect(strong.insights.verdict.length).toBeGreaterThan(10);
+
+    const dirty = report(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "expense", category: "other", amount: 5000, entry_date: "2026-06-05" },
+        { type: "expense", category: "food", amount: 1000, entry_date: "2026-06-06" },
+      ],
+      [],
+      "2026-06-01",
+      "2026-06-30"
+    );
+    expect(dirty.insights.verdict).toMatch(/uncategorised|categoris/i);
+  });
+
   it("reframes an allocation deficit instead of alarming, and flags loan-funded saving", () => {
     const model = buildReport(
       [

@@ -168,6 +168,8 @@ export type ReportBenchmark = {
 };
 
 export type ReportInsights = {
+  /** One-sentence "how did I do" verdict, adapting to the period's story. */
+  verdict: string;
   /** 0-100 composite financial health score for the period (after any cap). */
   healthScore: number;
   /** Component sum before the data-quality cap; equals healthScore when uncapped. */

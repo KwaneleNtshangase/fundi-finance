@@ -737,7 +737,12 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
             Prepared for <Text style={{ color: C.teal, fontWeight: 700 }}>{model.displayName}</Text> · Generated {generated} (SAST)
           </Text>
 
-          <View style={{ marginTop: 22 }}>
+          {/* One-line verdict - answers "how did I do?" before any number. */}
+          <Text style={{ fontSize: 13, color: C.white, fontWeight: 700, lineHeight: 1.4, marginTop: 18 }}>
+            {ins.verdict}
+          </Text>
+
+          <View style={{ marginTop: 16 }}>
             <HealthScoreCard model={model} />
           </View>
 

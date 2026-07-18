@@ -37,6 +37,15 @@ type LightEntry = {
 
 type ReportData = { model: ReportModel; entries: LightEntry[] };
 
+type ScorePoint = {
+  monthYear: string;
+  label: string;
+  healthScore: number;
+  healthBand: string;
+  savingsRatePct: number;
+  netCents: number;
+};
+
 const TONE: Record<InsightTone, string> = {
   good: "#00A97A",
   warn: "#F0A030",
@@ -72,6 +81,8 @@ export function InteractiveReportModal({
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ReportData | null>(null);
   const [drill, setDrill] = useState<string | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [history, setHistory] = useState<ScorePoint[]>([]);
   const [preset, setPreset] = useState<PeriodPreset>("this_month");
   const [customStart, setCustomStart] = useState(initialStart);
   const [customEnd, setCustomEnd] = useState(initialEnd);
@@ -94,15 +105,27 @@ export function InteractiveReportModal({
         const { data: { session } } = await supabase.auth.getSession();
         const token = session?.access_token;
         if (!token) { setError("Please sign in again."); setLoading(false); return; }
-        const res = await fetch("/api/budget/report", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ periodStart, periodEnd, format: "json" }),
-        });
+        const [res, histRes] = await Promise.all([
+          fetch("/api/budget/report", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ periodStart, periodEnd, format: "json" }),
+          }),
+          // Score trend is best-effort - the report renders fine without it.
+          fetch("/api/budget/report/history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ months: 12 }),
+          }).catch(() => null),
+        ]);
         const json = await res.json();
         if (cancelled) return;
         if (!res.ok || !json.ok) { setError(json.error || "Could not build the report."); }
         else setData({ model: json.model, entries: json.entries ?? [] });
+        if (histRes && histRes.ok) {
+          const hj = await histRes.json().catch(() => null);
+          if (!cancelled && hj?.ok) setHistory(hj.history ?? []);
+        }
       } catch {
         if (!cancelled) setError("Could not build the report.");
       } finally {
@@ -135,6 +158,15 @@ export function InteractiveReportModal({
       .filter((e) => e.type === "expense" && e.category === drill)
       .sort((a, b) => b.amount - a.amount);
   }, [drill, data]);
+
+  // Month-over-month score trend from history (last point vs the one before).
+  const trend = useMemo(() => {
+    if (history.length < 2) return null;
+    const last = history[history.length - 1];
+    const prev = history[history.length - 2];
+    return { delta: last.healthScore - prev.healthScore, label: prev.label };
+  }, [history]);
+  const topAction = model?.insights.actions.find((a) => a.isTopPriority) ?? model?.insights.actions[0];
 
   if (!open) return null;
 
@@ -192,18 +224,28 @@ export function InteractiveReportModal({
 
           {model && !loading && (
             <>
-              {/* Health hero */}
+              {/* Health hero - the exec summary: verdict, score, trend */}
               <div style={{ background: "linear-gradient(135deg, #15294B, #0E1C38)", borderRadius: 16, padding: 18, marginBottom: 14, color: "#fff" }}>
-                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 10 }}>
+                <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 4 }}>
                   <div>
                     <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.6, color: "#9AA7BD" }}>Financial health</div>
                     <div style={{ display: "flex", alignItems: "flex-end", gap: 4 }}>
                       <span style={{ fontSize: 40, fontWeight: 900, color: bandColor, lineHeight: 1 }}>{model.insights.healthScore}</span>
                       <span style={{ fontSize: 14, color: "#9AA7BD", marginBottom: 4 }}>/100</span>
+                      {trend && (
+                        <span style={{ fontSize: 12, fontWeight: 800, marginBottom: 5, marginLeft: 4, color: trend.delta >= 0 ? TONE.good : TONE.bad }}>
+                          {trend.delta >= 0 ? "▲" : "▼"} {Math.abs(trend.delta)} vs {trend.label}
+                        </span>
+                      )}
                     </div>
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: bandColor }}>{model.insights.healthBand}</div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: bandColor }}>{model.insights.healthBand}</div>
+                    {history.length >= 2 && <Sparkline points={history.map((h) => h.healthScore)} color={bandColor} />}
+                  </div>
                 </div>
+                {/* One-line verdict - answers "how did I do?" before any chart. */}
+                <div style={{ fontSize: 13.5, lineHeight: 1.45, color: "#EAF0F7", margin: "8px 0 12px" }}>{model.insights.verdict}</div>
                 <div style={{ height: 7, background: "#0A1526", borderRadius: 4, marginBottom: 12, overflow: "hidden" }}>
                   <div style={{ width: `${model.insights.healthScore}%`, height: "100%", background: bandColor, borderRadius: 4 }} />
                 </div>
@@ -245,6 +287,16 @@ export function InteractiveReportModal({
                 <Section title="At a glance">
                   {model.insights.highlights.map((h, i) => <ToneRow key={i} tone={h.tone} text={h.text} />)}
                 </Section>
+              )}
+
+              {/* The single most important next step, surfaced in the summary. */}
+              {topAction && (
+                <div style={{ background: "var(--color-surface)", border: `1px solid var(--color-border)`, borderLeft: `4px solid ${TONE.good}`, borderRadius: 12, padding: 14, marginBottom: 16 }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: TONE.good, textTransform: "uppercase", letterSpacing: 0.4, marginBottom: 4 }}>Do this first</div>
+                  <div style={{ fontSize: 14.5, fontWeight: 800, marginBottom: 3 }}>{topAction.title}</div>
+                  <div style={{ fontSize: 12.5, lineHeight: 1.4, color: "var(--color-text-secondary)" }}>{topAction.detail}</div>
+                  {topAction.impact && <div style={{ fontSize: 11.5, fontWeight: 700, color: TONE.good, marginTop: 5 }}>Impact: {topAction.impact}</div>}
+                </div>
               )}
 
               {model.insights.dataQualityAlert && (
@@ -377,30 +429,46 @@ export function InteractiveReportModal({
                 </Section>
               )}
 
-              {/* Benchmarks */}
-              {model.insights.benchmarks.length > 0 && (
-                <Section title="How you compare to guidelines">
-                  {model.insights.benchmarks.map((b) => (
-                    <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--color-border)" }}>
-                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: TONE[b.tone], flexShrink: 0 }} />
-                      <span style={{ fontSize: 12.5, flex: 1 }}>{b.label}</span>
-                      <span style={{ fontSize: 12.5, fontWeight: 800, color: TONE[b.tone] }}>{b.value}</span>
-                      <span style={{ fontSize: 11, color: "var(--color-text-secondary)", width: 110, textAlign: "right" }}>{b.target}</span>
-                    </div>
-                  ))}
-                </Section>
-              )}
+              {/* Progressive disclosure: the reference detail lives behind a toggle
+                  so the default view stays a focused executive summary. */}
+              {(model.insights.benchmarks.length > 0 || model.recurringCommitments.length > 0) && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowDetail((v) => !v)}
+                    style={{ width: "100%", padding: "11px 14px", borderRadius: 10, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, marginBottom: 16 }}
+                  >
+                    {showDetail ? "Hide full detail" : "See full detail (guidelines, recurring bills)"}
+                  </button>
 
-              {/* Recurring */}
-              {model.recurringCommitments.length > 0 && (
-                <Section title="Recurring commitments">
-                  {model.recurringCommitments.map((r) => (
-                    <div key={r.description} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--color-border)" }}>
-                      <span style={{ fontSize: 13, flex: 1 }}>{r.description}<span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}> · {r.categoryName}</span></span>
-                      <span style={{ fontSize: 13, fontWeight: 800 }}>{zar(r.typicalCents)}<span style={{ fontSize: 10, color: "var(--color-text-secondary)", fontWeight: 600 }}>/mo</span></span>
-                    </div>
-                  ))}
-                </Section>
+                  {showDetail && (
+                    <>
+                      {model.insights.benchmarks.length > 0 && (
+                        <Section title="How you compare to guidelines">
+                          {model.insights.benchmarks.map((b) => (
+                            <div key={b.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--color-border)" }}>
+                              <div style={{ width: 8, height: 8, borderRadius: "50%", background: TONE[b.tone], flexShrink: 0 }} />
+                              <span style={{ fontSize: 12.5, flex: 1 }}>{b.label}</span>
+                              <span style={{ fontSize: 12.5, fontWeight: 800, color: TONE[b.tone] }}>{b.value}</span>
+                              <span style={{ fontSize: 11, color: "var(--color-text-secondary)", width: 110, textAlign: "right" }}>{b.target}</span>
+                            </div>
+                          ))}
+                        </Section>
+                      )}
+
+                      {model.recurringCommitments.length > 0 && (
+                        <Section title="Recurring commitments">
+                          {model.recurringCommitments.map((r) => (
+                            <div key={r.description} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", borderBottom: "1px solid var(--color-border)" }}>
+                              <span style={{ fontSize: 13, flex: 1 }}>{r.description}<span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}> · {r.categoryName}</span></span>
+                              <span style={{ fontSize: 13, fontWeight: 800 }}>{zar(r.typicalCents)}<span style={{ fontSize: 10, color: "var(--color-text-secondary)", fontWeight: 600 }}>/mo</span></span>
+                            </div>
+                          ))}
+                        </Section>
+                      )}
+                    </>
+                  )}
+                </>
               )}
 
               <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 8 }}>
@@ -426,6 +494,23 @@ function Stat({ label, value, color, sub, delta, goodWhenUp }: { label: string; 
         </div>
       )}
     </div>
+  );
+}
+
+/** Tiny inline score sparkline (last N monthly scores). */
+function Sparkline({ points, color, width = 96, height = 26 }: { points: number[]; color: string; width?: number; height?: number }) {
+  if (points.length < 2) return null;
+  const min = Math.min(...points, 0);
+  const max = Math.max(...points, 100);
+  const span = max - min || 1;
+  const stepX = width / (points.length - 1);
+  const coords = points.map((p, i) => `${(i * stepX).toFixed(1)},${(height - ((p - min) / span) * height).toFixed(1)}`);
+  const last = coords[coords.length - 1].split(",");
+  return (
+    <svg width={width} height={height} style={{ display: "block", marginTop: 4 }} aria-hidden>
+      <polyline points={coords.join(" ")} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={last[0]} cy={last[1]} r={2.4} fill={color} />
+    </svg>
   );
 }
 

@@ -626,7 +626,33 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
       ? `${unclassifiedPct}% of spending (${rand(core.groupTotals.unclassified)}) is sitting in "Other" or unknown categories. Until it's recategorised, every chart in this report understates where your money really goes.`
       : null;
 
+  // ── Verdict: the one sentence that answers "how did I do?" ───────────────
+  // Leads with the dominant story, not a generic band label.
+  const verdict = (() => {
+    if (income <= 0 && core.totalExpenseCents <= 0) return "No activity recorded for this period yet.";
+    if (unclassifiedPct >= 30) {
+      return `Too much (${unclassifiedPct}%) of your spending is still uncategorised to judge this period fairly - sorting it is the first move.`;
+    }
+    if (loanIncomeCents > 0 && core.setAsideCents > 0) {
+      return `Careful: you set money aside while taking on loan income - you may be borrowing to save, which quietly builds debt.`;
+    }
+    if (allocationDeficit) {
+      return `A disciplined period - your day-to-day spending stayed within income, and the shortfall was a deliberate choice to save ${core.savingsRatePct}% hard.`;
+    }
+    if (core.netCents < 0) {
+      return `A tough period - you spent ${rand(-core.netCents)} more than you earned on day-to-day living. Reining that in is the priority.`;
+    }
+    if (healthBand === "Strong" || healthScore >= 80) {
+      return `A strong period - you finished ${rand(core.netCents)} ahead and set aside ${core.savingsRatePct}% of income.`;
+    }
+    if (core.savingsRatePct >= GUIDELINES.savingsRatePct) {
+      return `A solid period - you're ahead and saving above the ${GUIDELINES.savingsRatePct}% guideline; a couple of tweaks would make it excellent.`;
+    }
+    return `A steady period - you finished ahead, with room to lift your ${core.savingsRatePct}% savings rate toward the ${GUIDELINES.savingsRatePct}% guideline.`;
+  })();
+
   return {
+    verdict,
     healthScore,
     healthScoreRaw,
     healthCapNote,
