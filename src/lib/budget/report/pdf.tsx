@@ -317,19 +317,31 @@ function SunburstChart({
     );
   }
   const angleAt = (cents: number) => (cents / total) * 2 * Math.PI;
-  // Categories ordered to sit inside their group's arc.
-  const ordered = order.flatMap((g) =>
-    rows.filter((r) => r.group === g && r.actualCents > 0).sort((a, b) => b.actualCents - a.actualCents)
-  );
+  // Outer ring, per group: keep the meaningful categories as their own slice,
+  // but merge everything under 4% into a single "rest of group" slice so the
+  // ring isn't a confusing fringe of hair-thin slivers.
+  const MIN_SLICE = total * 0.04;
   const outerSlices: { path: string; color: string }[] = [];
   let a = -Math.PI / 2;
-  for (const r of ordered) {
-    const a1 = a + angleAt(r.actualCents);
-    outerSlices.push({
-      path: describeDonutSlice(cx, cy, outerR, midR + 1, a, a1),
-      color: shades.get(r.categoryId) ?? r.color,
-    });
-    a = a1;
+  for (const g of order) {
+    const inGroup = rows
+      .filter((r) => r.group === g && r.actualCents > 0)
+      .sort((a, b) => b.actualCents - a.actualCents);
+    let restCents = 0;
+    for (const r of inGroup) {
+      if (r.actualCents >= MIN_SLICE) {
+        const a1 = a + angleAt(r.actualCents);
+        outerSlices.push({ path: describeDonutSlice(cx, cy, outerR, midR + 1, a, a1), color: shades.get(r.categoryId) ?? r.color });
+        a = a1;
+      } else {
+        restCents += r.actualCents;
+      }
+    }
+    if (restCents > 0) {
+      const a1 = a + angleAt(restCents);
+      outerSlices.push({ path: describeDonutSlice(cx, cy, outerR, midR + 1, a, a1), color: blendWithWhite(GROUP_META[g].color, 0.72) });
+      a = a1;
+    }
   }
   const innerSlices: { path: string; color: string }[] = [];
   a = -Math.PI / 2;
@@ -340,16 +352,23 @@ function SunburstChart({
     a = a1;
   }
   return (
-    <Svg width={size} height={size}>
-      <G>
-        {innerSlices.map((s, i) => (
-          <Path key={`i${i}`} d={s.path} fill={s.color} />
-        ))}
-        {outerSlices.map((s, i) => (
-          <Path key={`o${i}`} d={s.path} fill={s.color} />
-        ))}
-      </G>
-    </Svg>
+    <View style={{ width: size, height: size, position: "relative" }}>
+      <Svg width={size} height={size}>
+        <G>
+          {/* white separators between slices make the boundaries legible */}
+          {innerSlices.map((s, i) => (
+            <Path key={`i${i}`} d={s.path} fill={s.color} stroke={C.white} strokeWidth={0.8} />
+          ))}
+          {outerSlices.map((s, i) => (
+            <Path key={`o${i}`} d={s.path} fill={s.color} stroke={C.white} strokeWidth={0.8} />
+          ))}
+        </G>
+      </Svg>
+      <View style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
+        <Text style={{ fontSize: 7, color: C.textMuted }}>Spent</Text>
+        <Text style={{ fontSize: 11, fontWeight: 700, color: C.navy }}>{zarShort(total)}</Text>
+      </View>
+    </View>
   );
 }
 

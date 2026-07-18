@@ -4,7 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
-import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
+import { formatPeriodLabel, monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
 import { FundiCoachCard } from "@/components/FundiCoachCard";
@@ -65,6 +65,7 @@ import {
 import { formatRand } from "@/lib/viewHelpers";
 import { BudgetImportPanel } from "@/components/BudgetImportPanel";
 import { findSimilarEntries, merchantLabelFor, merchantPatternFor } from "@/lib/budget/similar";
+import { InteractiveReportModal } from "@/components/InteractiveReportModal";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -134,10 +135,15 @@ function getIconByName(name: string): React.ComponentType<{ size?: number; style
 }
 
 const CAT_COLOR_SWATCHES = [
-  "#007A4D","#FFB612","#3B7DD8","#E03C31","#00BFA5",
-  "#7C4DFF","#F57C00","#C2185B","#1976D2","#9E9E9E",
-  "#00897B","#D81B60","#F4511E","#8E24AA","#43A047",
+  "#007A4D","#00A97A","#00BFA5","#0EA5A0","#0891B2",
+  "#1976D2","#3B7DD8","#4F6BED","#6366F1","#7C4DFF",
+  "#8E24AA","#C2185B","#D81B60","#EC4899","#F43F5E",
+  "#DE6B62","#F4511E","#F57C00","#FFB612","#EAB308",
+  "#65A30D","#43A047","#0F766E","#64748B","#9E9E9E",
 ];
+/** Softer over-budget red - the harsh #E03C31 as a wall of bars was fatiguing. */
+const OVER_RED = "#DE6B62";
+const OVER_RED_SOFT = "rgba(222,107,98,0.14)";
 
 const BUDGET_EXPENSE_CATS = [
   { id: "food",          label: "Food & Groceries", color: "#007A4D", tag: "needs",   Icon: ShoppingCart },
@@ -272,6 +278,12 @@ export function BudgetView() {
   const [exportCustomEnd, setExportCustomEnd] = useState(() => monthAlignedDefaults().periodEnd);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  // Interactive in-app report (hover + drill-down); PDF stays as the export.
+  const [showInteractiveReport, setShowInteractiveReport] = useState(false);
+  const [reportPeriod, setReportPeriod] = useState<{ start: string; end: string }>(() => {
+    const d = monthAlignedDefaults();
+    return { start: d.periodStart, end: d.periodEnd };
+  });
 
   // New states for account attribution
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
@@ -937,6 +949,35 @@ export function BudgetView() {
     }
   };
 
+  // Download the PDF for a specific period (used by the interactive report).
+  const downloadReportPdf = async (periodStart: string, periodEnd: string) => {
+    setExportLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      if (!token) return;
+      const res = await fetch(`${window.location.origin}/api/budget/report`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ periodStart, periodEnd }),
+      });
+      if (!res.ok) return;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      /* non-fatal: the interactive view is still open */
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
   // Transfers (money moved between your own accounts, or imported transfer pairs)
   // are excluded from income/expense/savings maths everywhere.
   const realEntries = entries.filter((e) => !e.is_transfer);
@@ -987,6 +1028,21 @@ export function BudgetView() {
           <BudgetImportPanel onImported={loadEntries} />
           <button
             type="button"
+            onClick={() => {
+              const d = resolvePeriod(viewMode === "year" ? "year" : "this_month");
+              setReportPeriod({ start: d.periodStart, end: d.periodEnd });
+              setShowInteractiveReport(true);
+            }}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              background: "var(--color-primary)", color: "white", border: "none",
+              borderRadius: 10, padding: "8px 12px", fontWeight: 700, fontSize: 13, cursor: "pointer",
+            }}
+          >
+            <BarChart2 size={15} aria-hidden /> View report
+          </button>
+          <button
+            type="button"
             onClick={openExportModal}
             style={{
               display: "flex",
@@ -1002,7 +1058,7 @@ export function BudgetView() {
               cursor: "pointer",
             }}
           >
-            <FileText size={15} aria-hidden /> Export report
+            <FileText size={15} aria-hidden /> Export PDF
           </button>
           <div style={{ display: "flex", borderRadius: 10, border: "1px solid var(--color-border)", overflow: "hidden" }}>
             {(["month", "year"] as const).map((v) => (
@@ -1037,6 +1093,17 @@ export function BudgetView() {
 
       {/* Fundi Coach: deterministic nudges from the user's own numbers */}
       {viewMode === "month" && <FundiCoachCard monthYear={monthYear} />}
+
+      {/* Interactive in-app report */}
+      <InteractiveReportModal
+        open={showInteractiveReport}
+        onClose={() => setShowInteractiveReport(false)}
+        periodStart={reportPeriod.start}
+        periodEnd={reportPeriod.end}
+        periodLabel={formatPeriodLabel(reportPeriod.start, reportPeriod.end)}
+        onDownloadPdf={() => downloadReportPdf(reportPeriod.start, reportPeriod.end)}
+        downloadingPdf={exportLoading}
+      />
 
       {/* Floating AI chat, always available on the budget page */}
       <FundiCoachChat />
@@ -1297,22 +1364,32 @@ export function BudgetView() {
                           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                             <div style={{ width: 10, height: 10, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
                             <span style={{ fontWeight: 600 }}>{c.label}</span>
-                            {isOver && <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(224,60,49,0.15)", color: "#E03C31", borderRadius: 4, padding: "1px 5px" }}>OVER</span>}
-                            {isAmber && !isOver && <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(255,152,0,0.15)", color: "#F57C00", borderRadius: 4, padding: "1px 5px" }}>80%+</span>}
+                            {isOver && <span style={{ fontSize: 10, fontWeight: 800, background: OVER_RED_SOFT, color: OVER_RED, borderRadius: 4, padding: "1px 5px" }}>OVER</span>}
+                            {isAmber && !isOver && <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(245,124,0,0.13)", color: "#F57C00", borderRadius: 4, padding: "1px 5px" }}>80%+</span>}
                           </div>
                           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                             <span style={{ fontSize: 11, fontWeight: 700, background: "var(--color-bg)", borderRadius: 6, padding: "2px 6px", color: "var(--color-text-secondary)" }}>{pct.toFixed(1)}%</span>
-                            <span style={{ fontWeight: 800, color: isOver ? "#E03C31" : "var(--color-text-primary)" }}>{formatRand(c.total)}</span>
+                            <span style={{ fontWeight: 800, color: isOver ? OVER_RED : "var(--color-text-primary)" }}>{formatRand(c.total)}</span>
                           </div>
                         </div>
                         {limit ? (
                           <div>
-                            <div style={{ height: 10, borderRadius: 5, background: "var(--color-border)", overflow: "hidden" }}>
-                              <div style={{ height: "100%", borderRadius: 5, background: isOver ? "#E03C31" : isAmber ? "#F57C00" : c.color, width: `${Math.min(100, usagePct)}%`, transition: "width 0.4s ease" }} />
+                            {/* Two-tone bar: the category colour fills up to the budget,
+                                only the actual overspend shows soft red - far calmer
+                                than a wall of solid-red full bars. */}
+                            <div style={{ height: 10, borderRadius: 5, background: "var(--color-border)", overflow: "hidden", display: "flex" }}>
+                              {isOver ? (
+                                <>
+                                  <div style={{ height: "100%", background: c.color, width: `${(limit / c.total) * 100}%` }} />
+                                  <div style={{ height: "100%", background: OVER_RED, flex: 1 }} />
+                                </>
+                              ) : (
+                                <div style={{ height: "100%", borderRadius: 5, background: isAmber ? "#F57C00" : c.color, width: `${Math.min(100, usagePct)}%`, transition: "width 0.4s ease" }} />
+                              )}
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3, fontSize: 11, color: "var(--color-text-secondary)" }}>
                               <span>{formatRand(c.total)} of {formatRand(limit)}</span>
-                              <span style={{ color: isOver ? "#E03C31" : isAmber ? "#F57C00" : "#007A4D", fontWeight: 700 }}>
+                              <span style={{ color: isOver ? OVER_RED : isAmber ? "#F57C00" : "#007A4D", fontWeight: 700 }}>
                                 {isOver ? `${formatRand(c.total - limit)} over` : `${formatRand(limit - c.total)} left`}
                               </span>
                             </div>
@@ -1325,15 +1402,6 @@ export function BudgetView() {
                       </div>
                     );
                   })}
-
-                  <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid var(--color-border)", display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {catTotals.map((c) => (
-                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--color-text-secondary)" }}>
-                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.color }} />
-                        <span>{c.label}: {expenses > 0 ? ((c.total / expenses) * 100).toFixed(0) : 0}%</span>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 
@@ -1931,12 +1999,33 @@ export function BudgetView() {
             </div>
             <div style={{ marginBottom: 18 }}>
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Colour</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
                 {CAT_COLOR_SWATCHES.map((col) => (
                   <button key={col} type="button" onClick={() => setNewCatColor(col)}
-                    style={{ width: 30, height: 30, borderRadius: "50%", background: col, border: `3px solid ${newCatColor === col ? "white" : "transparent"}`, outline: newCatColor === col ? `2px solid ${col}` : "none", cursor: "pointer", flexShrink: 0 }}
+                    style={{ width: 30, height: 30, borderRadius: "50%", background: col, border: `3px solid ${newCatColor.toLowerCase() === col.toLowerCase() ? "white" : "transparent"}`, outline: newCatColor.toLowerCase() === col.toLowerCase() ? `2px solid ${col}` : "none", cursor: "pointer", flexShrink: 0 }}
                     aria-label={col} />
                 ))}
+                {/* Custom colour: native picker, styled as a "＋" swatch. The
+                    current custom pick shows a ring when it isn't a preset. */}
+                <label
+                  title="Pick a custom colour"
+                  style={{
+                    position: "relative", width: 30, height: 30, borderRadius: "50%", cursor: "pointer", flexShrink: 0,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    background: CAT_COLOR_SWATCHES.some((s) => s.toLowerCase() === newCatColor.toLowerCase()) ? "var(--color-bg)" : newCatColor,
+                    border: `2px dashed ${CAT_COLOR_SWATCHES.some((s) => s.toLowerCase() === newCatColor.toLowerCase()) ? "var(--color-border)" : "white"}`,
+                    outline: CAT_COLOR_SWATCHES.some((s) => s.toLowerCase() === newCatColor.toLowerCase()) ? "none" : `2px solid ${newCatColor}`,
+                  }}
+                >
+                  <Plus size={15} style={{ color: CAT_COLOR_SWATCHES.some((s) => s.toLowerCase() === newCatColor.toLowerCase()) ? "var(--color-text-secondary)" : "white" }} />
+                  <input
+                    type="color"
+                    value={/^#[0-9a-fA-F]{6}$/.test(newCatColor) ? newCatColor : "#007A4D"}
+                    onChange={(e) => setNewCatColor(e.target.value)}
+                    style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }}
+                    aria-label="Custom colour"
+                  />
+                </label>
               </div>
             </div>
             <div style={{ marginBottom: 24 }}>

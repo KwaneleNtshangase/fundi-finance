@@ -12,18 +12,23 @@ import { BudgetReportDocument } from "@/lib/budget/report/pdf";
 import { precedingPeriod } from "@/lib/budget/report/period";
 import type { BudgetEntryInput, BudgetTargetInput, CategoryMeta } from "@/lib/budget/report/types";
 
+function inPeriodJson(date: string, start: string, end: string): boolean {
+  return date >= start && date <= end;
+}
+
 export async function POST(req: NextRequest) {
   const user = await getUserFromRequest(req);
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { periodStart?: string; periodEnd?: string; savingsCategoryIds?: string[] };
+  let body: { periodStart?: string; periodEnd?: string; savingsCategoryIds?: string[]; format?: "pdf" | "json" };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
+  const wantJson = body.format === "json";
 
   const savingsCategoryIds = Array.isArray(body.savingsCategoryIds)
     ? body.savingsCategoryIds.filter((s): s is string => typeof s === "string").slice(0, 50)
@@ -200,6 +205,21 @@ export async function POST(req: NextRequest) {
     const message = err instanceof Error ? err.message : "Report validation failed";
     console.error("[budget/report]", message);
     return NextResponse.json({ error: "Report validation failed" }, { status: 500 });
+  }
+
+  // Interactive in-app report: return the computed model + the period's entries
+  // (for tap-to-drill by category) instead of rendering a static PDF.
+  if (wantJson) {
+    const lightEntries = entries
+      .filter((e) => !e.is_transfer && inPeriodJson(e.entry_date, periodStart, periodEnd))
+      .map((e) => ({
+        category: e.category,
+        type: e.type,
+        amount: e.amount,
+        description: e.description ?? null,
+        entry_date: e.entry_date,
+      }));
+    return NextResponse.json({ ok: true, model, entries: lightEntries });
   }
 
   // Server-side @react-pdf render: element is constructed here, outside the

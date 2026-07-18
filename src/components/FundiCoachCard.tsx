@@ -24,7 +24,7 @@ import {
   type CoachEntry,
   type CoachInsight,
 } from "@/lib/coach/insights";
-import { Lightbulb } from "@/components/icons/FundiIcons";
+import { ChevronDown, Lightbulb } from "@/components/icons/FundiIcons";
 
 const BUILT_IN_LABELS: Record<string, string> = {
   food: "Food & Groceries",
@@ -40,7 +40,7 @@ const BUILT_IN_LABELS: Record<string, string> = {
 };
 
 const SEVERITY_STYLES: Record<CoachInsight["severity"], { border: string; bg: string; chip: string; chipText: string }> = {
-  alert:  { border: "rgba(224,60,49,0.45)",  bg: "rgba(224,60,49,0.06)",  chip: "#E03C31", chipText: "Over budget" },
+  alert:  { border: "rgba(222,107,98,0.45)", bg: "rgba(222,107,98,0.06)", chip: "#DE6B62", chipText: "Over budget" },
   warn:   { border: "rgba(255,182,18,0.55)", bg: "rgba(255,182,18,0.07)", chip: "#B8860B", chipText: "Heads up" },
   info:   { border: "var(--color-border)",   bg: "transparent",           chip: "#3B7DD8", chipText: "Tip" },
   praise: { border: "rgba(0,122,77,0.45)",   bg: "rgba(0,122,77,0.06)",   chip: "#007A4D", chipText: "Well done" },
@@ -70,6 +70,16 @@ export function FundiCoachCard({
   monthYear?: string;
 }) {
   const [insights, setInsights] = useState<CoachInsight[] | null>(null);
+  // Remember the user's show/hide choice across sessions; default collapsed so
+  // the budget page opens clean, with the count visible to invite a peek.
+  const [collapsed, setCollapsed] = useState<boolean>(
+    () => typeof window === "undefined" || window.localStorage.getItem("fundi.cosmoCollapsed") !== "false"
+  );
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("fundi.cosmoCollapsed", String(collapsed));
+    }
+  }, [collapsed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -159,14 +169,36 @@ export function FundiCoachCard({
         background: "var(--color-surface, transparent)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+      {/* Header doubles as a collapse toggle so users who don't want coaching
+          can tuck it away - the page stays uncluttered by default. */}
+      <button
+        type="button"
+        onClick={() => setCollapsed((v) => !v)}
+        aria-expanded={!collapsed}
+        style={{
+          display: "flex", alignItems: "center", gap: 8, width: "100%",
+          background: "none", border: "none", cursor: "pointer", padding: 0,
+          marginBottom: collapsed ? 0 : 12, color: "var(--color-text-primary)",
+        }}
+      >
         <Lightbulb size={18} style={{ color: "var(--color-accent, #FFB612)" }} />
         <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Cosmo</h3>
+        {showInsights && (
+          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--color-accent, #FFB612)", background: "rgba(255,182,18,0.14)", borderRadius: 999, padding: "1px 8px" }}>
+            {insights!.length}
+          </span>
+        )}
         <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-secondary)", marginLeft: "auto" }}>
-          Based on your own numbers
+          {collapsed ? (showInsights ? "Show insights" : "Based on your own numbers") : "Hide"}
         </span>
-      </div>
+        <ChevronDown
+          size={18}
+          style={{ color: "var(--color-text-secondary)", transform: collapsed ? "none" : "rotate(180deg)", transition: "transform 0.2s" }}
+        />
+      </button>
 
+      {!collapsed && (
+      <>
       {!showInsights && (
         <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
           No nudges right now. Add entries or import a bank statement and Cosmo
@@ -220,6 +252,8 @@ export function FundiCoachCard({
         Educational information based on your budget data, not financial advice.
         Fundi Finance is not a registered financial services provider.
       </p>
+      </>
+      )}
     </section>
   );
 }
