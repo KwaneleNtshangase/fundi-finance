@@ -396,6 +396,54 @@ describe("buildReport", () => {
     expect(model.insights.wins.some((w) => /allocation decision/.test(w))).toBe(true);
   });
 
+  it("reframes an allocation deficit instead of alarming, and flags loan-funded saving", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 8000, entry_date: "2026-06-01" },
+        { type: "income", category: "loan-in", amount: 2000, description: "Loan", entry_date: "2026-06-02" },
+        { type: "expense", category: "stokvel", amount: 5000, entry_date: "2026-06-03" },
+        { type: "expense", category: "food", amount: 6000, entry_date: "2026-06-04" },
+      ],
+      [],
+      [
+        { id: "stokvel", name: "Stokvel", color: "#00A9A5", type: "expense" },
+        { id: "loan-in", name: "Loan", color: "#888", type: "income" },
+      ],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    // Income 10000, day-to-day 6000 (within income), set aside 5000 -> net -1000.
+    expect(model.netCents).toBe(-100000);
+    // The at-a-glance line should be neutral/info, not a red "spent more" alarm.
+    const first = model.insights.highlights[0];
+    expect(first.tone).toBe("info");
+    expect(first.text).toMatch(/saving|reserves|set aside/i);
+    // Loan-funded saving is surfaced as the leading risk.
+    expect(model.insights.risks[0]).toMatch(/loan money|borrowing to save|debt cycle/i);
+  });
+
+  it("nets business income against business cost in the coach narrative", () => {
+    const model = buildReport(
+      [
+        { type: "income", category: "salary", amount: 10000, entry_date: "2026-06-01" },
+        { type: "income", category: "business", amount: 4000, entry_date: "2026-06-02" },
+        { type: "expense", category: "biz-exp", amount: 9000, description: "Stock", entry_date: "2026-06-05" },
+      ],
+      [],
+      [{ id: "biz-exp", name: "Business", color: "#E6B84C", type: "expense" }],
+      "2026-06-01",
+      "2026-06-30",
+      "Test User",
+      FIXED_AT
+    );
+    assertReportModel(model);
+    // Business income 4000, cost 9000 -> net 5000 drain, mentioned in the coach.
+    expect(model.insights.coachParagraphs.some((p) => /side-hustle|net/i.test(p) && /drain/i.test(p))).toBe(true);
+  });
+
   it("does not celebrate a category used under half its budget (misaligned)", () => {
     const model = report(
       [{ type: "expense", category: "business-exp", amount: 5000, description: "Stock", entry_date: "2026-06-05" }],

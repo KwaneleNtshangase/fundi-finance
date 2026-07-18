@@ -761,13 +761,27 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
                 <Text style={{ color: C.onNavyMuted }}>{model.savingsRatePct}% of income · guideline 20%</Text>
               </Text>
             </View>
-            <View style={styles.statCard}>
-              <Text style={styles.statLabel}>{model.netCents >= 0 ? "Surplus" : "Shortfall"}</Text>
-              <Text style={[styles.statValue, { color: model.netCents >= 0 ? C.teal : C.expense }]}>
-                {model.netCents >= 0 ? "+" : ""}
-                {zar(model.netCents)}
-              </Text>
-            </View>
+            {(() => {
+              // Reframe: a shortfall caused purely by saving more than the
+              // surplus is an allocation choice, not overspending - show it in
+              // gold (neutral) with context, not alarm red.
+              const afterLiving = model.totalIncomeCents - model.consumptionCents;
+              const allocationDeficit = model.netCents < 0 && afterLiving >= 0;
+              const label = model.netCents >= 0 ? "Surplus" : allocationDeficit ? "After saving" : "Shortfall";
+              const color = model.netCents >= 0 ? C.teal : allocationDeficit ? C.gold : C.expense;
+              return (
+                <View style={styles.statCard}>
+                  <Text style={styles.statLabel}>{label}</Text>
+                  <Text style={[styles.statValue, { color }]}>
+                    {model.netCents >= 0 ? "+" : ""}
+                    {zar(model.netCents)}
+                  </Text>
+                  {allocationDeficit && (
+                    <Text style={[styles.statDelta, { color: C.onNavyMuted }]}>from saving, not overspending</Text>
+                  )}
+                </View>
+              );
+            })()}
           </View>
           {model.comparison && (
             <Text style={{ fontSize: 7, color: C.onNavyMuted, marginTop: -12, marginBottom: 14 }}>
@@ -789,9 +803,9 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         </View>
       </Page>
 
-      {/* ── Page 2 - Fundi Coach: what happened & what to do ───────────── */}
+      {/* ── Page 2 - Coach Cosmo: what happened & what to do ───────────── */}
       <Page size="A4" style={styles.page}>
-        <PageHeader uri={logoDataUri} title="Fundi Coach" />
+        <PageHeader uri={logoDataUri} title="Coach Cosmo" />
         <Text style={styles.sectionTitle}>What your money did</Text>
         <View style={styles.insightCard}>
           {ins.coachParagraphs.map((p, i) => (

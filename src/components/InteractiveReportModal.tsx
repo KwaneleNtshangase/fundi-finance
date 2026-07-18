@@ -45,10 +45,12 @@ const TONE: Record<InsightTone, string> = {
 };
 
 function zar(cents: number): string {
-  return "R" + formatRand(Math.round(cents / 100));
+  // formatRand already prefixes "R" (and a "-" for negatives).
+  return formatRand(Math.round(cents / 100));
 }
 function zarSigned(cents: number): string {
-  return (cents < 0 ? "-R" : "+R") + formatRand(Math.abs(Math.round(cents / 100)));
+  const v = Math.round(cents / 100);
+  return (v >= 0 ? "+" : "") + formatRand(v);
 }
 
 export function InteractiveReportModal({
@@ -224,7 +226,18 @@ export function InteractiveReportModal({
                 <Stat label="Income" value={zar(model.totalIncomeCents)} color={TONE.good} delta={model.comparison?.incomeDeltaPct ?? null} goodWhenUp />
                 <Stat label="Day-to-day spending" value={zar(model.consumptionCents)} color={TONE.bad} delta={model.comparison?.expenseDeltaPct ?? null} goodWhenUp={false} />
                 <Stat label="Set aside" value={zar(model.setAsideCents)} color="#E6B84C" sub={`${model.savingsRatePct}% of income · aim 20%`} />
-                <Stat label={model.netCents >= 0 ? "Surplus" : "Shortfall"} value={zarSigned(model.netCents)} color={model.netCents >= 0 ? TONE.good : TONE.bad} />
+                {(() => {
+                  const afterLiving = model.totalIncomeCents - model.consumptionCents;
+                  const allocationDeficit = model.netCents < 0 && afterLiving >= 0;
+                  return (
+                    <Stat
+                      label={model.netCents >= 0 ? "Surplus" : allocationDeficit ? "After saving" : "Shortfall"}
+                      value={zarSigned(model.netCents)}
+                      color={model.netCents >= 0 ? TONE.good : allocationDeficit ? "#E6B84C" : TONE.bad}
+                      sub={allocationDeficit ? "from saving, not overspending" : undefined}
+                    />
+                  );
+                })()}
               </div>
 
               {/* At a glance */}
@@ -243,7 +256,7 @@ export function InteractiveReportModal({
 
               {/* Coach */}
               {model.insights.coachParagraphs.length > 0 && (
-                <Section title="Fundi Coach" icon={<Lightbulb size={16} style={{ color: "#E6B84C" }} />}>
+                <Section title="Coach Cosmo" icon={<Lightbulb size={16} style={{ color: "#E6B84C" }} />}>
                   {model.insights.coachParagraphs.map((p, i) => (
                     <p key={i} style={{ fontSize: 13.5, lineHeight: 1.5, margin: i === 0 ? 0 : "8px 0 0" }}>{p}</p>
                   ))}
@@ -353,7 +366,7 @@ export function InteractiveReportModal({
                         <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" vertical={false} />
                         <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                         <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => v >= 1000 ? `${Math.round(v / 1000)}k` : String(v)} />
-                        <Tooltip formatter={(v) => "R" + formatRand(Number(v))} />
+                        <Tooltip formatter={(v) => formatRand(Number(v))} />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
                         <Bar dataKey="Income" fill="#00A97A" radius={[3, 3, 0, 0]} />
                         <Bar dataKey="Day-to-day" fill="#DE6B62" radius={[3, 3, 0, 0]} />
@@ -450,7 +463,7 @@ function SpendTooltip({ active, payload, total }: { active?: boolean; payload?: 
       <div style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 700 }}>
         <div style={{ width: 8, height: 8, borderRadius: "50%", background: p.color }} />{p.name}
       </div>
-      <div style={{ marginTop: 2 }}>R{formatRand(p.value)} · {pct}%</div>
+      <div style={{ marginTop: 2 }}>{formatRand(p.value)} · {pct}%</div>
     </div>
   );
 }

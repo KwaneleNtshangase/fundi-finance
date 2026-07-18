@@ -176,11 +176,18 @@ function scoreBudgetDiscipline(core: ReportCore): HealthComponent {
     return { label: "Budget coverage", score: 4, max, tone: "warn", note: "No day-to-day budgets set yet" };
   }
   const used = core.budgetUsedPct ?? 0;
+  // A budget that's wildly bigger than actual spend isn't a functioning
+  // constraint - it shouldn't earn full "coverage" marks just for existing.
+  const hasMisaligned = core.expenseCategories.some(
+    (r) => r.hasBudget && !r.isSavingsVehicle && r.variancePct != null && r.variancePct < 40 && r.budgetedCents >= 500000
+  );
   // Coverage matters as much as adherence: staying under budget on two small
   // categories while most spending runs unmanaged is not discipline.
   const covered = pctOf(core.budgetedActualCents, core.consumptionCents);
   const note = `${used}% of budget used, but budgets only cover ${covered}% of day-to-day spend`;
   const goodNote = `${used}% of budget used · budgets cover ${covered}% of day-to-day spend`;
+  if (hasMisaligned)
+    return { label: "Budget coverage", score: 9, max, tone: "warn", note: `A budget is set several times bigger than actual spend, so coverage isn't a real constraint` };
   if (used <= 100 && covered >= 60)
     return { label: "Budget coverage", score: 15, max, tone: "good", note: goodNote };
   if (used <= 100 && covered >= 30)
@@ -209,6 +216,16 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   const avgMonthlyIncome = income / months;
   const unclassifiedPct = core.dataQuality.unclassifiedExpenseSharePct;
   const periodLabel = formatPeriodLabel(core.periodStart, core.periodEnd);
+
+  // Income by type: loan proceeds aren't real income (they're borrowed and must
+  // be repaid), and business income should be netted against business costs.
+  const loanIncomeCents = core.incomeCategories
+    .filter((c) => /\b(loan|advance|credit\s+facility|overdraft)\b/i.test(c.categoryName))
+    .reduce((s, c) => s + c.actualCents, 0);
+  const businessIncomeCents = core.incomeCategories
+    .filter((c) => /\bbusiness|side.?hustle|trading|resale\b/i.test(c.categoryName))
+    .reduce((s, c) => s + c.actualCents, 0);
+  const businessNetCents = businessIncomeCents - core.groupTotals.business;
 
   const healthComponents = [
     scoreCashFlow(core),
@@ -246,14 +263,25 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
   const healthBand =
     healthScore >= 80 ? "Strong" : healthScore >= 60 ? "Steady" : healthScore >= 40 ? "Fragile" : "Needs attention";
 
+  // Cash flow AFTER day-to-day living (before deliberate saving). When this is
+  // positive but the net is negative, the shortfall is a savings-allocation
+  // choice, not overspending - and must not be framed as alarm.
+  const afterLivingCents = income - core.consumptionCents;
+  const allocationDeficit = core.netCents < 0 && afterLivingCents >= 0;
+
   // ── Highlights (cover page, max 4) ──────────────────────────────────────
   const highlights: ReportHighlight[] = [];
   if (income > 0 || core.totalExpenseCents > 0) {
-    highlights.push(
-      core.netCents >= 0
-        ? { tone: "good", text: `You ended the period ${rand(core.netCents)} ahead.` }
-        : { tone: "bad", text: `You spent ${rand(-core.netCents)} more than you earned.` }
-    );
+    if (core.netCents >= 0) {
+      highlights.push({ tone: "good", text: `You ended the period ${rand(core.netCents)} ahead.` });
+    } else if (allocationDeficit) {
+      highlights.push({
+        tone: "info",
+        text: `Your day-to-day spending stayed within income. The ${rand(-core.netCents)} gap is because you set aside ${rand(core.setAsideCents)} - more than your ${rand(afterLivingCents)} surplus - so it came from savings/reserves, not overspending.`,
+      });
+    } else {
+      highlights.push({ tone: "bad", text: `You spent ${rand(-core.netCents)} more than you earned on day-to-day living.` });
+    }
   }
   if (income > 0) {
     highlights.push(
@@ -340,6 +368,14 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     const timesBigger = Math.round(misalignedBudget.budgetedCents / Math.max(misalignedBudget.actualCents, 1));
     risks.push(
       `Your ${misalignedBudget.categoryName} budget (${rand(misalignedBudget.budgetedCents)}) is about ${timesBigger}x your actual spend - it's too loose to catch anything.`
+    );
+  }
+  // Debt-funded saving: taking loans while contributing to savings/stokvel is a
+  // cycle where you borrow to look like you're saving. This is the single most
+  // important flag when it happens - lead the risks with it.
+  if (loanIncomeCents > 0 && core.setAsideCents > 0) {
+    risks.unshift(
+      `${rand(loanIncomeCents)} of your income this period is loan money, while you set aside ${rand(core.setAsideCents)}. Borrowing to save is a debt cycle - the savings aren't truly yours until the loan is repaid.`
     );
   }
 
@@ -501,9 +537,17 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
     const flow =
       core.netCents >= 0
         ? `leaving you ${rand(core.netCents)} ahead`
-        : `leaving a ${rand(-core.netCents)} shortfall`;
+        : allocationDeficit
+          ? `leaving ${rand(afterLivingCents)} of surplus - you then set aside ${rand(core.setAsideCents)}, ${rand(-core.netCents)} more than that surplus, so the gap came from savings/reserves rather than overspending`
+          : `leaving a ${rand(-core.netCents)} shortfall - day-to-day spending was above income`;
     coachParagraphs.push(
       `Over ${periodLabel} you earned ${rand(income)}, spent ${rand(core.consumptionCents)} on day-to-day living and set aside ${rand(core.setAsideCents)} (${core.savingsRatePct}% of income) into savings vehicles like a stokvel or savings account - ${flow}.`
+    );
+  }
+  // Net the business out so a big side-hustle doesn't just look like spending.
+  if (core.groupTotals.business > 0 && businessIncomeCents > 0) {
+    coachParagraphs.push(
+      `Your side-hustle brought in ${rand(businessIncomeCents)} and cost ${rand(core.groupTotals.business)} this period - a net ${businessNetCents >= 0 ? `${rand(businessNetCents)} contribution to` : `${rand(-businessNetCents)} drain on`} your money. ${businessNetCents >= 0 ? "It's paying its way." : "Worth checking whether the spend is investment that'll pay off, or a leak."}`
     );
   }
   const topSpendRow =
@@ -522,8 +566,12 @@ export function computeReportInsights(core: ReportCore): ReportInsights {
       income > 0 && core.savingsRatePct > 0 && core.savingsRatePct < GUIDELINES.savingsRatePct
         ? ` Kept at today's ${core.savingsRatePct}% rate, you'd set aside ~${rand(avgMonthlyIncome * (core.savingsRatePct / 100) * 12)} over the next 12 months; at ${GUIDELINES.savingsRatePct}% it would be ~${rand(avgMonthlyIncome * (GUIDELINES.savingsRatePct / 100) * 12)}.`
         : "";
+    // Pair spend with income so the projection isn't a lone (ominous-looking)
+    // number - a rising spend against rising income is very different from one
+    // against flat income.
+    const annualIncome = Math.round(avgMonthlyIncome * 12);
     coachParagraphs.push(
-      `At your average pace of ${rand(core.projection.avgMonthlyExpenseCents!)}/month (over ${core.projection.monthsUsed} complete months), you're on track to spend about ${rand(core.projection.annualisedExpenseCents)} this year.${wealthLine}`
+      `At your average pace you're on track to earn about ${rand(annualIncome)} and spend about ${rand(core.projection.annualisedExpenseCents)} this year (over ${core.projection.monthsUsed} complete months).${wealthLine}`
     );
   }
 
