@@ -379,6 +379,7 @@ export function ProfileView({
   calcSaved: calcSavedProp = null,
   onClearCalcSaved,
   onGoToSettings,
+  perfectLessons: perfectLessonsProp,
 }: {
   userData: UserData;
   onSignOut: () => void;
@@ -396,6 +397,8 @@ export function ProfileView({
   onClearCalcSaved?: () => void;
   /** Navigate to the Settings page */
   onGoToSettings?: () => void;
+  /** Server-backed lifetime perfect-lesson count (cross-device) */
+  perfectLessons?: number;
 }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -552,8 +555,13 @@ export function ProfileView({
   const tc = userData.totalCompleted;
   const str = userData.streak;
   const xpv = userData.xp;
-  const perfectLessons = typeof window !== "undefined"
-    ? parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10) : 0;
+  // Server-backed count (survives new devices / cache clears / app updates).
+  // Legacy localStorage fallback covers the brief window before adoption.
+  const perfectLessons =
+    perfectLessonsProp ??
+    (typeof window !== "undefined"
+      ? parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10)
+      : 0);
 
   const BADGE_DEFS = [
     { id: "lesson-1-badge",   name: "First Step",        desc: "Completed your first lesson",      icon: <CheckCircle2 size={22} className="text-current" />, earned: tc >= 1 },
@@ -1065,17 +1073,10 @@ export function ProfileView({
 
       {/* Personal Bests */}
       {(() => {
-        // longestStreak is now tracked in the DB via sync-streak and surfaced through userData
-        const longestStreak = Math.max(
-          userData.longestStreak ?? 0,
-          userData.streak,
-          typeof window !== "undefined" ? parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10) : 0
-        );
-        // Sync localStorage with DB value so it doesn't drift down
-        if (typeof window !== "undefined" && longestStreak > 0) {
-          const local = parseInt(localStorage.getItem("fundi-longest-streak") ?? "0", 10);
-          if (longestStreak > local) localStorage.setItem("fundi-longest-streak", String(longestStreak));
-        }
+        // Server-backed (longest_streak, raised via GREATEST in sync-streak).
+        // The old device-local merge leaked the previous account's best on
+        // shared devices — the DB value is the single source of truth now.
+        const longestStreak = Math.max(userData.longestStreak ?? 0, userData.streak);
         let bestDayXP = 0;
         if (typeof window !== "undefined") {
           for (let i = 0; i < 365; i++) {

@@ -24,6 +24,9 @@ import {
   Wallet,
 } from "@/components/icons/FundiIcons";
 import { analytics } from "@/lib/analytics";
+import { supabase } from "@/lib/supabaseClient";
+import { sastToday } from "@/lib/dates";
+import { bumpWeeklyStats } from "@/lib/weeklyStats";
 import {
   type CalcInputs,
   calcGrowth,
@@ -247,6 +250,22 @@ export function CalculatorView() {
     escalation: 5,
     frequency: "monthly",
   };
+
+  // Daily/weekly "used the calculator" flags. The localStorage key existed
+  // before but was never written, so calculator quests could never complete;
+  // the weekly counter is merged server-side so any device's usage counts.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(`fundi-calc-visited-${sastToday()}`, "1");
+    } catch { /* best-effort */ }
+    supabase.auth
+      .getUser()
+      .then(({ data: { user } }) => {
+        if (user) bumpWeeklyStats(user.id, { calculatorDayToday: true });
+      })
+      .catch(() => {});
+  }, []);
 
   const [mode, setMode] = useState<"single" | "compare">("single");
   const [solveMode, setSolveMode] = useState<SolveMode>("goal");

@@ -33,8 +33,15 @@ export default function LearnPage() {
     if (item) {
       try {
         const parsed = JSON.parse(item);
-        if (parsed.userId === userId) {
+        const fresh =
+          typeof parsed.savedAt === "number" &&
+          Date.now() - parsed.savedAt <= 7 * 24 * 60 * 60 * 1000;
+        if (parsed.userId === userId && fresh) {
           setSavedProgress(parsed);
+        } else if (parsed.userId === userId && !fresh) {
+          // Stale save — clean it up so the resume card doesn't point at
+          // a week-old position.
+          localStorage.removeItem("fundi-lesson-progress");
         }
       } catch (e) {
         // ignore
@@ -68,8 +75,10 @@ export default function LearnPage() {
         lessonId: progress.lessonId,
         stepIndex: stepIdx,
         steps: found.steps,
-        answers: {},
-        correctCount: 0,
+        // Restore the user's actual answers so accuracy/XP aren't understated
+        // after a resume (previously reset to zero).
+        answers: progress.answers ?? {},
+        correctCount: progress.correctCount ?? 0,
       });
       setRoute({ name: "lesson", courseId: progress.courseId, lessonId: progress.lessonId });
       setSavedProgress(null);

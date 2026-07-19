@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { sastToday } from "@/lib/dates";
+import { bumpWeeklyStats } from "@/lib/weeklyStats";
 import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
@@ -452,6 +453,9 @@ export function BudgetView() {
       // Also sync to Supabase for cross-device daily challenge tracking
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
+        // Weekly challenge counter ("open the Budget Planner N days") —
+        // merged server-side so days from any device count once.
+        bumpWeeklyStats(user.id, { budgetDayToday: true });
         await supabase.from("user_progress").upsert(
           { user_id: user.id, budget_visited_date: isoDay } as any,
           { onConflict: "user_id" }

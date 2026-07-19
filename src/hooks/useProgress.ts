@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { sastOffset, sastWeekKey } from "@/lib/dates";
+import { sastOffset, sastToday, sastWeekKey } from "@/lib/dates";
+import { clearWeeklyStats } from "@/lib/weeklyStats";
+
+type WeeklyCompletionEntry = {
+  completedAt: string;
+  bonusXP: number;
+};
+
+export type WeeklyCompletionsMap = Record<string, WeeklyCompletionEntry>;
+export type { WeeklyCompletionEntry };
 
 type ProgressState = {
   xp: number;
@@ -19,14 +28,16 @@ type ProgressState = {
   freezeCount: number;
   weeklyXp: number;
   weekKey: string;
+  /** Lifetime perfect-lesson count — server column perfect_lessons_total. */
+  perfectLessons: number;
+  /** XP earned today (SAST) — server columns daily_xp_today/daily_xp_date. */
+  dailyXp: number;
+  /** Lessons finished today (SAST) — server daily_lessons_today/_date. */
+  dailyLessons: number;
+  dayKey: string;
+  /** Server-authoritative weekly challenge claims (weekly_completions). */
+  weeklyCompletions: WeeklyCompletionsMap;
 };
-
-export type WeeklyCompletionEntry = {
-  completedAt: string;
-  bonusXP: number;
-};
-
-export type WeeklyCompletionsMap = Record<string, WeeklyCompletionEntry>;
 
 const DEFAULT_STATE: ProgressState = {
   xp: 0,
@@ -38,6 +49,11 @@ const DEFAULT_STATE: ProgressState = {
   freezeCount: 0,
   weeklyXp: 0,
   weekKey: "",
+  perfectLessons: 0,
+  dailyXp: 0,
+  dailyLessons: 0,
+  dayKey: "",
+  weeklyCompletions: {},
 };
 
 // ── Offline-first cache ────────────────────────────────────────────────────────
@@ -45,6 +61,8 @@ const DEFAULT_STATE: ProgressState = {
 // poor / no connectivity (SA users on prepaid data and during load-shedding).
 // Supabase remains the source of truth - cache is overwritten on every
 // successful Supabase read; it only fills the gap while waiting for network.
+// The key is per-user AND versioned; new fields parse with defaults so an
+// app update never invalidates (or corrupts) an older cache.
 const PROGRESS_CACHE_KEY = "fundi-progress-v1";
 
 function progressCacheKey(userId: string): string {
@@ -67,6 +85,14 @@ function readProgressCache(userId: string | null): ProgressState | null {
       freezeCount: Number(p.freezeCount ?? 0),
       weeklyXp: Number(p.weeklyXp ?? 0),
       weekKey: p.weekKey ?? "",
+      perfectLessons: Number(p.perfectLessons ?? 0),
+      dailyXp: Number(p.dailyXp ?? 0),
+      dailyLessons: Number(p.dailyLessons ?? 0),
+      dayKey: p.dayKey ?? "",
+      weeklyCompletions:
+        p.weeklyCompletions && typeof p.weeklyCompletions === "object"
+          ? (p.weeklyCompletions as WeeklyCompletionsMap)
+          : {},
     };
   } catch {
     return null;
@@ -80,50 +106,153 @@ function writeProgressCache(s: ProgressState, userId: string | null): void {
   } catch { /* ignore quota errors - cache is best-effort */ }
 }
 
+function clearProgressCache(userId: string | null): void {
+  if (typeof window === "undefined" || !userId) return;
+  try { localStorage.removeItem(progressCacheKey(userId)); } catch { /* ignore */ }
+}
+
 function getCurrentWeekKey(): string {
   return sastWeekKey();
 }
 
-// ── Pending XP delta queue ──────────────────────────────────────────────────────
-// XP is now an additive server-side ledger (xp = xp + delta) so every gain
-// across every device counts. Deltas are NOT idempotent, so an earn whose
-// network write fails must not be silently lost OR blindly retried in a way
-// that loses it. We durably queue unsynced deltas in localStorage and flush
-// the accumulated total exactly once per successful round-trip.
-type PendingXp = { delta: number; weeklyDelta: number; weekKey: string };
+// ── Account-switch hygiene ─────────────────────────────────────────────────────
+// Several legacy keys are NOT user-scoped. If a different account signs in on
+// the same device, wiping them stops user A's hearts / daily counters /
+// challenge claims from leaking into (or being overwritten by) user B.
+// Per-user keys (progress cache, pending queue, weekly stats) are left alone.
+const EPHEMERAL_KEY_PREFIXES = [
+  "fundi-hearts",
+  "fundi-last-heart-lost",
+  "fundi-perfect-lessons",
+  "fundi-longest-streak",
+  "fundi-daily-xp-",
+  "fundi-daily-lessons-",
+  "fundi-wc-",
+  "fundi-lesson-progress",
+  "fundi-perfect-today-",
+  "fundi-shared-today-",
+  "fundi-correct-streak-today-",
+  "fundi-concept-reviewed-",
+  "fundi-expense-today-",
+  "fundi-budget-visited-",
+  "fundi-calc-visited-",
+  "fundi-pending-streak-sync",
+  "fundi-onboarded",
+  "fundi-user-goal",
+  "fundi-goal-description",
+  "fundi-age-range",
+  "fundi-username",
+  "fundi-daily-goal",
+];
+
+function wipeEphemeralLocalState(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const doomed: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && EPHEMERAL_KEY_PREFIXES.some((p) => key.startsWith(p))) doomed.push(key);
+    }
+    doomed.forEach((k) => localStorage.removeItem(k));
+  } catch { /* best-effort */ }
+}
+
+const LAST_UID_KEY = "fundi-last-uid";
+
+function handleAccountSwitch(newUid: string | null): void {
+  if (typeof window === "undefined" || !newUid) return;
+  try {
+    const prev = localStorage.getItem(LAST_UID_KEY);
+    if (prev && prev !== newUid) wipeEphemeralLocalState();
+    localStorage.setItem(LAST_UID_KEY, newUid);
+  } catch { /* ignore */ }
+}
+
+// ── Pending delta queue ─────────────────────────────────────────────────────
+// XP (and now perfect/daily counters) are additive server-side ledgers
+// (column = column + delta) so every gain across every device counts.
+// Deltas are NOT idempotent, so an earn whose network write fails must not
+// be silently lost OR blindly retried in a way that double-counts. We
+// durably queue unsynced deltas in localStorage and flush the accumulated
+// total exactly once per successful round-trip.
+type PendingDeltas = {
+  delta: number;
+  weeklyDelta: number;
+  weekKey: string;
+  perfectDelta: number;
+  dailyXpDelta: number;
+  dailyLessonsDelta: number;
+  dayKey: string;
+};
 
 function pendingXpKey(userId: string): string {
   return `fundi-pending-xp-${userId}`;
 }
 
-function readPendingXp(userId: string | null): PendingXp | null {
+function readPendingDeltas(userId: string | null): PendingDeltas | null {
   if (typeof window === "undefined" || !userId) return null;
   try {
     const raw = localStorage.getItem(pendingXpKey(userId));
     if (!raw) return null;
-    const p = JSON.parse(raw) as Partial<PendingXp>;
-    const delta = Number(p.delta ?? 0);
-    if (!delta) return null;
-    return { delta, weeklyDelta: Number(p.weeklyDelta ?? 0), weekKey: p.weekKey ?? getCurrentWeekKey() };
+    // Older app versions stored {delta, weeklyDelta, weekKey} only — the
+    // extra fields default to 0 so an app update never drops a queued earn.
+    const p = JSON.parse(raw) as Partial<PendingDeltas>;
+    const out: PendingDeltas = {
+      delta: Number(p.delta ?? 0) || 0,
+      weeklyDelta: Number(p.weeklyDelta ?? 0) || 0,
+      weekKey: p.weekKey ?? getCurrentWeekKey(),
+      perfectDelta: Number(p.perfectDelta ?? 0) || 0,
+      dailyXpDelta: Number(p.dailyXpDelta ?? 0) || 0,
+      dailyLessonsDelta: Number(p.dailyLessonsDelta ?? 0) || 0,
+      dayKey: p.dayKey ?? sastToday(),
+    };
+    const hasAny =
+      out.delta || out.weeklyDelta || out.perfectDelta || out.dailyXpDelta || out.dailyLessonsDelta;
+    return hasAny ? out : null;
   } catch {
     return null;
   }
 }
 
-function enqueuePendingXp(userId: string | null, delta: number, weeklyDelta: number, weekKey: string): void {
-  if (typeof window === "undefined" || !userId || !delta) return;
+type DeltaBump = {
+  xp?: number;
+  weekly?: number;
+  perfect?: number;
+  dailyXp?: number;
+  dailyLessons?: number;
+};
+
+function enqueuePendingDeltas(userId: string | null, bump: DeltaBump): void {
+  if (typeof window === "undefined" || !userId) return;
+  const xp = bump.xp ?? 0;
+  const weekly = bump.weekly ?? 0;
+  const perfect = bump.perfect ?? 0;
+  const dailyXp = bump.dailyXp ?? 0;
+  const dailyLessons = bump.dailyLessons ?? 0;
+  if (!xp && !weekly && !perfect && !dailyXp && !dailyLessons) return;
+  const weekKey = getCurrentWeekKey();
+  const dayKey = sastToday();
   try {
-    const cur = readPendingXp(userId);
-    const next: PendingXp = cur && cur.weekKey === weekKey
-      ? { delta: cur.delta + delta, weeklyDelta: cur.weeklyDelta + weeklyDelta, weekKey }
-      // Week rolled over while a delta was still queued: keep accumulating the
-      // lifetime delta, but track weekly against the most recent week.
-      : { delta: (cur?.delta ?? 0) + delta, weeklyDelta, weekKey };
+    const cur = readPendingDeltas(userId);
+    const sameWeek = cur?.weekKey === weekKey;
+    const sameDay = cur?.dayKey === dayKey;
+    const next: PendingDeltas = {
+      // Lifetime counters always accumulate, regardless of week/day rollover.
+      delta: (cur?.delta ?? 0) + xp,
+      perfectDelta: (cur?.perfectDelta ?? 0) + perfect,
+      // Weekly/daily portions reset when the queue crosses a week/day
+      // boundary — stale period counters are worthless, lifetime is not.
+      weeklyDelta: (sameWeek ? cur?.weeklyDelta ?? 0 : 0) + weekly,
+      weekKey,
+      dailyXpDelta: (sameDay ? cur?.dailyXpDelta ?? 0 : 0) + dailyXp,
+      dailyLessonsDelta: (sameDay ? cur?.dailyLessonsDelta ?? 0 : 0) + dailyLessons,
+      dayKey,
+    };
     localStorage.setItem(pendingXpKey(userId), JSON.stringify(next));
   } catch { /* best-effort */ }
 }
 
-function clearPendingXp(userId: string | null): void {
+function clearPendingDeltas(userId: string | null): void {
   if (typeof window === "undefined" || !userId) return;
   try { localStorage.removeItem(pendingXpKey(userId)); } catch { /* ignore */ }
 }
@@ -131,30 +260,59 @@ function clearPendingXp(userId: string | null): void {
 type ProgressRow = {
   xp?: number; xp_spent?: number; completed_lessons?: string[];
   weekly_xp?: number; week_key?: string; longest_streak?: number; streak?: number;
+  last_activity_date?: string | null; streak_freeze_count?: number;
+  perfect_lessons_total?: number;
+  daily_xp_today?: number; daily_xp_date?: string;
+  daily_lessons_today?: number; daily_lessons_date?: string;
+  weekly_completions?: WeeklyCompletionsMap | null;
 };
 
-// Flush the queued XP delta to the server. The queue is CLAIMED (read + cleared
-// synchronously) before the network call, so two rapid earns can't both send the
-// same accumulated total and double-count. If the write fails, the claimed delta
-// is re-queued (merged with anything queued meanwhile) for the next attempt.
-// JS is single-threaded, so read-then-clear is atomic with respect to other earns.
-async function flushPendingXp(userId: string): Promise<ProgressRow | null> {
-  const claimed = readPendingXp(userId);
-  if (!claimed) return null;
-  clearPendingXp(userId);
-  const { data, error } = await supabase.rpc("apply_progress_delta", {
-    p_user_id: userId,
-    p_xp_delta: claimed.delta,
-    p_weekly_delta: claimed.weeklyDelta,
-    p_week_key: claimed.weekKey,
-    p_completed_lessons: null,
-    p_longest_streak: null,
-  });
-  if (error) {
-    enqueuePendingXp(userId, claimed.delta, claimed.weeklyDelta, claimed.weekKey);
-    return null;
+// Flush the queued deltas to the server. The queue is CLAIMED (read + cleared
+// synchronously) before the network call, so two rapid earns can't both send
+// the same accumulated total and double-count. If the write fails, the claimed
+// deltas are re-queued (merged with anything queued meanwhile) for the next
+// attempt. JS is single-threaded, so read-then-clear is atomic with respect to
+// other earns in THIS tab; the Web Locks API (where available) additionally
+// stops a second tab/PWA window from flushing the same queue concurrently.
+async function flushPendingDeltas(userId: string): Promise<ProgressRow | null> {
+  const doFlush = async (): Promise<ProgressRow | null> => {
+    const claimed = readPendingDeltas(userId);
+    if (!claimed) return null;
+    clearPendingDeltas(userId);
+    const { data, error } = await supabase.rpc("apply_progress_delta", {
+      p_user_id: userId,
+      p_xp_delta: claimed.delta,
+      p_weekly_delta: claimed.weeklyDelta,
+      p_week_key: claimed.weekKey,
+      p_completed_lessons: null,
+      p_longest_streak: null,
+      p_perfect_delta: claimed.perfectDelta,
+      p_daily_xp_delta: claimed.dailyXpDelta,
+      p_daily_lessons_delta: claimed.dailyLessonsDelta,
+      p_day_key: claimed.dayKey,
+    });
+    if (error) {
+      // Merge the claimed deltas back with anything queued meanwhile.
+      enqueuePendingDeltas(userId, {
+        xp: claimed.delta,
+        weekly: claimed.weeklyDelta,
+        perfect: claimed.perfectDelta,
+        dailyXp: claimed.dailyXpDelta,
+        dailyLessons: claimed.dailyLessonsDelta,
+      });
+      return null;
+    }
+    return (data as ProgressRow) ?? null;
+  };
+
+  if (typeof navigator !== "undefined" && "locks" in navigator && navigator.locks?.request) {
+    try {
+      return await navigator.locks.request(`fundi-flush-${userId}`, doFlush);
+    } catch {
+      return doFlush();
+    }
   }
-  return (data as ProgressRow) ?? null;
+  return doFlush();
 }
 
 async function streakSyncAuthHeaders(): Promise<HeadersInit> {
@@ -165,22 +323,61 @@ async function streakSyncAuthHeaders(): Promise<HeadersInit> {
   return headers;
 }
 
+const PROGRESS_SELECT =
+  "xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons," +
+  "streak_freeze_count,weekly_xp,week_key,perfect_lessons_total," +
+  "daily_xp_today,daily_xp_date,daily_lessons_today,daily_lessons_date," +
+  "weekly_completions";
+
+/** Minimum gap between automatic refreshes (focus/visibility/online). */
+const AUTO_REFRESH_MIN_MS = 15_000;
+
+/**
+ * Normalise period counters before applying an increment: when the SAST day
+ * or week has rolled over since the last write, zero ALL counters of that
+ * period together. Without this, bumping one field (e.g. dailyXp) stamped
+ * today's dayKey while the sibling field (dailyLessons) kept yesterday's
+ * value.
+ */
+function rollPeriods(prev: ProgressState, wk: string, today: string): ProgressState {
+  let next = prev;
+  if (prev.weekKey !== wk) {
+    next = { ...next, weeklyXp: 0, weekKey: wk };
+  }
+  if (prev.dayKey !== today) {
+    next = { ...next, dailyXp: 0, dailyLessons: 0, dayKey: today };
+  }
+  return next;
+}
+
 export function useProgress() {
-  // Seed from cache immediately (shows last-known XP/streak before Supabase responds)
   const [state, setState] = useState<ProgressState>(DEFAULT_STATE);
   const [ready, setReady] = useState(false);
+  /** True after the first successful server reconciliation for this user. */
+  const [loaded, setLoaded] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const completedLessons = useMemo(() => new Set(state.completedLessons), [state.completedLessons]);
+
+  // Refs guarding the load/refresh cycle against races and stale users.
+  const userIdRef = useRef<string | null>(null);
+  const loadInFlightRef = useRef(false);
+  const lastLoadAtRef = useRef(0);
 
   useEffect(() => {
     let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return;
-      setUserId(data.session?.user?.id ?? null);
+      const uid = data.session?.user?.id ?? null;
+      handleAccountSwitch(uid);
+      userIdRef.current = uid;
+      setUserId(uid);
       setReady(true);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUserId(session?.user?.id ?? null);
+      const uid = session?.user?.id ?? null;
+      handleAccountSwitch(uid);
+      userIdRef.current = uid;
+      setUserId(uid);
     });
     return () => {
       mounted = false;
@@ -188,74 +385,94 @@ export function useProgress() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!userId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setState(DEFAULT_STATE);
-      return;
-    }
-    (async () => {
-      // 1. Flush any XP earned offline (durable queue) BEFORE reading, so the
-      //    row we read already includes it. Idempotent: cleared on success only.
-      await flushPendingXp(userId).catch(() => null);
+  /**
+   * Load (or re-load) the authoritative progress row. Steps:
+   *  1. Flush queued deltas so the row we read already includes them.
+   *  2. Union cache-only lessons into the DB (heals failed writes; the RPC
+   *     only ever ADDS, so this can never shrink server data).
+   *  3. Read the reconciled row; defensively union lessons locally too.
+   * Safe to call repeatedly — used on mount AND on focus/visibility/online so
+   * a device that stays open picks up progress made on other devices.
+   */
+  const loadFromServer = useCallback(async (uid: string): Promise<void> => {
+    if (loadInFlightRef.current) return;
+    loadInFlightRef.current = true;
+    try {
+      await flushPendingDeltas(uid).catch(() => null);
 
-      // 2. Union any lessons saved locally but not yet in the DB (failed writes,
-      //    or completed on this device while offline). apply_progress_delta only
-      //    ever adds to the set, so this can heal but never shrink the DB.
-      const cachePre = readProgressCache(userId);
-      let rpcData: any = null;
+      const cachePre = readProgressCache(uid);
+      let rpcData: ProgressRow | null = null;
       if (cachePre && cachePre.completedLessons.length > 0) {
         const { data, error } = await supabase.rpc("apply_progress_delta", {
-          p_user_id: userId,
+          p_user_id: uid,
           p_xp_delta: 0,
           p_weekly_delta: 0,
           p_week_key: null,
           p_completed_lessons: cachePre.completedLessons,
           p_longest_streak: cachePre.longestStreak,
         });
-        if (!error && data) {
-          rpcData = data;
-        }
+        if (!error && data) rpcData = data as ProgressRow;
       }
 
-      // 3. Read the now-reconciled authoritative row. The DB is the source of
-      //    truth for XP, weekly XP, and lessons - no client snapshot overwrites.
-      //    If the RPC succeeded, it returned the latest row, saving us a SELECT.
-      let data = rpcData;
+      let data: ProgressRow | null = rpcData;
       if (!data) {
         const { data: selectData } = await supabase
           .from("user_progress")
-          .select("xp,xp_spent,streak,longest_streak,last_activity_date,completed_lessons,streak_freeze_count,weekly_xp,week_key")
-          .eq("user_id", userId)
+          .select(PROGRESS_SELECT)
+          .eq("user_id", uid)
           .maybeSingle();
-        data = selectData;
+        data = (selectData as ProgressRow | null) ?? null;
       }
-      
-      const wk = getCurrentWeekKey();
 
-      // Defensive merge: never let completedLessons shrink locally to prevent UI regression
-      // from read-replica lag or dropped network requests.
+      // User switched (or signed out) while we were fetching — drop the result.
+      if (userIdRef.current !== uid) return;
+
+      const wk = getCurrentWeekKey();
+      const today = sastToday();
+
+      // Defensive merge: never let completedLessons shrink locally to prevent
+      // UI regression from read-replica lag or dropped network requests.
       const dbLessons = (data?.completed_lessons ?? []) as string[];
       const localLessons = cachePre?.completedLessons ?? [];
       const mergedLessons = Array.from(new Set([...localLessons, ...dbLessons]));
 
+      // If a delta flush failed (still queued), reflect it in the visible
+      // numbers so the user never watches their earn "disappear".
+      const stillPending = readPendingDeltas(uid);
+
       const fresh: ProgressState = {
-        xp: Math.max(0, Number(data?.xp ?? 0)),
+        xp: Math.max(0, Number(data?.xp ?? 0)) + (stillPending?.delta ?? 0),
         xpSpent: Math.max(0, Number(data?.xp_spent ?? 0)),
         streak: data?.streak ?? 0,
         longestStreak: Math.max(Number(data?.longest_streak ?? 0), Number(data?.streak ?? 0)),
         lastActivityDate: data?.last_activity_date ? String(data.last_activity_date) : null,
         completedLessons: mergedLessons,
         freezeCount: Math.max(0, Number(data?.streak_freeze_count ?? 0)),
-        weeklyXp: data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0,
+        weeklyXp:
+          (data?.week_key === wk ? Math.max(0, Number(data?.weekly_xp ?? 0)) : 0) +
+          (stillPending?.weekKey === wk ? stillPending.weeklyDelta : 0),
         weekKey: wk,
+        perfectLessons:
+          Math.max(0, Number(data?.perfect_lessons_total ?? 0)) + (stillPending?.perfectDelta ?? 0),
+        dailyXp:
+          (data?.daily_xp_date === today ? Math.max(0, Number(data?.daily_xp_today ?? 0)) : 0) +
+          (stillPending?.dayKey === today ? stillPending.dailyXpDelta : 0),
+        dailyLessons:
+          (data?.daily_lessons_date === today
+            ? Math.max(0, Number(data?.daily_lessons_today ?? 0))
+            : 0) + (stillPending?.dayKey === today ? stillPending.dailyLessonsDelta : 0),
+        dayKey: today,
+        weeklyCompletions:
+          data?.weekly_completions && typeof data.weekly_completions === "object"
+            ? data.weekly_completions
+            : {},
       };
-      
-      // Strict date-diff evaluate on load. If the user missed >1 days and had freezes,
-      // consume them now. If not enough freezes, reset streak locally so the UI updates immediately.
+
+      // Strict date-diff evaluate on load. If the user missed >1 days and had
+      // freezes, consume them now; otherwise reset locally so UI is immediate.
       const { evaluateStreak } = await import("@/lib/dates");
       const effective = evaluateStreak(fresh.streak, fresh.freezeCount, fresh.lastActivityDate);
-      
+
       const finalState: ProgressState = {
         ...fresh,
         streak: effective.streak,
@@ -264,15 +481,15 @@ export function useProgress() {
       };
 
       setState(finalState);
-      // Update the offline-first cache so next load is instant even without network
-      writeProgressCache(finalState, userId);
-      
+      writeProgressCache(finalState, uid);
+      setLoaded(true);
+
       if (effective.streak !== fresh.streak || effective.freezeCount !== fresh.freezeCount) {
         void supabase.from("user_progress").update({
           streak: effective.streak,
           streak_freeze_count: effective.freezeCount,
-          last_activity_date: effective.lastActivityDate
-        }).eq("user_id", userId);
+          last_activity_date: effective.lastActivityDate,
+        }).eq("user_id", uid);
       }
 
       // Retry streak sync after a lesson completed while offline / network failed
@@ -285,10 +502,10 @@ export function useProgress() {
           const r = await fetch("/api/progress/sync-streak", {
             method: "POST",
             headers: await streakSyncAuthHeaders(),
-            body: JSON.stringify({ userId }),
+            body: JSON.stringify({ userId: uid }),
           });
           const json = await r.json();
-          if (json?.ok) {
+          if (json?.ok && userIdRef.current === uid) {
             setState((prev) => {
               const next = {
                 ...prev,
@@ -297,49 +514,196 @@ export function useProgress() {
                 lastActivityDate: json.lastActivityDate,
                 freezeCount: json.freezeCount ?? prev.freezeCount,
               };
-              writeProgressCache(next, userId);
+              writeProgressCache(next, uid);
               return next;
             });
-          } else {
+          } else if (!json?.ok) {
             localStorage.setItem("fundi-pending-streak-sync", "1");
           }
         } catch {
           localStorage.setItem("fundi-pending-streak-sync", "1");
         }
       }
-    })().catch((e) => console.warn("load progress failed", e));
-  }, [userId]);
+      lastLoadAtRef.current = Date.now();
+    } finally {
+      loadInFlightRef.current = false;
+    }
+  }, []);
 
-  // Hydrate from per-user cache immediately when userId is known (before Supabase responds)
+  // Initial load per user: hydrate from cache instantly, then reconcile with
+  // the server. Hydration and load live in ONE effect so cached state can
+  // never overwrite a fresher server response.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoaded(false);
     if (!userId) {
       setState(DEFAULT_STATE);
       return;
     }
     const cached = readProgressCache(userId);
     if (cached) setState(cached);
-  }, [userId]);
+    loadFromServer(userId).catch((e) => console.warn("load progress failed", e));
+  }, [userId, loadFromServer]);
+
+  // Cross-device freshness: when the app regains focus/visibility/network,
+  // re-pull the authoritative row (throttled). Without this, a device that
+  // stays open never sees lessons completed on another device.
+  useEffect(() => {
+    if (typeof window === "undefined" || !userId) return;
+    const maybeRefresh = () => {
+      if (document.visibilityState === "hidden") return;
+      if (Date.now() - lastLoadAtRef.current < AUTO_REFRESH_MIN_MS) return;
+      loadFromServer(userId).catch(() => undefined);
+    };
+    const onVisibility = () => maybeRefresh();
+    window.addEventListener("focus", maybeRefresh);
+    window.addEventListener("online", maybeRefresh);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      window.removeEventListener("focus", maybeRefresh);
+      window.removeEventListener("online", maybeRefresh);
+      document.removeEventListener("visibilitychange", onVisibility);
+    };
+  }, [userId, loadFromServer]);
+
+  /** Manual refresh (also used by consumers after their own server writes). */
+  const refresh = useCallback(async () => {
+    const uid = userIdRef.current;
+    if (uid) await loadFromServer(uid).catch(() => undefined);
+  }, [loadFromServer]);
 
   const addXP = (amount: number) => {
     if (!amount) return;
     const wk = getCurrentWeekKey();
+    const today = sastToday();
     // Optimistic local update - pure updater, no side effects (safe if React
     // double-invokes it under StrictMode). The network write is fired ONCE
     // below, outside the updater, so a delta is never double-counted.
     setState((prev) => {
-      const newXp = Math.max(0, prev.xp + amount);
-      const newWeeklyXp = prev.weekKey === wk ? prev.weeklyXp + amount : amount;
-      const next = { ...prev, xp: newXp, weeklyXp: newWeeklyXp, weekKey: wk };
+      const base = rollPeriods(prev, wk, today);
+      const next = {
+        ...base,
+        xp: Math.max(0, base.xp + amount),
+        weeklyXp: base.weeklyXp + amount,
+        dailyXp: base.dailyXp + amount,
+      };
       writeProgressCache(next, userId);
       return next;
     });
     if (!userId) return;
     // Additive ledger on the server (xp = xp + delta): every gain across every
-    // device accumulates, including repeating a lesson on several devices. The
-    // durable queue means a gain whose write fails is retried, not lost. Other
-    // devices' gains are picked up on the next load (which reads the DB total).
-    enqueuePendingXp(userId, amount, amount, wk);
-    void flushPendingXp(userId);
+    // device accumulates. The durable queue means a gain whose write fails is
+    // retried, not lost. Other devices' gains arrive via refresh/load.
+    enqueuePendingDeltas(userId, { xp: amount, weekly: amount, dailyXp: amount });
+    void flushPendingDeltas(userId);
+  };
+
+  /**
+   * Record per-lesson completion stats (server-backed, cross-device):
+   *  - counted: the lesson run awarded XP (first completion or first replay
+   *    of the day) and should count toward "lessons today".
+   *  - perfect: first-time perfect score → lifetime perfect counter.
+   */
+  const recordLessonStats = ({ counted, perfect }: { counted: boolean; perfect: boolean }) => {
+    if (!counted && !perfect) return;
+    const today = sastToday();
+    setState((prev) => {
+      const base = rollPeriods(prev, prev.weekKey || getCurrentWeekKey(), today);
+      const next = {
+        ...base,
+        perfectLessons: base.perfectLessons + (perfect ? 1 : 0),
+        dailyLessons: base.dailyLessons + (counted ? 1 : 0),
+      };
+      writeProgressCache(next, userId);
+      return next;
+    });
+    if (!userId) return;
+    enqueuePendingDeltas(userId, {
+      perfect: perfect ? 1 : 0,
+      dailyLessons: counted ? 1 : 0,
+    });
+    void flushPendingDeltas(userId);
+  };
+
+  /**
+   * One-time adoption of the pre-sync, device-local perfect-lesson count so
+   * an app update never LOSES badge progress. Only called when the server
+   * value is still 0 (checked by the caller after `loaded`), so a second
+   * device that updates later can't inflate the total.
+   */
+  const adoptLegacyPerfectLessons = (count: number) => {
+    if (count <= 0 || !userId) return;
+    setState((prev) => {
+      const next = { ...prev, perfectLessons: prev.perfectLessons + count };
+      writeProgressCache(next, userId);
+      return next;
+    });
+    enqueuePendingDeltas(userId, { perfect: count });
+    void flushPendingDeltas(userId);
+  };
+
+  /**
+   * Atomic server-side weekly-challenge claim. XP is granted BY THE SERVER
+   * only if this device wins the claim — a second device (or a second tap)
+   * gets `alreadyClaimed` and no XP. Never grant claim XP via addXP().
+   */
+  const claimWeeklyChallengeServer = async (
+    sundayKey: string,
+    challengeId: string,
+    xp: number
+  ): Promise<{ ok: boolean; alreadyClaimed: boolean }> => {
+    if (!userId) return { ok: false, alreadyClaimed: false };
+    const { data, error } = await supabase.rpc("claim_weekly_challenge", {
+      p_user_id: userId,
+      p_week_key: sundayKey,
+      p_challenge_id: challengeId,
+      p_xp: xp,
+      p_xp_week_key: getCurrentWeekKey(),
+    });
+    if (error) return { ok: false, alreadyClaimed: false };
+    const res = data as { ok?: boolean; reason?: string; xp_granted?: number } | null;
+    if (res?.ok) {
+      const granted = Number(res.xp_granted ?? xp) || 0;
+      const wk = getCurrentWeekKey();
+      const today = sastToday();
+      const claimKey = `${sundayKey}:${challengeId}`;
+      setState((prev) => {
+        const base = rollPeriods(prev, wk, today);
+        const next = {
+          ...base,
+          xp: base.xp + granted,
+          weeklyXp: base.weeklyXp + granted,
+          dailyXp: base.dailyXp + granted,
+          weeklyCompletions: {
+            ...base.weeklyCompletions,
+            [claimKey]: { completedAt: new Date().toISOString(), bonusXP: granted },
+          },
+        };
+        writeProgressCache(next, userId);
+        return next;
+      });
+      // Daily counter on the server (xp itself was already granted by the RPC).
+      enqueuePendingDeltas(userId, { dailyXp: granted });
+      void flushPendingDeltas(userId);
+      return { ok: true, alreadyClaimed: false };
+    }
+    return { ok: false, alreadyClaimed: res?.reason === "already_claimed" };
+  };
+
+  /** True if this week's challenge was already claimed on ANY device. */
+  const isWeeklyChallengeClaimed = (sundayKey: string, challengeId: string): boolean => {
+    const map = state.weeklyCompletions;
+    if (map[`${sundayKey}:${challengeId}`]) return true;
+    // Legacy entries were keyed by challenge id only.
+    const legacy = map[challengeId];
+    if (legacy?.completedAt) {
+      try {
+        return new Date(legacy.completedAt) >= new Date(`${sundayKey}T00:00:00+02:00`);
+      } catch {
+        return false;
+      }
+    }
+    return false;
   };
 
   const tryDeductXp = (amount: number): boolean => {
@@ -502,25 +866,19 @@ export function useProgress() {
     return { ok: result.ok, streak: result.streak, freezesLeft: result.freezes_left, reason: result.reason };
   };
 
-  const persistWeeklyChallengeCompletion = async (weeklyId: string, bonusXP: number) => {
-    if (!userId) return;
-    const { data: row } = await supabase
-      .from("user_progress")
-      .select("weekly_completions")
-      .eq("user_id", userId)
-      .maybeSingle();
-    const current = (row?.weekly_completions as WeeklyCompletionsMap | null) ?? {};
-    const next = {
-      ...current,
-      [weeklyId]: { completedAt: new Date().toISOString(), bonusXP },
-    };
-    await supabase
-      .from("user_progress")
-      .upsert({ user_id: userId, weekly_completions: next }, { onConflict: "user_id" });
-  };
-
   const resetProgress = async () => {
     setState(DEFAULT_STATE);
+    if (typeof window !== "undefined" && userId) {
+      // Clear EVERYTHING that could resurrect the old progress. Before this,
+      // the stale cache re-unioned old lessons into the DB on the next load
+      // and queued deltas re-applied — reset appeared not to stick.
+      clearProgressCache(userId);
+      clearPendingDeltas(userId);
+      clearWeeklyStats(userId);
+      try { localStorage.removeItem("fundi-pending-streak-sync"); } catch { /* ignore */ }
+      wipeEphemeralLocalState();
+      writeProgressCache(DEFAULT_STATE, userId);
+    }
     if (!userId) return;
     await supabase.from("user_progress").upsert(
       {
@@ -534,6 +892,12 @@ export function useProgress() {
         weekly_xp: 0,
         week_key: getCurrentWeekKey(),
         streak_freeze_count: 0,
+        perfect_lessons_total: 0,
+        daily_xp_today: 0,
+        daily_xp_date: "",
+        daily_lessons_today: 0,
+        daily_lessons_date: "",
+        weekly_challenge_progress: {},
       },
       { onConflict: "user_id" }
     );
@@ -541,6 +905,7 @@ export function useProgress() {
 
   return {
     ready,
+    loaded,
     userId,
     xp: state.xp,
     streak: state.streak,
@@ -550,13 +915,21 @@ export function useProgress() {
     freezeCount: state.freezeCount,
     weeklyXp: state.weeklyXp,
     weekKey: state.weekKey,
+    perfectLessons: state.perfectLessons,
+    dailyXp: state.dailyXp,
+    dailyLessons: state.dailyLessons,
+    weeklyCompletions: state.weeklyCompletions,
+    refresh,
     addXP,
+    recordLessonStats,
+    adoptLegacyPerfectLessons,
+    claimWeeklyChallengeServer,
+    isWeeklyChallengeClaimed,
     tryDeductXp,
     completeLesson,
     applyStreakAfterLesson,
     buyStreakFreeze,
     useFreeze,
-    persistWeeklyChallengeCompletion,
     resetProgress,
   };
 }

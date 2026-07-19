@@ -3,22 +3,29 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
-import { sastToday, sastSundayDate, sastWeekKey } from "@/lib/dates";
+import { sastToday, sastSundayDate } from "@/lib/dates";
 import {
   computeLessonXpAward,
   replayXpStorageKey,
 } from "@/lib/lessonXp";
 import { CONTENT_DATA } from "@/data/content";
+import { LEVEL_3_COURSES } from "@/data/content-level3";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
+import {
+  emptyWeeklyStats,
+  readWeeklyStats,
+  bumpWeeklyStats,
+  syncWeeklyStats,
+  type WeeklyStats,
+} from "@/lib/weeklyStats";
 import type { LessonStep } from "@/data/content";
 import {
   UserData,
   Route,
   WeeklyProgressJSON,
-  EMPTY_WEEKLY_PROGRESS,
-  parseWeeklyChallengeStorage,
   progressNumberFromWeeklyState,
+  getLessonTitle,
 } from "@/app/pageViews.types";
 
 export function useFundiState() {
@@ -27,7 +34,11 @@ export function useFundiState() {
   // Synced to Supabase user_settings for cross-device persistence.
   const userSettings = useUserSettings(progress.userId);
 
-  const [dailyXP, setDailyXP] = useState(0);
+  // Daily XP is server-backed (user_progress.daily_xp_today) and synced
+  // across devices via the same delta queue as lifetime XP. The legacy
+  // per-day localStorage keys are still WRITTEN (for on-device quest flags
+  // and XP history charts) but are no longer the source of truth.
+  const dailyXP = progress.dailyXp;
   const [dailyGoal, setDailyGoal] = useState<number>(() => {
     if (typeof window === "undefined") return 50;
     return parseInt(window.localStorage.getItem("fundi-daily-goal") ?? "50", 10);
@@ -252,29 +263,65 @@ export function useFundiState() {
     return { ...WEEKLY_CHALLENGES[idx], weekKey };
   };
   const weeklyChallenge = getWeeklyChallenge();
-  const [weeklyProgress, setWeeklyProgress] = useState<WeeklyProgressJSON>(
-    EMPTY_WEEKLY_PROGRESS
-  );
-  const [challengeProgress, setChallengeProgress] = useState(0);
-  const [challengeRewardClaimed, setChallengeRewardClaimed] = useState(false);
+
+  // Weekly challenge progress is kept in a per-user stats object that is
+  // merged (never clobbered) with user_progress.weekly_challenge_progress,
+  // so progress made on any device counts on every device.
+  const [weeklyStats, setWeeklyStats] = useState<WeeklyStats>(() => emptyWeeklyStats());
+  const [localClaimed, setLocalClaimed] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const wc = weeklyChallenge;
-    const raw = localStorage.getItem(`fundi-wc-${wc.weekKey}-${wc.id}`);
-    const parsed = parseWeeklyChallengeStorage(raw) ?? EMPTY_WEEKLY_PROGRESS;
-    setWeeklyProgress(parsed);
-    const n = progressNumberFromWeeklyState(wc, parsed, progress.streak);
-    const isClaimed =
-      localStorage.getItem(`fundi-wc-claimed-${wc.weekKey}-${wc.id}`) === "true";
-    // If the reward was already claimed, always show the full bar (target reached).
-    // Without this, a stale dailyXp in localStorage causes the bar to show < target.
-    setChallengeProgress(isClaimed ? wc.target : Math.min(n, wc.target));
-    setChallengeRewardClaimed(isClaimed);
-  }, [weeklyChallenge.id, weeklyChallenge.unit, weeklyChallenge.target, progress.streak, progress.ready, dailyXP]);
+    if (!progress.userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setWeeklyStats(emptyWeeklyStats());
+      setLocalClaimed(false);
+      return;
+    }
+    setWeeklyStats(readWeeklyStats(progress.userId));
+    setLocalClaimed(
+      localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`) === "true"
+    );
+    // Push local stats up + pull other devices' progress down (merge on server).
+    let cancelled = false;
+    void syncWeeklyStats(progress.userId, readWeeklyStats(progress.userId)).then((merged) => {
+      if (merged && !cancelled) setWeeklyStats(merged);
+    });
+    return () => { cancelled = true; };
+  }, [progress.userId, progress.loaded, weeklyChallenge.weekKey, weeklyChallenge.id]);
+
+  // Claimed on ANY device (server map), or claimed just now on this one.
+  const challengeRewardClaimed =
+    localClaimed ||
+    progress.isWeeklyChallengeClaimed(weeklyChallenge.weekKey, weeklyChallenge.id);
+
+  const weeklyProgress: WeeklyProgressJSON = {
+    lessonsCompleted: weeklyStats.lessonsCompleted,
+    xpEarned: weeklyStats.xpEarned,
+    perfectLessons: weeklyStats.perfectLessons,
+    dailyXp: dailyXP,
+    completed: challengeRewardClaimed,
+    streakDaysThisWeek: weeklyStats.days.length,
+    lastLessonDay: weeklyStats.lastLessonDay,
+    budgetDaysThisWeek: weeklyStats.budgetDays.length,
+    calculatorDaysThisWeek: weeklyStats.calculatorDays.length,
+    advancedLessonsThisWeek: weeklyStats.advancedLessons,
+  };
+
+  const challengeProgress = challengeRewardClaimed
+    ? weeklyChallenge.target
+    : Math.min(
+        progressNumberFromWeeklyState(weeklyChallenge, weeklyProgress, progress.streak),
+        weeklyChallenge.target
+      );
 
   const challengeComplete =
     weeklyProgress.completed || challengeProgress >= weeklyChallenge.target;
+
+  /** Bump weekly stats locally + fire the server merge (used by budget/calc views too). */
+  const recordWeeklyStat = (bump: Parameters<typeof bumpWeeklyStats>[1]) => {
+    setWeeklyStats(bumpWeeklyStats(progress.userId, bump));
+  };
   // ── End weekly challenge ──────────────────────────────────────────────────
 
   // consumeStreakFreeze removed, handled via localStorage directly
@@ -318,48 +365,35 @@ export function useFundiState() {
     }
   }, [userSettings.loaded, userSettings.settings.dailyGoal]);
 
-  useEffect(() => {
+  // Legacy per-day localStorage XP key: still written for on-device readers
+  // (daily quest flags, XP history chart) but no longer read as the source
+  // of truth — progress.dailyXp (server-synced) is.
+  const echoDailyXpToLegacyKey = (amount: number) => {
     if (typeof window === "undefined") return;
-    const syncDailyXpFromStorage = () => {
-      const today = sastToday();
-      const key = `fundi-daily-xp-${today}`;
-      const val = parseInt(localStorage.getItem(key) ?? "0", 10);
-      setDailyXP(Number.isNaN(val) ? 0 : val);
-    };
-    syncDailyXpFromStorage();
-    const onFocus = () => syncDailyXpFromStorage();
-    const onStorage = (e: StorageEvent) => {
-      if (!e.key) return;
-      if (e.key.startsWith("fundi-daily-xp-")) syncDailyXpFromStorage();
-    };
-    window.addEventListener("focus", onFocus);
-    window.addEventListener("storage", onStorage);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      window.removeEventListener("storage", onStorage);
-    };
-  }, []);
+    try {
+      const key = `fundi-daily-xp-${sastToday()}`;
+      const prev = parseInt(localStorage.getItem(key) ?? "0", 10);
+      localStorage.setItem(key, String((Number.isNaN(prev) ? 0 : prev) + amount));
+    } catch { /* best-effort */ }
+  };
 
   const addXP = (amount: number) => {
     progress.addXP(amount);
-    if (typeof window !== "undefined") {
-      const today = sastToday();
-      const key = `fundi-daily-xp-${today}`;
-      const prev = parseInt(localStorage.getItem(key) ?? "0", 10);
-      const next = (Number.isNaN(prev) ? 0 : prev) + amount;
-      localStorage.setItem(key, String(next));
-      setDailyXP(next);
-    } else {
-      setDailyXP((v) => v + amount);
-    }
+    echoDailyXpToLegacyKey(amount);
     setXpToast({ amount, id: Date.now() });
     setTimeout(() => setXpToast(null), 2000);
   };
 
+  const ADVANCED_COURSE_IDS = React.useMemo(
+    () => new Set(LEVEL_3_COURSES.map((c) => c.id)),
+    []
+  );
+
   const completeLesson = async (
     courseId: string,
     lessonId: string,
-    xpEarned: number
+    xpEarned: number,
+    isPerfect = false
   ): Promise<{ streak: number; xpAwarded: number }> => {
     const lessonKey = `${courseId}:${lessonId}`;
     const alreadyDone = progress.completedLessons.has(lessonKey);
@@ -373,6 +407,31 @@ export function useFundiState() {
       typeof window !== "undefined" && Boolean(localStorage.getItem(replayKey));
 
     const xpAwarded = computeLessonXpAward(xpEarned, alreadyDone, replayClaimedToday);
+    // A run "counts" (lessons-today, weekly counters) when it awarded XP:
+    // first completion, or first replay of the day. Blocks replay farming.
+    const counted = xpAwarded > 0;
+    const perfectFirstTime = isPerfect && !alreadyDone;
+
+    // Server-backed counters (cross-device): lifetime perfect + lessons today.
+    progress.recordLessonStats({ counted, perfect: perfectFirstTime });
+
+    // Weekly challenge counters (merged server-side, never clobbered).
+    recordWeeklyStat({
+      lessonsCompleted: counted ? 1 : 0,
+      xpEarned: xpAwarded,
+      perfectLessons: perfectFirstTime ? 1 : 0,
+      advancedLessons: counted && ADVANCED_COURSE_IDS.has(courseId) ? 1 : 0,
+      lessonDayToday: true,
+    });
+
+    // Legacy on-device daily-lessons key (still read by daily quest flags).
+    if (counted && typeof window !== "undefined") {
+      try {
+        const k = `fundi-daily-lessons-${today}`;
+        const prev = parseInt(localStorage.getItem(k) ?? "0", 10);
+        localStorage.setItem(k, String((Number.isNaN(prev) ? 0 : prev) + 1));
+      } catch { /* best-effort */ }
+    }
 
     const newStreak = await progress.applyStreakAfterLesson();
 
@@ -422,6 +481,50 @@ export function useFundiState() {
     });
     setRoute({ name: "lesson", courseId, lessonId });
   };
+
+  // ── Mid-lesson save (survives refresh / app kill / crash) ────────────────
+  // Written on EVERY step so the learn page can offer "Resume lesson" and the
+  // lesson page can restore position instead of dumping the user back to the
+  // course. Cleared on finalize (lesson page) and on resume (learn page).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const s = currentLessonState;
+    if (!progress.userId || !s.courseId || !s.lessonId || s.steps.length === 0) return;
+    try {
+      localStorage.setItem(
+        "fundi-lesson-progress",
+        JSON.stringify({
+          userId: progress.userId,
+          courseId: s.courseId,
+          lessonId: s.lessonId,
+          lessonTitle: getLessonTitle(s.courseId, s.lessonId) ?? undefined,
+          stepIndex: s.stepIndex,
+          answers: s.answers,
+          correctCount: s.correctCount,
+          savedAt: Date.now(),
+        })
+      );
+    } catch { /* best-effort */ }
+  }, [currentLessonState, progress.userId]);
+
+  // ── One-time adoption of pre-sync perfect-lesson count ───────────────────
+  // Older builds tracked perfect lessons only in localStorage. Adopt that
+  // count into the server total once (after the first server load, and only
+  // if the server total is still 0) so an app update never wipes badges.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!progress.loaded || !progress.userId) return;
+    try {
+      const raw = localStorage.getItem("fundi-perfect-lessons");
+      if (raw == null) return;
+      localStorage.removeItem("fundi-perfect-lessons");
+      const legacy = parseInt(raw, 10);
+      if (!Number.isNaN(legacy) && legacy > 0 && progress.perfectLessons === 0) {
+        progress.adoptLegacyPerfectLessons(legacy);
+      }
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [progress.loaded, progress.userId]);
 
   // Persist route so refresh returns to same section
   useEffect(() => {
@@ -475,12 +578,8 @@ export function useFundiState() {
       dailyXP,
       dailyGoal,
       badges: userBadges,
-      lessonsToday: parseInt(
-        typeof window !== "undefined"
-          ? (localStorage.getItem(`fundi-daily-lessons-${sastToday()}`) ?? "0")
-          : "0",
-        10
-      ),
+      // Server-backed (daily_lessons_today): consistent across devices.
+      lessonsToday: progress.dailyLessons,
     } satisfies UserData,
     dailyXP,
     dailyGoal,
@@ -507,34 +606,46 @@ export function useFundiState() {
     setReviewAnswers,
     weeklyChallenge,
     weeklyProgress,
-    setWeeklyProgress,
     challengeProgress,
     challengeComplete,
     challengeRewardClaimed,
-    setChallengeRewardClaimed,
     claimChallengeReward: () => {
-      if (localStorage.getItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`) === "true") {
-        return;
-      }
-      if (challengeComplete && !challengeRewardClaimed) {
-        // Use the wrapped addXP so the XP toast fires and daily XP counter updates
-        addXP(weeklyChallenge.xp);
-        // Force the bar to 100% so it renders complete after manual claim
-        setChallengeProgress(weeklyChallenge.target);
-        setChallengeRewardClaimed(true);
-        localStorage.setItem(`fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`, "true");
-        void progress.persistWeeklyChallengeCompletion(weeklyChallenge.id, weeklyChallenge.xp);
-      }
+      if (!challengeComplete || challengeRewardClaimed) return;
+      // Server-authoritative atomic claim: XP is granted by the RPC only if
+      // this device wins the claim. A second device (or a re-tap racing the
+      // network) gets already_claimed and NO XP — the old localStorage-only
+      // guard allowed one claim per device.
+      void (async () => {
+        const res = await progress.claimWeeklyChallengeServer(
+          weeklyChallenge.weekKey,
+          weeklyChallenge.id,
+          weeklyChallenge.xp
+        );
+        if (res.ok) {
+          echoDailyXpToLegacyKey(weeklyChallenge.xp);
+          setXpToast({ amount: weeklyChallenge.xp, id: Date.now() });
+          setTimeout(() => setXpToast(null), 2000);
+        }
+        if (res.ok || res.alreadyClaimed) {
+          setLocalClaimed(true);
+          try {
+            localStorage.setItem(
+              `fundi-wc-claimed-${weeklyChallenge.weekKey}-${weeklyChallenge.id}`,
+              "true"
+            );
+          } catch { /* best-effort */ }
+        }
+      })();
     },
     tryDeductXp: progress.tryDeductXp,
-    persistWeeklyChallengeCompletion: progress.persistWeeklyChallengeCompletion,
     freezeCount: progress.freezeCount,
     buyStreakFreeze: progress.buyStreakFreeze,
     useFreeze: progress.useFreeze,
     weeklyXp: progress.weeklyXp,
+    perfectLessons: progress.perfectLessons,
+    refreshProgress: progress.refresh,
+    recordWeeklyStat,
     addXP,
-    setChallengeProgress,
-    setDailyXP,
     showNoHearts,
     setShowNoHearts,
     startLesson,

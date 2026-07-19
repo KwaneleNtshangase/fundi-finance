@@ -6,7 +6,7 @@ import { useProfileHandlers } from "@/hooks/useProfileHandlers";
 import { CONTENT_DATA } from "@/data/content";
 
 export default function ProfilePage() {
-  const { userData, setRoute, dailyGoal, setDailyGoal, completedLessons, userSettings, isLessonCompleted } = useFundi();
+  const { userData, setRoute, dailyGoal, setDailyGoal, completedLessons, userSettings, isLessonCompleted, perfectLessons } = useFundi();
   const { handleProfileSignOut, handleDownloadData, handleDeleteAccount } = useProfileHandlers();
 
   const getCourseBadgeIds = () => {
@@ -29,6 +29,7 @@ export default function ProfilePage() {
       courseBadgeIds={getCourseBadgeIds()}
       courses={CONTENT_DATA.courses}
       completedLessons={completedLessons}
+      perfectLessons={perfectLessons}
       calcSaved={userSettings.settings.calcSaved as any}
       onClearCalcSaved={() => {
         localStorage.removeItem("fundi-calc-saved");
