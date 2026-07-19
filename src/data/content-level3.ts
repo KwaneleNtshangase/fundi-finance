@@ -237,10 +237,10 @@ export const ADVANCED_TAX_COURSE: Course = {
               question:
                 "Nomsa (58) has a R12 million property portfolio in her personal name. Her financial advisor suggests transferring it to an inter vivos trust now. What is the primary long-term benefit?",
               options: [
-                "She pays zero CGT on the transfer immediately",
-                "Future growth in property value occurs inside the trust, outside her estate, reducing estate duty on death",
-                "Trust assets avoid all future income tax",
-                "She can withdraw the money tax-free as a beneficiary",
+                "The transfer into the trust triggers no CGT at all",
+                "Future growth accrues in the trust, outside her estate",
+                "Trust income is exempt from income tax in her hands",
+                "She may withdraw capital tax free as a beneficiary",
               ],
               correct: 1,
               feedback: {

@@ -141,7 +141,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "scenario",
                   question: "Your grandmother gives you R5000. You don't need it right now. What's the smartest move?",
-                  options: ["Keep it in cash at home", "Put it in a savings account earning 4% interest", "Spend it immediately", "Give it back"],
+                  options: ["Keep it in cash at home where you can reach it", "Put it in a savings account earning interest", "Split it between spending and a small saving", "Hold it in your current account until needed"],
                   correct: 1,
                   feedback: {
                     correct: "Smart! A 4% savings account helps protect against inflation while keeping the money accessible.",
@@ -2965,7 +2965,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "mcq",
                   question: "You paid R8 000 for concert tickets. The day before, you get sick and also get a better offer for that evening. What's the rational decision?",
-                  options: ["Go to the concert because you already paid", "Sell the tickets if possible, or stay home and recover, the R8 000 is gone either way", "Never buy concert tickets again", "Ask for a refund because you're sick"],
+                  options: ["Attend anyway, since the money is already spent", "Sell them if you can, or stay home; the R8 000 is gone", "Attend briefly so the spend is partly justified", "Request a refund on the basis of illness"],
                   correct: 1,
                   feedback: {
                     correct: "The R8 000 is a sunk cost, spent regardless of what you do next. Only consider future costs and benefits.",

@@ -58,10 +58,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A friend says airtime is always a need because 'everyone needs a phone'. What is the honest way to look at it?",
       options: [
-        "Airtime is fully a need in every case",
-        "A basic amount to reach work and family is a need, endless data for scrolling is a want",
-        "Airtime is always a want",
-        "It only counts if you buy it at month end",
+        "Airtime is a need in full, whatever the amount",
+        "A basic amount is a need, endless data is a want",
+        "Airtime is a want, since communication is free online",
+        "It depends only on whether you buy prepaid or contract",
       ],
       correct: 1,
       feedback: {
@@ -111,10 +111,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the point of writing down every rand you spend for a month?",
       options: [
-        "To feel guilty about takeaways",
-        "To see where money actually goes, not where you think it goes",
-        "To impress your bank",
-        "So SARS can check it",
+        "To identify which categories to cut permanently",
+        "To see where money actually goes, not where you assume",
+        "To build a record your bank can use for lending",
+        "To support the deductions you claim from SARS",
       ],
       correct: 1,
       feedback: {
@@ -125,7 +125,7 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     {
       type: "scenario",
       question: "Bongani checks his bank app and finds three small subscriptions he forgot about, costing R240 a month. What is the smart next step?",
-      options: ["Ignore it, it is only small", "Cancel the ones he does not use and redirect the money to savings", "Cancel his whole account", "Wait for the bank to refund him"],
+      options: ["Leave them, since the amounts are individually small", "Cancel the unused ones and redirect the money to savings", "Ask the bank to reverse the past three months", "Keep them but move them to a separate account"],
       correct: 1,
       feedback: {
         correct: "Yes. R240 a month is nearly R2 900 a year. Cancelling the dead ones is an easy win.",
@@ -178,7 +178,7 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     {
       type: "scenario",
       question: "Naledi keeps bouncing debit orders early in the month. What is the cleanest fix?",
-      options: ["Take out a loan each month", "Ask her providers to move debit order dates closer to payday", "Cancel all her debit orders", "Change banks"],
+      options: ["Arrange a short-term loan to cover the gap", "Ask providers to move the dates closer to payday", "Cancel the debit orders and pay each one manually", "Keep a buffer of one month's orders in the account"],
       correct: 1,
       feedback: {
         correct: "Yes. Aligning debit order dates with payday smooths cash flow and avoids bounce fees.",
@@ -191,10 +191,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Before asking for a raise, what is the strongest thing to bring to the conversation?",
       options: [
-        "How much your rent went up",
-        "Evidence of results you delivered and what similar roles pay",
-        "A threat to resign on the spot",
-        "How long you have worked there",
+        "A budget showing your rising cost of living",
+        "Evidence of results you delivered and market pay data",
+        "A competing offer you are prepared to accept",
+        "A record of your years of service and attendance",
       ],
       correct: 1,
       feedback: {
@@ -269,7 +269,7 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     {
       type: "mcq",
       question: "When the Reserve Bank raises the repo rate, what usually happens to your bond and car repayments?",
-      options: ["They fall", "They rise, because lending rates track the repo rate", "They stay fixed forever", "Only credit cards change"],
+      options: ["They fall, as banks compete for lending", "They rise, because lending rates track the repo rate", "They stay fixed until your loan term ends", "Only new loans are affected, not existing ones"],
       correct: 1,
       feedback: {
         correct: "Right. Banks lend at prime, which moves with the repo rate, so variable repayments go up.",
@@ -291,10 +291,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "A family member keeps asking you for 'small loans' that never come back. What is a healthy way to handle it?",
       options: [
-        "Keep lending to avoid conflict",
-        "Be honest about what you can give, and treat a gift as a gift rather than a loan you resent",
-        "Cut them off with no explanation",
-        "Borrow money yourself to keep helping",
+        "Keep lending, since refusing damages the relationship",
+        "Be honest about what you can give, and treat a gift as a gift",
+        "Stop responding to the requests without explaining why",
+        "Lend it but charge interest to discourage repeat requests",
       ],
       correct: 1,
       feedback: {
@@ -317,10 +317,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is funding your lifestyle on credit so dangerous over time?",
       options: [
-        "Credit is always interest free",
-        "You pay interest on things that lose value, so the true cost is far above the ticket price",
-        "It builds your savings",
-        "Shops give you the item for free later",
+        "Credit purchases are interest free within the term",
+        "You pay interest on things that lose value",
+        "It reduces the cash you can put toward savings",
+        "Retailers raise prices for credit customers",
       ],
       correct: 1,
       feedback: {
@@ -333,7 +333,7 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     {
       type: "mcq",
       question: "Two shops sell the same 2 litre milk. Shop A: R32. Shop B: R30 but a R15 taxi trip further away. You only need milk. Which is cheaper overall?",
-      options: ["Shop B, it lists a lower price", "Shop A, once you add the R15 travel the trip to B costs more", "They are the same", "Shop B, taxi fare never counts"],
+      options: ["Shop B, since its shelf price is lower", "Shop A, once the R15 travel cost is included", "They cost the same once rounded", "Shop B, provided you combine it with other errands"],
       correct: 1,
       feedback: {
         correct: "Right. The R2 saving is wiped out by R15 in taxi fare. Always count the cost of getting there.",
@@ -473,9 +473,9 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       question: "How much of your pay goes to UIF, and who else contributes?",
       options: [
         "1% from you, matched by 1% from your employer",
-        "5% from you only",
-        "Nothing, it is free",
-        "10% split three ways",
+        "2% from you, with no employer contribution",
+        "1% from your employer only, not from you",
+        "1% from you, matched by 2% from your employer",
       ],
       correct: 0,
       feedback: {
@@ -515,10 +515,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Ayanda gets a R15 000 December bonus. What is the smartest first use given the January squeeze many families feel?",
       options: [
-        "Spend it all on holiday",
-        "Cover January essentials and school costs first, then save or clear a debt with the rest",
-        "Buy the newest phone on credit anyway",
-        "Lend it all to friends",
+        "Treat it as a reward and spend it on the holiday",
+        "Cover January essentials first, then save or clear debt",
+        "Use it as a deposit and finance a larger purchase",
+        "Split it evenly across every category of spending",
       ],
       correct: 1,
       feedback: {
@@ -569,10 +569,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which is a legitimate way to lower the tax on your salary?",
       options: [
-        "Hiding income from SARS",
-        "Increasing your pension or retirement annuity contribution within the 27.5% limit",
-        "Being paid in cash off the books",
-        "Claiming fake expenses",
+        "Registering as a provisional taxpayer to defer PAYE",
+        "Increasing retirement contributions within the 27.5% limit",
+        "Structuring more of your package as a travel allowance",
+        "Deferring your bonus into the next tax year",
       ],
       correct: 1,
       feedback: {
@@ -631,10 +631,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "On a payslip, what is the difference between an 'earning' and a 'deduction' line?",
       options: [
-        "They are the same thing",
-        "Earnings add to your pay, deductions are taken off it",
-        "Deductions add to your pay",
-        "Earnings are only bonuses",
+        "Earnings are fixed and deductions vary monthly",
+        "Earnings add to your pay, deductions are taken off",
+        "Earnings are before tax, deductions are after tax",
+        "Earnings are cash, deductions are employer benefits",
       ],
       correct: 1,
       feedback: {
@@ -745,10 +745,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the best way to actually see what fees you are paying?",
       options: [
-        "Guess from your balance",
-        "Read your bank's fee guide and check the fee lines on your statement",
-        "Ask a friend",
-        "Assume they are all unavoidable",
+        "Compare your closing balance month to month",
+        "Read the fee guide and check the fee lines on your statement",
+        "Ask the branch to summarise your charges verbally",
+        "Assume the advertised monthly fee is the total",
       ],
       correct: 1,
       feedback: {
@@ -803,10 +803,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the difference between a normal debit order and a DebiCheck one?",
       options: [
-        "DebiCheck is fake",
-        "DebiCheck orders are electronically approved by you upfront, which is harder to abuse",
-        "Normal debit orders need a court order",
-        "There is no difference",
+        "DebiCheck applies only to loan repayments",
+        "DebiCheck orders are electronically approved by you upfront",
+        "Normal debit orders require a signed paper mandate",
+        "DebiCheck can be stopped without notifying the company",
       ],
       correct: 1,
       feedback: {
@@ -1352,10 +1352,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "You have caught up all arrears. What is a smart next step to show reliability?",
       options: [
-        "Close every account",
-        "Keep one or two accounts active and pay them in full and on time",
-        "Take a payday loan",
-        "Stop checking your report",
+        "Close the accounts now that they are settled",
+        "Keep one or two active and pay them in full on time",
+        "Open several new accounts to widen your history",
+        "Apply for a consolidation loan to refresh the record",
       ],
       correct: 1,
       feedback: {
@@ -1566,10 +1566,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Which of these is a genuine reason to dip into your emergency fund?",
       options: [
-        "A Black Friday TV deal",
-        "Your only car for getting to work breaks down and needs urgent repair",
-        "A friend's birthday gift",
-        "A holiday you have been eyeing",
+        "A limited-time deal on an appliance you need",
+        "Your only car for getting to work breaks down",
+        "An overdue gift for a close family member",
+        "A holiday deposit that expires this week",
       ],
       correct: 1,
       feedback: {
@@ -1708,10 +1708,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a sensible way to estimate how much life cover you need?",
       options: [
-        "Pick a round number",
-        "Add up debts to settle and the income your dependants would need for several years",
-        "Copy your neighbour",
-        "The maximum the salesperson offers",
+        "A standard multiple of your annual salary",
+        "Debts to settle plus the income dependants would need",
+        "The maximum the insurer is willing to approve",
+        "The amount that keeps the premium under a set figure",
       ],
       correct: 1,
       feedback: {
@@ -1866,10 +1866,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Zanele drives an old car worth about R20 000. Comprehensive cover costs a lot relative to the car. What is reasonable to consider?",
       options: [
-        "Insure it for R200 000",
-        "Weigh cheaper third-party cover, or self-insuring by saving, given the low car value",
-        "Never drive again",
-        "Cancel all insurance including the house",
+        "Insure it for the amount it would cost to replace new",
+        "Weigh third-party cover, or self-insure given the low value",
+        "Keep comprehensive cover but raise the excess sharply",
+        "Cancel cover entirely and rely on the other driver's policy",
       ],
       correct: 1,
       feedback: {
@@ -1883,10 +1883,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is protecting your income often called the foundation of a financial plan?",
       options: [
-        "Because income is unimportant",
-        "Because almost every other goal depends on your ability to keep earning",
-        "Because insurers say so",
-        "Because it is free",
+        "Because insurers price it more cheaply than other cover",
+        "Because almost every other goal depends on you continuing to earn",
+        "Because it is the only cover the law requires you to hold",
+        "Because it pays out more often than any other policy",
       ],
       correct: 1,
       feedback: {
@@ -1954,10 +1954,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is starting to invest early so powerful?",
       options: [
-        "Early money is worth more legally",
-        "Compounding means your returns earn returns, and time is the biggest lever",
-        "Banks reward youth",
-        "It avoids all tax",
+        "Younger investors qualify for better interest rates",
+        "Compounding means your returns earn returns over time",
+        "Early contributions are taxed at a lower rate",
+        "Markets historically rise fastest in your twenties",
       ],
       correct: 1,
       feedback: {
@@ -2098,10 +2098,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does a bond differ from a share?",
       options: [
-        "A bond is ownership, a share is a loan",
-        "A bond is a loan to a government or company that pays interest, a share is ownership",
-        "They are identical",
-        "Bonds never pay anything",
+        "A bond gives ownership, a share is a loan to the company",
+        "A bond is a loan paying interest; a share is ownership",
+        "A bond pays dividends, a share pays fixed interest",
+        "Bonds are issued by companies, shares by governments",
       ],
       correct: 1,
       feedback: {
@@ -2304,10 +2304,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Who typically issues bonds?",
       options: [
-        "Only individuals",
-        "Governments and companies raising money by borrowing from investors",
-        "Only banks",
-        "Nobody, bonds are theoretical",
+        "Licensed banks and insurers exclusively",
+        "Governments and companies borrowing from investors",
+        "Only the National Treasury and the Reserve Bank",
+        "Listed companies raising capital by issuing shares",
       ],
       correct: 1,
       feedback: {
@@ -2347,10 +2347,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Thabo has R500 a month to invest for retirement, decades away. What is a sensible core choice?",
       options: [
-        "A single meme stock",
-        "A low-cost, diversified equity ETF via a monthly debit order",
-        "A payday loan to invest more",
-        "Keeping it all in cash",
+        "A concentrated holding in one high-growth share",
+        "A low-cost, diversified equity ETF by monthly debit order",
+        "A fixed deposit rolled over each twelve months",
+        "An actively managed fund with a strong recent year",
       ],
       correct: 1,
       feedback: {
@@ -2377,10 +2377,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the main appeal of a Tax-Free Savings Account (TFSA)?",
       options: [
-        "It is a bank account with no fees",
-        "Growth, interest and dividends inside it are not taxed, and withdrawals are tax free",
-        "It guarantees 20% a year",
-        "It replaces your salary",
+        "It carries no monthly administration fees",
+        "Growth, interest and dividends inside it are untaxed",
+        "Deposits are deductible from your taxable income",
+        "It guarantees a return above inflation each year",
       ],
       correct: 1,
       feedback: {
@@ -2439,10 +2439,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What do you need to open a TFSA at most SA providers?",
       options: [
-        "A large lump sum only",
-        "ID, proof of address and often as little as a few hundred rand a month",
-        "A business licence",
-        "Permission from SARS each time",
+        "A minimum lump sum set by the provider",
+        "ID, proof of address and often a few hundred rand a month",
+        "A tax number and clearance certificate from SARS",
+        "An existing investment account with the same provider",
       ],
       correct: 1,
       feedback: {
@@ -2507,10 +2507,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "At retirement from an RA, how can you access the money?",
       options: [
-        "All of it in cash, always tax free",
-        "You may take up to one third as a lump sum, with the rest buying an income (annuity)",
-        "None of it, ever",
-        "Only if you emigrate",
+        "The full amount in cash, taxed on a sliding scale",
+        "Up to one third as a lump sum, the rest buying an income",
+        "Up to two thirds as a lump sum, the rest as an annuity",
+        "Only monthly income, with no lump sum permitted",
       ],
       correct: 1,
       feedback: {
@@ -2609,10 +2609,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why do investors rebalance a portfolio?",
       options: [
-        "To chase whatever went up most",
-        "To bring the mix back to target after some assets grow faster than others",
-        "To pay more fees",
-        "To avoid investing",
+        "To increase exposure to whatever performed best",
+        "To bring the mix back to target after assets drift",
+        "To reduce the total fees charged on the portfolio",
+        "To lock in gains by moving the proceeds to cash",
       ],
       correct: 1,
       feedback: {
@@ -2727,10 +2727,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the honest answer to 'is buying always better than renting'?",
       options: [
-        "Yes, renting is always wasted money",
-        "No, it depends on the numbers, how long you will stay, and your flexibility needs",
-        "No, renting is always better",
-        "It is impossible to know",
+        "Yes, because rent builds no equity over time",
+        "No, it depends on the numbers and how long you stay",
+        "No, renting wins in almost every market",
+        "Yes, provided you can secure a bond at prime",
       ],
       correct: 1,
       feedback: {
@@ -2753,10 +2753,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Zanele may move cities for work within two years. What does that suggest about buying now?",
       options: [
-        "Buy immediately, it is always right",
-        "Renting is likely wiser, since transfer costs are hard to recover over such a short stay",
-        "Buy two houses",
-        "It makes no difference",
+        "Buy now, since property gains outpace transfer costs",
+        "Renting is likely wiser, as transfer costs are hard to recover",
+        "Buy and rent it out when she relocates",
+        "The decision is unaffected by how long she stays",
       ],
       correct: 1,
       feedback: {
@@ -2803,10 +2803,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "A young worker invests the deposit and cost difference from not buying. What can this achieve?",
       options: [
-        "Nothing at all",
-        "It can grow into meaningful wealth, sometimes rivalling the equity they would have built in a home",
-        "It is illegal",
-        "It always beats property by a huge margin",
+        "Very little, since rent consumes any surplus",
+        "It can grow into wealth rivalling the equity in a home",
+        "It matches home equity only if markets outperform",
+        "It reliably beats property by a wide margin",
       ],
       correct: 1,
       feedback: {
@@ -2884,10 +2884,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the difference between your marginal rate and your average tax rate?",
       options: [
-        "They are the same",
-        "Marginal is the rate on your next rand, average is total tax divided by total income",
-        "Average is always higher",
-        "Marginal only applies to the rich",
+        "They describe the same figure calculated differently",
+        "Marginal is the rate on your next rand; average is total tax over total income",
+        "Marginal applies to salary and average to investment income",
+        "Average is the rate before rebates, marginal the rate after",
       ],
       correct: 1,
       feedback: {
@@ -3033,10 +3033,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is SARS eFiling used for?",
       options: [
-        "Ordering food",
+        "Registering a company with the CIPC",
         "Submitting tax returns and managing your tax affairs online",
-        "Applying for a home loan",
-        "Buying shares",
+        "Applying for a tax clearance certificate only",
+        "Paying municipal rates and traffic fines",
       ],
       correct: 1,
       feedback: {
@@ -3232,10 +3232,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A 'scheme' pays early investors using money from new investors. What is it?",
       options: [
-        "A safe fund",
+        "A collective investment scheme with pooled returns",
         "A Ponzi scheme, which collapses when new money slows",
-        "A government bond",
-        "A tax-free savings account",
+        "A syndicated property investment structure",
+        "A stokvel operating on a rotating payout basis",
       ],
       correct: 1,
       feedback: {
@@ -3630,10 +3630,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "In practice, how do many people approach tithing or regular giving in a budget?",
       options: [
-        "As an afterthought if money is left",
-        "As a planned, first-priority line, given intentionally rather than from leftovers",
-        "By borrowing to give",
-        "By giving only once in a lifetime",
+        "As a residual, given from whatever is left over",
+        "As a planned, first-priority line given intentionally",
+        "As a variable amount tied to that month's income",
+        "As an annual lump sum at the end of the tax year",
       ],
       correct: 1,
       feedback: {
@@ -3682,10 +3682,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does financial integrity look like day to day?",
       options: [
-        "Cutting corners when nobody is watching",
-        "Honesty in dealings, paying what you owe, and keeping your word even when it costs you",
-        "Hiding income from everyone",
-        "Winning at any cost",
+        "Applying the rules only where you may be checked",
+        "Honesty in dealings, paying what you owe, keeping your word",
+        "Declaring only the income that is already on record",
+        "Negotiating hard and holding others to the letter",
       ],
       correct: 1,
       feedback: {
@@ -3738,10 +3738,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is 'present bias'?",
       options: [
-        "Preferring the future over now",
-        "Overvaluing rewards now versus larger rewards later, which hurts saving",
-        "A gift you receive",
-        "A tax term",
+        "Placing more weight on future outcomes than present ones",
+        "Overvaluing rewards now versus larger rewards later",
+        "Judging your finances by your current bank balance",
+        "Assuming today's prices will hold in the future",
       ],
       correct: 1,
       feedback: {
@@ -4041,10 +4041,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "A share you bought at R100 is now R40 and the company's outlook has clearly worsened. What does clear thinking suggest?",
       options: [
-        "Hold forever to avoid admitting a loss",
-        "Decide based on the future outlook, not your purchase price, since the R100 is a sunk cost",
-        "Buy more purely to lower your average",
-        "Never sell anything",
+        "Hold until it recovers to your purchase price",
+        "Decide on the future outlook; the R100 is a sunk cost",
+        "Buy more to bring your average price down",
+        "Sell half to lock in a partial recovery",
       ],
       correct: 1,
       feedback: {
@@ -4082,10 +4082,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Ayanda gets a R3 000 raise. What move best fights lifestyle inflation?",
       options: [
-        "Upgrade her car and flat immediately",
-        "Direct a big share of the raise to savings or debt before adjusting her lifestyle",
-        "Spend it all, she earned it",
-        "Take on a new store card",
+        "Upgrade one fixed cost, such as rent, and hold the rest",
+        "Direct most of the raise to savings or debt before adjusting",
+        "Keep the raise in her current account as a buffer",
+        "Split it evenly between spending and saving",
       ],
       correct: 1,
       feedback: {
@@ -4147,10 +4147,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Under the two-pot system, how are new retirement contributions split?",
       options: [
-        "All into one pot you can withdraw anytime",
-        "One third into a savings pot you can access, two thirds into a retirement pot preserved until retirement",
-        "Half to SARS",
-        "All locked with no access ever",
+        "Entirely into one pot accessible at any time",
+        "One third into an accessible savings pot, two thirds preserved",
+        "Two thirds accessible, one third preserved to retirement",
+        "Split evenly between an accessible and a preserved pot",
       ],
       correct: 1,
       feedback: {
@@ -4352,10 +4352,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why does a weaker rand usually push up the petrol price?",
       options: [
-        "Petrol is made locally with no imports",
-        "Oil is priced in dollars, so a weaker rand makes each imported litre cost more rands",
-        "SARS sets petrol by mood",
-        "It has no effect",
+        "Refineries raise margins when the rand falls",
+        "Oil is priced in dollars, so each litre costs more rands",
+        "The fuel levy is recalculated as the rand moves",
+        "Importers pass on the cost of currency hedging",
       ],
       correct: 1,
       feedback: {
@@ -4378,10 +4378,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a practical way to protect your wealth against long-term rand weakness?",
       options: [
-        "Keep everything in cash under the bed",
-        "Hold a portion of your investments in global assets, so some wealth is not tied to the rand",
-        "Buy more local store cards",
-        "Ignore diversification",
+        "Hold more cash so the value cannot fall",
+        "Hold a portion of investments in global assets",
+        "Shift savings into local property and store credit",
+        "Time your conversions for when the rand is strong",
       ],
       correct: 1,
       feedback: {
@@ -4456,10 +4456,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the repo rate?",
       options: [
-        "The rate shops charge on store cards",
-        "The rate at which the SARB lends to banks, which sets the base for prime and your loan rates",
-        "A property tax",
-        "The petrol price",
+        "The average rate banks charge their retail customers",
+        "The rate at which the SARB lends to commercial banks",
+        "The rate SARS charges on outstanding tax debt",
+        "The ceiling on interest set by the National Credit Act",
       ],
       correct: 1,
       feedback: {
@@ -4564,10 +4564,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a blockchain?",
       options: [
-        "A single company's private database",
-        "A shared, tamper-resistant record of transactions maintained across many computers",
-        "A type of bank vault",
-        "A government website",
+        "A secure database run by a single institution",
+        "A shared, tamper-resistant record kept across many computers",
+        "An encrypted archive of digital wallet balances",
+        "A registry of crypto owners maintained by exchanges",
       ],
       correct: 1,
       feedback: {
@@ -4854,10 +4854,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the difference between debt and equity financing for growth?",
       options: [
-        "They are identical",
-        "Debt is borrowed money you repay with interest, equity is selling a share of the business for cash",
-        "Equity must always be repaid with interest",
-        "Debt gives away ownership",
+        "Debt suits established firms, equity suits new ones",
+        "Debt is borrowed and repaid with interest; equity sells a share",
+        "Equity is repaid with interest, debt is repaid from profits",
+        "Debt dilutes ownership, equity leaves ownership intact",
       ],
       correct: 1,
       feedback: {
@@ -5044,10 +5044,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "A long-term unmarried partner dies without a will. What is the risk for the surviving partner?",
       options: [
-        "They automatically inherit everything",
-        "Under intestate rules they may inherit little or nothing, since the law prioritises spouses and blood relatives",
-        "They inherit half by default",
-        "The estate is split with the government",
+        "They inherit the estate as a surviving spouse would",
+        "They may inherit little or nothing under intestate rules",
+        "They inherit half, with the balance to blood relatives",
+        "They inherit only the shared home, not other assets",
       ],
       correct: 1,
       feedback: {
@@ -5250,10 +5250,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is sequence-of-returns risk?",
       options: [
-        "The risk that returns are always positive",
-        "The risk that poor returns early in retirement, while you are withdrawing, permanently damage your pot",
-        "A tax on returns",
-        "A risk only during your working years",
+        "The risk that returns arrive later than you projected",
+        "The risk that poor returns early in retirement permanently damage the pot",
+        "The risk of holding assets in the wrong order of tax efficiency",
+        "The risk that inflation outpaces returns over a full career",
       ],
       correct: 1,
       feedback: {
@@ -5458,10 +5458,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the primary purpose of the FAIS Act?",
       options: [
-        "To guarantee investment returns for clients",
-        "To regulate the rendering of financial advice and intermediary services, and protect clients",
-        "To set interest rates",
-        "To collect taxes on financial products",
+        "To guarantee minimum returns on regulated products",
+        "To regulate the rendering of advice and intermediary services",
+        "To set the prudential capital requirements for insurers",
+        "To license the products that may be sold to the public",
       ],
       correct: 1,
       feedback: {
@@ -5540,10 +5540,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Before an FSP may operate, what must it hold?",
       options: [
-        "A tax clearance only",
-        "A licence issued by the FSCA authorising it for specific categories and products",
-        "A bank account only",
-        "Nothing, registration is voluntary",
+        "Proof of professional indemnity cover only",
+        "An FSCA licence authorising specific categories and products",
+        "Registration with the FAIS Ombud before trading",
+        "Approval from the Prudential Authority for each product",
       ],
       correct: 1,
       feedback: {
@@ -5566,10 +5566,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "On what basis may the FSCA suspend or withdraw an FSP's licence?",
       options: [
-        "Only when the FSP itself requests withdrawal",
-        "If it no longer meets fit and proper requirements",
-        "If the FSP's profits exceed the sector norm",
-        "Never, a licence lapses only on liquidation",
+        "Only on written request from the FSP itself",
+        "If it no longer meets the fit and proper requirements",
+        "If it fails to meet the FSCA's prescribed profit margin",
+        "Only after a court has convicted a key individual",
       ],
       correct: 1,
       feedback: {
@@ -5590,10 +5590,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What can happen to a licence on a provisional basis while an investigation is underway?",
       options: [
-        "It is automatically cancelled",
+        "It lapses automatically pending the outcome",
         "It may be suspended, with conditions, pending the outcome",
-        "It is upgraded",
-        "Nothing can be done until a court rules",
+        "It converts to a Category IV licence for the interim",
+        "It continues untouched until a court rules on the matter",
       ],
       correct: 1,
       feedback: {
@@ -5801,10 +5801,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which behaviour would breach the general duty of care?",
       options: [
-        "Doing a proper needs analysis",
+        "Recording the advice within the prescribed period",
         "Recommending an unsuitable product to earn higher commission",
-        "Disclosing all fees",
-        "Keeping proper records",
+        "Declining to advise on a product outside your subcategory",
+        "Telling a client their instruction conflicts with your advice",
       ],
       correct: 1,
       feedback: {
@@ -5827,10 +5827,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Disclosure about the provider typically includes what?",
       options: [
-        "The client's medical history",
-        "The FSP's name, contact details, licence categories and how to complain",
-        "The weather forecast",
-        "Other clients' portfolios",
+        "The commission earned on the client's previous policies",
+        "The FSP's name, licence categories and complaints process",
+        "The FSP's audited financial statements for the past year",
+        "The names of the FSP's other clients in the same product",
       ],
       correct: 1,
       feedback: {
@@ -5892,10 +5892,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "If a client declines to provide information needed for a proper analysis, what must the FSP do?",
       options: [
-        "Proceed as if full information was given",
-        "Alert the client that this limits the advice and that suitability cannot be fully assessed",
-        "Refuse to ever speak to them",
-        "Guess the missing details",
+        "Proceed on assumptions and note them in the file",
+        "Warn the client that suitability cannot be fully assessed",
+        "Terminate the relationship, as advice is now prohibited",
+        "Obtain the missing information from a credit bureau",
       ],
       correct: 1,
       feedback: {
@@ -5945,10 +5945,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Treating Customers Fairly (TCF) is best described as what?",
       options: [
-        "A tax on advisers",
-        "An outcomes-based approach requiring fair treatment of customers throughout the product life cycle",
-        "A once-off form",
-        "A marketing slogan with no obligations",
+        "A prescribed disclosure form given at point of sale",
+        "An outcomes-based approach applied across the product life cycle",
+        "A voluntary industry code with no supervisory consequence",
+        "A levy funding the Ombud schemes and consumer education",
       ],
       correct: 1,
       feedback: {
@@ -5969,10 +5969,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What must an FSP have in place for client complaints?",
       options: [
-        "Nothing, complaints are ignored",
-        "A documented internal complaints resolution process that is accessible to clients",
-        "A rule that clients cannot complain",
-        "Only a phone that is never answered",
+        "A verbal process explained to clients on request",
+        "A documented internal complaints process accessible to clients",
+        "A referral arrangement sending all complaints to the Ombud",
+        "A register of complaints submitted monthly to the FSCA",
       ],
       correct: 1,
       feedback: {
@@ -6047,10 +6047,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which statement about the FAIS framework is correct?",
       options: [
-        "The FSCA guarantees product performance",
-        "The FSCA licenses FSPs and regulates conduct, while the FAIS Ombud resolves client complaints",
-        "The FAIS Ombud licenses FSPs",
-        "Representatives need no oversight",
+        "The FSCA both licenses FSPs and guarantees product performance",
+        "The FSCA licenses and supervises conduct; the Ombud resolves complaints",
+        "The FAIS Ombud licenses FSPs and the FSCA hears complaints",
+        "The Prudential Authority licenses FSPs rendering investment advice",
       ],
       correct: 1,
       feedback: {

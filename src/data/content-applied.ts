@@ -330,10 +330,10 @@ export const LESSON_SARS_ASSESSMENT: Lesson = {
       question:
         "Lerato has 40 business days to respond to the auto-assessment. She contributed R24 000 to her RA this year which her employer captured, but she also paid R18 000 in medical aid (not all covered by her employer's certificate). What is her best first step?",
       options: [
-        "Pay the R4 200 immediately, SARS is always correct",
-        "Ignore it, SARS will write it off after 3 years",
-        "Log into eFiling, review the auto-assessment, add her unclaimed medical aid expenses, and check if the amount changes",
-        "Call SARS and argue, they always make mistakes",
+        "Pay the R4 200 now and query it afterwards",
+        "Accept the assessment, as SARS holds the employer certificates",
+        "Review the auto-assessment and add her unclaimed medical expenses",
+        "Request an extension before opening the assessment",
       ],
       correct: 2,
       feedback: {
@@ -521,10 +521,10 @@ export const LESSON_CASH_FLOW_VS_PROFIT: Lesson = {
       question:
         "Lebo needs R22 000 by Friday. Her options: (A) short-term business loan at 3% per month, (B) use her personal credit card at 2% per month, (C) call her client and negotiate early payment with a 3% discount, (D) delay paying the supplier and damage the relationship. Which is smartest?",
       options: [
-        "A: business loans are designed for this",
-        "B: personal credit card is cheaper than the business loan",
-        "C: offering a 3% discount to collect R58 200 now costs less than borrowing R22 000 at 3% and preserves all relationships",
-        "D: suppliers understand cash flow problems",
+        "A, since business loans are designed for this gap",
+        "B, as the card rate is lower than the loan rate",
+        "C, since the discount costs less than borrowing",
+        "D, because suppliers expect occasional delays",
       ],
       correct: 2,
       feedback: {

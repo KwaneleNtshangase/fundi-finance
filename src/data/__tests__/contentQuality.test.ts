@@ -72,9 +72,9 @@ describe("content quality — answer patterns", () => {
   });
 
   it("no question's correct answer dwarfs its distractors (flagrant length bias)", () => {
-    // RATCHET: worst measured margin after rewrite pass 2 is 185%.
-    // New/edited questions must not push above it. Lower this as passes continue.
-    const MAX_MARGIN_PCT = 190;
+    // RATCHET: after rewrite pass 3 no question exceeds a 100% margin
+    // (worst is 96%). New/edited questions must stay under this.
+    const MAX_MARGIN_PCT = 100;
     const offenders = optionQs
       .map((q) => ({ q, s: lengthStats(q) }))
       .filter(({ s }) => s.uniquelyLongest && s.marginPct >= MAX_MARGIN_PCT);
@@ -85,16 +85,16 @@ describe("content quality — answer patterns", () => {
   });
 
   it("keeps the correct-is-longest rate from regressing", () => {
-    // RATCHET: 79% after pass 2 (chance would be ~25%). Do not let it climb;
+    // RATCHET: 72% after pass 3 (chance would be ~25%). Do not let it climb;
     // lower it as more content is rebalanced.
-    const MAX_LONGEST_RATE = 0.8;
+    const MAX_LONGEST_RATE = 0.73;
     const longest = optionQs.filter((q) => lengthStats(q).uniquelyLongest).length;
     expect(longest / optionQs.length).toBeLessThanOrEqual(MAX_LONGEST_RATE);
   });
 
   it("keeps the flagrant (>=40% margin) count from regressing", () => {
-    // RATCHET: 273 after pass 2 (was 444 pre-audit, 364 after pass 1).
-    const MAX_FLAGRANT = 273;
+    // RATCHET: 147 after pass 3 (444 pre-audit, 364 pass 1, 273 pass 2).
+    const MAX_FLAGRANT = 147;
     const flagrant = optionQs.filter((q) => {
       const s = lengthStats(q);
       return s.uniquelyLongest && s.marginPct >= 40;
