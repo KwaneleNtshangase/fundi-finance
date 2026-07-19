@@ -405,10 +405,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Your offer letter says R20 000 'gross'. Why will less than that land in your account?",
       options: [
-        "The bank keeps a cut",
-        "Deductions like PAYE, UIF and any pension come off before you get net pay",
-        "Gross pay is a typing error",
-        "Employers always round down",
+        "The bank charges a fee on incoming salaries",
+        "PAYE, UIF and pension come off before net pay",
+        "Gross pay figures always include a bonus estimate",
+        "Employers round payments down to the nearest hundred",
       ],
       correct: 1,
       feedback: {
@@ -500,10 +500,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A 13th cheque or bonus is taxed how?",
       options: [
-        "Tax free because it is a gift",
-        "As income, so PAYE applies and it can push that month into a higher bracket",
-        "At a flat 5%",
-        "Only if it is over R100 000",
+        "Tax free, because it is treated as a gift",
+        "As income, so PAYE applies to it that month",
+        "At a flat rate of 5% on the full amount",
+        "Only where the bonus exceeds R100 000",
       ],
       correct: 1,
       feedback: {
@@ -762,10 +762,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is using the banking app often cheaper than going into a branch?",
       options: [
-        "Apps pay you to log in",
-        "App and digital transactions usually carry lower fees than in-branch, assisted ones",
-        "Branches are always closed",
-        "It is not cheaper",
+        "Apps reward you with cashback on every login",
+        "Digital transactions usually carry lower fees than in-branch",
+        "Branch transactions are capped at small amounts",
+        "App transactions are exempt from bank charges",
       ],
       correct: 1,
       feedback: {
@@ -788,10 +788,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What exactly is a debit order?",
       options: [
-        "A once-off payment you make manually",
-        "A standing instruction that lets a company pull an agreed amount from your account on a set date",
-        "A type of savings account",
-        "A loan from your bank",
+        "A once-off payment you authorise each month",
+        "A standing instruction letting a company pull an agreed amount",
+        "An account that sweeps surplus funds into savings",
+        "A short-term loan facility linked to your account",
       ],
       correct: 1,
       feedback: {
@@ -881,10 +881,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the main trade-off to weigh when choosing a savings account?",
       options: [
-        "Colour versus size",
-        "Interest rate versus how quickly you can access the money",
-        "Branch versus app",
-        "There is no trade-off",
+        "Whether the bank has branches near you",
+        "Interest rate versus how quickly you can access money",
+        "Whether the account is opened in branch or on the app",
+        "The minimum balance versus the monthly account fee",
       ],
       correct: 1,
       feedback: {
@@ -935,10 +935,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why can an overdraft quietly become a trap?",
       options: [
-        "It is interest free",
-        "It feels like your own money but charges interest, and you can end up permanently living in it",
-        "The bank forgets about it",
-        "It builds your credit score for free",
+        "It carries no interest while you stay in limit",
+        "It feels like your money but charges interest continuously",
+        "Banks may withdraw the facility without notice",
+        "It counts as savings on your credit profile",
       ],
       correct: 1,
       feedback: {
@@ -1109,10 +1109,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why are store cards and retail credit often a poor deal?",
       options: [
-        "They have no interest ever",
-        "They carry high interest and tempt you to buy things you would skip if paying cash",
-        "They lower all prices",
-        "They are illegal",
+        "They charge no interest if you pay monthly",
+        "High interest, plus they tempt you into extra spending",
+        "They report every purchase to the credit bureaus",
+        "They can only be used at one specific store",
       ],
       correct: 1,
       feedback: {
@@ -1161,10 +1161,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "You have no credit history. What is a sensible way to start building a score?",
       options: [
-        "Take five loans at once",
-        "Use a small amount of credit responsibly and pay it in full and on time",
-        "Never use credit",
-        "Miss a payment on purpose",
+        "Apply for several loans to show demand",
+        "Use a small amount of credit and pay it in full on time",
+        "Avoid credit entirely and pay cash for everything",
+        "Ask a bank to backdate a credit agreement",
       ],
       correct: 1,
       feedback: {
@@ -1328,10 +1328,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Your score was damaged by past missed payments. What rebuilds it most reliably?",
       options: [
-        "Ignoring the debts",
-        "Bringing accounts up to date and then paying on time, consistently, for months",
-        "Opening many new accounts fast",
-        "Changing your name",
+        "Waiting for the listings to lapse on their own",
+        "Bringing accounts up to date, then paying on time",
+        "Opening several new accounts to add fresh history",
+        "Settling the smallest debt and closing the account",
       ],
       correct: 1,
       feedback: {
@@ -1399,10 +1399,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does the debt snowball method order your debts?",
       options: [
-        "Highest interest first",
-        "Smallest balance first, for quick wins that build momentum",
-        "Largest balance first",
-        "Randomly",
+        "Highest interest rate first, to save the most",
+        "Smallest balance first, for quick motivating wins",
+        "Largest balance first, to cut the biggest risk",
+        "Oldest debt first, regardless of size or rate",
       ],
       correct: 1,
       feedback: {
@@ -1516,10 +1516,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Where should an emergency fund ideally sit?",
       options: [
-        "In shares you must sell to access",
-        "In a safe, easy-access account like a savings or notice account that still earns some interest",
-        "In cash under the bed",
-        "In your everyday spending account",
+        "In shares you would need to sell to access",
+        "In a safe, easy-access account earning some interest",
+        "In cash kept somewhere safe at home",
+        "In your everyday transactional account",
       ],
       correct: 1,
       feedback: {
@@ -1725,10 +1725,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does disability cover protect?",
       options: [
-        "Your car",
-        "Your income if illness or injury stops you from working",
-        "Your house from fire",
-        "Your phone screen",
+        "Your vehicle against accident and theft",
+        "Your income if illness or injury stops you working",
+        "Your home against fire and structural damage",
+        "Your medical bills after a hospital stay",
       ],
       correct: 1,
       feedback: {
@@ -1775,10 +1775,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does critical illness (dread disease) cover pay for?",
       options: [
-        "Your monthly groceries always",
-        "A lump sum on diagnosis of a serious listed condition, like cancer or a heart attack",
-        "Car repairs",
-        "School fees automatically",
+        "Your medical scheme shortfalls and co-payments",
+        "A lump sum on diagnosis of a serious listed condition",
+        "A monthly income while you cannot work",
+        "Your hospital bills paid directly to the provider",
       ],
       correct: 1,
       feedback: {
@@ -1827,10 +1827,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the difference between comprehensive and third-party car insurance?",
       options: [
-        "Nothing",
-        "Comprehensive covers your own car too, third-party only covers damage you cause to others",
-        "Third-party is more expensive",
-        "Comprehensive covers only theft",
+        "Only the excess amount payable differs",
+        "Comprehensive covers your car too, third-party does not",
+        "Third-party costs more because it covers more people",
+        "Comprehensive covers theft but not accident damage",
       ],
       correct: 1,
       feedback: {
@@ -1842,10 +1842,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is an 'excess' on a car insurance claim?",
       options: [
-        "A bonus the insurer pays you",
-        "The first portion of a claim you must pay yourself before the insurer covers the rest",
-        "A tax",
-        "The monthly premium",
+        "A no-claim bonus the insurer pays back yearly",
+        "The first portion of a claim you pay yourself",
+        "A levy SARS charges on insurance payouts",
+        "The monthly premium debited from your account",
       ],
       correct: 1,
       feedback: {
@@ -1988,10 +1988,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Two people invest the same monthly amount, but one starts ten years earlier. Usually what happens?",
       options: [
-        "They end up equal",
-        "The earlier starter ends up with far more, thanks to extra years of compounding",
-        "The later starter wins",
-        "Compounding does not matter",
+        "They finish with roughly the same amount",
+        "The earlier starter ends up with far more, from compounding",
+        "The later starter catches up by investing larger amounts",
+        "The gap closes once both have invested for a decade",
       ],
       correct: 1,
       feedback: {
@@ -2055,10 +2055,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "You need the money in 18 months for a deposit. What does that short time horizon suggest?",
       options: [
-        "Put it all in volatile shares",
-        "Favour safer, stable options, since there is little time to recover from a dip",
-        "Borrow to invest more",
-        "Buy a single risky share",
+        "Use volatile shares to maximise the deposit",
+        "Favour safer options, with little time to recover a dip",
+        "Borrow to invest more while the horizon is short",
+        "Concentrate in one share with strong momentum",
       ],
       correct: 1,
       feedback: {
@@ -2124,10 +2124,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why are low-cost index ETFs popular with everyday investors?",
       options: [
-        "They guarantee returns",
-        "They give broad diversification at a low fee, and low fees leave more of the return with you",
-        "They are risk free",
-        "They beat the market every year",
+        "They guarantee returns in line with the index",
+        "Broad diversification at low fees, leaving you more return",
+        "They remove the risk of the market falling",
+        "They consistently beat actively managed funds",
       ],
       correct: 1,
       feedback: {
@@ -2228,10 +2228,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is an honest picture of property as an investment?",
       options: [
-        "It always beats every other asset",
-        "It can build wealth but ties up cash, carries costs like rates and maintenance, and is not easy to sell fast",
-        "It is risk free",
-        "It never needs money spent on it",
+        "It reliably outperforms every other asset class",
+        "It can build wealth but ties up cash and costs to hold",
+        "Returns are guaranteed once the bond is settled",
+        "Rental income always covers the bond and the costs",
       ],
       correct: 1,
       feedback: {
@@ -2456,10 +2456,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a retirement annuity (RA)?",
       options: [
-        "A short-term savings account",
-        "A tax-advantaged retirement product you contribute to, with tax back on contributions",
-        "A type of car finance",
-        "A government grant",
+        "A savings account you may access at any time",
+        "A tax-advantaged retirement product you contribute to yourself",
+        "An employer-funded pension you cannot add to",
+        "A state grant paid monthly from age 60",
       ],
       correct: 1,
       feedback: {
@@ -2490,10 +2490,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How do RA contributions save you tax now?",
       options: [
-        "They do not",
-        "They reduce your taxable income, so you pay less PAYE and may get a refund at filing",
-        "They are taxed twice",
-        "They only help at retirement",
+        "They are deducted only in the year you retire",
+        "They lower your taxable income, so you pay less PAYE",
+        "They are taxed on the way in and again on the way out",
+        "They earn a matching contribution from SARS",
       ],
       correct: 1,
       feedback: {
@@ -2559,10 +2559,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is asset allocation?",
       options: [
-        "Picking one winning share",
-        "How you split money between asset classes like equities, bonds, property and cash",
-        "The fee you pay a broker",
-        "Timing the market daily",
+        "Choosing which single share will perform best",
+        "How you split money across equities, bonds, property and cash",
+        "The total fees charged by your investment platform",
+        "Moving in and out of the market as prices change",
       ],
       correct: 1,
       feedback: {
@@ -2938,10 +2938,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When is capital gains tax (CGT) triggered?",
       options: [
-        "Every year automatically",
-        "When you dispose of an asset, like selling shares or a second property, at a profit",
-        "Only when you earn a salary",
-        "Never in SA",
+        "Automatically at the end of every tax year",
+        "When you dispose of an asset at a profit",
+        "Whenever an asset rises in value on paper",
+        "Only on assets held for under twelve months",
       ],
       correct: 1,
       feedback: {
@@ -2990,10 +2990,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How much can you donate each year before donations tax applies?",
       options: [
-        "Nothing is exempt",
-        "Up to R100 000 a year is exempt from donations tax",
-        "R5 million a year",
-        "Only R1 000",
+        "There is no exemption, all donations are taxed",
+        "Up to R100 000 a year is exempt",
+        "Up to R5 million a year is exempt",
+        "Up to R1 000 a year is exempt",
       ],
       correct: 1,
       feedback: {
@@ -3016,10 +3016,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which statement about tax on investment returns is correct?",
       options: [
-        "All investment income is tax free",
-        "Interest has an annual exemption, dividends face dividends tax, and capital gains have their own treatment",
-        "Only shares are taxed",
-        "SARS ignores investments",
+        "All investment income is exempt from tax in SA",
+        "Interest has an exemption, dividends and gains differ",
+        "Only shares listed on the JSE attract any tax",
+        "Investment tax is charged at one flat rate",
       ],
       correct: 1,
       feedback: {
@@ -3085,10 +3085,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "At what point must a business register for VAT in SA?",
       options: [
-        "Immediately when it opens",
-        "Once its taxable turnover exceeds R1 million in a 12-month period",
-        "Only if it wants to",
-        "Never",
+        "As soon as it makes its first taxable sale",
+        "Once taxable turnover exceeds R1 million in 12 months",
+        "Only when it chooses to register voluntarily",
+        "Once it employs more than five staff members",
       ],
       correct: 1,
       feedback: {
@@ -3182,10 +3182,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a SIM swap scam?",
       options: [
-        "Switching networks legally",
-        "A fraudster ports your number to their SIM to intercept OTPs and access your accounts",
-        "Buying a new phone",
-        "A bank promotion",
+        "Legally moving your number to another network",
+        "A fraudster ports your number to intercept your OTPs",
+        "Swapping a damaged SIM card at a branch",
+        "Using two SIM cards in one phone at once",
       ],
       correct: 1,
       feedback: {
@@ -3206,10 +3206,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which habit best protects you against SIM-swap account takeovers?",
       options: [
-        "Sharing your OTP with 'bank staff'",
-        "Using an authenticator app rather than SMS OTPs where possible, and guarding personal info",
-        "Posting your number publicly",
-        "Using the same password everywhere",
+        "Confirming OTPs when your bank calls you",
+        "Using an authenticator app rather than SMS OTPs",
+        "Keeping your number listed for account recovery",
+        "Reusing one strong password across your accounts",
       ],
       correct: 1,
       feedback: {
@@ -3258,10 +3258,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "In a romance scam, what request is the giant red flag?",
       options: [
-        "They ask about your day",
-        "Someone you have never met in person asks for money or help moving funds",
-        "They send a photo",
-        "They live in another city",
+        "They ask detailed questions about your daily life",
+        "Someone you have never met asks for money",
+        "They send photographs of themselves and their home",
+        "They live in another city and travel often",
       ],
       correct: 1,
       feedback: {
@@ -3310,10 +3310,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "You realise you have just been scammed and money left your account. What should you do first?",
       options: [
-        "Wait a week to see what happens",
-        "Contact your bank's fraud line immediately to try to stop or reverse the payment, then report it",
-        "Say nothing out of embarrassment",
-        "Send more money to 'unlock' the first",
+        "Give it a week in case the payment reverses",
+        "Call your bank's fraud line immediately, then report it",
+        "Handle it quietly to avoid embarrassment",
+        "Follow the recovery steps the scammer suggests",
       ],
       correct: 1,
       feedback: {
@@ -3388,10 +3388,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A WhatsApp message from a 'family member' on a new number urgently asks you to send money. What should you do?",
       options: [
-        "Send it right away",
-        "Call the person on their known number to confirm before sending anything",
-        "Ask them for their bank PIN",
-        "Share your OTP",
+        "Send the money, since the request is urgent",
+        "Call them on their known number to confirm first",
+        "Reply asking for details only they would know",
+        "Send a smaller amount to test the request",
       ],
       correct: 1,
       feedback: {
@@ -3444,10 +3444,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does 'stewardship' of money mean in this context?",
       options: [
-        "Owning as much as possible",
-        "Managing what you have responsibly, as a caretaker rather than an outright owner",
-        "Giving everything away at once",
-        "Ignoring money entirely",
+        "Accumulating as much as you responsibly can",
+        "Managing what you have as a caretaker, not an owner",
+        "Giving away everything beyond your basic needs",
+        "Treating money as unimportant to daily life",
       ],
       correct: 1,
       feedback: {
@@ -3468,10 +3468,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does a stewardship mindset change everyday money decisions?",
       options: [
-        "It makes them careless",
-        "It encourages intention and responsibility, asking whether a choice is wise and not just possible",
-        "It removes the need to budget",
-        "It means never enjoying anything",
+        "It shifts responsibility onto your circumstances",
+        "It asks whether a choice is wise, not just affordable",
+        "It replaces budgeting with faith that provision comes",
+        "It rules out spending on anything you enjoy",
       ],
       correct: 1,
       feedback: {
@@ -3526,10 +3526,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the practical benefit of contentment for your finances?",
       options: [
-        "It means you never earn more",
-        "It reduces the endless chase for more, which curbs overspending and lifestyle inflation",
-        "It forbids saving",
-        "It guarantees wealth",
+        "It commits you to never increasing your income",
+        "It curbs the endless chase for more, so you overspend less",
+        "It replaces the need to budget or save at all",
+        "It guarantees you will accumulate wealth over time",
       ],
       correct: 1,
       feedback: {
@@ -3578,10 +3578,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does a strong work ethic connect to financial stability here?",
       options: [
-        "It does not",
-        "Diligent, honest work is presented as the normal path to provision and growth",
-        "It promises instant wealth",
-        "It replaces the need to save",
+        "Work is treated as separate from money matters",
+        "Diligent, honest work is the normal path to provision",
+        "Hard work is presented as a shortcut to wealth",
+        "Effort at work removes the need to save or plan",
       ],
       correct: 1,
       feedback: {
@@ -3656,10 +3656,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What perspective does 'wealth and eternity' encourage toward money?",
       options: [
-        "Money is the ultimate goal",
-        "Money is a tool with a limited role, to be held loosely and used well",
-        "Money should be despised",
-        "Money guarantees happiness",
+        "Money is the clearest measure of a life well lived",
+        "Money is a tool with a limited role, held loosely",
+        "Money is inherently corrupting and best avoided",
+        "Money reliably delivers security and happiness",
       ],
       correct: 1,
       feedback: {
@@ -3762,10 +3762,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "You get R2 000 unexpectedly. Present bias pushes you to spend it now. What counters it best?",
       options: [
-        "Spend before you change your mind",
-        "Move it to savings immediately, so the decision is locked before the urge fades into regret",
-        "Lend it to a stranger",
-        "Leave it in your wallet",
+        "Spend it now while you are feeling positive",
+        "Move it to savings immediately, before the urge fades",
+        "Hold it in cash and decide at the end of the month",
+        "Split it across several small everyday purchases",
       ],
       correct: 1,
       feedback: {
@@ -3835,10 +3835,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How do herd mentality and FOMO harm investors?",
       options: [
-        "They lead to calm decisions",
-        "They push people to buy hyped assets at the top and sell in panic at the bottom",
-        "They lower fees",
-        "They guarantee gains",
+        "They encourage slower, more considered decisions",
+        "They push people to buy at the top and sell in panic",
+        "They concentrate portfolios in unlisted assets",
+        "They lead investors to hold cash for too long",
       ],
       correct: 1,
       feedback: {
@@ -3887,10 +3887,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is hedonic adaptation?",
       options: [
-        "A tax break",
-        "The way we quickly get used to new things, so the happiness from a purchase fades fast",
-        "A savings account",
-        "A permanent joy from spending",
+        "A tax break on luxury goods purchases",
+        "We get used to new things, so the happiness fades fast",
+        "Spending more as your income rises over time",
+        "The lasting joy a considered purchase brings",
       ],
       correct: 1,
       feedback: {
@@ -3937,10 +3937,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "You get a R10 000 tax refund. Mental accounting says 'treat yourself, it is free money'. What is the clearer view?",
       options: [
-        "It is free money to spend fast",
-        "It is your own money returned, so weigh it against your goals like any other R10 000",
-        "It must all be saved by law",
-        "Refunds do not count",
+        "It is a windfall, so normal budget rules relax",
+        "It is your own money back, so weigh it against your goals",
+        "It must legally be placed into a savings product",
+        "It is compensation, so it belongs to spending",
       ],
       correct: 1,
       feedback: {
@@ -3963,10 +3963,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does confirmation bias trip up investors?",
       options: [
-        "It has no effect",
-        "They seek only information that agrees with them and ignore warning signs",
-        "It lowers fees",
-        "It guarantees good picks",
+        "It makes them trade far more often than needed",
+        "They seek information that agrees with them and ignore warnings",
+        "It pushes them toward higher-fee active funds",
+        "It makes them sell winners far too early",
       ],
       correct: 1,
       feedback: {
@@ -4067,10 +4067,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is lifestyle inflation (lifestyle creep)?",
       options: [
-        "Prices rising in shops",
-        "Spending rising to match every pay increase, so you never get ahead despite earning more",
-        "A type of tax",
-        "Saving more as you earn more",
+        "General price rises across the economy",
+        "Spending rising with every raise, so you never get ahead",
+        "A tax bracket change that follows a salary increase",
+        "Increasing your savings rate as your income grows",
       ],
       correct: 1,
       feedback: {
@@ -4117,10 +4117,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does social media distort money decisions?",
       options: [
-        "It shows the full financial picture",
-        "It shows curated highlights, so you compare your reality to others' edited best moments and overspend",
-        "It lowers prices",
-        "It has no effect",
+        "It exposes what people actually earn and owe",
+        "Curated highlights make you compare and overspend",
+        "It pushes prices up through constant advertising",
+        "It makes saving goals harder to track over time",
       ],
       correct: 1,
       feedback: {
@@ -4279,10 +4279,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why should retirement and estate planning be considered together?",
       options: [
-        "They are unrelated",
-        "How your retirement products are structured affects what passes to your heirs and the tax involved",
-        "Estate planning is only for the young",
-        "SARS handles it for you",
+        "They are handled by entirely separate professions",
+        "Product structure affects what heirs get and the tax",
+        "Estate planning only matters before you retire",
+        "SARS reconciles the two automatically at death",
       ],
       correct: 1,
       feedback: {
@@ -4482,10 +4482,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why does the SARB raise interest rates when inflation runs high?",
       options: [
-        "To reward spending",
-        "Higher rates cool borrowing and spending, which helps bring inflation back toward target",
-        "To weaken the rand on purpose",
-        "For no reason",
+        "To encourage households to spend more now",
+        "Higher rates cool borrowing and spending, easing inflation",
+        "To deliberately weaken the rand against the dollar",
+        "To increase the interest banks earn on lending",
       ],
       correct: 1,
       feedback: {
@@ -4538,10 +4538,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is cryptocurrency, in plain terms?",
       options: [
-        "Money issued by the Reserve Bank",
-        "A digital asset recorded on a decentralised ledger, not issued or backed by a central bank",
-        "A type of bank account",
-        "A government bond",
+        "Digital money issued by the Reserve Bank",
+        "A digital asset on a ledger, not backed by a central bank",
+        "An online account held at a licensed SA bank",
+        "A tradable bond issued by a technology company",
       ],
       correct: 1,
       feedback: {
@@ -4668,10 +4668,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does SARS view gains from crypto?",
       options: [
-        "As invisible and untaxed",
-        "As taxable, either as income or capital gains depending on your activity",
-        "As a government gift",
-        "As exempt forever",
+        "As outside SARS's reach because it is decentralised",
+        "As taxable, either as income or capital gains",
+        "As tax free until converted back into rands",
+        "As exempt below R100 000 of gains a year",
       ],
       correct: 1,
       feedback: {
@@ -4698,10 +4698,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why should you keep business and personal money in separate accounts?",
       options: [
-        "It looks fancy",
-        "It makes tax, record-keeping and knowing your true profit far clearer, and protects you in disputes",
-        "It is required to trade at all",
-        "There is no reason",
+        "It qualifies the business for a lower tax rate",
+        "It clarifies tax, records and true profit, and protects you",
+        "It is legally required before you may trade at all",
+        "It stops customers from disputing your invoices",
       ],
       correct: 1,
       feedback: {
@@ -4724,10 +4724,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why can a profitable business still run out of cash?",
       options: [
-        "Profit and cash are the same",
-        "Profit can be tied up in unpaid invoices and stock, while bills still need paying now",
-        "It cannot happen",
-        "Only loss-making firms run short",
+        "Profit is simply cash under another name",
+        "Profit sits in unpaid invoices and stock while bills fall due",
+        "The business is overstating revenue in its accounts",
+        "Only loss-making businesses run short of cash",
       ],
       correct: 1,
       feedback: {
@@ -4776,10 +4776,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a benefit of a dedicated business bank account?",
       options: [
-        "It hides income from SARS",
-        "Cleaner records, a professional image on invoices, and easier tax and accounting",
-        "It has no fees ever",
-        "It is only for big companies",
+        "It keeps turnover out of sight of SARS",
+        "Cleaner records, professional invoices and easier tax",
+        "It comes with no monthly or transaction fees",
+        "It is available only to registered companies",
       ],
       correct: 1,
       feedback: {
@@ -4802,10 +4802,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the CIPC's role for a small business?",
       options: [
-        "It collects VAT",
-        "It registers companies and maintains the official company records in SA",
-        "It lends money",
-        "It sets interest rates",
+        "It collects VAT and company income tax",
+        "It registers companies and keeps official company records",
+        "It lends start-up capital to small businesses",
+        "It licenses businesses to trade in their sector",
       ],
       correct: 1,
       feedback: {
@@ -4880,10 +4880,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Your business shows a R40 000 profit this month but the account is nearly empty. What is the likely cause?",
       options: [
-        "The profit is fake",
-        "Cash is tied up in unpaid invoices or stock, so profit on paper has not turned into cash yet",
-        "The bank stole it",
-        "Profit always means empty accounts",
+        "The profit figure has been calculated incorrectly",
+        "Cash is tied up in unpaid invoices or stock",
+        "The bank has delayed clearing your deposits",
+        "Profitable months normally drain the account",
       ],
       correct: 1,
       feedback: {
@@ -4911,10 +4911,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "For an individual on the top marginal rate, the effective CGT rate is roughly what, given the 40% inclusion rate?",
       options: [
-        "45%",
+        "About 45%, the full top marginal rate",
         "About 18%",
-        "0%",
-        "40%",
+        "About About 27%, the company tax rate, matching the inclusion rate",
+        "4About About 27%, the company tax rate, matching the inclusion rate",
       ],
       correct: 1,
       feedback: {
@@ -5020,10 +5020,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "If you die without a valid will in SA, who decides how your estate is divided?",
       options: [
-        "Your closest friend",
-        "The Intestate Succession Act, according to a fixed legal formula, not your wishes",
-        "Your bank",
-        "Nobody, it stays frozen forever",
+        "The executor decides, using their discretion",
+        "The Intestate Succession Act, by a fixed formula",
+        "Your bank, according to its account mandates",
+        "Nobody, so the estate stays frozen indefinitely",
       ],
       correct: 1,
       feedback: {
@@ -5192,10 +5192,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does factor (or 'smart beta') investing differ from traditional active management?",
       options: [
-        "It relies on a manager's hunches",
-        "It follows transparent, rules-based criteria to target factors, usually at lower cost than active funds",
-        "It avoids the market entirely",
-        "It is the same thing",
+        "It depends on a manager's judgement calls",
+        "It follows transparent rules, usually at lower cost",
+        "It invests only outside listed markets",
+        "It guarantees it will beat the index",
       ],
       correct: 1,
       feedback: {
@@ -5377,10 +5377,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which is a common method for valuing a small business?",
       options: [
-        "Guessing from the owner's mood",
-        "Applying an earnings multiple, a discounted cash flow, or an asset-based valuation",
-        "The number of staff only",
-        "The age of the building",
+        "The owner's asking price, since they know it best",
+        "An earnings multiple, discounted cash flow or asset basis",
+        "The number of employees on the payroll",
+        "The replacement cost of the premises",
       ],
       correct: 1,
       feedback: {
@@ -5413,10 +5413,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a trade-off of raising equity funding rather than debt?",
       options: [
-        "There is no trade-off",
-        "You avoid repayments and interest, but you give up a share of ownership, future profits and some control",
-        "Equity must be repaid with interest",
-        "Equity is always cheaper",
+        "Equity funding costs more in interest than debt",
+        "No repayments, but you give up ownership and control",
+        "Equity investors must be repaid within five years",
+        "Equity is always the cheaper option for growth",
       ],
       correct: 1,
       feedback: {
@@ -5437,10 +5437,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When does debt funding make more sense than equity for a growing business?",
       options: [
-        "When you never want to repay",
-        "When the business has reliable cash flow to service repayments and the owner wants to keep full ownership",
-        "When you want to give away control",
-        "When the business is losing money",
+        "When the business cannot service any repayments",
+        "When cash flow is reliable and you want to keep ownership",
+        "When you would prefer a partner to share the risk",
+        "When the business is currently running at a loss",
       ],
       correct: 1,
       feedback: {
@@ -5631,10 +5631,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a 'representative' under FAIS?",
       options: [
-        "A client's family member",
-        "A person who renders financial services to clients for or on behalf of an FSP",
-        "The FSCA inspector",
-        "A product supplier",
+        "A client acting for their own family members",
+        "A person rendering financial services on behalf of an FSP",
+        "An FSCA official who inspects licensed FSPs",
+        "A product supplier that issues financial products",
       ],
       correct: 1,
       feedback: {
@@ -5777,10 +5777,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "The General Code of Conduct requires an FSP to render services in what manner?",
       options: [
-        "As quickly and cheaply as possible only",
-        "Honestly, fairly, with due skill, care and diligence, and in the interests of clients and the integrity of the industry",
-        "Only in the FSP's own interest",
-        "However the client demands, even if harmful",
+        "As quickly and cheaply as circumstances allow",
+        "Honestly, fairly and with due skill, care and diligence",
+        "In the way that best sustains the FSP's business",
+        "Exactly as instructed, even if it harms the client",
       ],
       correct: 1,
       feedback: {
@@ -5842,10 +5842,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Product disclosure must make clear which of the following to the client?",
       options: [
-        "Nothing about costs",
-        "The nature of the product, its material terms, fees, charges and any material risks",
-        "Only the salesperson's name",
-        "The FSP's profits",
+        "Only the adviser's name and contact details",
+        "The product's nature, terms, fees and material risks",
+        "The expected return the client should count on",
+        "The commission the product supplier earns yearly",
       ],
       correct: 1,
       feedback: {
@@ -5868,10 +5868,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Before giving advice, an FSP must gather information about the client in order to do what?",
       options: [
-        "Sell the highest-commission product",
-        "Conduct a needs analysis and ensure the recommendation is suitable for the client's circumstances",
-        "Avoid any paperwork",
-        "Report the client to SARS",
+        "Identify which product pays the best commission",
+        "Conduct a needs analysis so the advice is suitable",
+        "Satisfy record-keeping rules with minimal paperwork",
+        "Confirm the client's tax status for SARS reporting",
       ],
       correct: 1,
       feedback: {
@@ -6021,10 +6021,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a core obligation on accountable institutions under FICA?",
       options: [
-        "To guarantee returns",
-        "To verify and know their clients (customer due diligence) and keep records",
-        "To avoid all record-keeping",
-        "To set exchange rates",
+        "To guarantee the returns clients are promised",
+        "To verify and know their clients, and keep records",
+        "To report all transactions above R100 to SARS",
+        "To hold client funds in a separate trust account",
       ],
       correct: 1,
       feedback: {
