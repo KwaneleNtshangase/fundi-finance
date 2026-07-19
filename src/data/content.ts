@@ -244,11 +244,11 @@ const RAW_COURSES: Course[] = [
                 },
                 {
                   type: "true-false",
-                  statement: "True or False: You should cover all fixed (non-negotiable) expenses like rent, insurance, and loan repayments before allocating money to wants or discretionary spending.",
-                  correct: true,
+                  statement: "True or False: You should allocate money to wants first, and fit fixed expenses like rent and insurance around whatever is left.",
+                  correct: false,
                   feedback: {
-                    correct: "Exactly. Non-negotiable expenses first, then budget the rest.",
-                    incorrect: "Fixed expenses are non-negotiable. They must be covered first.",
+                    correct: "Right. Non-negotiable fixed expenses come first, then you budget wants from what remains.",
+                    incorrect: "Fixed expenses are non-negotiable. Cover rent, insurance and repayments first, then fund wants.",
                   },
                 },
                 {
@@ -490,11 +490,11 @@ const RAW_COURSES: Course[] = [
                 },
                 {
                   type: "true-false",
-                  statement: "Your employer is legally required to deduct PAYE from your salary every month.",
-                  correct: true,
+                  statement: "Deducting PAYE is optional for employers if the employee agrees to settle SARS directly.",
+                  correct: false,
                   feedback: {
-                    correct: "Yes. PAYE is a statutory requirement, employers have no choice.",
-                    incorrect: "PAYE deduction is mandatory by law. Employers must deduct and pay it to SARS monthly.",
+                    correct: "Right. PAYE is a statutory duty. Employers must deduct and pay it over monthly, no opt-outs.",
+                    incorrect: "PAYE is mandatory by law. An employee agreement cannot replace the employer's duty to deduct.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -609,11 +609,11 @@ const RAW_COURSES: Course[] = [
                 },
                 {
                   type: "true-false",
-                  statement: "TymeBank and Capitec typically charge lower monthly fees than traditional big four banks.",
-                  correct: true,
+                  statement: "The big four banks typically charge lower monthly fees than digital-first banks like TymeBank.",
+                  correct: false,
                   feedback: {
-                    correct: "Digital-first banks like TymeBank often have zero monthly fees.",
-                    incorrect: "Actually, TymeBank and Capitec are known for significantly lower fees than traditional banks.",
+                    correct: "Right. Digital-first banks like TymeBank and Capitec are known for much lower fees.",
+                    incorrect: "It is the reverse: TymeBank and Capitec typically undercut the big four on fees.",
                   },
                 },
               ] satisfies LessonStep[],

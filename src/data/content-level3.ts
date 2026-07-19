@@ -145,13 +145,13 @@ export const ADVANCED_TAX_COURSE: Course = {
             {
               type: "true-false",
               statement:
-                "Dividends Tax (20%) is paid by the company on behalf of the shareholder and does not appear in the shareholder's personal tax return.",
-              correct: true,
+                "Dividends Tax must be calculated and paid over by the shareholder on their own tax return.",
+              correct: false,
               feedback: {
                 correct:
-                  "Dividends Tax is a withholding tax. The company deducts it before paying you the dividend. You receive the net amount; it does not affect your personal income tax brackets.",
+                  "Right. The company withholds the 20% and pays it over. It does not run through your return.",
                 incorrect:
-                  "Dividends Tax is a withholding tax, the company deducts 20% before payment. The net dividend you receive is tax-free in your hands and does not affect your income tax calculation.",
+                  "The company withholds dividends tax at source. The shareholder's return is not involved.",
               },
             } satisfies LessonStep,
             {

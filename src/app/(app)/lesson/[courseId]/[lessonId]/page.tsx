@@ -7,6 +7,7 @@ import { useFundi } from "@/context/FundiContext";
 import { getLessonTitle, getNextLesson } from "@/app/pageViews.types";
 import { analytics } from "@/lib/analytics";
 import { CONTENT_DATA } from "@/data/content";
+import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
 
 /** Saved mid-lesson progress is honoured for this long after the last step. */
 const SAVED_PROGRESS_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -89,7 +90,9 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
         courseId,
         lessonId,
         stepIndex: stepIdx,
-        steps: lesson.steps,
+        // Same seed as startLesson → identical option order, so restored
+        // answer indexes still point at the options the user actually chose.
+        steps: shuffleLessonSteps(lesson.steps, lessonShuffleSeed(userId, courseId, lessonId)),
         answers: saved?.answers ?? {},
         correctCount: saved?.correctCount ?? 0,
       });
@@ -247,7 +250,11 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
       finalizeLesson={finalizeCurrentLesson}
       answerQuestion={(index: number) => {
         const step = currentLessonState.steps[currentLessonState.stepIndex];
-        const isCorrect = step.type === "mcq" && index === step.correct;
+        // Scenario steps render through the same option UI but were never
+        // counted (type check was mcq-only) — perfect scores were impossible
+        // on lessons containing scenarios.
+        const isCorrect =
+          (step.type === "mcq" || step.type === "scenario") && index === step.correct;
         setCurrentLessonState((prev) => ({
           ...prev,
           answers: { ...prev.answers, [prev.stepIndex]: index },
@@ -263,6 +270,13 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
           correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
         }));
       }}
+      answerFillBlank={(value: string, isCorrect: boolean) => {
+        setCurrentLessonState((prev) => ({
+          ...prev,
+          answers: { ...prev.answers, [prev.stepIndex]: value },
+          correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
+        }));
+      }}
       correctCount={currentLessonState.correctCount}
       hearts={hearts}
       maxHearts={5}
@@ -272,7 +286,9 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
       nextLessonTitle={nextTitle}
       lessonTitle={getLessonTitle(courseId, lessonId) || `${courseId} ${lessonId}`}
       lessonStartTimeRef={lessonStartTimeRef}
-      totalQuestions={currentLessonState.steps.filter((s: any) => s.type === "question" || s.type === "true-false" || s.type === "action-check").length}
+      // Was counting non-existent types ("question", "action-check") — must
+      // match the scoreable set used in finalize, or accuracy is misstated.
+      totalQuestions={currentLessonState.steps.filter((s: any) => s.type === "mcq" || s.type === "true-false" || s.type === "scenario" || s.type === "fill-blank").length}
     />
   );
 }

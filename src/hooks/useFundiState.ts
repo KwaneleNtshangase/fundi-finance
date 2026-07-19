@@ -10,6 +10,7 @@ import {
 } from "@/lib/lessonXp";
 import { CONTENT_DATA } from "@/data/content";
 import { LEVEL_3_COURSES } from "@/data/content-level3";
+import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import {
@@ -475,7 +476,9 @@ export function useFundiState() {
       courseId,
       lessonId,
       stepIndex: 0,
-      steps: found.steps,
+      // Seeded shuffle: breaks authored answer-position patterns (85% of
+      // correct answers were option B) while staying stable across resume.
+      steps: shuffleLessonSteps(found.steps, lessonShuffleSeed(progress.userId, courseId, lessonId)),
       answers: {},
       correctCount: 0,
     });

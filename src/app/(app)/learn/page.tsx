@@ -5,6 +5,7 @@ import { LearnView } from "@/components/views/LearnView";
 import { CONTENT_DATA, Lesson } from "@/data/content";
 import { useFundi } from "@/context/FundiContext";
 import { analytics } from "@/lib/analytics";
+import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
 
 export default function LearnPage() {
   const {
@@ -74,7 +75,12 @@ export default function LearnPage() {
         courseId: progress.courseId,
         lessonId: progress.lessonId,
         stepIndex: stepIdx,
-        steps: found.steps,
+        // Same seed as startLesson → same option order, so restored answer
+        // indexes stay valid.
+        steps: shuffleLessonSteps(
+          found.steps,
+          lessonShuffleSeed(userId, progress.courseId, progress.lessonId)
+        ),
         // Restore the user's actual answers so accuracy/XP aren't understated
         // after a resume (previously reset to zero).
         answers: progress.answers ?? {},
@@ -84,7 +90,7 @@ export default function LearnPage() {
       setSavedProgress(null);
       localStorage.removeItem("fundi-lesson-progress");
     },
-    [hearts, setCurrentLessonState, setRoute, setShowNoHearts]
+    [hearts, userId, setCurrentLessonState, setRoute, setShowNoHearts]
   );
 
   return (

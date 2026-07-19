@@ -61,13 +61,13 @@ export const REPO_RATE_LESSONS: Lesson[] = [
       {
         type: "true-false",
         statement:
-          "When the SARB raises the repo rate, your savings account interest rate typically increases.",
-        correct: true,
+          "When the SARB raises the repo rate, savings account rates typically fall.",
+        correct: false,
         feedback: {
           correct:
-            "Exactly. Higher repo → higher prime → banks compete for deposits at higher rates. Money market funds, 32-day notice accounts, and fixed deposits all offer better returns when rates rise.",
+            "Right. Higher repo generally lifts savings rates too, savers benefit.",
           incorrect:
-            "True, rising repo rate increases both lending rates AND deposit rates. The 2022-2024 rate hike cycle raised SA money market fund rates from ~3.5% to ~8.5%, making cash deposits significantly more attractive.",
+            "Savings rates typically RISE with the repo rate. It is borrowers who pay more.",
         },
       },
       {

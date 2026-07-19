@@ -217,10 +217,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which of these is written as a strong, specific money goal?",
       options: [
-        "Save more this year",
-        "Save R12 000 for a car deposit by December by putting away R1 000 a month",
-        "Stop wasting money",
-        "Become rich",
+        "Save as much as possible every single month",
+        "Save R12 000 for a car deposit by December at R1 000 a month",
+        "Cut down on all unnecessary spending this year",
+        "Build real wealth before turning forty",
       ],
       correct: 1,
       feedback: {
@@ -278,11 +278,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Higher interest rates are bad for borrowers but good for money you keep in a savings account.",
-      correct: true,
+      statement: "Higher interest rates are good news for borrowers because loan repayments shrink.",
+      correct: false,
       feedback: {
-        correct: "Correct. Loans cost more, but savings and fixed deposits earn more when rates rise.",
-        incorrect: "It cuts both ways. Borrowing costs more, yet your savings earn a higher rate.",
+        correct: "Right. Higher rates make loans cost MORE. It is savers who benefit when rates rise.",
+        incorrect: "It is the other way round. Higher rates push repayments up; savings accounts earn more.",
       },
     },
   ],
@@ -388,11 +388,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Shops use 'sale ends today' and one-click checkout mainly to make buying feel urgent.",
-      correct: true,
+      statement: "Shops add 'sale ends today' timers and one-click checkout mainly to help you compare prices calmly.",
+      correct: false,
       feedback: {
-        correct: "Correct. Urgency and easy checkout are designed to get you to buy before you think it through.",
-        incorrect: "That urgency is deliberate. Recognising the tactic helps you slow down and decide calmly.",
+        correct: "Right. Those tactics manufacture urgency so you buy before thinking it through.",
+        incorrect: "Urgency tools are designed to rush you, not help you compare. Slow down before you pay.",
       },
     },
   ],
@@ -431,10 +431,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is PAYE on your payslip?",
       options: [
-        "A bank charge",
-        "Pay As You Earn, the income tax your employer withholds and sends to SARS",
-        "A pension top-up",
-        "A loan repayment",
+        "A monthly account administration charge",
+        "Pay As You Earn, income tax withheld by your employer",
+        "A compulsory pension fund contribution",
+        "A garnishee order deducted by court instruction",
       ],
       correct: 1,
       feedback: {
@@ -532,10 +532,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A job is advertised as 'R30 000 CTC'. What does cost to company mean for your take-home?",
       options: [
-        "You get R30 000 in your account",
-        "R30 000 is the total cost including benefits, so take-home is less once medical aid, pension and tax come off",
-        "CTC excludes all benefits",
-        "It is R30 000 after tax",
+        "R30 000 lands in your account every month",
+        "Total cost including benefits, so take-home is less",
+        "Benefits are added on top of the R30 000",
+        "It is R30 000 after tax and deductions",
       ],
       correct: 1,
       feedback: {
@@ -649,10 +649,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Your employer pays part of your medical aid on your payslip. How does SARS treat that employer contribution?",
       options: [
-        "It is invisible to SARS",
-        "It counts as a taxable fringe benefit, but a medical tax credit then reduces your tax",
-        "It doubles your tax",
-        "It is a loan you repay",
+        "It is excluded from your taxable income",
+        "A taxable fringe benefit offset by a medical tax credit",
+        "It is taxed twice, on you and your employer",
+        "It is deducted again from your net salary",
       ],
       correct: 1,
       feedback: {
@@ -670,10 +670,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What matters most when choosing a transactional bank account for everyday use?",
       options: [
-        "The colour of the card",
-        "The monthly fee and per-transaction charges against how you actually bank",
-        "How big the branch is",
-        "The name of the bank",
+        "The design and status tier of the card",
+        "The fees and charges against how you actually bank",
+        "The size of the nearest branch network",
+        "The bank's brand reputation and adverts",
       ],
       correct: 1,
       feedback: {
@@ -724,11 +724,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Drawing R100 five separate times usually costs more in fees than drawing R500 once.",
-      correct: true,
+      statement: "Drawing R100 five separate times usually costs less in fees than drawing R500 once.",
+      correct: false,
       feedback: {
-        correct: "Correct. Many accounts charge per withdrawal, so fewer, larger draws cut the total fee.",
-        incorrect: "Five small draws usually cost more. Per-withdrawal fees add up, so plan fewer, larger cash draws.",
+        correct: "Right. Per-withdrawal fees add up, so fewer, larger draws cost less overall.",
+        incorrect: "Five small draws usually cost MORE. Each withdrawal carries a fee, so consolidate.",
       },
     },
     {
@@ -842,11 +842,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
   "banking-debit/lesson-5": [
     {
       type: "true-false",
-      statement: "Stopping a debit order at your bank does not cancel the underlying contract you signed with the company.",
-      correct: true,
+      statement: "Stopping a debit order at your bank automatically cancels the contract you signed with the company.",
+      correct: false,
       feedback: {
-        correct: "Correct. You must also cancel the agreement itself, or the debt and the contract still stand.",
-        incorrect: "Stopping the collection is not the same as cancelling the contract. You must end the agreement too.",
+        correct: "Right. The contract survives. You must cancel the agreement itself or the debt keeps growing.",
+        incorrect: "Stopping the collection is not cancelling the contract. End the agreement too, in writing.",
       },
     },
   ],
@@ -909,10 +909,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When switching banks, what is the step people most often forget?",
       options: [
-        "Telling their friends",
-        "Moving every debit order and salary instruction to the new account before closing the old one",
-        "Buying a new phone",
-        "Changing their name",
+        "Updating the banking app on their phone",
+        "Moving every debit order to the new account first",
+        "Keeping proof of their old account number",
+        "Notifying SARS of the new account branch code",
       ],
       correct: 1,
       feedback: {
@@ -991,10 +991,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a credit score really measuring?",
       options: [
-        "How much money you have",
-        "How likely you are to repay borrowed money on time, based on your track record",
-        "How much you earn",
-        "Your age",
+        "How much money you keep in your accounts",
+        "How likely you are to repay borrowed money on time",
+        "How much you earn compared to your peers",
+        "How long you have been with your bank",
       ],
       correct: 1,
       feedback: {
@@ -1004,11 +1004,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "You are entitled to a free credit report each year from the major SA credit bureaus.",
-      correct: true,
+      statement: "You must pay the credit bureaus a fee every time you want to see your own credit report.",
+      correct: false,
       feedback: {
-        correct: "Correct. You can claim a free report yearly and should check it for errors.",
-        incorrect: "You can. SA law gives you a free annual credit report. Check it for mistakes that could cost you.",
+        correct: "Right. SA law entitles you to one free report a year from the major bureaus.",
+        incorrect: "You get a free annual report by law. Check it yearly for errors that could cost you.",
       },
     },
     {
@@ -1187,10 +1187,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does debt counselling under the National Credit Act do?",
       options: [
-        "Wipes your debt instantly",
-        "Restructures your repayments into one affordable plan and protects you from legal action while you comply",
-        "Raises your interest rates",
-        "Reports you to SARS",
+        "Writes off all your debt after six months",
+        "Restructures repayments and protects you from legal action",
+        "Consolidates debt into one new bank loan",
+        "Removes the listing from your credit record",
       ],
       correct: 1,
       feedback: {
@@ -1224,10 +1224,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is a balloon payment on car finance risky?",
       options: [
-        "It lowers the total you pay",
-        "It cuts monthly instalments but leaves a large lump sum owed at the end, often more than the car is worth",
-        "It is free money",
-        "It pays off the car early",
+        "It lowers the total cost of financing the car",
+        "It leaves a large lump sum owed at the end of the term",
+        "It locks you into the dealership's insurance",
+        "It forces you to settle the car loan early",
       ],
       correct: 1,
       feedback: {
@@ -1250,10 +1250,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Paying a little extra into your bond each month mostly does what?",
       options: [
-        "Nothing",
-        "Cuts the interest you pay and shortens the loan, because interest is charged on the outstanding balance",
-        "Raises your interest rate",
-        "Is not allowed",
+        "Nothing until the bank recalculates yearly",
+        "Cuts interest and shortens the loan term",
+        "Triggers early-settlement penalties every time",
+        "Reduces only your monthly instalment amount",
       ],
       correct: 1,
       feedback: {
@@ -1276,10 +1276,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the hidden danger of 'buy now, pay later' on small everyday purchases?",
       options: [
-        "It is always cheaper",
-        "Several small instalments stack up and are easy to lose track of, and missing one can bring fees or interest",
-        "It builds a great credit score",
-        "It is interest free forever",
+        "It is always cheaper than paying upfront",
+        "Small instalments stack up and missed ones bring fees",
+        "It builds your credit score with every purchase",
+        "It stays interest free no matter how you pay",
       ],
       correct: 1,
       feedback: {
@@ -1365,11 +1365,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Checking your own credit report does not damage your score.",
-      correct: true,
+      statement: "Checking your own credit report lowers your score each time you do it.",
+      correct: false,
       feedback: {
-        correct: "Correct. Looking at your own report is a 'soft' check and has no effect on your score.",
-        incorrect: "It is safe. Viewing your own report is a soft enquiry and never lowers your score.",
+        correct: "Right. Checking your own report is a 'soft' enquiry and never hurts your score.",
+        incorrect: "Self-checks are soft enquiries. They never damage your score, so check freely.",
       },
     },
   ],
@@ -1412,11 +1412,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "In the snowball method, once a small debt is cleared, you roll its payment into the next debt.",
-      correct: true,
+      statement: "In the snowball method, you tackle the debt with the highest interest rate first.",
+      correct: false,
       feedback: {
-        correct: "Correct. Each freed-up payment stacks onto the next debt, so the 'snowball' grows.",
-        incorrect: "You roll it forward. The payment from a cleared debt is added to the next one, speeding things up.",
+        correct: "Right. Snowball starts with the SMALLEST balance for quick wins; avalanche targets the highest rate.",
+        incorrect: "That describes avalanche. Snowball clears the smallest balance first to build momentum.",
       },
     },
     {
@@ -1450,10 +1450,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does debt consolidation actually do?",
       options: [
-        "Cancels your debt",
-        "Combines several debts into one loan, ideally at a lower rate and one monthly payment",
-        "Doubles your interest",
-        "Hides debt from lenders",
+        "Cancels the interest on your existing debt",
+        "Combines several debts into one loan and one payment",
+        "Freezes all your credit accounts until settled",
+        "Removes the debts from your credit report",
       ],
       correct: 1,
       feedback: {
@@ -1529,21 +1529,21 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Keeping your emergency fund in your everyday account makes it too easy to spend by mistake.",
-      correct: true,
+      statement: "Keeping your emergency fund in your everyday account is ideal because you can reach it instantly.",
+      correct: false,
       feedback: {
-        correct: "Correct. A separate account creates a helpful barrier so the buffer is there when you truly need it.",
-        incorrect: "It is too tempting. A separate account keeps the fund from being spent on everyday wants.",
+        correct: "Right. Too-easy access means accidental spending. Keep it separate but reachable.",
+        incorrect: "Separate it. Money mixed into your daily account gets spent, not saved.",
       },
     },
     {
       type: "mcq",
       question: "Why is a small amount of interest still important for an emergency fund?",
       options: [
-        "It makes you rich",
-        "It helps the fund keep pace with inflation so its buying power does not shrink while it waits",
-        "It is required by law",
-        "It is not important at all",
+        "It compounds into real wealth over time",
+        "It helps the fund keep pace with inflation",
+        "Banks must pay it on emergency savings",
+        "It offsets the account's monthly fees",
       ],
       correct: 1,
       feedback: {
@@ -1684,10 +1684,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Who most needs life cover?",
       options: [
-        "Everyone equally",
-        "People whose income or debts others depend on, like a family or a bonded home",
-        "Only the elderly",
-        "Nobody under 60",
+        "Everyone, regardless of dependants or debts",
+        "People whose income or debts others depend on",
+        "People close to or already in retirement",
+        "Single people with no debts and no dependants",
       ],
       correct: 1,
       feedback: {
@@ -1749,10 +1749,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the difference between 'own occupation' and 'any occupation' disability cover?",
       options: [
-        "Nothing",
-        "Own occupation pays if you cannot do your specific job, any occupation only if you cannot do any job at all",
-        "Any occupation is always better",
-        "Own occupation is illegal",
+        "Only the premiums differ, cover is identical",
+        "Own occupation pays if you cannot do your specific job",
+        "Any occupation pays out faster on any claim",
+        "Own occupation only covers manual workers",
       ],
       correct: 1,
       feedback: {
@@ -1855,11 +1855,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Insuring your car for far more than it is worth does not help, since a claim pays out based on its value.",
-      correct: true,
+      statement: "Insuring your car for double its value means a claim will pay you double what it is worth.",
+      correct: false,
       feedback: {
-        correct: "Correct. Payouts follow the car's insured or market value, so over-insuring just wastes premium.",
-        incorrect: "It does not help. Claims are based on the vehicle's value, so paying to over-insure is money wasted.",
+        correct: "Right. Claims pay out actual value. Over-insuring just wastes premium.",
+        incorrect: "Over-insurance does not pay extra. Claims settle at the car's value, so insure accurately.",
       },
     },
     {
@@ -1937,10 +1937,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Naledi is investing for a goal 20 years away. Which mix fits that long horizon best?",
       options: [
-        "All cash",
-        "Mostly growth assets like equities, which have time to ride out the ups and downs",
-        "All in one hot share",
-        "Nothing, just spend it",
+        "All cash, protected from any market falls",
+        "Mostly growth assets like equities, given time to recover",
+        "One high-growth share with a strong record",
+        "Only capital-guaranteed structured products",
       ],
       correct: 1,
       feedback: {
@@ -2029,10 +2029,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How does an index ETF give instant diversification?",
       options: [
-        "It buys one share only",
-        "It holds a slice of every company in an index, so one purchase spreads your money widely",
-        "It guarantees profits",
-        "It avoids the market",
+        "It buys the single strongest share in the index",
+        "One purchase holds a slice of every company in the index",
+        "The fund manager replaces losing shares monthly",
+        "It hedges every position against market falls",
       ],
       correct: 1,
       feedback: {
@@ -2150,10 +2150,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a unit trust?",
       options: [
-        "A single share",
-        "A pooled fund where many investors' money is managed together across a set of investments",
-        "A bank account",
-        "A type of bond only",
+        "A share in one listed company on the JSE",
+        "A pooled fund combining many investors' money",
+        "A fixed deposit account with a set term",
+        "A government bond paying fixed interest",
       ],
       correct: 1,
       feedback: {
@@ -2254,10 +2254,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why are investment fees called a 'silent' wealth killer?",
       options: [
-        "They are loud and obvious",
-        "A small annual percentage compounds against you over decades into a large lost amount",
-        "They only apply once",
-        "They help your returns",
+        "They are disclosed only after you invest",
+        "A small annual percentage compounds into a large loss",
+        "They apply only in the first year you invest",
+        "They fund better management and returns",
       ],
       correct: 1,
       feedback: {
@@ -2280,10 +2280,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "A bond's 'coupon' is what?",
       options: [
-        "A discount voucher",
-        "The interest the bond pays, usually as a set percentage of its face value",
-        "The bond's sale price",
-        "A tax on bonds",
+        "A voucher to buy the bond at a discount",
+        "The interest the bond pays on its face value",
+        "The bond's price on the secondary market",
+        "The tax levied on bond interest income",
       ],
       correct: 1,
       feedback: {
@@ -2293,11 +2293,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "At maturity, a standard bond repays its face value to the holder.",
-      correct: true,
+      statement: "At maturity, a standard bond repays whatever the market price happens to be that day.",
+      correct: false,
       feedback: {
-        correct: "Correct. You receive the face value back at maturity, having earned the coupons along the way.",
-        incorrect: "It repays face value at maturity, plus the interest coupons you collected in between.",
+        correct: "Right. Maturity pays FACE VALUE, regardless of where market prices moved in between.",
+        incorrect: "Maturity repays face value, not market price. Price swings only matter if you sell early.",
       },
     },
     {
@@ -2321,10 +2321,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What happens to the market price of existing bonds when interest rates rise?",
       options: [
-        "It rises",
-        "It falls, because new bonds now pay more, making old lower-rate bonds less attractive",
-        "It stays fixed",
-        "Bonds disappear",
+        "It rises, because bonds become scarcer when rates go up",
+        "It falls, because new bonds now pay more attractive rates",
+        "It stays fixed, because the coupon was set at issue",
+        "It tracks inflation rather than interest rates",
       ],
       correct: 1,
       feedback: {
@@ -2413,10 +2413,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "For long-term growth, why can a TFSA holding equities beat an ordinary savings account?",
       options: [
-        "Savings accounts are illegal",
-        "The TFSA shields higher long-term growth from tax, while a savings account earns less and is taxed",
-        "They are identical",
-        "TFSAs pay no returns",
+        "Savings accounts cannot hold that much",
+        "The TFSA shields long-term growth from tax",
+        "Both are taxed at the same dividend rate",
+        "TFSAs guarantee returns above inflation",
       ],
       correct: 1,
       feedback: {
@@ -2533,10 +2533,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "You resign and have money in a pension or provident fund. What is usually the wisest move?",
       options: [
-        "Cash it all out and spend it",
-        "Preserve it by transferring to a preservation fund or new employer fund, to keep it growing and avoid tax",
-        "Ignore it",
-        "Give it to a friend",
+        "Cash it out while the tax rates are low",
+        "Preserve it in a preservation or new employer fund",
+        "Leave it unclaimed until retirement age",
+        "Move it into your everyday savings account",
       ],
       correct: 1,
       feedback: {
@@ -2675,10 +2675,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What decides the interest rate a bank offers on your home loan?",
       options: [
-        "Only your age",
-        "Your credit profile, deposit and the bank's view of risk, quoted relative to prime",
-        "The colour of the house",
-        "The estate agent",
+        "Mainly your age and years of employment",
+        "Your credit profile, deposit and the bank's risk view",
+        "The age and location of the property alone",
+        "The estate agent's recommendation letter",
       ],
       correct: 1,
       feedback: {
@@ -2701,10 +2701,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Beyond the deposit, which upfront cost surprises many first-time buyers?",
       options: [
-        "Free parking",
-        "Transfer duty, bond registration and attorney fees, which can run to tens of thousands of rand",
-        "Nothing, buying is free",
-        "A once-off R100 fee",
+        "A compulsory year of municipal rates upfront",
+        "Transfer duty, bond registration and attorney fees",
+        "Estate agent commission paid by the buyer",
+        "A refundable deposit held by the deeds office",
       ],
       correct: 1,
       feedback: {
@@ -2779,10 +2779,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When does renting genuinely make more sense than buying?",
       options: [
-        "Never",
-        "When you may move soon, cannot afford the full cost of ownership, or property is very expensive relative to rent",
-        "Only when you are rich",
-        "Always, buying is a trap",
+        "Never, because rent money is simply lost",
+        "When you may move soon or ownership costs are too high",
+        "Only when you cannot get a bond approved",
+        "Always, since property values barely grow",
       ],
       correct: 1,
       feedback: {
@@ -2830,10 +2830,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When comparing renting and buying honestly, what should you include on the buying side?",
       options: [
-        "Only the bond",
-        "The bond plus rates, levies, insurance, maintenance and the upfront transfer and bond costs",
-        "Just the deposit",
-        "Nothing extra",
+        "The bond repayment, since rates and levies replace rent",
+        "The bond plus rates, levies, insurance, maintenance and transfer costs",
+        "The deposit and transfer costs, but not monthly charges",
+        "Only costs the bank includes in the bond statement",
       ],
       correct: 1,
       feedback: {
@@ -2843,11 +2843,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Maintenance and repairs are the owner's problem, an ongoing cost that renters usually avoid.",
-      correct: true,
+      statement: "When you rent, big maintenance and repair costs are usually your problem, not the owner's.",
+      correct: false,
       feedback: {
-        correct: "Correct. A burst geyser or leaking roof is the owner's bill, which renters generally do not carry.",
-        incorrect: "Owners carry upkeep. Repairs and maintenance are a real cost that renters usually escape.",
+        correct: "Right. Structural maintenance is the owner's cost. Renters usually escape those surprises.",
+        incorrect: "Maintenance falls on the owner. Avoiding those costs is one of renting's real benefits.",
       },
     },
   ],
@@ -2860,10 +2860,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "SA uses progressive tax brackets. If you move into a higher bracket, what is taxed at the higher rate?",
       options: [
-        "Your entire income",
-        "Only the portion of income that falls inside the higher bracket",
-        "Nothing changes",
-        "Double your income",
+        "Your entire income, from the first rand up",
+        "Only the portion that falls inside the higher bracket",
+        "Nothing, until SARS reassesses your return",
+        "Only bonus and overtime income, not salary",
       ],
       correct: 1,
       feedback: {
@@ -2912,10 +2912,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which is a legitimate deduction many salaried people miss?",
       options: [
-        "Groceries",
-        "Retirement annuity contributions and certain out-of-pocket medical expenses",
-        "Their holiday",
-        "Netflix",
+        "Home loan interest on the house you live in",
+        "Retirement annuity contributions and qualifying medical expenses",
+        "School fees and children's education costs",
+        "Petrol and parking for your normal daily commute to work",
       ],
       correct: 1,
       feedback: {
@@ -2964,10 +2964,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is an IRP5?",
       options: [
-        "A loan agreement",
-        "The certificate from your employer showing your income and PAYE for the tax year",
-        "A type of bank card",
-        "A SARS penalty",
+        "A SARS instalment agreement for arrear tax",
+        "Your employer's certificate of income and PAYE for the year",
+        "A monthly statement of bank account charges",
+        "A penalty notice for late tax submission",
       ],
       correct: 1,
       feedback: {
@@ -3059,10 +3059,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Who typically needs to pay provisional tax?",
       options: [
-        "Only large companies",
-        "People with significant income not taxed through PAYE, like freelancers or rental earners",
-        "Every salaried employee",
-        "Nobody",
+        "Only registered companies and close corporations",
+        "People with significant income not taxed through PAYE",
+        "Every employee who earns above the threshold",
+        "Anyone who submits a tax return each year",
       ],
       correct: 1,
       feedback: {
@@ -3111,10 +3111,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "Your SARS assessment says you owe money, but you claimed an RA deduction you are sure about. What is the right move?",
       options: [
-        "Just pay it and forget it",
-        "Check your return and certificates, and if it looks wrong, lodge an objection with supporting documents",
-        "Ignore SARS entirely",
-        "Close your bank account",
+        "Pay immediately to avoid interest, then move on",
+        "Check your return, then lodge an objection with documents",
+        "Wait for SARS to phone you before responding",
+        "Resubmit a fresh return with the same figures",
       ],
       correct: 1,
       feedback: {
@@ -3165,10 +3165,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which detail most often gives a phishing message away?",
       options: [
-        "It is written in English",
-        "A slightly wrong sender address or link, urgency, and a request for sensitive details",
-        "It mentions money",
-        "It has your bank's logo",
+        "It arrives late at night or on weekends",
+        "A slightly wrong sender address, urgency and data requests",
+        "It mentions your bank by name in the text",
+        "It uses your bank's official logo and colours",
       ],
       correct: 1,
       feedback: {
@@ -3284,10 +3284,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is 'guaranteed high returns' the ultimate red flag?",
       options: [
-        "Because it is modest",
-        "Because real returns always carry risk, so a guarantee of high, safe returns is impossible",
-        "Because banks say so",
-        "Because it is taxed",
+        "Because guaranteed products may not advertise",
+        "Real returns carry risk, so such guarantees are impossible",
+        "Because only banks may guarantee any return",
+        "Because high returns are always heavily taxed",
       ],
       correct: 1,
       feedback: {
@@ -3336,10 +3336,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What defines advance-fee fraud (like the '419' scam)?",
       options: [
-        "You are paid upfront",
-        "You are promised a big payout but must first pay 'fees' that never end and never deliver",
-        "It is a real inheritance",
-        "It is a bank service",
+        "The fraudster pays you a deposit upfront",
+        "You must keep paying 'fees' for a payout that never comes",
+        "A genuine inheritance with legal delays",
+        "A cross-border transfer service with fees",
       ],
       correct: 1,
       feedback: {
@@ -3414,10 +3414,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "A WhatsApp group promises to 'flip' your R1 000 into R5 000 in a week if you pay in now. What is happening?",
       options: [
-        "A great opportunity",
-        "A money-flipping scam, you will lose your R1 000 and be pushed to recruit others",
-        "A bank savings plan",
-        "A tax refund",
+        "A legitimate stokvel with weekly payouts",
+        "A money-flipping scam that will take your R1 000",
+        "A registered high-interest group savings plan",
+        "An investment club regulated by the FSCA",
       ],
       correct: 1,
       feedback: {
@@ -3509,10 +3509,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Proverbs points to the ant as a model of what?",
       options: [
-        "Laziness",
-        "Preparing and storing in good times for the seasons ahead",
-        "Borrowing heavily",
-        "Spending on wants",
+        "Waiting for provision instead of working",
+        "Storing in good times for the seasons ahead",
+        "Borrowing in winter to repay in summer",
+        "Spending freely while times are good",
       ],
       correct: 1,
       feedback: {
@@ -3604,10 +3604,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "'Surety' in Proverbs refers to what modern practice?",
       options: [
-        "Buying insurance",
+        "Taking out credit life insurance for a loan",
         "Standing as guarantor or co-signer for someone else's debt",
-        "Saving in a bank",
-        "Paying tax",
+        "Pledging your savings as loan collateral",
+        "Paying another person's tax debt to SARS",
       ],
       correct: 1,
       feedback: {
@@ -3708,10 +3708,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How is generosity framed as a 'strategy' rather than just a nice gesture?",
       options: [
-        "As a way to get rich quick",
-        "As an intentional, planned part of how you use money, with lasting impact beyond yourself",
-        "As spending on yourself",
-        "As avoiding all saving",
+        "A guaranteed route to financial prosperity",
+        "An intentional, planned part of how you use money",
+        "A reward to enjoy after wealth is built",
+        "A replacement for saving and budgeting",
       ],
       correct: 1,
       feedback: {
@@ -3779,10 +3779,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is 'anchoring' in spending?",
       options: [
-        "Saving on a boat",
-        "Letting a first number, like a 'was R2 000, now R1 200' tag, set what feels reasonable",
-        "A type of loan",
-        "Avoiding all prices",
+        "Fixing your budget at the start of each month",
+        "Letting a first number set what feels like a fair price",
+        "Taking a loan against the value of your home",
+        "Refusing to compare prices between shops",
       ],
       correct: 1,
       feedback: {
@@ -3794,10 +3794,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the sunk cost fallacy?",
       options: [
-        "Spending only cash",
-        "Throwing good money after bad because you have already spent a lot",
-        "Saving too much",
-        "A banking fee",
+        "Budgeting only with the cash you carry",
+        "Continuing to spend because of what you already spent",
+        "Saving so much that you never enjoy money",
+        "A charge banks levy on dormant accounts",
       ],
       correct: 1,
       feedback: {
@@ -3807,11 +3807,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "A good decision looks only at future costs and benefits, not at money already spent and gone.",
-      correct: true,
+      statement: "A good decision should weigh the money you have already spent so it does not go to waste.",
+      correct: false,
       feedback: {
-        correct: "Correct. Sunk money is gone either way. Judge the next step on what it will cost and give from here.",
-        incorrect: "Ignore sunk money. Base the decision on future costs and benefits, since the past spend is unrecoverable.",
+        correct: "Right. Sunk costs are gone. Only future costs and benefits should drive the decision.",
+        incorrect: "That is the sunk cost fallacy. Money already spent should not steer what you do next.",
       },
     },
     {
@@ -3861,10 +3861,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What does loss aversion describe?",
       options: [
-        "Loving losses",
-        "The tendency to feel losses more strongly than equal gains, which can lead to poor choices",
-        "Avoiding all investing",
-        "A type of insurance",
+        "Preferring guaranteed losses to risky gains",
+        "Feeling losses more strongly than equal gains",
+        "Refusing to hold any risky assets at all",
+        "Insuring only against very large losses",
       ],
       correct: 1,
       feedback: {
@@ -3913,10 +3913,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is 'mental accounting'?",
       options: [
-        "Doing sums in your head",
-        "Treating money differently based on where it came from, like blowing a 'bonus' you would never spend from salary",
-        "A SARS return",
-        "A bank statement",
+        "Estimating your budget with mental arithmetic",
+        "Treating money differently depending on where it came from",
+        "Keeping a running tally of daily spending in your head",
+        "Reviewing your bank statement every month",
       ],
       correct: 1,
       feedback: {
@@ -3926,11 +3926,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "A rand is a rand. Windfalls, bonuses and tax refunds are worth just as much as salary and deserve the same care.",
-      correct: true,
+      statement: "A bonus or tax refund is 'extra' money, so it is fine to treat it more loosely than salary.",
+      correct: false,
       feedback: {
-        correct: "Correct. Money is interchangeable. Giving a bonus the same thought as salary leads to better choices.",
-        incorrect: "Every rand is equal. Treating a windfall as 'free to blow' is mental accounting at work.",
+        correct: "Right. A rand is a rand. Windfalls deserve the same care as salary.",
+        incorrect: "That is mental accounting talking. Windfalls are worth exactly as much as earned salary.",
       },
     },
     {
@@ -4015,10 +4015,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is 'recency bias' in investing?",
       options: [
-        "Ignoring recent events",
-        "Assuming what happened lately will simply continue, like expecting a hot market to rise forever",
-        "A new tax",
-        "A savings method",
+        "Giving old events more weight than new ones",
+        "Assuming what happened lately will simply continue",
+        "Reacting only after prices have already moved",
+        "Preferring recently listed companies' shares",
       ],
       correct: 1,
       feedback: {
@@ -4175,10 +4175,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a key difference between a workplace pension fund and a personal retirement annuity (RA)?",
       options: [
-        "They are identical",
-        "A pension is run through your employer, while an RA is your own product you control independently",
-        "An RA has no tax benefits",
-        "A pension cannot be preserved",
+        "They differ only in the provider's branding",
+        "A pension runs through your employer, an RA is your own",
+        "Only pensions enjoy tax-deductible contributions",
+        "A pension may never be moved or preserved",
       ],
       correct: 1,
       feedback: {
@@ -4201,10 +4201,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why does retiring a few years later often make a big difference?",
       options: [
-        "It does not matter",
-        "More years of contributions and growth, plus fewer years of drawing down, greatly strengthen your pot",
-        "You get a government bonus",
-        "Tax disappears",
+        "It only changes the date on the certificate",
+        "More contribution years, more growth, fewer drawdown years",
+        "SASSA adds a bonus for every extra year worked",
+        "Retirement income becomes fully tax free",
       ],
       correct: 1,
       feedback: {
@@ -4227,10 +4227,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the main trade-off between a living annuity and a guaranteed (life) annuity?",
       options: [
-        "There is no difference",
-        "A living annuity gives flexibility and inheritance but market risk, a guaranteed annuity gives a set income for life but less flexibility",
-        "Guaranteed annuities are illegal",
-        "Living annuities pay nothing",
+        "Only the fees differ between the two types",
+        "Flexibility with market risk versus a set income for life",
+        "Living annuities are guaranteed by the state",
+        "Guaranteed annuities always pay your heirs",
       ],
       correct: 1,
       feedback: {
@@ -4253,10 +4253,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why does healthcare deserve special attention in retirement planning?",
       options: [
-        "It becomes free at 60",
-        "Medical costs tend to rise with age and often outpace general inflation, straining a fixed income",
-        "It is unimportant",
-        "SARS pays it",
+        "Government healthcare becomes free at 60",
+        "Medical costs rise with age and often outpace inflation",
+        "Medical schemes must drop premiums for pensioners",
+        "Medical aid is tax deductible so it costs nothing",
       ],
       correct: 1,
       feedback: {
@@ -4404,10 +4404,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the SARB's main tool for influencing the economy and, indirectly, the rand?",
       options: [
-        "Printing unlimited money",
-        "Setting the repo rate, which affects interest rates, inflation and investor appetite",
-        "Fixing petrol prices",
-        "Running the shops",
+        "Printing money to settle government debt",
+        "Setting the repo rate, which steers rates and inflation",
+        "Setting fuel and food prices each month",
+        "Buying JSE shares to support the market",
       ],
       correct: 1,
       feedback: {
@@ -4417,11 +4417,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "The SARB targets inflation rather than trying to fix the rand at a set exchange rate.",
-      correct: true,
+      statement: "The SARB's main mandate is to fix the rand at a set level against the US dollar.",
+      correct: false,
       feedback: {
-        correct: "Correct. SA runs a floating rand and an inflation target, not a fixed exchange rate.",
-        incorrect: "It targets inflation. The rand floats freely rather than being pegged to a set level.",
+        correct: "Right. The SARB targets INFLATION (the 3-6% band); it does not peg the exchange rate.",
+        incorrect: "The SARB targets inflation, not a fixed rand. The currency floats.",
       },
     },
   ],
@@ -4508,10 +4508,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "The repo rate rises by 0.5%. You have a home loan on a variable rate. What happens?",
       options: [
-        "Nothing changes",
-        "Your interest rate and monthly repayment go up, since your bond tracks prime",
-        "Your loan is cancelled",
-        "Your rate falls",
+        "Nothing, your rate is fixed by the original agreement",
+        "Your rate and repayment go up, since your bond tracks prime",
+        "The bank must renegotiate your entire loan",
+        "Your rate falls as banks compete for new home loans",
       ],
       correct: 1,
       feedback: {
@@ -4590,10 +4590,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a key difference between Bitcoin and Ethereum?",
       options: [
-        "They are the same",
-        "Bitcoin is mainly a store of value and payment network, while Ethereum also runs programmable smart contracts",
-        "Ethereum cannot be traded",
-        "Bitcoin is issued by a bank",
+        "They differ only in the logo and the price",
+        "Bitcoin is mainly payments, Ethereum also runs smart contracts",
+        "Ethereum is a private version of Bitcoin",
+        "Bitcoin is issued by central banks, Ethereum is not",
       ],
       correct: 1,
       feedback: {
@@ -4642,10 +4642,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why is DeFi (decentralised finance) especially risky for everyday SA investors?",
       options: [
-        "It is government guaranteed",
-        "There is often no regulator, no recourse if things go wrong, and smart-contract bugs or scams are common",
-        "It is completely safe",
-        "It pays guaranteed returns",
+        "Its returns are guaranteed by the protocol",
+        "No regulator, no recourse, and frequent contract bugs",
+        "It is fully insured by international law",
+        "Only the exchange can access your wallet",
       ],
       correct: 1,
       feedback: {
@@ -4750,10 +4750,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a practical way to get customers to pay on time?",
       options: [
-        "Never send invoices",
-        "Invoice promptly, state clear payment terms, and follow up politely but firmly on overdue accounts",
-        "Wait months to invoice",
-        "Hope for the best",
+        "Offer unlimited time to pay to keep goodwill",
+        "Invoice promptly with clear terms and firm follow-up",
+        "Invoice only once a project is fully complete",
+        "Add silent penalties without telling the client",
       ],
       correct: 1,
       feedback: {
@@ -4828,10 +4828,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which risk should a small business most consider insuring?",
       options: [
-        "The owner's favourite mug",
-        "Events that could sink the business, like fire, theft, liability claims or loss of key equipment",
-        "Nothing, insurance is a waste",
-        "Only staff birthdays",
+        "Small everyday breakages around the office",
+        "Events that could sink it, like fire, theft or liability",
+        "Nothing, claims rarely pay out for small firms",
+        "Only the vehicles used by senior staff",
       ],
       correct: 1,
       feedback: {
@@ -4980,10 +4980,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How is a South African tax resident taxed on income earned abroad?",
       options: [
-        "It is never taxed here",
-        "On worldwide income, though foreign tax credits and exemptions can reduce double taxation",
-        "At a flat 5%",
-        "Only if brought into SA",
+        "Only in the country where it was earned",
+        "On worldwide income, with credits to limit double tax",
+        "At a special flat rate of 5% on transfer",
+        "Only on amounts brought back into SA",
       ],
       correct: 1,
       feedback: {
@@ -5071,10 +5071,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Estate duty in SA is charged at what rates?",
       options: [
-        "A flat 45%",
-        "20% up to R30 million of dutiable estate, and 25% on the portion above R30 million",
-        "0% for everyone",
-        "27% flat",
+        "A flat 45%, the same as the top income tax rate",
+        "20% up to R30 million, and 25% above R30 million",
+        "0%, because estates are exempt from tax in SA",
+        "27%, aligned with the company income tax rate",
       ],
       correct: 1,
       feedback: {
@@ -5084,11 +5084,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Bequests to a surviving spouse are deducted before estate duty, so assets left to a spouse are not subject to it.",
-      correct: true,
+      statement: "Assets left to a surviving spouse are taxed at the full estate duty rate immediately.",
+      correct: false,
       feedback: {
-        correct: "Correct. The spousal deduction means what you leave to a spouse escapes estate duty, deferring it.",
-        incorrect: "They are deductible. Assets left to a spouse avoid estate duty, though duty may apply on the second death.",
+        correct: "Right. Spousal bequests are deducted before duty, no estate duty applies to them.",
+        incorrect: "Spousal bequests are exempt. They are deducted from the dutiable estate first.",
       },
     },
   ],
@@ -5097,10 +5097,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Why can a nominated beneficiary on a life insurance policy be powerful in estate planning?",
       options: [
-        "It increases estate duty",
-        "The payout can go directly to the beneficiary, often bypassing the delays of the estate process",
-        "It cancels the policy",
-        "It is only for the wealthy",
+        "It removes the payout from taxable income",
+        "The payout goes straight to them, bypassing estate delays",
+        "It converts the policy into a living trust",
+        "It doubles the cover at no extra premium",
       ],
       correct: 1,
       feedback: {
@@ -5127,10 +5127,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the core insight of Modern Portfolio Theory?",
       options: [
-        "Pick one best stock",
-        "Combining assets that do not move perfectly together can lower a portfolio's risk for a given return",
-        "Risk cannot be managed",
-        "Cash always wins",
+        "Concentrate capital in the single best asset",
+        "Mixing assets that do not move together lowers overall risk",
+        "Market risk cannot be reduced by diversification",
+        "Cash outperforms shares over the long term",
       ],
       correct: 1,
       feedback: {
@@ -5233,10 +5233,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "scenario",
       question: "An investor holds almost everything in SA assets. What risk are they carrying?",
       options: [
-        "None, local is always safest",
-        "Home bias, over-concentration in one small economy and currency, missing global diversification",
-        "Too much diversification",
-        "Excessive offshore exposure",
+        "None, because local assets dodge currency risk",
+        "Home bias, concentrated in one small economy and currency",
+        "Over-diversification across too many funds",
+        "Excessive exposure to offshore tax rules",
       ],
       correct: 1,
       feedback: {
@@ -5274,10 +5274,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which strategy helps manage sequence risk in early retirement?",
       options: [
-        "Withdraw as much as possible early",
-        "Hold a cash or bond buffer to draw from during downturns, avoiding selling shares low, and keep early drawdowns modest",
-        "Put everything in one share",
-        "Ignore market conditions",
+        "Withdraw more early while markets are strong",
+        "Hold a cash buffer so you avoid selling shares low",
+        "Move fully into equities for maximum growth",
+        "Keep withdrawals fixed regardless of markets",
       ],
       correct: 1,
       feedback: {
@@ -5295,10 +5295,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a key advantage of a private company (Pty Ltd) over a sole proprietorship?",
       options: [
-        "It pays no tax",
-        "Limited liability, so the owner's personal assets are generally protected from business debts",
-        "It needs no records",
-        "It cannot be sued",
+        "It pays no income tax until profits are withdrawn",
+        "Limited liability protecting the owner's personal assets",
+        "It is exempt from keeping accounting records",
+        "It automatically qualifies for government tenders",
       ],
       correct: 1,
       feedback: {
@@ -5310,10 +5310,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "How is a sole proprietor's business income taxed?",
       options: [
-        "At the 27% company rate",
-        "At the owner's personal marginal income tax rates, since the business is not separate",
-        "Not at all",
-        "At a flat 15%",
+        "At the flat 27% company income tax rate",
+        "At the owner's personal marginal income tax rates",
+        "Only once annual profit exceeds R1 million",
+        "At a reduced flat rate of 15% for small firms",
       ],
       correct: 1,
       feedback: {
@@ -5336,10 +5336,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What do the three core financial statements show?",
       options: [
-        "Only how much cash is in the bank",
-        "The income statement shows profit, the balance sheet shows what you own and owe, the cash flow statement shows cash movements",
-        "All the same thing",
-        "Only tax owed",
+        "Different views of the same bank balance",
+        "Profit, what you own and owe, and cash movements",
+        "The same profit figure in three formats",
+        "What the business must pay SARS each year",
       ],
       correct: 1,
       feedback: {
@@ -5349,21 +5349,21 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "The balance sheet must balance, since assets equal liabilities plus owner's equity.",
-      correct: true,
+      statement: "On a healthy balance sheet, total assets should be much larger than liabilities plus owner's equity.",
+      correct: false,
       feedback: {
-        correct: "Correct. Assets = liabilities + equity is the accounting equation the balance sheet reflects.",
-        incorrect: "It must balance. Assets always equal liabilities plus equity by definition.",
+        correct: "Right. The balance sheet always BALANCES: assets equal liabilities plus equity, by definition.",
+        incorrect: "Assets = liabilities + equity, always. That equality is what 'balance' means here.",
       },
     },
     {
       type: "mcq",
       question: "Why can a company report a profit yet have very little cash?",
       options: [
-        "Profit and cash are identical",
-        "Profit can be tied up in unpaid invoices, stock or equipment, while cash reflects actual money in and out",
-        "It is impossible",
-        "The auditors made an error",
+        "Profit always equals cash after adjustments",
+        "Profit can sit in unpaid invoices, stock or equipment",
+        "It signals the profit figure is fraudulent",
+        "It means the auditors overstated revenue",
       ],
       correct: 1,
       feedback: {
@@ -5473,10 +5473,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Which body is the regulator responsible for market conduct under FAIS?",
       options: [
-        "The SARB",
+        "The SARB (South African Reserve Bank)",
         "The FSCA (Financial Sector Conduct Authority)",
-        "SARS",
-        "The JSE",
+        "SARS (South African Revenue Service)",
+        "The JSE (Johannesburg Stock Exchange)",
       ],
       correct: 1,
       feedback: {
@@ -5499,10 +5499,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "Under FAIS, what distinguishes 'advice' from 'intermediary service'?",
       options: [
-        "They are the same thing",
-        "Advice is a recommendation or guidance on a financial product, while an intermediary service is acting between client and product supplier without necessarily recommending",
-        "Advice is only given in writing",
-        "Intermediary service means giving tax advice",
+        "They are interchangeable terms used in the FAIS General Code",
+        "Advice recommends a product, intermediary service acts between client and supplier",
+        "Advice must be in writing, intermediary services are verbal",
+        "An intermediary service is limited to tax and estate advice",
       ],
       correct: 1,
       feedback: {
@@ -5566,10 +5566,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "On what basis may the FSCA suspend or withdraw an FSP's licence?",
       options: [
-        "Only if the FSP requests it",
-        "If the FSP no longer meets the fit and proper requirements or materially fails to comply with FAIS",
-        "If the FSP makes a profit",
-        "Never, licences are permanent",
+        "Only when the FSP itself requests withdrawal",
+        "If it no longer meets fit and proper requirements",
+        "If the FSP's profits exceed the sector norm",
+        "Never, a licence lapses only on liquidation",
       ],
       correct: 1,
       feedback: {
@@ -5616,10 +5616,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is a 'key individual' in an FSP?",
       options: [
-        "The FSP's biggest client",
-        "A person approved to manage or oversee the financial services rendered by the FSP",
-        "Any employee",
-        "The external auditor",
+        "The FSP's largest and longest-standing client",
+        "A person approved to manage or oversee the FSP's services",
+        "Any employee who deals directly with clients",
+        "The FSP's appointed external compliance auditor",
       ],
       correct: 1,
       feedback: {
@@ -5657,10 +5657,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "When must an FSP debar a representative?",
       options: [
-        "When the rep asks for leave",
-        "When the representative no longer meets the fit and proper requirements or has materially contravened FAIS",
-        "When the rep earns too much",
-        "Only if a client complains once",
+        "When the rep resigns to join another FSP",
+        "When they no longer meet fit and proper requirements",
+        "When the rep's commission exceeds the cap",
+        "Only after three separate client complaints",
       ],
       correct: 1,
       feedback: {
@@ -5716,10 +5716,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "'Financial soundness' as a fit and proper pillar mainly concerns what?",
       options: [
-        "The client's budget",
-        "The FSP's own solvency and ability to meet financial obligations, where applicable",
-        "The interest rate",
-        "The size of the office",
+        "The client's ability to afford the product",
+        "The FSP's own solvency and ability to meet obligations",
+        "The returns the FSP earns for its clients",
+        "The FSP's staff headcount and branch network",
       ],
       correct: 1,
       feedback: {
@@ -5932,11 +5932,11 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
     },
     {
       type: "true-false",
-      statement: "Advertising by an FSP must be factually correct and not misleading.",
-      correct: true,
+      statement: "FSP advertising may exaggerate benefits as long as a disclaimer appears in the fine print.",
+      correct: false,
       feedback: {
-        correct: "Correct. Advertising must be accurate and not create false impressions about products or the FSP.",
-        incorrect: "It must be. Advertising has to be factual and must not mislead the client.",
+        correct: "Right. Adverts must be factually correct and not misleading, fine print cannot cure a false claim.",
+        incorrect: "No. Advertising must be accurate and not misleading. Disclaimers do not license exaggeration.",
       },
     },
   ],
@@ -5995,10 +5995,10 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       type: "mcq",
       question: "What is the role of the FAIS Ombud?",
       options: [
-        "To license FSPs",
-        "To resolve client complaints against FSPs fairly, informally and economically",
-        "To set interest rates",
-        "To audit SARS",
+        "To approve licences for new FSPs each year",
+        "To resolve client complaints against FSPs informally",
+        "To set maximum fees FSPs may charge clients",
+        "To audit FSP financial statements annually",
       ],
       correct: 1,
       feedback: {

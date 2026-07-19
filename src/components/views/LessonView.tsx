@@ -299,6 +299,7 @@ export function LessonView({
   finalizeLesson,
   answerQuestion,
   answerTrueFalse,
+  answerFillBlank,
   correctCount,
   hearts = 5,
   maxHearts = 5,
@@ -320,6 +321,8 @@ export function LessonView({
   finalizeLesson?: (choice: "next" | "course") => void;
   answerQuestion: (index: number) => void;
   answerTrueFalse: (value: boolean) => void;
+  /** Records a fill-blank submission (value + correctness) in lesson state. */
+  answerFillBlank?: (value: string, isCorrect: boolean) => void;
   correctCount: number;
   hearts?: number;
   maxHearts?: number;
@@ -873,8 +876,10 @@ export function LessonView({
           onSubmit={(val) => {
             if (isAnswered) return;
             const correct = Math.abs(Number(val) - s.correct) <= (s.correct * 0.1);
-            // inject into answers via parent's answerQuestion passing special index
-            (window as any).__fillBlankSubmit?.(val, correct);
+            // Previously wired to window.__fillBlankSubmit, which was never
+            // defined anywhere — fill-blank answers were silently dropped
+            // (never recorded, never scored).
+            answerFillBlank?.(val, correct);
           }}
           onNext={nextStep}
           isLast={lessonState.stepIndex === lessonState.steps.length - 1}
