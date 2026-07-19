@@ -28,7 +28,7 @@ export function sastOffset(days: number): string {
 }
 
 /**
- * Returns "fundi-week-YYYY-MM-DD" anchored to the most recent Sunday in SAST.
+ * Returns "notho-week-YYYY-MM-DD" anchored to the most recent Sunday in SAST.
  * Used for weekly XP keys and leaderboard week boundaries.
  */
 export function sastWeekKey(): string {
@@ -38,7 +38,7 @@ export function sastWeekKey(): string {
   const y = sunday.getUTCFullYear();
   const m = String(sunday.getUTCMonth() + 1).padStart(2, "0");
   const d = String(sunday.getUTCDate()).padStart(2, "0");
-  return `fundi-week-${y}-${m}-${d}`;
+  return `notho-week-${y}-${m}-${d}`;
 }
 
 /**

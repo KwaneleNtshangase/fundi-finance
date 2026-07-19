@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================
 # fix_resend_templates.sh
-# Patches fundi-welcome and fundi-d1-retention Resend templates:
+# Patches notho-welcome and notho-d1-retention Resend templates:
 #   - Sets from address, subject, preview text (via hidden HTML span)
 #   - Defines variable fallback values
 #
@@ -37,21 +37,21 @@ patch_template() {
   fi
 }
 
-# ── fundi-welcome ─────────────────────────────────────────────
+# ── notho-welcome ─────────────────────────────────────────────
 patch_template "$WELCOME_ID" '{
-  "from":    "Fundi Finance <hello@fundiapp.co.za>",
-  "subject": "Welcome to Fundi Finance, {{{username}}}!",
+  "from":    "Notho <hello@fundiapp.co.za>",
+  "subject": "Welcome to Notho, {{{username}}}!",
   "variables": [
     {"key": "username",   "type": "string", "fallback": "Mfundi"},
     {"key": "goal_emoji", "type": "string", "fallback": "💡"},
     {"key": "goal_label", "type": "string", "fallback": "Build Financial Confidence"},
     {"key": "goal_line",  "type": "string", "fallback": "Knowledge is the best investment you can make."}
   ]
-}' "fundi-welcome"
+}' "notho-welcome"
 
-# ── fundi-d1-retention ───────────────────────────────────────
+# ── notho-d1-retention ───────────────────────────────────────
 patch_template "$D1_ID" '{
-  "from":    "Fundi Finance <hello@fundiapp.co.za>",
+  "from":    "Notho <hello@fundiapp.co.za>",
   "subject": "Your streak is waiting, {{{username}}} 🔥",
   "variables": [
     {"key": "username",     "type": "string", "fallback": "Mfundi"},
@@ -60,7 +60,7 @@ patch_template "$D1_ID" '{
     {"key": "goal_emoji",   "type": "string", "fallback": "💡"},
     {"key": "goal_label",   "type": "string", "fallback": "Build Financial Confidence"}
   ]
-}' "fundi-d1-retention"
+}' "notho-d1-retention"
 
 echo ""
 echo "Done. Open resend.com/templates and click Publish on both templates."

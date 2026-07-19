@@ -8,8 +8,8 @@ import { bumpWeeklyStats } from "@/lib/weeklyStats";
 import { monthAlignedDefaults, resolvePeriod, type PeriodPreset } from "@/lib/budget/report/period";
 import { trackBehaviorEvent } from "@/lib/behaviorTracking";
 import { resolveDefaultBudget, resolveMonthlyBudget, type BudgetTargetRow } from "@/lib/budget/budgetResolve";
-import { FundiCoachCard } from "@/components/FundiCoachCard";
-import { FundiCoachChat } from "@/components/FundiCoachChat";
+import { CosmoCoachCard } from "@/components/CosmoCoachCard";
+import { CosmoCoachChat } from "@/components/CosmoCoachChat";
 import { reportClientError } from "@/lib/errorReporting";
 import {
   LineChart,
@@ -82,7 +82,7 @@ import {
   Music,
   Baby,
   Sprout,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 import { formatRand } from "@/lib/viewHelpers";
 import { BudgetImportPanel } from "@/components/BudgetImportPanel";
 import { findSimilarEntries, merchantLabelFor, merchantPatternFor } from "@/lib/budget/similar";
@@ -174,10 +174,10 @@ function getIconByName(name: string): React.ComponentType<{ size?: number; style
 }
 
 const CAT_COLOR_SWATCHES = [
-  "#007A4D","#00A97A","#00BFA5","#0EA5A0","#0891B2",
+  "#007A85","#00A97A","#00BFA5","#0EA5A0","#0891B2",
   "#1976D2","#3B7DD8","#4F6BED","#6366F1","#7C4DFF",
   "#8E24AA","#C2185B","#D81B60","#EC4899","#F43F5E",
-  "#DE6B62","#F4511E","#F57C00","#FFB612","#EAB308",
+  "#DE6B62","#F4511E","#F57C00","#EFB343","#EAB308",
   "#65A30D","#43A047","#0F766E","#64748B","#9E9E9E",
 ];
 /** Softer over-budget red - the harsh #E03C31 as a wall of bars was fatiguing. */
@@ -185,8 +185,8 @@ const OVER_RED = "#DE6B62";
 const OVER_RED_SOFT = "rgba(222,107,98,0.14)";
 
 const BUDGET_EXPENSE_CATS = [
-  { id: "food",          label: "Food & Groceries", color: "#007A4D", tag: "needs",   Icon: ShoppingCart },
-  { id: "transport",     label: "Transport",         color: "#FFB612", tag: "needs",   Icon: Car },
+  { id: "food",          label: "Food & Groceries", color: "#007A85", tag: "needs",   Icon: ShoppingCart },
+  { id: "transport",     label: "Transport",         color: "#EFB343", tag: "needs",   Icon: Car },
   { id: "housing",       label: "Housing/Rent",      color: "#3B7DD8", tag: "needs",   Icon: HomeIcon },
   { id: "debt",          label: "Debt Repayments",   color: "#E03C31", tag: "debt",    Icon: CreditCard },
   { id: "savings",       label: "Savings",           color: "#00BFA5", tag: "savings", Icon: PiggyBank },
@@ -305,7 +305,7 @@ export function BudgetView() {
   const [showAddCustomCat, setShowAddCustomCat] = useState(false);
   const [newCatType, setNewCatType] = useState<"expense" | "income">("expense");
   const [newCatName, setNewCatName] = useState("");
-  const [newCatColor, setNewCatColor] = useState("#007A4D");
+  const [newCatColor, setNewCatColor] = useState("#007A85");
   const [newCatIcon, setNewCatIcon] = useState("MoreHorizontal");
   const [savingCustomCat, setSavingCustomCat] = useState(false);
   const [editingCatId, setEditingCatId] = useState<string | null>(null);
@@ -357,13 +357,13 @@ export function BudgetView() {
       retire: "Plan for retirement",
       business: "Grow my business",
     };
-    const goalId = localStorage.getItem("fundi-user-goal");
-    const desc = localStorage.getItem("fundi-goal-description");
+    const goalId = localStorage.getItem("notho-user-goal");
+    const desc = localStorage.getItem("notho-goal-description");
     if (goalId) {
       setUserGoalLabel(GOAL_LABELS[goalId] ?? desc ?? goalId);
     }
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "fundi-user-goal" && e.newValue) {
+      if (e.key === "notho-user-goal" && e.newValue) {
         setUserGoalLabel(GOAL_LABELS[e.newValue] ?? e.newValue);
       }
     };
@@ -449,7 +449,7 @@ export function BudgetView() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const isoDay = sastToday();
-      localStorage.setItem(`fundi-budget-visited-${isoDay}`, "1");
+      localStorage.setItem(`notho-budget-visited-${isoDay}`, "1");
       // Also sync to Supabase for cross-device daily challenge tracking
       supabase.auth.getUser().then(async ({ data: { user } }) => {
         if (!user) return;
@@ -517,7 +517,7 @@ export function BudgetView() {
 
   const resetCustomCatForm = () => {
     setEditingCatId(null);
-    setNewCatName(""); setNewCatColor("#007A4D"); setNewCatIcon("MoreHorizontal");
+    setNewCatName(""); setNewCatColor("#007A85"); setNewCatIcon("MoreHorizontal");
   };
 
   // Load an existing custom category into the form for editing.
@@ -748,7 +748,7 @@ export function BudgetView() {
     }
     if (addType === "expense" && typeof window !== "undefined") {
       const isoDay = sastToday();
-      const expKey = `fundi-expense-today-${isoDay}`;
+      const expKey = `notho-expense-today-${isoDay}`;
       const newExpenseCount = (parseInt(localStorage.getItem(expKey) ?? "0", 10)) + 1;
       localStorage.setItem(expKey, String(newExpenseCount));
       // Also sync to Supabase for cross-device daily challenge tracking
@@ -978,7 +978,7 @@ export function BudgetView() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
+      a.download = `notho-budget-report-${periodStart}_${periodEnd}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1008,7 +1008,7 @@ export function BudgetView() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
+      a.download = `notho-budget-report-${periodStart}_${periodEnd}.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -1133,8 +1133,8 @@ export function BudgetView() {
         </div>
       )}
 
-      {/* Fundi Coach: deterministic nudges from the user's own numbers */}
-      {viewMode === "month" && <FundiCoachCard monthYear={monthYear} />}
+      {/* Coach Cosmo: deterministic nudges from the user's own numbers */}
+      {viewMode === "month" && <CosmoCoachCard monthYear={monthYear} />}
 
       {/* Interactive in-app report (manages its own period selector) */}
       <InteractiveReportModal
@@ -1147,7 +1147,7 @@ export function BudgetView() {
       />
 
       {/* Floating AI chat, always available on the budget page */}
-      <FundiCoachChat />
+      <CosmoCoachChat />
 
       {/* YEAR VIEW */}
       {viewMode === "year" && (
@@ -1163,16 +1163,16 @@ export function BudgetView() {
                   <>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 4 }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>Income</span>
-                      <span style={{ fontWeight: 700, color: "#007A4D" }}>{formatRand(m.income)}</span>
+                      <span style={{ fontWeight: 700, color: "#007A85" }}>{formatRand(m.income)}</span>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12, marginBottom: 6 }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>Expenses</span>
                       <span style={{ fontWeight: 700, color: "#E03C31" }}>{formatRand(m.expenses)}</span>
                     </div>
                     <div style={{ height: 3, borderRadius: 2, background: "var(--color-border)", overflow: "hidden", marginBottom: 4 }}>
-                      <div style={{ height: "100%", background: m.surplus >= 0 ? "#007A4D" : "#E03C31", width: `${m.income > 0 ? Math.min(100, (m.expenses / m.income) * 100) : 100}%` }} />
+                      <div style={{ height: "100%", background: m.surplus >= 0 ? "#007A85" : "#E03C31", width: `${m.income > 0 ? Math.min(100, (m.expenses / m.income) * 100) : 100}%` }} />
                     </div>
-                    <div style={{ fontSize: 12, fontWeight: 800, color: m.surplus >= 0 ? "#007A4D" : "#E03C31", textAlign: "right" }}>
+                    <div style={{ fontSize: 12, fontWeight: 800, color: m.surplus >= 0 ? "#007A85" : "#E03C31", textAlign: "right" }}>
                       {m.surplus >= 0 ? "+" : ""}{formatRand(m.surplus)}
                     </div>
                   </>
@@ -1199,9 +1199,9 @@ export function BudgetView() {
                           contentStyle={{ borderRadius: 10, fontSize: 12, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "var(--color-text-primary)" }}
                         />
                         <Legend iconType="circle" iconSize={8} formatter={(v: string) => v === "income" ? "Income" : v === "expenses" ? "Expenses" : "Surplus"} wrapperStyle={{ fontSize: 12 }} />
-                        <Line type="monotone" dataKey="income" stroke="#007A4D" strokeWidth={2.5} dot={{ r: 3, fill: "#007A4D" }} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="income" stroke="#007A85" strokeWidth={2.5} dot={{ r: 3, fill: "#007A85" }} activeDot={{ r: 5 }} />
                         <Line type="monotone" dataKey="expenses" stroke="#E03C31" strokeWidth={2.5} dot={{ r: 3, fill: "#E03C31" }} activeDot={{ r: 5 }} />
-                        <Line type="monotone" dataKey="surplus" stroke="#FFB612" strokeWidth={2} dot={{ r: 2, fill: "#FFB612" }} strokeDasharray="4 3" />
+                        <Line type="monotone" dataKey="surplus" stroke="#EFB343" strokeWidth={2} dot={{ r: 2, fill: "#EFB343" }} strokeDasharray="4 3" />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -1210,9 +1210,9 @@ export function BudgetView() {
                   <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 12 }}>Year Totals</div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                     {[
-                      { label: "Total Income", value: totInc, color: "#007A4D" },
+                      { label: "Total Income", value: totInc, color: "#007A85" },
                       { label: "Total Expenses", value: totExp, color: "#E03C31" },
-                      { label: totSur >= 0 ? "Net Surplus" : "Net Deficit", value: Math.abs(totSur), color: totSur >= 0 ? "#007A4D" : "#E03C31" },
+                      { label: totSur >= 0 ? "Net Surplus" : "Net Deficit", value: Math.abs(totSur), color: totSur >= 0 ? "#007A85" : "#E03C31" },
                     ].map((c) => (
                       <div key={c.label} style={{ textAlign: "center" }}>
                         <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{c.label}</div>
@@ -1274,9 +1274,9 @@ export function BudgetView() {
           {/* Summary cards */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
             {[
-              { label: "Income", value: income, color: "#007A4D" },
+              { label: "Income", value: income, color: "#007A85" },
               { label: "Expenses", value: expenses, color: "#E03C31" },
-              { label: surplus >= 0 ? "Surplus" : "Deficit", value: Math.abs(surplus), color: surplus >= 0 ? "#007A4D" : "#E03C31" },
+              { label: surplus >= 0 ? "Surplus" : "Deficit", value: Math.abs(surplus), color: surplus >= 0 ? "#007A85" : "#E03C31" },
             ].map((c) => (
               <div key={c.label} style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 12, padding: "12px 10px", textAlign: "center" }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>{c.label}</div>
@@ -1304,7 +1304,7 @@ export function BudgetView() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", fontSize: 13 }}>
                       <span style={{ color: "var(--color-text-secondary)" }}>Savings rate (Net)</span>
-                      <span style={{ fontWeight: 700, color: mathSavingsRate >= 10 ? "#007A4D" : "#E03C31" }}>
+                      <span style={{ fontWeight: 700, color: mathSavingsRate >= 10 ? "#007A85" : "#E03C31" }}>
                         {mathSavingsRate}% {mathSavingsRate >= 10 ? "Great job!" : "Aim for 10%+"}
                       </span>
                     </div>
@@ -1352,10 +1352,10 @@ export function BudgetView() {
                 return (
                   <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,77,0.08)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
                     <div style={{ width: 44, height: 44, borderRadius: "50%", background: isOver ? "rgba(224,60,49,0.15)" : "rgba(0,122,77,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                      <Target size={22} style={{ color: isOver ? "#E03C31" : "#007A4D" }} />
+                      <Target size={22} style={{ color: isOver ? "#E03C31" : "#007A85" }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 800, fontSize: 15, color: isOver ? "#E03C31" : "#007A4D" }}>{isOver ? "Over Budget" : "Under Budget"}</div>
+                      <div style={{ fontWeight: 800, fontSize: 15, color: isOver ? "#E03C31" : "#007A85" }}>{isOver ? "Over Budget" : "Under Budget"}</div>
                       <div style={{ fontSize: 13, color: "var(--color-text-secondary)", marginTop: 2 }}>
                         {isOver ? `${formatRand(Math.abs(delta))} over` : `${formatRand(delta)} remaining`} of {formatRand(totalBudget)} budgeted
                       </div>
@@ -1368,7 +1368,7 @@ export function BudgetView() {
                 <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <div style={{ fontWeight: 800, fontSize: 14 }}>Expense breakdown</div>
-                    <button type="button" onClick={() => openSetBudget()} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A4D", display: "flex", alignItems: "center", gap: 4 }}>
+                    <button type="button" onClick={() => openSetBudget()} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A85", display: "flex", alignItems: "center", gap: 4 }}>
                       <Target size={13} /> Set Budget
                     </button>
                   </div>
@@ -1430,7 +1430,7 @@ export function BudgetView() {
                             </div>
                             <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3, fontSize: 11, color: "var(--color-text-secondary)" }}>
                               <span>{formatRand(c.total)} of {formatRand(limit)}</span>
-                              <span style={{ color: isOver ? OVER_RED : isAmber ? "#F57C00" : "#007A4D", fontWeight: 700 }}>
+                              <span style={{ color: isOver ? OVER_RED : isAmber ? "#F57C00" : "#007A85", fontWeight: 700 }}>
                                 {isOver ? `${formatRand(c.total - limit)} over` : `${formatRand(limit - c.total)} left`}
                               </span>
                             </div>
@@ -1469,14 +1469,14 @@ export function BudgetView() {
                             </div>
                             <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
                               <span style={{ fontSize: 11, color: "var(--color-text-secondary)" }}>avg {avgPct}%</span>
-                              <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? "#E03C31" : isUnder ? "#007A4D" : "var(--color-text-primary)" }}>
+                              <span style={{ fontSize: 13, fontWeight: 800, color: isOver ? "#E03C31" : isUnder ? "#007A85" : "var(--color-text-primary)" }}>
                                 you {userPct}%{isOver ? " ▲" : isUnder ? " ▼" : ""}
                               </span>
                             </div>
                           </div>
                           <div style={{ height: 6, borderRadius: 3, background: "var(--color-border)", overflow: "visible", position: "relative" }}>
                             <div style={{ position: "absolute", top: -2, left: `${Math.min(avgPct, 95)}%`, width: 2, height: 10, background: "rgba(255,255,255,0.4)", borderRadius: 1, zIndex: 2 }} />
-                            <div style={{ height: "100%", borderRadius: 3, background: isOver ? "#E03C31" : isUnder ? "#007A4D" : c.color, width: `${Math.min(100, userPct)}%`, transition: "width 0.5s ease" }} />
+                            <div style={{ height: "100%", borderRadius: 3, background: isOver ? "#E03C31" : isUnder ? "#007A85" : c.color, width: `${Math.min(100, userPct)}%`, transition: "width 0.5s ease" }} />
                           </div>
                         </div>
                       );
@@ -1511,7 +1511,7 @@ export function BudgetView() {
                   const rowInner = (e: BudgetEntry) => (
                     <>
                       <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                        {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A4D" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
+                        {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A85" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-text-primary)" }}>{e.is_transfer ? "Transfer" : getCatLabel(e.type, e.category)}</div>
@@ -1522,7 +1522,7 @@ export function BudgetView() {
                           {getAccountName(e)} • {(e.entry_method === "imported" || e.source === "import") ? "Imported" : "Manual"}
                         </div>
                       </div>
-                      <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A4D" : "var(--color-text-primary)", flexShrink: 0 }}>
+                      <div style={{ fontWeight: 800, fontSize: 14, color: e.is_transfer ? "var(--color-text-secondary)" : e.type === "income" ? "#007A85" : "var(--color-text-primary)", flexShrink: 0 }}>
                         {e.is_transfer ? "⇄ " : e.type === "income" ? "+" : "-"}{formatRand(e.amount)}
                       </div>
                     </>
@@ -1858,7 +1858,7 @@ export function BudgetView() {
               <p style={{ fontSize: 13, color: "var(--color-text-secondary)", marginBottom: 12 }}>
                 {none ? (
                   <>
-                    No other <strong style={{ color: "var(--color-text-primary)" }}>{similarPrompt.merchantLabel}</strong> transactions found right now - but Fundi can remember this, so every future import from them lands in{" "}
+                    No other <strong style={{ color: "var(--color-text-primary)" }}>{similarPrompt.merchantLabel}</strong> transactions found right now - but Notho can remember this, so every future import from them lands in{" "}
                     <strong style={{ color: "var(--color-primary)" }}>{catLabel}</strong> automatically.
                   </>
                 ) : (
@@ -2061,7 +2061,7 @@ export function BudgetView() {
                   <Plus size={15} style={{ color: CAT_COLOR_SWATCHES.some((s) => s.toLowerCase() === newCatColor.toLowerCase()) ? "var(--color-text-secondary)" : "white" }} />
                   <input
                     type="color"
-                    value={/^#[0-9a-fA-F]{6}$/.test(newCatColor) ? newCatColor : "#007A4D"}
+                    value={/^#[0-9a-fA-F]{6}$/.test(newCatColor) ? newCatColor : "#007A85"}
                     onChange={(e) => setNewCatColor(e.target.value)}
                     style={{ position: "absolute", inset: 0, opacity: 0, width: "100%", height: "100%", cursor: "pointer" }}
                     aria-label="Custom colour"

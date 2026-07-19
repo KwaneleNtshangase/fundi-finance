@@ -2,15 +2,15 @@
 
 import React from "react";
 import { usePathname } from "next/navigation";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import {
-  FundiLearn,
-  FundiCalculate,
-  FundiBudget,
-  FundiGoals,
-  FundiProgress as FundiLeaderboard,
-  FundiProfile,
-} from "@/components/icons/FundiIcons";
+  NothoLearn,
+  NothoCalculate,
+  NothoBudget,
+  NothoGoals,
+  NothoProgress as NothoLeaderboard,
+  NothoProfile,
+} from "@/components/icons/NothoIcons";
 
 /** Which nav item should be highlighted, derived from the real URL. */
 function activeKeyFromPath(pathname: string): string {
@@ -24,7 +24,7 @@ function activeKeyFromPath(pathname: string): string {
 }
 
 export function DesktopSidebar() {
-  const { setRoute } = useFundi();
+  const { setRoute } = useNotho();
   const pathname = usePathname() || "/";
   const active = activeKeyFromPath(pathname);
 
@@ -42,15 +42,15 @@ export function DesktopSidebar() {
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
           <img
-            src="/fundi-logo.png"
-            alt="Fundi Finance"
+            src="/notho-logo.png"
+            alt="Notho"
             width={36}
             height={36}
             style={{ borderRadius: 8, flexShrink: 0, objectFit: "contain" }}
           />
           <div>
             <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-text-primary)", lineHeight: 1.1 }}>
-              Fundi Finance
+              Notho
             </div>
             <div style={{ fontSize: 11, color: "var(--color-text-secondary)", letterSpacing: "0.04em" }}>
               Master Your Money
@@ -66,7 +66,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("learn")}
           >
             <span className="nav-icon">
-              <FundiLearn size={20} className="text-current" />
+              <NothoLearn size={20} className="text-current" />
             </span>
             Learn
           </button>
@@ -78,7 +78,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("calculator")}
           >
             <span className="nav-icon">
-              <FundiCalculate size={20} className="text-current" />
+              <NothoCalculate size={20} className="text-current" />
             </span>
             Calculate
           </button>
@@ -90,7 +90,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("budget")}
           >
             <span className="nav-icon">
-              <FundiBudget size={20} className="text-current" />
+              <NothoBudget size={20} className="text-current" />
             </span>
             Budget
           </button>
@@ -102,7 +102,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("quests")}
           >
             <span className="nav-icon">
-              <FundiGoals size={20} className="text-current" />
+              <NothoGoals size={20} className="text-current" />
             </span>
             Goals
           </button>
@@ -114,7 +114,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("leaderboard")}
           >
             <span className="nav-icon">
-              <FundiLeaderboard size={20} className="text-current" />
+              <NothoLeaderboard size={20} className="text-current" />
             </span>
             Leaderboard
           </button>
@@ -126,7 +126,7 @@ export function DesktopSidebar() {
             onClick={() => handleNav("profile")}
           >
             <span className="nav-icon">
-              <FundiProfile size={20} className="text-current" />
+              <NothoProfile size={20} className="text-current" />
             </span>
             Profile
           </button>

@@ -2,7 +2,7 @@
  * SCRIPT 01 — Hearts System
  * 
  * What this does:
- *  - Adds `hearts` (0–5) and `lastHeartLostAt` to useFundiState
+ *  - Adds `hearts` (0–5) and `lastHeartLostAt` to useNothoState
  *  - Adds `loseHeart()`, `gainHeart()`, `heartsRegenInfo()` helpers
  *  - Wires loseHeart() into wrong-answer handler inside LessonView
  *  - Wires gainHeart() on perfect lesson complete
@@ -21,7 +21,7 @@ const FILE = path.join(__dirname, '../src/app/page.tsx');
 let src = fs.readFileSync(FILE, 'utf8');
 
 // ─── 1. Add hearts fields to the state type / initial state ───────────────────
-// Find the useFundiState hook and add hearts to useState initialisation.
+// Find the useNothoState hook and add hearts to useState initialisation.
 // We look for the XP state line and add hearts right after.
 
 const XP_STATE = `const [xp, setXp] = useState(0);`;
@@ -66,8 +66,8 @@ if (!src.includes('last_heart_lost_at: lastHeartLostAt')) {
   console.log('⏭  hearts upsert already present');
 }
 
-// ─── 4. Add heart helper functions inside useFundiState ──────────────────────
-// Insert helpers just before the return statement of useFundiState.
+// ─── 4. Add heart helper functions inside useNothoState ──────────────────────
+// Insert helpers just before the return statement of useNothoState.
 
 const HEARTS_HELPERS = `
   // ── Hearts helpers ────────────────────────────────────────────────────────
@@ -113,7 +113,7 @@ const HEARTS_HELPERS = `
   // ── End hearts helpers ───────────────────────────────────────────────────
 `;
 
-// Insert before the return of useFundiState — find the hook's return
+// Insert before the return of useNothoState — find the hook's return
 const HOOK_RETURN_MARKER = `  return {
     user,
     session,`;
@@ -125,7 +125,7 @@ if (!src.includes('loseHeart')) {
   console.log('⏭  heart helpers already present');
 }
 
-// ─── 5. Export hearts from useFundiState return ───────────────────────────────
+// ─── 5. Export hearts from useNothoState return ───────────────────────────────
 const RETURN_USER = `    user,
     session,`;
 const RETURN_USER_WITH_HEARTS = `    user,
@@ -144,7 +144,7 @@ if (!src.includes('loseHeart,') && src.includes(RETURN_USER)) {
 }
 
 // ─── 6. Destructure hearts in Home component ─────────────────────────────────
-// Find where useFundiState() is destructured in the Home component.
+// Find where useNothoState() is destructured in the Home component.
 
 const DESTRUCT_USER = `const {
     user,

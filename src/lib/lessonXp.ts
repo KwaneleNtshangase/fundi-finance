@@ -6,7 +6,7 @@ export function replayXpStorageKey(
   lessonKey: string,
   today: string
 ): string {
-  return `fundi-replay-xp-${userId ?? "anon"}-${lessonKey}-${today}`;
+  return `notho-replay-xp-${userId ?? "anon"}-${lessonKey}-${today}`;
 }
 
 /**

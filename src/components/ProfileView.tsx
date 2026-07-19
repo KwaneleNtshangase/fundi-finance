@@ -52,9 +52,9 @@ import {
   Wallet,
   X,
   Zap,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 // Lucide's "Home" export is aliased below
-import { Home as HomeIcon } from "@/components/icons/FundiIcons";
+import { Home as HomeIcon } from "@/components/icons/NothoIcons";
 import {
   GOAL_OPTIONS,
   ONBOARDING_GOAL_OPTIONS,
@@ -74,8 +74,8 @@ const RECOMMENDED_READING_BOOKS: {
   color: string;
   Icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
 }[] = [
-  { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", lesson: "Assets vs liabilities. Buy assets that put money in your pocket, not liabilities.", color: "#FFB612", Icon: Wallet },
-  { title: "The Richest Man in Babylon", author: "George S. Clason", lesson: "Pay yourself first. Save at least 10% of everything you earn, always.", color: "#007A4D", Icon: Landmark },
+  { title: "Rich Dad Poor Dad", author: "Robert Kiyosaki", lesson: "Assets vs liabilities. Buy assets that put money in your pocket, not liabilities.", color: "#EFB343", Icon: Wallet },
+  { title: "The Richest Man in Babylon", author: "George S. Clason", lesson: "Pay yourself first. Save at least 10% of everything you earn, always.", color: "#007A85", Icon: Landmark },
   { title: "The Psychology of Money", author: "Morgan Housel", lesson: "Wealth is what you don't spend. Humility, patience and saving beats genius.", color: "#3B7DD8", Icon: Brain },
   { title: "The Millionaire Next Door", author: "Thomas J. Stanley", lesson: "Most millionaires live frugally in modest homes and drive ordinary cars.", color: "#7C4DFF", Icon: Hash },
   { title: "Think and Grow Rich", author: "Napoleon Hill", lesson: "A burning desire + a definite plan + persistent action builds lasting wealth.", color: "#E03C31", Icon: TrendingUp },
@@ -83,14 +83,14 @@ const RECOMMENDED_READING_BOOKS: {
 
 // ─── FAQ data ─────────────────────────────────────────────────────────────────
 
-const FUNDI_FAQ = [
+const NOTHO_FAQ = [
   {
-    section: "Using Fundi Finance",
+    section: "Using Notho",
     items: [
       { q: "What is a streak?", a: "A streak counts how many days in a row you've completed at least one lesson. Streaks help build a daily learning habit - miss a day and your streak resets to zero." },
       { q: "How does the XP system work?", a: "You earn XP (experience points) by completing lessons, getting correct answers, and claiming daily challenges. XP increases your level and your position on the leaderboard." },
       { q: "What are Daily Challenges?", a: "Every day, three challenges appear on your home screen. Complete the required action first (e.g. finish a lesson, log an expense), then tap Claim to receive bonus XP. Challenges reset at midnight." },
-      { q: "What are Leaderboards?", a: "Leaderboards rank all Fundi users by XP. Your position updates in real time as you and others complete lessons. Use it to track your progress relative to other learners." },
+      { q: "What are Leaderboards?", a: "Leaderboards rank all Notho users by XP. Your position updates in real time as you and others complete lessons. Use it to track your progress relative to other learners." },
     ],
   },
   {
@@ -98,7 +98,7 @@ const FUNDI_FAQ = [
     items: [
       { q: "How do I change my name?", a: "Go to Profile, tap Edit Profile, update your first and last name, then tap Save." },
       { q: "How do I delete my account?", a: "Email us at privacy@fundiapp.co.za with subject 'Account Deletion Request'. We'll process it within 7 working days and permanently delete all your data." },
-      { q: "What data does Fundi collect?", a: "We collect the email address you register with, your learning progress (lessons completed, XP, streaks), and anonymised budget data for benchmarking. See our Privacy Policy for full details." },
+      { q: "What data does Notho collect?", a: "We collect the email address you register with, your learning progress (lessons completed, XP, streaks), and anonymised budget data for benchmarking. See our Privacy Policy for full details." },
       { q: "Is my budget data shared?", a: "Budget data is aggregated and anonymised before being used for the community benchmarking feature. Individual entries are never shared with other users. We require at least 3 users in a category before showing any comparison." },
     ],
   },
@@ -204,7 +204,7 @@ export function FeedbackModal({ open, onClose }: { open: boolean; onClose: () =>
           <div style={{ textAlign: "center", padding: "24px 0" }}>
             <CheckCircle2 size={48} style={{ color: "var(--color-primary)", margin: "0 auto 12px" }} />
             <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>Thank you!</div>
-            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginBottom: 20 }}>Your feedback helps us improve Fundi Finance.</p>
+            <p style={{ fontSize: 14, color: "var(--color-text-secondary)", marginBottom: 20 }}>Your feedback helps us improve Notho.</p>
             <button type="button" className="btn btn-primary" style={{ width: "100%" }} onClick={onClose}>Close</button>
           </div>
         ) : (
@@ -267,7 +267,7 @@ export function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "ter
 
       {page === "faq" && (
         <div>
-          {FUNDI_FAQ.map((section) => (
+          {NOTHO_FAQ.map((section) => (
             <div key={section.section} style={{ marginBottom: 24 }}>
               <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)", marginBottom: 10 }}>{section.section}</div>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, overflow: "hidden" }}>
@@ -313,13 +313,13 @@ export function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "ter
         <div style={{ fontSize: 14, lineHeight: 1.7, color: "var(--color-text-primary)" }}>
           <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 20 }}>Last revised: 5 April 2026</p>
           {[
-            { title: "1. General", body: "Fundi Finance (\"we\", \"us\") cares about your personal information. This Privacy Policy explains how we collect, use, and protect it when you use the Fundi Finance app and related services. By using the service, you agree to the practices described here." },
+            { title: "1. General", body: "Notho (\"we\", \"us\") cares about your personal information. This Privacy Policy explains how we collect, use, and protect it when you use the Notho app and related services. By using the service, you agree to the practices described here." },
             { title: "2. Information We Collect", body: "We collect: (a) your email address and display name when you register; (b) your learning progress including lessons completed, XP earned, and streaks; (c) budget entries you create - these are stored securely and only accessible to you; (d) anonymised, aggregated budget data for the community benchmarking feature; (e) app usage data such as which lessons you viewed and how long you spent." },
             { title: "3. How We Use Your Information", body: "We use your information to provide and improve the service, personalise your learning experience, display your progress on the leaderboard (which you can disable by not setting a public display name), detect and fix bugs, and send you progress-related reminders (which you can opt out of in your device notification settings)." },
             { title: "4. Sharing Your Information", body: "We do not sell your personal information. We may share it with trusted service providers (Supabase for database hosting, PostHog for anonymised analytics) who are contractually bound to protect it. Budget data is only used in aggregate form with a minimum of 3 users before any comparison is shown." },
             { title: "5. Your Rights", body: "You have the right to: access the personal data we hold about you; correct inaccurate information; request deletion of your account and associated data; object to certain processing; export your data. To exercise any of these rights, email privacy@fundiapp.co.za." },
             { title: "6. Data Retention", body: "We retain your data for as long as your account is active. When you delete your account, we delete your personal data within 30 days, except where retention is required by law." },
-            { title: "7. Children", body: "Fundi Finance is not directed at children under the age of 13. We do not knowingly collect data from children. If we become aware that a child has provided personal information, we will delete it promptly." },
+            { title: "7. Children", body: "Notho is not directed at children under the age of 13. We do not knowingly collect data from children. If we become aware that a child has provided personal information, we will delete it promptly." },
             { title: "8. Cookies & Analytics", body: "We use analytics tools (PostHog) to understand how users engage with the app. Data collected is anonymised and used only to improve the product. We do not use third-party advertising cookies." },
             { title: "9. Contact", body: "For all privacy enquiries, contact our team at privacy@fundiapp.co.za." },
           ].map((s) => (
@@ -335,14 +335,14 @@ export function LegalPage({ page, onBack, onFeedback }: { page: "privacy" | "ter
         <div style={{ fontSize: 14, lineHeight: 1.7, color: "var(--color-text-primary)" }}>
           <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginBottom: 20 }}>Last revised: 5 April 2026</p>
           {[
-            { title: "1. Acceptance of Terms", body: "By accessing or using Fundi Finance (\"Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service. We may update these terms and will notify you of material changes via the app." },
-            { title: "2. Description of Service", body: "Fundi Finance is a financial literacy app that provides educational content, budgeting tools, and gamified learning experiences. It is designed for general financial education purposes only and does not constitute financial advice." },
-            { title: "3. Not Financial Advice", body: "Nothing in the Fundi Finance app, including lessons, calculator results, or investment projections, constitutes personalised financial, investment, tax, or legal advice. Always consult a qualified financial advisor before making financial decisions." },
+            { title: "1. Acceptance of Terms", body: "By accessing or using Notho (\"Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service. We may update these terms and will notify you of material changes via the app." },
+            { title: "2. Description of Service", body: "Notho is a financial literacy app that provides educational content, budgeting tools, and gamified learning experiences. It is designed for general financial education purposes only and does not constitute financial advice." },
+            { title: "3. Not Financial Advice", body: "Nothing in the Notho app, including lessons, calculator results, or investment projections, constitutes personalised financial, investment, tax, or legal advice. Always consult a qualified financial advisor before making financial decisions." },
             { title: "4. Acceptable Use", body: "You may use the Service only for lawful purposes. You agree not to: share your account credentials; attempt to reverse-engineer or scrape the app; upload harmful or offensive content; impersonate other users or misrepresent your identity on the leaderboard." },
-            { title: "5. Intellectual Property", body: "All content in the app - including lessons, graphics, and the Fundi Finance name and logo - is owned by or licensed to Fundi Finance. You may not reproduce, distribute, or create derivative works from any app content without our written permission." },
+            { title: "5. Intellectual Property", body: "All content in the app - including lessons, graphics, and the Notho name and logo - is owned by or licensed to Notho. You may not reproduce, distribute, or create derivative works from any app content without our written permission." },
             { title: "6. User-Generated Content", body: "Any display names, profile information, or content you submit to the Service grants us a licence to display it within the app. You retain ownership of your content but are responsible for ensuring it does not violate these terms." },
             { title: "7. Account Termination", body: "We reserve the right to suspend or terminate your account for violations of these terms, fraudulent activity, or any other reason at our discretion. You may delete your account at any time by contacting privacy@fundiapp.co.za." },
-            { title: "8. Limitation of Liability", body: "To the fullest extent permitted by law, Fundi Finance and its team shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability for any claim shall not exceed any amount you have paid to us in the preceding 12 months." },
+            { title: "8. Limitation of Liability", body: "To the fullest extent permitted by law, Notho and its team shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability for any claim shall not exceed any amount you have paid to us in the preceding 12 months." },
             { title: "9. Governing Law", body: "These Terms are governed by the laws of the Republic of South Africa. Any disputes shall be subject to the jurisdiction of the South African courts." },
             { title: "10. Contact", body: "For any questions about these Terms, contact us at legal@fundiapp.co.za." },
           ].map((s) => (
@@ -431,12 +431,12 @@ export function ProfileView({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setProfileGoal(localStorage.getItem("fundi-user-goal"));
-    setProfileGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
+    setProfileGoal(localStorage.getItem("notho-user-goal"));
+    setProfileGoalDescription(localStorage.getItem("notho-goal-description") ?? "");
     // Prefer Supabase-backed calcSaved prop; fall back to localStorage cache
     const calcSource = calcSavedProp ?? (() => {
       try {
-        const raw = localStorage.getItem("fundi-calc-saved");
+        const raw = localStorage.getItem("notho-calc-saved");
         return raw ? JSON.parse(raw) as CalcInputs : null;
       } catch { return null; }
     })();
@@ -466,9 +466,9 @@ export function ProfileView({
         // Write-back to localStorage so a new device doesn't flash "Take quiz"
         // while the Supabase fetch is in-flight on the next visit.
         try {
-          const existing = JSON.parse(localStorage.getItem("fundi-investor-profile") ?? "{}");
+          const existing = JSON.parse(localStorage.getItem("notho-investor-profile") ?? "{}");
           localStorage.setItem(
-            "fundi-investor-profile",
+            "notho-investor-profile",
             JSON.stringify({ ...existing, profile: row.investor_profile })
           );
         } catch { /* ignore */ }
@@ -494,7 +494,7 @@ export function ProfileView({
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      const raw = localStorage.getItem("fundi-investor-profile");
+      const raw = localStorage.getItem("notho-investor-profile");
       if (raw) {
         const j = JSON.parse(raw) as { profile?: string };
         if (j.profile) setInvestorProfileLabel(j.profile);
@@ -560,7 +560,7 @@ export function ProfileView({
   const perfectLessons =
     perfectLessonsProp ??
     (typeof window !== "undefined"
-      ? parseInt(localStorage.getItem("fundi-perfect-lessons") ?? "0", 10)
+      ? parseInt(localStorage.getItem("notho-perfect-lessons") ?? "0", 10)
       : 0);
 
   const BADGE_DEFS = [
@@ -717,9 +717,9 @@ export function ProfileView({
                 disabled={!profileGoalEditId || (profileGoalEditId === "other" && !profileGoalEditDesc.trim())}
                 onClick={async () => {
                   const desc = profileGoalEditDesc.trim();
-                  localStorage.setItem("fundi-user-goal", profileGoalEditId);
-                  if (desc) localStorage.setItem("fundi-goal-description", desc);
-                  else localStorage.removeItem("fundi-goal-description");
+                  localStorage.setItem("notho-user-goal", profileGoalEditId);
+                  if (desc) localStorage.setItem("notho-goal-description", desc);
+                  else localStorage.removeItem("notho-goal-description");
                   setProfileGoal(profileGoalEditId);
                   setProfileGoalDescription(desc);
                   setShowProfileGoalEdit(false);
@@ -758,7 +758,7 @@ export function ProfileView({
               <div style={{ fontSize: 17, fontWeight: 900, color: "var(--color-text-primary)" }}>{savedProjection.years} yrs</div>
             </div>
           </div>
-          <button type="button" onClick={() => { localStorage.removeItem("fundi-calc-saved"); setSavedProjection(null); setProjectionFinalValue(null); onClearCalcSaved?.(); }}
+          <button type="button" onClick={() => { localStorage.removeItem("notho-calc-saved"); setSavedProjection(null); setProjectionFinalValue(null); onClearCalcSaved?.(); }}
             style={{ marginTop: 12, width: "100%", padding: "9px", borderRadius: 10, border: "1.5px solid rgba(220,38,38,0.35)", background: "rgba(220,38,38,0.06)", color: "#dc2626", fontWeight: 700, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
             <Trash2 size={14} /> Remove Projection
           </button>
@@ -778,7 +778,7 @@ export function ProfileView({
         {[
           { label: "XP", value: formatWithSpaces(userData.xp), color: "var(--color-primary)" },
           { label: "Level", value: userData.level, color: "var(--color-text-primary)" },
-          { label: "Streak", value: userData.streak, color: "#FFB612" },
+          { label: "Streak", value: userData.streak, color: "#EFB343" },
           { label: "Lessons", value: userData.totalCompleted, color: "var(--color-text-primary)" },
         ].map((stat, i, arr) => (
           <div key={stat.label} style={{ flex: 1, textAlign: "center", padding: "14px 8px", borderRight: i < arr.length - 1 ? "1px solid var(--color-border)" : "none" }}>
@@ -897,7 +897,7 @@ export function ProfileView({
                     <button type="button" className="btn btn-primary w-full" onClick={async () => {
                       analytics.investorQuizCompleted(res.profile, total);
                       const payload = { profile: res.profile, total, savedAt: Date.now() };
-                      localStorage.setItem("fundi-investor-profile", JSON.stringify(payload));
+                      localStorage.setItem("notho-investor-profile", JSON.stringify(payload));
                       setInvestorProfileLabel(res.profile);
                       const { data: { user } } = await supabase.auth.getUser();
                       if (user) {
@@ -997,7 +997,7 @@ export function ProfileView({
       {(() => {
         const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
         // Recharts SVG does not resolve CSS variables - use explicit hex colours
-        const primaryColor = isDark ? "#3FB68B" : "#007A4D";
+        const primaryColor = isDark ? "#3FB68B" : "#007A85";
         const pastColor = isDark ? "#2a4a3e" : "#c6e6d8";
         const axisColor = isDark ? "#8B949E" : "#6B7280";
         const tooltipBg = isDark ? "#161B22" : "#ffffff";
@@ -1017,7 +1017,7 @@ export function ProfileView({
           const m = String(shifted.getUTCMonth() + 1).padStart(2, "0");
           const d = String(shifted.getUTCDate()).padStart(2, "0");
           const sastIso = `${y}-${m}-${d}`;
-          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(`fundi-daily-xp-${sastIso}`) ?? "0", 10) : 0;
+          const xp = typeof window !== "undefined" ? parseInt(localStorage.getItem(`notho-daily-xp-${sastIso}`) ?? "0", 10) : 0;
           const isFuture = diff > 0;
           return { name, xp, isToday: diff === 0, isFuture };
         });
@@ -1080,7 +1080,7 @@ export function ProfileView({
         let bestDayXP = 0;
         if (typeof window !== "undefined") {
           for (let i = 0; i < 365; i++) {
-            const key = `fundi-daily-xp-${sastOffset(-i)}`;
+            const key = `notho-daily-xp-${sastOffset(-i)}`;
             const v = parseInt(localStorage.getItem(key) ?? "0", 10);
             if (v > bestDayXP) bestDayXP = v;
           }
@@ -1088,12 +1088,12 @@ export function ProfileView({
         return (
           <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <Award size={18} style={{ color: "#FFB612" }} />
+              <Award size={18} style={{ color: "#EFB343" }} />
               <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-text-secondary)" }}>Personal Bests</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
               {[
-                { label: "Longest Streak", value: `${longestStreak}d`, icon: <Flame size={20} style={{ color: "#FFB612" }} /> },
+                { label: "Longest Streak", value: `${longestStreak}d`, icon: <Flame size={20} style={{ color: "#EFB343" }} /> },
                 { label: "Best Day XP", value: `${formatWithSpaces(bestDayXP)}`, icon: <Zap size={20} style={{ color: "var(--color-primary)" }} /> },
                 { label: "Total Lessons", value: String(userData.totalCompleted), icon: <BookOpen size={20} style={{ color: "var(--color-primary)" }} /> },
               ].map((pb) => (
@@ -1133,10 +1133,10 @@ export function ProfileView({
                     <div key={course.id} style={{ marginBottom: 12 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, fontSize: 13 }}>
                         <span style={{ fontWeight: 600 }}>{course.title}</span>
-                        <span style={{ fontWeight: 700, fontSize: 12, color: pct === 100 ? "#007A4D" : "var(--color-text-secondary)" }}>{pct}%</span>
+                        <span style={{ fontWeight: 700, fontSize: 12, color: pct === 100 ? "#007A85" : "var(--color-text-secondary)" }}>{pct}%</span>
                       </div>
                       <div style={{ height: 7, borderRadius: 4, background: "var(--color-border)", overflow: "hidden" }}>
-                        <div style={{ height: "100%", borderRadius: 4, background: pct === 100 ? "#007A4D" : "var(--color-primary)", width: `${pct}%`, transition: "width 0.4s ease" }} />
+                        <div style={{ height: "100%", borderRadius: 4, background: pct === 100 ? "#007A85" : "var(--color-primary)", width: `${pct}%`, transition: "width 0.4s ease" }} />
                       </div>
                       <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{completedCount}/{totalLessons} lessons</div>
                     </div>
@@ -1182,7 +1182,7 @@ export function ProfileView({
             <AlertTriangle size={40} style={{ color: "#E03C31", marginBottom: 12, display: "block", margin: "0 auto 12px" }} />
             <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "var(--color-text-primary)" }}>Delete All My Data?</div>
             <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
-              This permanently deletes your account, XP, progress, and all personal data from Fundi Finance. This cannot be undone.
+              This permanently deletes your account, XP, progress, and all personal data from Notho. This cannot be undone.
             </p>
             <button type="button" disabled={deleting} onClick={async () => { setDeleting(true); try { if (onDeleteAccount) await onDeleteAccount(); } finally { setDeleting(false); } }}
               style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "#E03C31", color: "#fff", fontWeight: 700, fontSize: 15, cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.6 : 1, marginBottom: 10 }}>

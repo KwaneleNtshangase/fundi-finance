@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Fundi Finance",
-  description: "Terms of Service for Fundi Finance - read before using the app.",
+  title: "Terms of Service | Notho",
+  description: "Terms of Service for Notho - read before using the app.",
 };
 
 export default function TermsPage() {
@@ -29,7 +29,7 @@ export default function TermsPage() {
           <div
             style={{
               display: "inline-block",
-              background: "#007A4D",
+              background: "#007A85",
               color: "#ffffff",
               fontSize: "11px",
               fontWeight: 800,
@@ -74,7 +74,7 @@ export default function TermsPage() {
               fontWeight: 800,
               textTransform: "uppercase" as const,
               letterSpacing: "0.1em",
-              color: "#FFB612",
+              color: "#EFB343",
               marginBottom: "10px",
             }}
           >
@@ -88,7 +88,7 @@ export default function TermsPage() {
               margin: 0,
             }}
           >
-            Fundi Finance is a{" "}
+            Notho is a{" "}
             <strong style={{ color: "#ffffff" }}>
               financial-literacy education
             </strong>{" "}
@@ -116,7 +116,7 @@ export default function TermsPage() {
               href="https://fsca.co.za"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#007A4D" }}
+              style={{ color: "#007A85" }}
             >
               fsca.co.za
             </a>
@@ -126,11 +126,11 @@ export default function TermsPage() {
 
         {/* Sections */}
         {[
-          { title: "1. Acceptance of Terms", body: "By accessing or using Fundi Finance (\"Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service. We may update these terms and will notify you of material changes via the app." },
-          { title: "2. Description of Service", body: "Fundi Finance is a financial literacy app that provides educational content, budgeting tools, and gamified learning experiences. It is designed for general financial education purposes only and does not constitute financial advice." },
-          { title: "3. Not Financial Advice", body: "Nothing in the Fundi Finance app, including lessons, calculator results, or investment projections, constitutes personalised financial, investment, tax, or legal advice. Always consult a qualified financial advisor before making financial decisions." },
+          { title: "1. Acceptance of Terms", body: "By accessing or using Notho (\"Service\"), you agree to be bound by these Terms of Service. If you do not agree, please do not use the Service. We may update these terms and will notify you of material changes via the app." },
+          { title: "2. Description of Service", body: "Notho is a financial literacy app that provides educational content, budgeting tools, and gamified learning experiences. It is designed for general financial education purposes only and does not constitute financial advice." },
+          { title: "3. Not Financial Advice", body: "Nothing in the Notho app, including lessons, calculator results, or investment projections, constitutes personalised financial, investment, tax, or legal advice. Always consult a qualified financial advisor before making financial decisions." },
           { title: "4. Acceptable Use", body: "You may use the Service only for lawful purposes. You agree not to: share your account credentials; attempt to reverse-engineer or scrape the app; upload harmful or offensive content; impersonate other users or misrepresent your identity on the leaderboard." },
-          { title: "5. Intellectual Property", body: "All content in the app - including lessons, graphics, and the Fundi Finance name and logo - is owned by or licensed to The Solution Org (Pty) Ltd. You may not reproduce, distribute, or create derivative works from any app content without our written permission." },
+          { title: "5. Intellectual Property", body: "All content in the app - including lessons, graphics, and the Notho name and logo - is owned by or licensed to The Solution Org (Pty) Ltd. You may not reproduce, distribute, or create derivative works from any app content without our written permission." },
           { title: "6. User-Generated Content", body: "Any display names, profile information, or content you submit to the Service grants us a licence to display it within the app. You retain ownership of your content but are responsible for ensuring it does not violate these terms." },
           { title: "7. Account Termination", body: "We reserve the right to suspend or terminate your account for violations of these terms, fraudulent activity, or any other reason at our discretion. You may delete your account at any time by contacting privacy@fundiapp.co.za." },
           { title: "8. Limitation of Liability", body: "To the fullest extent permitted by law, The Solution Org (Pty) Ltd and its team shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service. Our total liability for any claim shall not exceed any amount you have paid to us in the preceding 12 months." },
@@ -172,7 +172,7 @@ function Section({
         style={{
           fontSize: "20px",
           fontWeight: 800,
-          color: "#007A4D",
+          color: "#007A85",
           margin: "0 0 12px",
         }}
       >

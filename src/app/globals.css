@@ -44,15 +44,39 @@
 @media (prefers-reduced-motion: reduce) {
   .skeleton { animation: none; }
 }
-body.fundi-reduced-motion .skeleton { animation: none; }
+body.notho-reduced-motion .skeleton { animation: none; }
 
+/* ---------------------------------------------------------------------------
+   NOTHO BRAND PALETTE
+   Sampled from the logo mark (brand/svg/notho-icon-mark.svg). Contrast ratios
+   are against #FFFFFF and were measured, not estimated.
+
+     teal   #01A0AA   3.18:1  graphics and fills only - NEVER text on white
+     teal   #007A85   5.09:1  AA for body text, and for white text on top
+     gold   #EFB343   1.88:1  decorative only - fails even the 3:1 UI threshold
+     navy   #0D368D  10.88:1  safest text colour in the palette
+
+   Rule of thumb: gold carries meaning through position and shape, never
+   through a label rendered in gold on a light surface. Put navy on gold
+   (5.80:1) when a gold surface needs text.
+--------------------------------------------------------------------------- */
 :root {
   --nav-link-color: #374151;
-  --color-primary: #007A4D;
-  --color-primary-hover: #006040;
-  --color-primary-light: #EAF3EF;
-  --color-secondary: #FFB612;
-  --color-secondary-light: #FFF6DC;
+
+  /* Brand primitives */
+  --brand-teal: #01A0AA;        /* bright mark teal - graphics, gradients     */
+  --brand-teal-deep: #007A85;   /* accessible teal - text, buttons            */
+  --brand-gold: #EFB343;        /* mark gold - decorative surfaces            */
+  --brand-navy: #0D368D;        /* mark navy - headings, high-contrast text   */
+
+  /* Semantic tokens */
+  --color-primary: #007A85;
+  --color-primary-hover: #005F68;
+  --color-primary-light: #E6F4F5;
+  --color-secondary: #EFB343;
+  --color-secondary-light: #FDF3E0;
+  --color-navy: #0D368D;
+  --color-navy-light: #E7EBF6;
   --color-accent: #E03C31;
   --color-accent-light: #FDECEA;
   --color-danger: #E03C31;
@@ -65,9 +89,9 @@ body.fundi-reduced-motion .skeleton { animation: none; }
   --track-bg: #E6E8EB;
   --hover-bg: rgba(0, 0, 0, 0.06);
   --color-nav-bg: #ffffff;
-  --color-nav-active: #007A4D;
+  --color-nav-active: #007A85;
   --color-hearts: #E03C31;
-  --color-streak: #FFB612;
+  --color-streak: #EFB343;
 
   /* Back-compat aliases used by existing CSS */
   --primary-green: var(--color-primary);
@@ -127,7 +151,7 @@ body {
 .sidebar-brand-accent {
   height: 4px;
   width: 100%;
-  background: linear-gradient(90deg, #007a4d 0%, #ffb612 100%);
+  background: linear-gradient(90deg, #007A85 0%, #EFB343 100%);
   flex-shrink: 0;
 }
 
@@ -606,8 +630,8 @@ html.dark .nav-link.active {
 }
 
 .option-button.correct {
-  background: #007A4D !important;
-  border-color: #007A4D !important;
+  background: #007A85 !important;
+  border-color: #007A85 !important;
   color: white !important;
 }
 
@@ -692,8 +716,8 @@ html.dark .nav-link.active {
 }
 
 .option-button.correct {
-  background: #007A4D !important;
-  border-color: #007A4D !important;
+  background: #007A85 !important;
+  border-color: #007A85 !important;
   color: white !important;
 }
 
@@ -1071,17 +1095,17 @@ html.dark .nav-link.active {
 }
 
 
-/* ── Fundi mascot animations ─────────────────────────────────── */
-@keyframes fundi-bounce {
+/* ── Notho mascot animations ─────────────────────────────────── */
+@keyframes notho-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-12px); }
 }
-@keyframes fundi-bob {
+@keyframes notho-bob {
   0%, 100% { transform: translateY(0) rotate(0deg); }
   30% { transform: translateY(-5px) rotate(-3deg); }
   70% { transform: translateY(-2px) rotate(3deg); }
 }
-@keyframes fundi-shake {
+@keyframes notho-shake {
   0%, 100% { transform: rotate(0deg); }
   20% { transform: rotate(-8deg); }
   40% { transform: rotate(8deg); }
@@ -1092,7 +1116,7 @@ html.dark .nav-link.active {
 /* ── Playable lesson node - pulse ring to show it's clickable ── */
 .lesson-node.playable {
   position: relative;
-  border: 2.5px solid var(--color-primary, #007A4D);
+  border: 2.5px solid var(--color-primary, #007A85);
   animation: node-pulse 2s ease-in-out infinite;
 }
 
@@ -1134,7 +1158,7 @@ html.dark {
   --color-text-primary: #ffffff;
   --color-text-secondary: #9AA0A6;
   --color-primary: #3FB68B;
-  --color-secondary: #FFB612;
+  --color-secondary: #EFB343;
   --bg-gray: #000000;
   --border-light: transparent;
   --text-light: #9AA0A6;
@@ -1248,7 +1272,7 @@ html.dark [style*="color:black"] {
 /* ── Reduced motion / data-saver ────────────────────────────────────────── */
 /* Honors (a) the OS-level prefers-reduced-motion / prefers-reduced-data
    media queries, and (b) a manual toggle set from Settings via
-   `body.fundi-reduced-motion` / `body.fundi-low-data`. We keep functional
+   `body.notho-reduced-motion` / `body.notho-low-data`. We keep functional
    transitions (focus rings) but kill decorative animation and expensive
    background effects. */
 @media (prefers-reduced-motion: reduce) {
@@ -1261,9 +1285,9 @@ html.dark [style*="color:black"] {
     scroll-behavior: auto !important;
   }
 }
-body.fundi-reduced-motion *,
-body.fundi-reduced-motion *::before,
-body.fundi-reduced-motion *::after {
+body.notho-reduced-motion *,
+body.notho-reduced-motion *::before,
+body.notho-reduced-motion *::after {
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;
   transition-duration: 0.001ms !important;
@@ -1281,18 +1305,18 @@ body.fundi-reduced-motion *::after {
     box-shadow: none !important;
   }
 }
-body.fundi-low-data img,
-body.fundi-low-data video {
+body.notho-low-data img,
+body.notho-low-data video {
   image-rendering: -webkit-optimize-contrast;
 }
-body.fundi-low-data .lesson-player,
-body.fundi-low-data .course-card,
-body.fundi-low-data .card {
+body.notho-low-data .lesson-player,
+body.notho-low-data .course-card,
+body.notho-low-data .card {
   box-shadow: none !important;
 }
-body.fundi-low-data *,
-body.fundi-low-data *::before,
-body.fundi-low-data *::after {
+body.notho-low-data *,
+body.notho-low-data *::before,
+body.notho-low-data *::after {
   /* No background gradients or fancy filters when data-saver is on */
   backdrop-filter: none !important;
   filter: none !important;
@@ -1300,7 +1324,7 @@ body.fundi-low-data *::after {
 
 /* ── Universal focus ring for keyboard users (accessibility) ───────────── */
 :where(button, a, input, select, textarea, [role="button"]):focus-visible {
-  outline: 3px solid var(--color-primary, #007A4D);
+  outline: 3px solid var(--color-primary, #007A85);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -1536,7 +1560,7 @@ html.dark .option-button:hover:not(:disabled) {
     --color-text-muted: #777;
     --color-primary: #4ade80;
     --color-primary-dark: #22c55e;
-    --color-secondary: #FFB612;
+    --color-secondary: #EFB343;
     --border-light: transparent;
     --bg-gray: #000000;
     --sidebar-bg: #000000;
@@ -1651,12 +1675,12 @@ html.dark .option-button:hover:not(:disabled) {
    purple) on cards and outline buttons. Their fills/text keep them legible. */
 [style*="solid var(--color-primary)"],
 [style*="solid var(--color-secondary)"],
-[style*="solid #007A4D"],
-[style*="solid #007a4d"],
+[style*="solid #007A85"],
+[style*="solid #007A85"],
 [style*="solid #7C4DFF"],
 [style*="solid #7c4dff"],
 [style*="solid #8B5CF6"],
-[style*="solid #FFB612"] {
+[style*="solid #EFB343"] {
   border-color: transparent !important;
 }
 

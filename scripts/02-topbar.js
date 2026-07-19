@@ -35,7 +35,7 @@ export default function TopBar({ streak, xp, hearts }: TopBarProps) {
     <header className="topbar">
       {/* Streak */}
       <div className="topbar-stat">
-        <svg viewBox="0 0 24 24" fill="#FFB612" width="22" height="22" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="#EFB343" width="22" height="22" aria-hidden="true">
           <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
         </svg>
         <span className="topbar-value topbar-streak">{streak}</span>
@@ -43,7 +43,7 @@ export default function TopBar({ streak, xp, hearts }: TopBarProps) {
 
       {/* XP */}
       <div className="topbar-stat">
-        <svg viewBox="0 0 24 24" fill="#007A4D" width="20" height="20" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="#007A85" width="20" height="20" aria-hidden="true">
           <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
         </svg>
         <span className="topbar-value topbar-xp">{xp} XP</span>
@@ -156,11 +156,11 @@ const TOPBAR_CSS = `
 }
 
 .topbar-streak {
-  color: #FFB612;
+  color: #EFB343;
 }
 
 .topbar-xp {
-  color: #007A4D;
+  color: #007A85;
 }
 `;
 

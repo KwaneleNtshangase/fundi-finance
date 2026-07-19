@@ -21,12 +21,12 @@ export function GoalCard() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setUserGoal(localStorage.getItem("fundi-user-goal"));
-    setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
+    setUserGoal(localStorage.getItem("notho-user-goal"));
+    setGoalDescription(localStorage.getItem("notho-goal-description") ?? "");
     // Listen for cross-device goal sync updates (dispatched by syncFromSupabase)
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "fundi-user-goal" && e.newValue) setUserGoal(e.newValue);
-      if (e.key === "fundi-goal-description") setGoalDescription(e.newValue ?? "");
+      if (e.key === "notho-user-goal" && e.newValue) setUserGoal(e.newValue);
+      if (e.key === "notho-goal-description") setGoalDescription(e.newValue ?? "");
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);

@@ -19,7 +19,7 @@ import { formatRand } from "@/lib/viewHelpers";
 import { resolvePeriod, formatPeriodLabel, type PeriodPreset } from "@/lib/budget/report/period";
 import { flexibleRows, simulate, type WhatIfChanges } from "@/lib/budget/report/simulate";
 import { computeStreaks, missionOutcome } from "@/lib/budget/report/snapshot";
-import { X, FileText, Lightbulb } from "@/components/icons/FundiIcons";
+import { X, FileText, Lightbulb } from "@/components/icons/NothoIcons";
 import type { ReportModel, InsightTone, ReportSnapshotMetrics } from "@/lib/budget/report/types";
 
 const PERIOD_OPTIONS: { key: PeriodPreset; label: string }[] = [
@@ -647,7 +647,7 @@ export function InteractiveReportModal({
               )}
 
               <p style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 8 }}>
-                Educational insights based on your own data - not financial advice. Fundi Finance is not a registered financial services provider.
+                Educational insights based on your own data - not financial advice. Notho is not a registered financial services provider.
               </p>
             </>
           )}

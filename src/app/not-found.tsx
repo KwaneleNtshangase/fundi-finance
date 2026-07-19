@@ -20,8 +20,8 @@ export default function NotFound() {
       }}
     >
       <Image
-        src="/fundi-logo.png"
-        alt="Fundi Finance"
+        src="/notho-logo.png"
+        alt="Notho"
         width={120}
         height={120}
         priority
@@ -46,7 +46,7 @@ export default function NotFound() {
           textDecoration: "none",
         }}
       >
-        Back to Fundi
+        Back to Notho
       </Link>
     </div>
   );

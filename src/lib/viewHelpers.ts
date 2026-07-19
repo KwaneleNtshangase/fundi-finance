@@ -17,22 +17,22 @@ import {
   GraduationCap,
   BarChart2,
   TrendingDown,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 import {
-  FundiLearn,
-  FundiBudget,
-  FundiProgress,
-  FundiShield,
-  FundiCredit,
-  FundiBuilding,
-  FundiBriefcase,
-  FundiUmbrella,
-  FundiFlag,
-  FundiHome,
-  FundiDoc,
-  FundiAlert,
-  FundiBrain,
-} from "@/components/icons/FundiIcons";
+  NothoLearn,
+  NothoBudget,
+  NothoProgress,
+  NothoShield,
+  NothoCredit,
+  NothoBuilding,
+  NothoBriefcase,
+  NothoUmbrella,
+  NothoFlag,
+  NothoHome,
+  NothoDoc,
+  NothoAlert,
+  NothoBrain,
+} from "@/components/icons/NothoIcons";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types shared across multiple components
@@ -96,7 +96,7 @@ export function progressNumberFromWeeklyState(
 
 export function playSound(type: "correct" | "incorrect" | "complete") {
   if (typeof window === "undefined") return;
-  if (localStorage.getItem("fundi-sound-enabled") === "false") return;
+  if (localStorage.getItem("notho-sound-enabled") === "false") return;
   try {
     const Ctx =
       (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -182,15 +182,15 @@ export function generateShareText(
   if (type === "lesson") {
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
-    return `I just completed "${t}"${xpPart} on Fundi Finance 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
+    return `I just completed "${t}"${xpPart} on Notho 🎓\n\nShort, South Africa–focused money lessons that actually make sense. Join me 👇\nfundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just earned the "${n}" badge on Fundi Finance 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
+    return `I just earned the "${n}" badge on Notho 🏅\n\nBuilding real financial knowledge, one lesson at a time.\nfundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d}-day learning streak on Fundi Finance 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
+    return `${d}-day learning streak on Notho 🔥\n\nShowing up for my money goals every single day.\nfundiapp.co.za`;
   }
   return "";
 }
@@ -240,11 +240,11 @@ export function ShareButton({
 
 export async function persistUserGoalToStorageAndSupabase(goalId: string, goalDescription?: string) {
   if (typeof window === "undefined") return;
-  localStorage.setItem("fundi-user-goal", goalId);
+  localStorage.setItem("notho-user-goal", goalId);
   if (goalDescription !== undefined) {
-    localStorage.setItem("fundi-goal-description", goalDescription);
+    localStorage.setItem("notho-goal-description", goalDescription);
   }
-  localStorage.removeItem("fundi-goal-banner-dismissed");
+  localStorage.removeItem("notho-goal-banner-dismissed");
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -374,23 +374,23 @@ export function formatZAR(value: number) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FundiCharacter mascot
+// CosmoCharacter mascot
 // ─────────────────────────────────────────────────────────────────────────────
 
-export type FundiExpression = "default" | "thinking" | "sad" | "celebrating";
+export type CosmoExpression = "default" | "thinking" | "sad" | "celebrating";
 
-export function FundiCharacter({
+export function CosmoCharacter({
   expression = "default",
   size = 100,
   style: extraStyle = {},
 }: {
-  expression?: FundiExpression;
+  expression?: CosmoExpression;
   size?: number;
   style?: React.CSSProperties;
 }) {
   return React.createElement("img", {
-    src: `/characters/fundi-${expression}.png`,
-    alt: `Fundi ${expression}`,
+    src: `/characters/cosmo-${expression}.png`,
+    alt: `Cosmo ${expression}`,
     width: size,
     height: size,
     style: { objectFit: "contain", display: "block", ...extraStyle },
@@ -405,40 +405,40 @@ export function CourseIcon({ name, size = 48 }: { name: string; size?: number })
   const props = { size, className: "text-current" };
   switch (name) {
     case "wallet":
-      return React.createElement(FundiBudget, props);
+      return React.createElement(NothoBudget, props);
     case "briefcase":
-      return React.createElement(FundiBriefcase, props);
+      return React.createElement(NothoBriefcase, props);
     case "building-2":
-      return React.createElement(FundiBuilding, props);
+      return React.createElement(NothoBuilding, props);
     case "credit-card":
-      return React.createElement(FundiCredit, props);
+      return React.createElement(NothoCredit, props);
     case "shield":
-      return React.createElement(FundiShield, props);
+      return React.createElement(NothoShield, props);
     case "umbrella":
-      return React.createElement(FundiUmbrella, props);
+      return React.createElement(NothoUmbrella, props);
     case "trending-up":
-      return React.createElement(FundiProgress, props);
+      return React.createElement(NothoProgress, props);
     case "flag":
-      return React.createElement(FundiFlag, props);
+      return React.createElement(NothoFlag, props);
     case "home":
-      return React.createElement(FundiHome, props);
+      return React.createElement(NothoHome, props);
     case "file-text":
-      return React.createElement(FundiDoc, props);
+      return React.createElement(NothoDoc, props);
     case "siren":
-      return React.createElement(FundiAlert, props);
+      return React.createElement(NothoAlert, props);
     case "brain":
-      return React.createElement(FundiBrain, props);
+      return React.createElement(NothoBrain, props);
     case "book-open":
-      return React.createElement(FundiLearn, props);
+      return React.createElement(NothoLearn, props);
     default:
-      return React.createElement(FundiBudget, props);
+      return React.createElement(NothoBudget, props);
   }
 }
 
 // Course accent colours, cycles through SA-themed palette
 export const COURSE_COLOURS = [
-  { bg: "#E8F5EE", accent: "#007A4D", light: "#C8EAD9" }, // green
-  { bg: "#FFF8E7", accent: "#FFB612", light: "#FFE9A0" }, // gold
+  { bg: "#E8F5EE", accent: "#007A85", light: "#C8EAD9" }, // green
+  { bg: "#FFF8E7", accent: "#EFB343", light: "#FFE9A0" }, // gold
   { bg: "#FFF0EF", accent: "#E03C31", light: "#FCCFCC" }, // red
   { bg: "#EEF4FF", accent: "#3B7DD8", light: "#C5D9F7" }, // blue
   { bg: "#F3EEFF", accent: "#7C4DFF", light: "#D9C8FF" }, // purple
@@ -540,13 +540,13 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
       ctx.fillStyle = "#22c55e";
       ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("FUNDI FINANCE", W / 2, 156);
+      ctx.fillText("NOTHO", W / 2, 156);
 
       if (data.type === "lesson") {
         // Big trophy icon area
         ctx.fillStyle = "rgba(255,182,18,0.12)";
         ctx.beginPath(); ctx.arc(W / 2, H * 0.35, 140, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#FFB612";
+        ctx.fillStyle = "#EFB343";
         ctx.font = "140px serif";
         ctx.textAlign = "center";
         ctx.fillText("🏆", W / 2, H * 0.35 + 52);
@@ -565,7 +565,7 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
         ctx.fillText(`+${data.xpEarned} XP earned`, W / 2, H * 0.54 + lines.length * 70 + 60);
 
         if (data.isPerfect) {
-          ctx.fillStyle = "#FFB612";
+          ctx.fillStyle = "#EFB343";
           ctx.font = `bold 38px -apple-system, BlinkMacSystemFont, sans-serif`;
           ctx.fillText("⭐ Perfect Score!", W / 2, H * 0.54 + lines.length * 70 + 120);
         }
@@ -626,15 +626,15 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
       const dataUrl = await generateShareCard(data);
 
       const text = data.type === "calculator"
-        ? `${data.headline} - calculated on Fundi Finance 📊 Try it free at fundiapp.co.za`
-        : `I just completed "${(data as any).lessonTitle}" (+${(data as any).xpEarned} XP) on Fundi Finance 🎓 fundiapp.co.za`;
+        ? `${data.headline} - calculated on Notho 📊 Try it free at fundiapp.co.za`
+        : `I just completed "${(data as any).lessonTitle}" (+${(data as any).xpEarned} XP) on Notho 🎓 fundiapp.co.za`;
 
       // Try native share with image file
       try {
         const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], "fundi-result.png", { type: "image/png" });
+        const file = new File([blob], "notho-result.png", { type: "image/png" });
         if (navigator.canShare?.({ files: [file] })) {
-          await navigator.share({ files: [file], title: "Fundi Finance", text });
+          await navigator.share({ files: [file], title: "Notho", text });
           analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
           setStatus("done");
           setSharing(false);
@@ -647,7 +647,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
       // Fallback: try navigator.share with just text (no image)
       if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
         try {
-          await navigator.share({ title: "Fundi Finance", text });
+          await navigator.share({ title: "Notho", text });
           analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
           setStatus("done");
           setSharing(false);
@@ -660,7 +660,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
       // Final fallback: download the image card
       const a = document.createElement("a");
       a.href = dataUrl;
-      a.download = "fundi-result.png";
+      a.download = "notho-result.png";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

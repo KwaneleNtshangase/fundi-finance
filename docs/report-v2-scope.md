@@ -1,4 +1,4 @@
-# Fundi Budget Report v2 — Scope
+# Notho Budget Report v2 — Scope
 
 **From "a report that shows everything it computed" → "a coach that answers three questions."**
 

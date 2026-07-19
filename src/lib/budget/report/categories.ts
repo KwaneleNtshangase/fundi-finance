@@ -4,8 +4,8 @@ export const STATIC_EXPENSE_CATEGORIES: Record<
   string,
   { name: string; color: string; group: CategoryGroup }
 > = {
-  food: { name: "Food & Groceries", color: "#007A4D", group: "needs" },
-  transport: { name: "Transport", color: "#FFB612", group: "needs" },
+  food: { name: "Food & Groceries", color: "#007A85", group: "needs" },
+  transport: { name: "Transport", color: "#EFB343", group: "needs" },
   housing: { name: "Housing/Rent", color: "#3B7DD8", group: "needs" },
   debt: { name: "Debt Repayments", color: "#E03C31", group: "goals" },
   savings: { name: "Savings", color: "#00BFA5", group: "goals" },
@@ -97,7 +97,7 @@ export function resolveCategoryMeta(
   }
   const inc = STATIC_INCOME_CATEGORIES[categoryId];
   if (inc) {
-    return { name: inc.name, color: "#007A4D", type: "income", group: "unclassified", isSavingsVehicle: false };
+    return { name: inc.name, color: "#007A85", type: "income", group: "unclassified", isSavingsVehicle: false };
   }
   const vehicle = isSavingsVehicleCategory(categoryId, categoryId);
   return {

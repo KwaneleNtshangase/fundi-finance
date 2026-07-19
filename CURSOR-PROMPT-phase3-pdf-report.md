@@ -4,7 +4,7 @@
 
 ---
 
-You are continuing **Fundi Finance** (Next.js + Supabase + Vercel; ZAR; SAST/UTC+2). Build **Phase 3: an exportable, polished, accurate budget report (PDF)** for a user-chosen period. Production app, live data — accuracy and not breaking existing features are non-negotiable.
+You are continuing **Notho** (Next.js + Supabase + Vercel; ZAR; SAST/UTC+2). Build **Phase 3: an exportable, polished, accurate budget report (PDF)** for a user-chosen period. Production app, live data — accuracy and not breaking existing features are non-negotiable.
 
 ## Orient first (read, don't re-plan)
 - `src/components/BudgetPlanner.tsx` — existing budget UI (month/year, recharts, "Set Budget"). Add the export button here.
@@ -36,7 +36,7 @@ You are continuing **Fundi Finance** (Next.js + Supabase + Vercel; ZAR; SAST/UTC
 | `src/components/BudgetPlanner.tsx` | "Export report" button + period-picker modal (match header styling) → download blob |
 
 ## PDF layout (A4 portrait, brand: primary #007A4D, expense red #E03C31, accent #FFB612)
-- **Page 1 — Cover + summary:** Fundi brand bar; "Prepared for {displayName}"; period (human-readable, SAST) + generated timestamp. Summary cards: Income, Expenses, Net, Savings rate. Budget-vs-actual band (Budgeted, Actual, Variance, % used) with **"Estimate" badge** when prorated.
+- **Page 1 — Cover + summary:** Notho brand bar; "Prepared for {displayName}"; period (human-readable, SAST) + generated timestamp. Summary cards: Income, Expenses, Net, Savings rate. Budget-vs-actual band (Budgeted, Actual, Variance, % used) with **"Estimate" badge** when prorated.
 - **Page 2 — Category tables:** Expenses table (category w/ color dot, Budgeted, Actual, Variance R, Variance %, Share %) — red if over-budget, green if under. Income table (category, Actual, Share of income).
 - **Page 3 — Charts (SVG):** expense breakdown donut; monthly spend bars (one bar per month in range); budget-vs-actual grouped bars per expense category.
 - **Page 4 — Insights:** top 5 merchants/descriptions by spend; 5 largest transactions; top 3 over-budget and top 3 under-budget categories.
@@ -78,7 +78,7 @@ Any mismatch → 500, do not stream a PDF.
 Empty period; single txn; income refund; presets (this/last month, quarter, year) with cap-at-today; custom mid-month proration + `budgetIsEstimate:true`; SAST month boundary (entry at month-end stays in month via string compare); leap-Feb 2024 (29-day denominator); large values (no float drift); category with budget/no spend and spend/no budget.
 
 ## UI
-"Export report" button in the `BudgetPlanner` header row (beside Import / Month|Year / Add). Modal: preset dropdown + custom range (month-aligned defaults). Submit → POST with Bearer token → download `fundi-budget-report-{period}.pdf`. Loading + error states.
+"Export report" button in the `BudgetPlanner` header row (beside Import / Month|Year / Add). Modal: preset dropdown + custom range (month-aligned defaults). Submit → POST with Bearer token → download `notho-budget-report-{period}.pdf`. Loading + error states.
 
 ## Constraints / won't touch
 No schema changes. No new deps (avoid `sharp`). SAST everywhere; ZAR 2dp; integer-cent math. Don't touch `useProgress.ts`, import pipeline, or XP/sync. Don't refactor BudgetPlanner's existing month nav.

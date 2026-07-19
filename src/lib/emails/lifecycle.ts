@@ -1,5 +1,5 @@
 /**
- * Fundi Finance lifecycle emails (welcome + d1 + d7/d14/d30 milestones).
+ * Notho lifecycle emails (welcome + d1 + d7/d14/d30 milestones).
  *
  * All emails share one branded shell: a green header band with the logo, a
  * white content box, and a plain footer. Copy is deliberately human and
@@ -9,9 +9,9 @@
  * username. We never fall back to a generic label like "Mfundi".
  */
 
-const FROM = "Fundi Finance <hello@fundiapp.co.za>";
+const FROM = "Notho <hello@fundiapp.co.za>";
 const APP_URL = "https://fundiapp.co.za";
-const LOGO = "https://fundiapp.co.za/Fundi_Finance_logo.png";
+const LOGO = "https://fundiapp.co.za/Notho_logo.png";
 
 export type EmailProfile = {
   username?: string | null;
@@ -51,13 +51,13 @@ function shell(bodyRows: string): string {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f5f7;margin:0;padding:0">
     <tr><td align="center" style="padding:24px 12px">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
-        <tr><td style="background:#007A4D;border-radius:16px 16px 0 0;padding:30px 28px">
+        <tr><td style="background:#007A85;border-radius:16px 16px 0 0;padding:30px 28px">
           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:middle;padding-right:14px">
-              <img src="${LOGO}" width="44" height="44" alt="Fundi Finance" style="display:block;border:0;outline:none;text-decoration:none" />
+              <img src="${LOGO}" width="44" height="44" alt="Notho" style="display:block;border:0;outline:none;text-decoration:none" />
             </td>
             <td style="vertical-align:middle">
-              <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Fundi Finance</div>
+              <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Notho</div>
               <div style="font-size:12px;color:#BFE6D4;letter-spacing:0.04em;padding-top:3px">Master Your Money</div>
             </td>
           </tr></table>
@@ -66,7 +66,7 @@ function shell(bodyRows: string): string {
           ${bodyRows}
         </td></tr>
         <tr><td style="padding:16px 28px 0;text-align:center;font-size:11px;color:#9AA0A6;line-height:1.6">
-          You're getting this because you have a Fundi Finance account.<br/>
+          You're getting this because you have a Notho account.<br/>
           Educational content only, not financial advice.
         </td></tr>
       </table>
@@ -75,34 +75,34 @@ function shell(bodyRows: string): string {
 }
 
 function cta(label: string): string {
-  return `<div style="margin:6px 0"><a href="${APP_URL}" style="display:inline-block;padding:13px 24px;background:#007A4D;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">${label}</a></div>`;
+  return `<div style="margin:6px 0"><a href="${APP_URL}" style="display:inline-block;padding:13px 24px;background:#007A85;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">${label}</a></div>`;
 }
 
 function goalChip(goal?: string | null): string {
   const g = goalInfo(goal);
-  return `<div style="background:#EAF3EF;border-radius:12px;padding:14px 18px;margin:0 0 22px">
-    <div style="font-size:14px;font-weight:700;color:#007A4D">${g.label}</div>
+  return `<div style="background:#E6F4F5;border-radius:12px;padding:14px 18px;margin:0 0 22px">
+    <div style="font-size:14px;font-weight:700;color:#007A85">${g.label}</div>
     <div style="font-size:13px;color:#0d6b48;padding-top:3px">${g.line}</div>
   </div>`;
 }
 
 function streakBadge(streak: number): string {
   if (streak <= 0) return "";
-  return `<div style="margin:0 0 16px"><span style="display:inline-block;background:#EAF3EF;color:#007A4D;border-radius:50px;padding:5px 14px;font-size:13px;font-weight:700">${streak}-day streak</span></div>`;
+  return `<div style="margin:0 0 16px"><span style="display:inline-block;background:#E6F4F5;color:#007A85;border-radius:50px;padding:5px 14px;font-size:13px;font-weight:700">${streak}-day streak</span></div>`;
 }
 
 /** ── Welcome (sent on signup) ──────────────────────────────────────────── */
 export function buildWelcome(p: EmailProfile): BuiltEmail {
   const name = resolveName(p);
   const html = shell(`
-    <h1 style="margin:0 0 14px;font-size:22px;font-weight:800">Welcome to Fundi, ${name}</h1>
+    <h1 style="margin:0 0 14px;font-size:22px;font-weight:800">Welcome to Notho, ${name}</h1>
     <p style="margin:0 0 16px;font-size:15px;color:#374151">You're in. One short lesson a day is all it takes to get a real grip on your money, and you can start right now.</p>
     ${goalChip(p.goal)}
     ${cta("Start your first lesson")}
-    <p style="margin:22px 0 0;font-size:15px;color:#374151">Small steps, real progress.<br/>Team Fundi</p>
+    <p style="margin:22px 0 0;font-size:15px;color:#374151">Small steps, real progress.<br/>Team Notho</p>
   `);
-  const text = `Welcome to Fundi, ${name}.\n\nYou're in. One short lesson a day is all it takes to get a real grip on your money, and you can start right now.\n\nStart your first lesson: ${APP_URL}\n\nSmall steps, real progress.\nTeam Fundi`;
-  return { subject: `Welcome to Fundi Finance, ${name}`, html, text };
+  const text = `Welcome to Notho, ${name}.\n\nYou're in. One short lesson a day is all it takes to get a real grip on your money, and you can start right now.\n\nStart your first lesson: ${APP_URL}\n\nSmall steps, real progress.\nTeam Notho`;
+  return { subject: `Welcome to Notho, ${name}`, html, text };
 }
 
 /** ── D+1 re-engagement ─────────────────────────────────────────────────── */
@@ -117,9 +117,9 @@ export function buildD1(p: EmailProfile, streak: number): BuiltEmail {
     <p style="margin:0 0 16px;font-size:15px;color:#374151">${line}</p>
     ${goalChip(p.goal)}
     ${cta("Continue learning")}
-    <p style="margin:22px 0 0;font-size:15px;color:#374151">You've got this.<br/>Team Fundi</p>
+    <p style="margin:22px 0 0;font-size:15px;color:#374151">You've got this.<br/>Team Notho</p>
   `);
-  const text = `${name}, your next lesson is waiting.\n\n${line}\n\nContinue learning: ${APP_URL}\n\nYou've got this.\nTeam Fundi`;
+  const text = `${name}, your next lesson is waiting.\n\n${line}\n\nContinue learning: ${APP_URL}\n\nYou've got this.\nTeam Notho`;
   const subject = streak > 0 ? `${name}, keep your ${streak}-day streak going` : `${name}, your next lesson is waiting`;
   return { subject, html, text };
 }
@@ -157,9 +157,9 @@ export function buildMilestone(kind: MilestoneKind, p: EmailProfile, streak: num
     <p style="margin:0 0 16px;font-size:15px;color:#374151">Hi ${name}, ${m.body}</p>
     ${goalChip(p.goal)}
     ${cta(m.cta)}
-    <p style="margin:22px 0 0;font-size:15px;color:#374151">Proud of you.<br/>Team Fundi</p>
+    <p style="margin:22px 0 0;font-size:15px;color:#374151">Proud of you.<br/>Team Notho</p>
   `);
-  const text = `${m.headline}\n\nHi ${name}, ${m.body}\n\n${m.cta}: ${APP_URL}\n\nProud of you.\nTeam Fundi`;
+  const text = `${m.headline}\n\nHi ${name}, ${m.body}\n\n${m.cta}: ${APP_URL}\n\nProud of you.\nTeam Notho`;
   return { subject: m.subject(name, streak), html, text };
 }
 

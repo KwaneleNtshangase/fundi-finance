@@ -1,5 +1,5 @@
 /**
- * Shared test helpers for Fundi Finance E2E tests.
+ * Shared test helpers for Notho E2E tests.
  * Credentials are set via environment variables so they never live in source.
  *
  * Usage:
@@ -8,7 +8,7 @@
 import { Page, expect } from "@playwright/test";
 
 export const TEST_EMAIL = process.env.TEST_EMAIL ?? "e2e-test@fundiapp.co.za";
-export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "FundiE2E_Test#2026";
+export const TEST_PASSWORD = process.env.TEST_PASSWORD ?? "NothoE2E_Test#2026";
 export const BASE_URL =
   process.env.BASE_URL ?? "https://fundiapp.co.za";
 

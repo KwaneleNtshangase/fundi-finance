@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AlertCircle } from "@/components/icons/FundiIcons";
+import { AlertCircle } from "@/components/icons/NothoIcons";
 
 type Props = { children: React.ReactNode };
 type State = { hasError: boolean; error: Error | null };
@@ -127,7 +127,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
                 padding: "14px 20px",
                 borderRadius: 12,
                 border: "none",
-                background: "var(--color-primary, #007A4D)",
+                background: "var(--color-primary, #007A85)",
                 color: "#ffffff",
                 fontWeight: 700,
                 fontSize: 15,

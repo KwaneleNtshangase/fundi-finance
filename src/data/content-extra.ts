@@ -1,12 +1,12 @@
 // ═══════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - EXTRA CONTENT  (content-extra.ts)
+// NOTHO - EXTRA CONTENT  (content-extra.ts)
 // Generated 2026-03-28
 // HOW TO USE: import the arrays below and merge them into content.ts
 // ═══════════════════════════════════════════════════════════════════════
 
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - EXTRA CONTENT FILE
+// NOTHO - EXTRA CONTENT FILE
 // Merge arrays from this file into content.ts as described at the bottom.
 // All facts are accurate as of 2024/25 SA financial context.
 // ═══════════════════════════════════════════════════════════════════════════
@@ -423,12 +423,12 @@ export const MONEY_BASICS_EXTRA: Lesson[] = [
     id: "lesson-tracking-spending",
     title: "Tracking Your Spending",
     steps: [
-      { type: "info", title: "The 30-Day Audit", content: "<p>Most people have no idea where their money actually goes. A spending audit reveals the truth. For one month, track every single transaction - card swipes, cash, digital payments.</p><p>Use your bank app's statement export or Fundi's Budget Planner. Categorise everything: food, transport, entertainment, insurance, etc. The results are usually shocking.</p>" },
+      { type: "info", title: "The 30-Day Audit", content: "<p>Most people have no idea where their money actually goes. A spending audit reveals the truth. For one month, track every single transaction - card swipes, cash, digital payments.</p><p>Use your bank app's statement export or Notho's Budget Planner. Categorise everything: food, transport, entertainment, insurance, etc. The results are usually shocking.</p>" },
       { type: "info", title: "The Most Common Budget Leaks", content: "<ul><li><strong>Streaming subscriptions:</strong> R50-R200 each - how many do you actually use?</li><li><strong>ATM fees:</strong> R10-R15 × 20 visits = R200-R300/month for nothing</li><li><strong>Bank charges:</strong> R100-R300/month on traditional accounts</li><li><strong>Unused gym memberships:</strong> R300-R600/month</li><li><strong>Daily food impulse:</strong> R50/day = R1 500/month</li></ul>" },
       { type: "mcq", question: "You discover you spend R900/month on subscriptions but only use 3 out of 9. What's the smartest first action?", options: ["Cancel them all immediately", "Cancel the unused 6 and redirect the saving to savings or debt", "Keep them all - you might need them one day", "Ignore it - subscriptions are small"], correct: 1, feedback: { correct: "Cancel unused subscriptions immediately. R600/month redirected to investments at 10% for 10 years = over R123 000. Small recurring costs compound against you.", incorrect: "Cancel unused subscriptions. Every rand in monthly recurring costs is a wealth leak. R600/month invested for 10 years at 10% = R123 000+." } },
       { type: "true-false", statement: "Looking at your bank statement once a month is enough to track your spending accurately.", correct: false, feedback: { correct: "Correct - bank statements show transactions but not categories. Active categorisation reveals real patterns. A raw statement won't tell you how much went to food vs entertainment vs impulse spending.", incorrect: "Bank statements list transactions without categories. You must actively classify each expense to understand real spending patterns." } },
       { type: "scenario", question: "Zanele earns R22 000/month. After auditing: R9 500 needs, R5 000 wants, R2 500 debt, R2 000 savings. That leaves R3 000 unaccounted for. What should she do first?", options: ["Assume it was petty cash and move on", "Find where that R3 000 went before making any budget changes", "Immediately invest the R3 000", "Assume expenses are higher than stated"], correct: 1, feedback: { correct: "Never leave money unaccounted. That R3 000 gap probably reveals cash spending, small digital transfers, or miscategorisation. Find it - then decide.", incorrect: "Unaccounted money hides real spending patterns. Identify it before making any budget changes." } },
-      { type: "action", title: "Run Your 30-Day Audit", instruction: "Open your banking app right now. Go to your transaction history for the last 30 days. Screenshot it. Before your next lesson, categorise each transaction as: Need, Want, or Waste.", tip: "If you bank with Capitec, use the 'Insights' tab. FNB users: check 'My Spend'. Then log it in Fundi's Budget Planner so your progress stays in one place." },
+      { type: "action", title: "Run Your 30-Day Audit", instruction: "Open your banking app right now. Go to your transaction history for the last 30 days. Screenshot it. Before your next lesson, categorise each transaction as: Need, Want, or Waste.", tip: "If you bank with Capitec, use the 'Insights' tab. FNB users: check 'My Spend'. Then log it in Notho's Budget Planner so your progress stays in one place." },
     ] satisfies LessonStep[],
   },
   {
@@ -447,11 +447,11 @@ export const MONEY_BASICS_EXTRA: Lesson[] = [
     title: "Zero-Based Budgeting",
     steps: [
       { type: "info", title: "Give Every Rand a Job", content: "<p>Zero-based budgeting (ZBB) means allocating every rand of income to a category so that income minus all allocations = R0. You don't 'spend what's left' - every rand has a purpose before the month begins. Savings and investments are categories too - not afterthoughts.</p>" },
-      { type: "info", title: "How to Build a ZBB", content: "<ol><li>Write down your monthly take-home (net) pay</li><li>List all fixed expenses first (rent, insurance, debt payments)</li><li>List variable expenses (groceries, petrol)</li><li>Allocate to savings and investment goals</li><li>All categories must total your net income exactly</li><li>Surplus = allocate to an investment or debt payoff category</li></ol><p>Fundi tip: build this in Fundi's Budget Planner so you can track it daily.</p>" },
+      { type: "info", title: "How to Build a ZBB", content: "<ol><li>Write down your monthly take-home (net) pay</li><li>List all fixed expenses first (rent, insurance, debt payments)</li><li>List variable expenses (groceries, petrol)</li><li>Allocate to savings and investment goals</li><li>All categories must total your net income exactly</li><li>Surplus = allocate to an investment or debt payoff category</li></ol><p>Notho tip: build this in Notho's Budget Planner so you can track it daily.</p>" },
       { type: "mcq", question: "In zero-based budgeting, the goal for income minus all allocations is:", options: ["Whatever is left over as discretionary", "Exactly R0 - every rand has a category", "At least R500 as a safety buffer", "Negative - use credit for the gap"], correct: 1, feedback: { correct: "Zero means every rand is allocated - including savings and investment categories. Nothing is 'left over' because every rand has a job.", incorrect: "ZBB allocates every rand intentionally. Savings are a category. The total must reach exactly R0." } },
       { type: "true-false", statement: "Zero-based budgeting means you must spend every rand each month.", correct: false, feedback: { correct: "Correct - allocating every rand doesn't mean spending every rand. Savings, investments, and emergency fund top-ups are all allocation categories.", incorrect: "ZBB allocates, not spends. Savings and investments are categories. Money allocated to savings is not 'spent' - it's building your future." } },
       { type: "fill-blank", title: "ZBB Check", prompt: "Net income: R21 000. Rent: R7 000. Food: R3 000. Transport: R2 500. Insurance: R1 200. Debt: R2 300. Entertainment: R1 000. The savings allocation to reach R0 is R___.", correct: 4000, feedback: { correct: "R21 000 - R17 000 in expenses = R4 000 must be allocated to savings. Every rand has a purpose.", incorrect: "Total expenses: R17 000. R21 000 - R17 000 = R4 000 allocated to savings. In ZBB, this must be explicitly designated - not left floating." } },
-      { type: "action", title: "Build Your First ZBB Today", instruction: "Open Fundi's Budget Planner. List your income at the top. Below it, list every expense including a savings allocation. Keep subtracting until you reach exactly R0. That is your budget for this month.", tip: "Keep everything in Fundi so your progress, goals, and streak all stay synced." },
+      { type: "action", title: "Build Your First ZBB Today", instruction: "Open Notho's Budget Planner. List your income at the top. Below it, list every expense including a savings allocation. Keep subtracting until you reach exactly R0. That is your budget for this month.", tip: "Keep everything in Notho so your progress, goals, and streak all stay synced." },
     ] satisfies LessonStep[],
   },
   {

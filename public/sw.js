@@ -1,13 +1,13 @@
-// Fundi Finance — Service Worker
+// Notho — Service Worker
 // Push notifications + offline caching. Bump SW_VERSION when caching strategy changes.
 
 const SW_VERSION = "4";
-const STATIC_CACHE = `fundi-static-${SW_VERSION}`;
-const RUNTIME_CACHE = `fundi-runtime-${SW_VERSION}`;
-const CACHE_PREFIX = "fundi-";
+const STATIC_CACHE = `notho-static-${SW_VERSION}`;
+const RUNTIME_CACHE = `notho-runtime-${SW_VERSION}`;
+const CACHE_PREFIX = "notho-";
 
 // Offline fallbacks only — do NOT pre-cache "/" (stale app shell after deploy).
-const PRECACHE = ["/manifest.json", "/fundi-logo.png", "/favicon.ico"];
+const PRECACHE = ["/manifest.json", "/notho-logo.png", "/notho-icon-192.png", "/favicon.ico"];
 
 function isNavigationRequest(request) {
   return (
@@ -130,7 +130,7 @@ self.addEventListener("fetch", (event) => {
 
 // ── Push notifications ────────────────────────────────────────────────────────
 self.addEventListener("push", (event) => {
-  let data = { title: "Fundi Finance", body: "You have a new notification!", url: "/" };
+  let data = { title: "Notho", body: "You have a new notification!", url: "/" };
   try {
     data = event.data ? event.data.json() : data;
   } catch {
@@ -140,8 +140,8 @@ self.addEventListener("push", (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: "/fundi-logo.png",
-      badge: "/fundi-logo.png",
+      icon: "/notho-logo.png",
+      badge: "/notho-logo.png",
       vibrate: [100, 50, 100],
       data: { url: data.url || "/" },
       actions: data.actions || [],

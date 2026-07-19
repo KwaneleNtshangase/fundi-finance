@@ -1,10 +1,10 @@
 "use client";
 
 import { LeaderboardView } from "@/components/LeaderboardView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 
 export default function LeaderboardPage() {
-  const { userData, weeklyXp } = useFundi();
+  const { userData, weeklyXp } = useNotho();
 
   return (
     <LeaderboardView

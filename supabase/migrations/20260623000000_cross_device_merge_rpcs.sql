@@ -83,7 +83,7 @@ BEGIN
 
     -- Weekly XP: accumulate within the same week; reset to the incoming
     -- delta when a strictly newer week is reported; otherwise leave alone.
-    -- Week keys ("fundi-week-YYYY-MM-DD") sort lexicographically by date.
+    -- Week keys ("notho-week-YYYY-MM-DD") sort lexicographically by date.
     weekly_xp = CASE
       WHEN p_week_key IS NULL                       THEN up.weekly_xp
       WHEN p_week_key = up.week_key                 THEN up.weekly_xp + dweekly

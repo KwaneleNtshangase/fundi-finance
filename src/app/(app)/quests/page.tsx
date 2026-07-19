@@ -2,7 +2,7 @@
 
 import React from "react";
 import { QuestsView } from "@/components/views/QuestsView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 
 export default function QuestsPage() {
   const {
@@ -16,7 +16,7 @@ export default function QuestsPage() {
     claimChallengeReward,
     addXP,
     userData,
-  } = useFundi();
+  } = useNotho();
 
   return (
     <QuestsView

@@ -1,4 +1,4 @@
--- Fundi Coach Tier 2 (AI chat) — consent flag + conversation log.
+-- Coach Cosmo Tier 2 (AI chat) — consent flag + conversation log.
 --
 -- POPIA design:
 --   • coach_ai_consent is an explicit, purpose-specific opt-in stored on the
@@ -37,4 +37,4 @@ CREATE POLICY "Users read own coach logs"
   USING (auth.uid() = user_id);
 
 COMMENT ON TABLE public.coach_ai_logs IS
-  'Fundi Coach AI conversation log. Client: read-only own rows. Writes: service role only (server route enforces consent + daily cap).';
+  'Coach Cosmo AI conversation log. Client: read-only own rows. Writes: service role only (server route enforces consent + daily cap).';

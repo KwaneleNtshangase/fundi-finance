@@ -25,7 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
+import { NothoLearn, NothoCalculate, NothoBudget, NothoGoals, NothoProgress, NothoProfile, NothoLeaderboard } from "@/components/icons/NothoIcons";
 import {
   LineChart,
   Line,
@@ -117,8 +117,8 @@ import { LeaderboardView, getLeaderboardWeekKey } from "@/components/Leaderboard
 import { StatsPanel } from "@/components/StatsPanel";
 import { AuthGate } from "@/components/AuthGate";
 import { ShareButton, ShareResultButton } from "@/components/ShareCard";
-import { FundiCharacter } from "@/components/FundiCharacter";
-import { FundiTopBar } from "@/components/FundiTopBar";
+import { CosmoCharacter } from "@/components/CosmoCharacter";
+import { NothoTopBar } from "@/components/NothoTopBar";
 import {
   OnboardingTooltips,
   hasSeenOnboardingTooltips,
@@ -152,7 +152,7 @@ import {
   markConceptReviewedToday,
   resetCorrectAnswerStreakToday,
 } from "@/lib/dailyChallengeFlags";
-import { useFundiState } from "@/hooks/useFundiState";
+import { useNothoState } from "@/hooks/useNothoState";
 import { SettingsView } from "@/components/SettingsView";
 
 function getDailyFact(): string {
@@ -209,7 +209,7 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
           <span style={{
             display: "inline-block", margin: "0 8px", padding: "2px 12px",
             borderRadius: 8, fontWeight: 800, fontSize: 16,
-            background: isCorrect ? "#007A4D" : "#E03C31", color: "white",
+            background: isCorrect ? "#007A85" : "#E03C31", color: "white",
           }}>
             {submittedAnswer}
           </span>
@@ -235,8 +235,8 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
           <div className="lesson-actions">
             {isLast ? (
               <div style={{ textAlign: "center", width: "100%" }}>
-                <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
-                <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
+                <Trophy size={48} style={{ color: "#EFB343", margin: "0 auto 8px" }} />
+                <CosmoCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                 <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
                 {finalizeLesson ? (
                   <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
@@ -251,7 +251,7 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                       </button>
                     ) : (
                       <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
-                        <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                        <Sparkles size={22} className="text-[#EFB343]" aria-hidden />
                         Course Complete!
                       </div>
                     )}
@@ -273,7 +273,7 @@ function FillBlankStep({ step, isAnswered, isCorrect, submittedAnswer, onSubmit,
                     </button>
                     {lessonTitle ? (
                       <ShareResultButton
-                        data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
+                        data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Notho" }}
                         label="Share your result"
                       />
                     ) : null}
@@ -479,7 +479,7 @@ export function LessonView({
       return (
         <div className="flex flex-col gap-4">
           <div style={{
-            background: "linear-gradient(135deg, #007A4D 0%, #00A86B 100%)",
+            background: "linear-gradient(135deg, #007A85 0%, #00A86B 100%)",
             borderRadius: 16, padding: "20px 20px 16px", color: "white",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
@@ -506,7 +506,7 @@ export function LessonView({
                   console.log("CLICKED DONE BUTTON! CALLING answerQuestion(1)");
                   // Track action completed
                   try {
-                    const key = "fundi-actions-completed";
+                    const key = "notho-actions-completed";
                     const count = parseInt(localStorage.getItem(key) ?? "0", 10);
                     localStorage.setItem(key, String(count + 1));
                   } catch (err) {
@@ -536,7 +536,7 @@ export function LessonView({
             <div style={{
               borderRadius: 14, padding: "16px",
               background: didAction === 1 ? "rgba(0,122,77,0.08)" : "rgba(255,182,18,0.08)",
-              border: `1.5px solid ${didAction === 1 ? "var(--color-primary)" : "#FFB612"}`,
+              border: `1.5px solid ${didAction === 1 ? "var(--color-primary)" : "#EFB343"}`,
             }}>
               <p style={{
                 fontSize: 14, lineHeight: 1.6, fontWeight: 600,
@@ -550,8 +550,8 @@ export function LessonView({
             <div className="lesson-actions">
               {lessonState.stepIndex === lessonState.steps.length - 1 ? (
                 <div style={{ textAlign: "center", width: "100%" }}>
-                  <Trophy size={48} style={{ color: "#FFB612", margin: "0 auto 8px" }} />
-                  <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
+                  <Trophy size={48} style={{ color: "#EFB343", margin: "0 auto 8px" }} />
+                  <CosmoCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                   <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>Lesson Complete!</div>
                   {finalizeLesson ? (
                     <div className="flex flex-col gap-3 mt-2" style={{ width: "100%" }}>
@@ -562,7 +562,7 @@ export function LessonView({
                         >Next Lesson: {nextLessonTitle} →</button>
                       ) : (
                         <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
-                          <Sparkles size={22} className="text-[#FFB612]" aria-hidden /> Course Complete!
+                          <Sparkles size={22} className="text-[#EFB343]" aria-hidden /> Course Complete!
                         </div>
                       )}
                       <button type="button" className="btn btn-secondary"
@@ -577,7 +577,7 @@ export function LessonView({
                       </button>
                       {lessonTitle && (
                         <ShareResultButton
-                          data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Fundi Finance" }}
+                          data={{ type: "lesson", lessonTitle, xpEarned: 50 + correctCount * 10, isPerfect: false, courseName: "Notho" }}
                           label="Share your result"
                         />
                       )}
@@ -659,10 +659,10 @@ export function LessonView({
                     >
                       <Trophy
                         size={48}
-                        style={{ color: "#FFB612", margin: "0 auto" }}
+                        style={{ color: "#EFB343", margin: "0 auto" }}
                       />
                     </div>
-                    <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
+                    <CosmoCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                     <div
                       style={{
                         fontSize: 24,
@@ -685,7 +685,7 @@ export function LessonView({
                           </button>
                         ) : (
                           <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
-                            <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                            <Sparkles size={22} className="text-[#EFB343]" aria-hidden />
                             Course Complete!
                           </div>
                         )}
@@ -789,7 +789,7 @@ export function LessonView({
                       width: "100%",
                     }}
                   >
-                    <FundiCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
+                    <CosmoCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
                     <div
                       style={{
                         fontSize: 24,
@@ -812,7 +812,7 @@ export function LessonView({
                           </button>
                         ) : (
                           <div className="flex items-center justify-center gap-2" style={{ fontSize: 18, fontWeight: 800, marginBottom: 8 }}>
-                            <Sparkles size={22} className="text-[#FFB612]" aria-hidden />
+                            <Sparkles size={22} className="text-[#EFB343]" aria-hidden />
                             Course Complete!
                           </div>
                         )}
@@ -899,7 +899,7 @@ export function LessonView({
       <ExitConfirmModal />
       <main >
         <div className="lesson-player">
-          {/* Back button + progress bar + exit (hearts only in FundiTopBar) */}
+          {/* Back button + progress bar + exit (hearts only in NothoTopBar) */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8, position: "sticky", top: 0, zIndex: 50, background: "var(--color-bg)", paddingTop: 8, paddingBottom: 8, marginTop: -8 }}>
             {goBack && (
               <button
@@ -1040,7 +1040,7 @@ function CalculatorEmbedStep({ step, onNext }: { step: any; onNext: () => void }
               borderRadius: 12, padding: "14px 16px", textAlign: "center",
             }}>
               <div style={{ fontSize: 10, fontWeight: 700, color: "var(--color-text-secondary)", textTransform: "uppercase", letterSpacing: 0.5 }}>Interest Earned</div>
-              <div style={{ fontSize: 18, fontWeight: 900, color: "#007A4D" }}>{formatRand(embedFinal.interest)}</div>
+              <div style={{ fontSize: 18, fontWeight: 900, color: "#007A85" }}>{formatRand(embedFinal.interest)}</div>
             </div>
           </div>
 
@@ -1056,7 +1056,7 @@ function CalculatorEmbedStep({ step, onNext }: { step: any; onNext: () => void }
                   contentStyle={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 8, fontSize: 12 }}
                 />
                 <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} />
-                <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" />
+                <Line type="monotone" dataKey="Total Contributions" stroke="#EFB343" strokeWidth={2} dot={false} strokeDasharray="5 5" />
               </LineChart>
             </ResponsiveContainer>
           </div>

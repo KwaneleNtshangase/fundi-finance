@@ -5,19 +5,19 @@ import { OnboardingView } from "@/components/views/OnboardingView";
 import { supabase } from "@/lib/supabaseClient";
 import { normalizeUsername, isUsernameAvailable, GOAL_COURSE_MAP } from "@/app/pageViews.types";
 import { CONTENT_DATA, Lesson } from "@/data/content";
-import { useFundi, FundiProvider } from "@/context/FundiContext";
+import { useNotho, NothoProvider } from "@/context/NothoContext";
 import { useRouter } from "next/navigation";
 
 function OnboardingContent() {
-  const { setRoute, setCurrentLessonState } = useFundi();
+  const { setRoute, setCurrentLessonState } = useNotho();
   const router = useRouter();
 
   const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => {
-    localStorage.setItem("fundi-onboarded", "true");
-    if (payload.goal) localStorage.setItem("fundi-user-goal", payload.goal);
-    if (payload.goalDescription) localStorage.setItem("fundi-goal-description", payload.goalDescription);
-    if (payload.ageRange) localStorage.setItem("fundi-age-range", payload.ageRange);
-    localStorage.setItem("fundi-username", payload.username);
+    localStorage.setItem("notho-onboarded", "true");
+    if (payload.goal) localStorage.setItem("notho-user-goal", payload.goal);
+    if (payload.goalDescription) localStorage.setItem("notho-goal-description", payload.goalDescription);
+    if (payload.ageRange) localStorage.setItem("notho-age-range", payload.ageRange);
+    localStorage.setItem("notho-username", payload.username);
     
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -73,8 +73,8 @@ function OnboardingContent() {
 
 export default function OnboardingPage() {
   return (
-    <FundiProvider>
+    <NothoProvider>
       <OnboardingContent />
-    </FundiProvider>
+    </NothoProvider>
   );
 }

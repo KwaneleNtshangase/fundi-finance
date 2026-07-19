@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FundiStreak, FundiXP } from "@/components/icons/FundiIcons";
+import { NothoStreak, NothoXP } from "@/components/icons/NothoIcons";
 
 const SLIDES = [
   {
@@ -19,7 +19,7 @@ const SLIDES = [
           margin: "0 auto 20px",
         }}
       >
-        <FundiXP size={36} style={{ color: "var(--color-primary)" }} />
+        <NothoXP size={36} style={{ color: "var(--color-primary)" }} />
       </div>
     ),
     title: "What is XP?",
@@ -41,7 +41,7 @@ const SLIDES = [
           margin: "0 auto 20px",
         }}
       >
-        <FundiStreak size={36} style={{ color: "#FFB612" }} />
+        <NothoStreak size={36} style={{ color: "#EFB343" }} />
       </div>
     ),
     title: "What's a streak?",
@@ -81,7 +81,7 @@ const SLIDES = [
   },
 ];
 
-const TOOLTIP_KEY = "fundi-tooltips-v1-seen";
+const TOOLTIP_KEY = "notho-tooltips-v1-seen";
 
 export function hasSeenOnboardingTooltips(): boolean {
   if (typeof window === "undefined") return true;

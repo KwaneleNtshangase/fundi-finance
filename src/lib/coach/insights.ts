@@ -1,5 +1,5 @@
 /**
- * Fundi Coach - Tier 1 deterministic rules engine.
+ * Coach Cosmo - Tier 1 deterministic rules engine.
  *
  * Turns a user's own budget data into educational nudges that link to
  * lessons. Design constraints (POPIA + FAIS):

@@ -9,7 +9,7 @@ test.describe("Authentication", () => {
   test("1.1 — Splash screen appears on first load", async ({ page }) => {
     await page.goto(BASE_URL);
     // Splash should show briefly
-    const splash = page.locator(".splash-logo-wrap, #splashScreen, img[alt*='Fundi']");
+    const splash = page.locator(".splash-logo-wrap, #splashScreen, img[alt*='Notho']");
     // It may already have animated out — just ensure no JS crash
     await expect(page).toHaveURL(/(\/learn|\/)?$/);
   });

@@ -48,7 +48,7 @@ function LifecycleTestPanel() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
         {KINDS.map((k) => (
           <button key={k.key} type="button" onClick={() => send(k.key)} disabled={busy === k.key}
-            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A4D", background: "#fff", color: "#007A4D", fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: busy === k.key ? 0.6 : 1 }}>
+            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A85", background: "#fff", color: "#007A85", fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: busy === k.key ? 0.6 : 1 }}>
             {busy === k.key ? "Sending…" : k.label}
           </button>
         ))}
@@ -129,7 +129,7 @@ function BroadcastPanel() {
         </button>
         {status !== "done" && (
           <button type="button" onClick={check} disabled={status === "checking" || status === "sending"}
-            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A4D", background: "#fff", color: "#007A4D", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+            style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #007A85", background: "#fff", color: "#007A85", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
             {status === "checking" ? "Checking…" : "Check recipients"}
           </button>
         )}
@@ -137,7 +137,7 @@ function BroadcastPanel() {
           <>
             <span style={{ fontSize: 13, color: "#374151" }}>{count} recipients · delivers {prettyDate(scheduledAt)}</span>
             <button type="button" onClick={send}
-              style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#007A4D", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
+              style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#007A85", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer" }}>
               Schedule send
             </button>
           </>
@@ -406,7 +406,7 @@ export default function AdminBugsPage() {
                 {it.userEmail ? <>From <b>{it.userEmail}</b></> : "Anonymous user"}
               </div>
               <details style={{ marginBottom: 12 }}>
-                <summary style={{ cursor: "pointer", fontSize: 13, color: "#007A4D", fontWeight: 700 }}>Details</summary>
+                <summary style={{ cursor: "pointer", fontSize: 13, color: "#007A85", fontWeight: 700 }}>Details</summary>
                 <pre style={{ whiteSpace: "pre-wrap", wordBreak: "break-word", fontSize: 12, background: "#f9fafb", borderRadius: 8, padding: 12, marginTop: 8, color: "#374151" }}>{it.description}</pre>
               </details>
 
@@ -423,7 +423,7 @@ export default function AdminBugsPage() {
                   Email this user
                 </label>
                 <button type="button" disabled={busy === it.id} onClick={() => save(it)}
-                  style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#007A4D", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: busy === it.id ? 0.6 : 1 }}>
+                  style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#007A85", color: "#fff", fontWeight: 700, fontSize: 13, cursor: "pointer", opacity: busy === it.id ? 0.6 : 1 }}>
                   {busy === it.id ? "Saving…" : d.notify ? "Save & email" : "Save"}
                 </button>
               </div>

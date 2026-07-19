@@ -1,5 +1,5 @@
 /**
- * Fundi Finance - Spaced Repetition Concepts
+ * Notho - Spaced Repetition Concepts
  *
  * Each concept has:
  *  - id: unique slug

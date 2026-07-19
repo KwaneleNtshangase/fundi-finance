@@ -25,7 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
+import { NothoLearn, NothoCalculate, NothoBudget, NothoGoals, NothoProgress, NothoProfile, NothoLeaderboard } from "@/components/icons/NothoIcons";
 import {
   LineChart,
   Line,
@@ -117,8 +117,8 @@ import { LeaderboardView, getLeaderboardWeekKey } from "@/components/Leaderboard
 import { StatsPanel } from "@/components/StatsPanel";
 import { AuthGate } from "@/components/AuthGate";
 import { ShareButton, ShareResultButton } from "@/components/ShareCard";
-import { FundiCharacter } from "@/components/FundiCharacter";
-import { FundiTopBar } from "@/components/FundiTopBar";
+import { CosmoCharacter } from "@/components/CosmoCharacter";
+import { NothoTopBar } from "@/components/NothoTopBar";
 import {
   OnboardingTooltips,
   hasSeenOnboardingTooltips,
@@ -152,7 +152,7 @@ import {
   markConceptReviewedToday,
   resetCorrectAnswerStreakToday,
 } from "@/lib/dailyChallengeFlags";
-import { useFundiState } from "@/hooks/useFundiState";
+import { useNothoState } from "@/hooks/useNothoState";
 import { SettingsView } from "@/components/SettingsView";
 
 function getDailyFact(): string {
@@ -362,7 +362,7 @@ export function OnboardingView({
               style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
             />
             <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-              I confirm I am <strong>18 or older</strong>. Fundi Finance is a financial education platform for adults.
+              I confirm I am <strong>18 or older</strong>. Notho is a financial education platform for adults.
             </span>
           </label>
         )}
@@ -378,7 +378,7 @@ export function OnboardingView({
               autoCapitalize="none"
               autoCorrect="off"
               spellCheck={false}
-              placeholder="e.g. fundi_learner"
+              placeholder="e.g. notho_learner"
               value={username}
               onChange={(e) => setUsername(normalizeUsername(e.target.value))}
               style={{

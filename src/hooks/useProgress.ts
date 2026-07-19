@@ -63,7 +63,7 @@ const DEFAULT_STATE: ProgressState = {
 // successful Supabase read; it only fills the gap while waiting for network.
 // The key is per-user AND versioned; new fields parse with defaults so an
 // app update never invalidates (or corrupts) an older cache.
-const PROGRESS_CACHE_KEY = "fundi-progress-v1";
+const PROGRESS_CACHE_KEY = "notho-progress-v1";
 
 function progressCacheKey(userId: string): string {
   return `${PROGRESS_CACHE_KEY}-${userId}`;
@@ -121,28 +121,28 @@ function getCurrentWeekKey(): string {
 // challenge claims from leaking into (or being overwritten by) user B.
 // Per-user keys (progress cache, pending queue, weekly stats) are left alone.
 const EPHEMERAL_KEY_PREFIXES = [
-  "fundi-hearts",
-  "fundi-last-heart-lost",
-  "fundi-perfect-lessons",
-  "fundi-longest-streak",
-  "fundi-daily-xp-",
-  "fundi-daily-lessons-",
-  "fundi-wc-",
-  "fundi-lesson-progress",
-  "fundi-perfect-today-",
-  "fundi-shared-today-",
-  "fundi-correct-streak-today-",
-  "fundi-concept-reviewed-",
-  "fundi-expense-today-",
-  "fundi-budget-visited-",
-  "fundi-calc-visited-",
-  "fundi-pending-streak-sync",
-  "fundi-onboarded",
-  "fundi-user-goal",
-  "fundi-goal-description",
-  "fundi-age-range",
-  "fundi-username",
-  "fundi-daily-goal",
+  "notho-hearts",
+  "notho-last-heart-lost",
+  "notho-perfect-lessons",
+  "notho-longest-streak",
+  "notho-daily-xp-",
+  "notho-daily-lessons-",
+  "notho-wc-",
+  "notho-lesson-progress",
+  "notho-perfect-today-",
+  "notho-shared-today-",
+  "notho-correct-streak-today-",
+  "notho-concept-reviewed-",
+  "notho-expense-today-",
+  "notho-budget-visited-",
+  "notho-calc-visited-",
+  "notho-pending-streak-sync",
+  "notho-onboarded",
+  "notho-user-goal",
+  "notho-goal-description",
+  "notho-age-range",
+  "notho-username",
+  "notho-daily-goal",
 ];
 
 function wipeEphemeralLocalState(): void {
@@ -157,7 +157,7 @@ function wipeEphemeralLocalState(): void {
   } catch { /* best-effort */ }
 }
 
-const LAST_UID_KEY = "fundi-last-uid";
+const LAST_UID_KEY = "notho-last-uid";
 
 function handleAccountSwitch(newUid: string | null): void {
   if (typeof window === "undefined" || !newUid) return;
@@ -186,7 +186,7 @@ type PendingDeltas = {
 };
 
 function pendingXpKey(userId: string): string {
-  return `fundi-pending-xp-${userId}`;
+  return `notho-pending-xp-${userId}`;
 }
 
 function readPendingDeltas(userId: string | null): PendingDeltas | null {
@@ -307,7 +307,7 @@ async function flushPendingDeltas(userId: string): Promise<ProgressRow | null> {
 
   if (typeof navigator !== "undefined" && "locks" in navigator && navigator.locks?.request) {
     try {
-      return await navigator.locks.request(`fundi-flush-${userId}`, doFlush);
+      return await navigator.locks.request(`notho-flush-${userId}`, doFlush);
     } catch {
       return doFlush();
     }
@@ -495,9 +495,9 @@ export function useProgress() {
       // Retry streak sync after a lesson completed while offline / network failed
       if (
         typeof window !== "undefined" &&
-        localStorage.getItem("fundi-pending-streak-sync") === "1"
+        localStorage.getItem("notho-pending-streak-sync") === "1"
       ) {
-        localStorage.removeItem("fundi-pending-streak-sync");
+        localStorage.removeItem("notho-pending-streak-sync");
         try {
           const r = await fetch("/api/progress/sync-streak", {
             method: "POST",
@@ -518,10 +518,10 @@ export function useProgress() {
               return next;
             });
           } else if (!json?.ok) {
-            localStorage.setItem("fundi-pending-streak-sync", "1");
+            localStorage.setItem("notho-pending-streak-sync", "1");
           }
         } catch {
-          localStorage.setItem("fundi-pending-streak-sync", "1");
+          localStorage.setItem("notho-pending-streak-sync", "1");
         }
       }
       lastLoadAtRef.current = Date.now();
@@ -790,12 +790,12 @@ export function useProgress() {
       if (!json?.ok) {
         console.warn("[applyStreakAfterLesson] sync-streak failed:", json?.error);
         if (typeof window !== "undefined") {
-          localStorage.setItem("fundi-pending-streak-sync", "1");
+          localStorage.setItem("notho-pending-streak-sync", "1");
         }
         return state.streak;
       }
       if (typeof window !== "undefined") {
-        localStorage.removeItem("fundi-pending-streak-sync");
+        localStorage.removeItem("notho-pending-streak-sync");
       }
       setState((prev) => {
         const next = {
@@ -811,7 +811,7 @@ export function useProgress() {
     } catch (e) {
       console.warn("[applyStreakAfterLesson] fetch failed:", e);
       if (typeof window !== "undefined") {
-        localStorage.setItem("fundi-pending-streak-sync", "1");
+        localStorage.setItem("notho-pending-streak-sync", "1");
       }
       return state.streak;
     }
@@ -875,7 +875,7 @@ export function useProgress() {
       clearProgressCache(userId);
       clearPendingDeltas(userId);
       clearWeeklyStats(userId);
-      try { localStorage.removeItem("fundi-pending-streak-sync"); } catch { /* ignore */ }
+      try { localStorage.removeItem("notho-pending-streak-sync"); } catch { /* ignore */ }
       wipeEphemeralLocalState();
       writeProgressCache(DEFAULT_STATE, userId);
     }

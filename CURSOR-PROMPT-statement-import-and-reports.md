@@ -5,7 +5,7 @@
 
 ---
 
-You are working on **Fundi Finance**, a Next.js + Supabase + Vercel financial-literacy app for South African Gen Z users (currency ZAR, timezone SAST / UTC+2). This is a **production app with live user data**. Accuracy, privacy, and not breaking existing features are non-negotiable.
+You are working on **Notho**, a Next.js + Supabase + Vercel financial-literacy app for South African Gen Z users (currency ZAR, timezone SAST / UTC+2). This is a **production app with live user data**. Accuracy, privacy, and not breaking existing features are non-negotiable.
 
 ## 0. Before writing any code — read and report
 Do not assume the codebase. First open and read these files, then give me a short written summary of how the current budget works and your implementation plan. **Wait for my approval before coding.**

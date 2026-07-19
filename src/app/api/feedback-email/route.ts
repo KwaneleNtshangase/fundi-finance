@@ -62,12 +62,12 @@ export async function POST(req: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Fundi Finance <hello@fundiapp.co.za>",
+        from: "Notho <hello@fundiapp.co.za>",
         to: [process.env.ALERT_EMAIL || "kwanelebc031@gmail.com"],
         subject: `[${typeDisplay}] ${subject}`,
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.6;color:#1f2937;max-width:600px">
-            <h2 style="color:#007A4D">New Feedback from Fundi Finance</h2>
+            <h2 style="color:#007A85">New Feedback from Notho</h2>
             <table style="width:100%;border-collapse:collapse">
               <tr>
                 <td style="padding:8px 0;font-weight:700;width:140px;color:#6b7280">Type</td>
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0" />
             <h3 style="font-size:14px;color:#374151;margin-bottom:8px">Description</h3>
             <p style="background:#f9fafb;border-radius:8px;padding:14px;white-space:pre-wrap;font-size:14px">${description}</p>
-            <p style="font-size:12px;color:#9ca3af;margin-top:24px">Sent from Fundi Finance app feedback form</p>
+            <p style="font-size:12px;color:#9ca3af;margin-top:24px">Sent from Notho app feedback form</p>
           </div>
         `,
       }),

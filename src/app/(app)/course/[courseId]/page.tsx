@@ -2,12 +2,12 @@
 
 import React, { use } from "react";
 import { CourseView } from "@/components/views/CourseView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import { CONTENT_DATA } from "@/data/content";
 
 export default function CoursePage({ params }: { params: Promise<{ courseId: string }> }) {
   const { courseId } = use(params);
-  const { setRoute, isLessonCompleted, completedLessons, setCurrentLessonState } = useFundi();
+  const { setRoute, isLessonCompleted, completedLessons, setCurrentLessonState } = useNotho();
   const course = CONTENT_DATA.courses.find(c => c.id === courseId);
 
   if (!course) {

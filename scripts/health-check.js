@@ -1,5 +1,5 @@
 /**
- * Fundi Finance — Lightweight Health Check
+ * Notho — Lightweight Health Check
  * =========================================
  * Runs without user credentials. Checks:
  *  1. The site loads (HTTP 200, no crash overlay)
@@ -29,14 +29,14 @@ function fail(name, detail = "") {
 }
 
 async function run() {
-  console.log(`\n🔍  Fundi Finance Health Check`);
+  console.log(`\n🔍  Notho Health Check`);
   console.log(`    Target: ${BASE_URL}`);
   console.log(`    ${new Date().toISOString()}\n`);
 
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
-    userAgent: "HealthCheckBot/1.0 (+FundiFinance)",
+    userAgent: "HealthCheckBot/1.0 (+NothoFinance)",
   });
   page = await context.newPage();
 
@@ -124,20 +124,20 @@ async function run() {
     // Treat "splash still showing" as a soft pass — the health check's job
     // is to confirm the site is reachable and not crashing, not to time
     // how fast the auth form renders in headless CI environments.
-    const brandingOk = await page.locator("text=Fundi").count() > 0;
+    const brandingOk = await page.locator("text=Notho").count() > 0;
     if (brandingOk) {
-      pass("App is running (Fundi branding confirmed; auth form may be slow to render in headless CI)");
+      pass("App is running (Notho branding confirmed; auth form may be slow to render in headless CI)");
     } else {
-      fail("Sign-in form visible", "Could not find email/password inputs, app shell, or Fundi branding");
+      fail("Sign-in form visible", "Could not find email/password inputs, app shell, or Notho branding");
     }
   }
 
   // ── 4. Branding present ────────────────────────────────────────────────────
-  const hasFundi = await page.locator("text=Fundi").count();
-  if (hasFundi > 0) {
-    pass("'Fundi' branding present");
+  const hasNotho = await page.locator("text=Notho").count();
+  if (hasNotho > 0) {
+    pass("'Notho' branding present");
   } else {
-    fail("Branding check", "Could not find 'Fundi' text on page");
+    fail("Branding check", "Could not find 'Notho' text on page");
   }
 
   // ── 5. JS console errors ───────────────────────────────────────────────────

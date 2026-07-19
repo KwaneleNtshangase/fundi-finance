@@ -8,8 +8,8 @@ import {
   Play,
   Search,
   Target,
-} from "@/components/icons/FundiIcons";
-import { FundiTrophy, FundiXP, FundiBrain } from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
+import { NothoTrophy, NothoXP, NothoBrain } from "@/components/icons/NothoIcons";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import { CONTENT_DATA } from "@/data/content";
 import { getDueCards } from "@/lib/spaced-repetition";
@@ -92,13 +92,13 @@ export function LearnView({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setUserGoal(localStorage.getItem("fundi-user-goal"));
-    setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
-    setGoalBannerDismissed(localStorage.getItem("fundi-goal-banner-dismissed") === "1");
+    setUserGoal(localStorage.getItem("notho-user-goal"));
+    setGoalDescription(localStorage.getItem("notho-goal-description") ?? "");
+    setGoalBannerDismissed(localStorage.getItem("notho-goal-banner-dismissed") === "1");
     // Listen for cross-device goal sync updates (dispatched by syncFromSupabase)
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "fundi-user-goal" && e.newValue) setUserGoal(e.newValue);
-      if (e.key === "fundi-goal-description") setGoalDescription(e.newValue ?? "");
+      if (e.key === "notho-user-goal" && e.newValue) setUserGoal(e.newValue);
+      if (e.key === "notho-goal-description") setGoalDescription(e.newValue ?? "");
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -172,7 +172,7 @@ export function LearnView({
           className="w-full flex items-center gap-3 rounded-xl border-2 border-purple-200 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/20 px-4 py-3 mb-4 text-left"
         >
           <div className="shrink-0 w-10 h-10 rounded-full bg-purple-100 dark:bg-purple-800 flex items-center justify-center">
-            <FundiBrain size={20} className="text-purple-600 dark:text-purple-300" />
+            <NothoBrain size={20} className="text-purple-600 dark:text-purple-300" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-purple-900 dark:text-purple-200 font-bold text-sm">
@@ -229,7 +229,7 @@ export function LearnView({
                 type="button"
                 onClick={() => {
                   setGoalBannerDismissed(true);
-                  localStorage.setItem("fundi-goal-banner-dismissed", "1");
+                  localStorage.setItem("notho-goal-banner-dismissed", "1");
                 }}
                 className="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400"
                 aria-label="Dismiss goal banner"
@@ -330,7 +330,7 @@ export function LearnView({
           display: "flex", alignItems: "center", gap: 14,
         }}>
           <div style={{ flexShrink: 0, color: "var(--color-primary)", display: "flex" }}>
-            {challengeComplete ? <FundiTrophy size={28} /> : <FundiXP size={28} />}
+            {challengeComplete ? <NothoTrophy size={28} /> : <NothoXP size={28} />}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 2 }}>

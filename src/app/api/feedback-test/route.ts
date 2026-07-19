@@ -26,9 +26,9 @@ export async function GET() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Fundi Finance <hello@fundiapp.co.za>",
+        from: "Notho <hello@fundiapp.co.za>",
         to: [to],
-        subject: `[Fundi Test] Delivery check → ${to}`,
+        subject: `[Notho Test] Delivery check → ${to}`,
         html: `<p>Test email to ${to}</p>`,
       }),
     });

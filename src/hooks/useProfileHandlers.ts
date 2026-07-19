@@ -7,7 +7,7 @@ export function useProfileHandlers() {
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.startsWith("fundi-")) keysToRemove.push(k);
+        if (k && k.startsWith("notho-")) keysToRemove.push(k);
       }
       keysToRemove.forEach((k) => localStorage.removeItem(k));
       window.location.href = "/";
@@ -20,7 +20,7 @@ export function useProfileHandlers() {
     if (typeof window !== "undefined") {
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.startsWith("fundi-")) lsData[k] = localStorage.getItem(k) ?? "";
+        if (k && k.startsWith("notho-")) lsData[k] = localStorage.getItem(k) ?? "";
       }
     }
     let profileData: Record<string, unknown> = {};
@@ -35,7 +35,7 @@ export function useProfileHandlers() {
     }
     const exportPayload = {
       exportDate: new Date().toISOString(),
-      exportNote: "Your Fundi Finance data export - requested under POPIA Section 23 (Right of Access)",
+      exportNote: "Your Notho data export - requested under POPIA Section 23 (Right of Access)",
       account: { email: user?.email ?? "guest" },
       profile: profileData,
       progress: progressData,
@@ -45,7 +45,7 @@ export function useProfileHandlers() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "fundi-finance-data-export.json";
+    a.download = "notho-data-export.json";
     a.click();
     URL.revokeObjectURL(url);
   };

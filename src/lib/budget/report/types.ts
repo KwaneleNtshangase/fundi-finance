@@ -183,7 +183,7 @@ export type ReportInsights = {
   healthComponents: HealthComponent[];
   /** Cover-page highlights (max 4). */
   highlights: ReportHighlight[];
-  /** Fundi Coach narrative - plain sentences built from computed figures. */
+  /** Coach Cosmo narrative - plain sentences built from computed figures. */
   coachParagraphs: string[];
   wins: string[];
   risks: string[];

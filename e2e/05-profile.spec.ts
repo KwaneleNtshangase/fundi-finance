@@ -40,7 +40,7 @@ test.describe("Profile & Settings", () => {
     // Enable dark mode
     await page.evaluate(() => {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("fundi-theme", "dark");
+      localStorage.setItem("notho-theme", "dark");
     });
     await goToTab(page, "Learn");
     await page.locator(".course-card").first().click();

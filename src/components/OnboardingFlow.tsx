@@ -14,7 +14,7 @@ import {
   TrendingUp,
   Trophy,
   Zap,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 
 const ONBOARDING_GOAL_OPTIONS = [
   { id: "debt-free", label: "Get debt-free", Icon: CreditCard },
@@ -50,7 +50,7 @@ export function OnboardingFlow({
   const screenCount = 4;
   const screensMeta = [
     {
-      title: "Welcome to Fundi - let's get you sorted with money",
+      title: "Welcome to Notho - let's get you sorted with money",
       body: "You've got this. We'll keep it simple: short, SA-specific lessons you can finish in minutes.",
       cta: "Let's go",
       action: () => {
@@ -171,7 +171,7 @@ export function OnboardingFlow({
                 style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
               />
               <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-                I confirm that I am <strong>18 years of age or older</strong>. Fundi Finance is a financial education platform intended for adults.
+                I confirm that I am <strong>18 years of age or older</strong>. Notho is a financial education platform intended for adults.
               </span>
             </label>
 
@@ -202,7 +202,7 @@ export function OnboardingFlow({
                 >
                   Privacy Policy
                 </a>
-                . I understand Fundi Finance processes my personal information under POPIA to provide my learning experience.
+                . I understand Notho processes my personal information under POPIA to provide my learning experience.
               </span>
             </label>
 
@@ -223,7 +223,7 @@ export function OnboardingFlow({
                 style={{ marginTop: 2, accentColor: "var(--color-primary)", width: 18, height: 18, flexShrink: 0, cursor: "pointer" }}
               />
               <span style={{ fontSize: 13, color: "var(--color-text-primary)", lineHeight: 1.5, fontWeight: 500 }}>
-                I agree to the Fundi Finance{" "}
+                I agree to the Notho{" "}
                 <a
                   href="/terms"
                   target="_blank"

@@ -107,7 +107,7 @@ const NEW_PROFILE_VIEW = `function ProfileView({
       id: 'streak_3',
       name: 'On Fire',
       desc: '3-day streak',
-      howToEarn: 'Open Fundi Finance and complete a lesson 3 days in a row.',
+      howToEarn: 'Open Notho and complete a lesson 3 days in a row.',
       earned: streak >= 3,
       icon: (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="28" height="28">
@@ -169,7 +169,7 @@ const NEW_PROFILE_VIEW = `function ProfileView({
       {/* Stat row */}
       <div className="profile-stats">
         <div className="profile-stat">
-          <span className="profile-stat-value" style={{ color: '#007A4D' }}>{xp}</span>
+          <span className="profile-stat-value" style={{ color: '#007A85' }}>{xp}</span>
           <span className="profile-stat-label">XP</span>
         </div>
         <div className="profile-stat-divider" />
@@ -179,7 +179,7 @@ const NEW_PROFILE_VIEW = `function ProfileView({
         </div>
         <div className="profile-stat-divider" />
         <div className="profile-stat">
-          <span className="profile-stat-value" style={{ color: '#FFB612' }}>{streak}</span>
+          <span className="profile-stat-value" style={{ color: '#EFB343' }}>{streak}</span>
           <span className="profile-stat-label">Streak</span>
         </div>
         <div className="profile-stat-divider" />
@@ -286,7 +286,7 @@ const PROFILE_CSS = `
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #007A4D 0%, #FFB612 100%);
+  background: linear-gradient(135deg, #007A85 0%, #EFB343 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -432,7 +432,7 @@ const PROFILE_CSS = `
 }
 
 .badge-icon {
-  color: #007A4D;
+  color: #007A85;
 }
 
 .badge-name {
@@ -464,7 +464,7 @@ const PROFILE_CSS = `
 }
 
 .modal-badge-icon {
-  color: #007A4D;
+  color: #007A85;
   margin-bottom: 0.75rem;
   display: flex;
   justify-content: center;

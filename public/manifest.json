@@ -1,28 +1,37 @@
 {
-  "name": "Fundi Finance",
-  "short_name": "Fundi",
+  "name": "Notho",
+  "short_name": "Notho",
   "description": "Master your money the South African way - learn personal finance in 3-minute lessons.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#007A4D",
+  "theme_color": "#007A85",
   "orientation": "portrait",
   "scope": "/",
   "icons": [
     {
-      "src": "/fundi-logo.png",
+      "src": "/notho-icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
     },
     {
-      "src": "/fundi-logo.png",
+      "src": "/notho-icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "maskable"
+    },
+    {
+      "src": "/notho-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "categories": ["education", "finance"],
+  "categories": [
+    "education",
+    "finance"
+  ],
   "lang": "en-ZA",
   "dir": "ltr"
 }

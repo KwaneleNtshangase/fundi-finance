@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, RefreshCcw } from "@/components/icons/FundiIcons";
-import { FundiTrophy } from "@/components/icons/FundiIcons";
+import { AlertTriangle, RefreshCcw } from "@/components/icons/NothoIcons";
+import { NothoTrophy } from "@/components/icons/NothoIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { formatWithSpaces } from "@/lib/formatters";
 import { sastWeekKey } from "@/lib/dates";
@@ -171,7 +171,7 @@ export function LeaderboardView({
         {needsUsername && !loading && (
           <div style={{
             background: "rgba(255,182,18,0.08)",
-            border: "1.5px solid var(--color-accent, #FFB612)",
+            border: "1.5px solid var(--color-accent, #EFB343)",
             borderRadius: 14, padding: "12px 16px", marginBottom: 16,
             display: "flex", alignItems: "center", justifyContent: "space-between",
             gap: 12, flexWrap: "wrap",
@@ -222,7 +222,7 @@ export function LeaderboardView({
                   <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-secondary)", letterSpacing: "0.06em", marginBottom: 2 }}>
                     To overtake {aheadOfMe.name}
                   </div>
-                  <div style={{ fontSize: 18, fontWeight: 900, color: "#FFB612" }}>
+                  <div style={{ fontSize: 18, fontWeight: 900, color: "#EFB343" }}>
                     {formatWithSpaces(xpToNext)} XP
                   </div>
                   <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>
@@ -276,18 +276,18 @@ export function LeaderboardView({
                 {/* 1st place */}
                 <div style={{ textAlign: "center", flex: 1 }}>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-                    <FundiTrophy size={20} style={{ color: "#FFB612" }} />
+                    <NothoTrophy size={20} style={{ color: "#EFB343" }} />
                   </div>
                   <div style={{
                     width: 60, height: 60, borderRadius: "50%", margin: "0 auto 6px",
-                    background: "#FFB612", display: "flex", alignItems: "center", justifyContent: "center",
+                    background: "#EFB343", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 22, fontWeight: 900, color: "white",
-                    border: top3[0].isYou ? "3px solid var(--color-primary)" : "3px solid #FFB612",
+                    border: top3[0].isYou ? "3px solid var(--color-primary)" : "3px solid #EFB343",
                     boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
                   }}>{top3[0].name[0].toUpperCase()}</div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#FFB612" }}>{formatWithSpaces(top3[0].xp)} XP</div>
-                  <div style={{ background: "#FFB612", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#EFB343" }}>{formatWithSpaces(top3[0].xp)} XP</div>
+                  <div style={{ background: "#EFB343", borderRadius: "8px 8px 0 0", height: 80, marginTop: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <span style={{ fontSize: 26, fontWeight: 900, color: "white" }}>1</span>
                   </div>
                 </div>

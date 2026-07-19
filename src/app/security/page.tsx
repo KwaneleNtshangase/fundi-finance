@@ -29,7 +29,7 @@ export default function SecurityPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "fundi-finance-my-data.json";
+      a.download = "notho-my-data.json";
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -41,7 +41,7 @@ export default function SecurityPage() {
     setMsg(null);
     const t = await token();
     if (!t) { setMsg("Please sign in first."); return; }
-    if (!window.confirm("Delete your Fundi Finance account and all your data? This cannot be undone.")) return;
+    if (!window.confirm("Delete your Notho account and all your data? This cannot be undone.")) return;
     if (!window.confirm("Last check: this permanently removes your lessons, progress, budget and stokvel data. Continue?")) return;
     setBusy("delete");
     try {
@@ -64,7 +64,7 @@ export default function SecurityPage() {
     <main style={wrap}>
       <h1 style={{ fontSize: 28, fontWeight: 900, marginBottom: 6 }}>Your data & security</h1>
       <p style={{ ...p, marginBottom: 24 }}>
-        Fundi Finance is built to help you learn about money, and to keep your information safe while you do.
+        Notho is built to help you learn about money, and to keep your information safe while you do.
       </p>
 
       <div style={card}>
@@ -77,7 +77,7 @@ export default function SecurityPage() {
       <div style={card}>
         <h2 style={h2}>Not financial advice</h2>
         <p style={{ ...p, marginBottom: 0 }}>
-          Fundi Finance is educational only. It is not financial, investment, tax or legal advice. For decisions about your money, speak to a licensed advisor.
+          Notho is educational only. It is not financial, investment, tax or legal advice. For decisions about your money, speak to a licensed advisor.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - LEVEL 3 ADVANCED CONTENT
+// NOTHO - LEVEL 3 ADVANCED CONTENT
 //
 // Four new full courses at financial-advisor quality:
 //   1. advanced-tax         - Capital gains, trust tax vehicles, offshore, dividend vs salary

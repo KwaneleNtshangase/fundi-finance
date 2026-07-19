@@ -1,5 +1,5 @@
 /**
- * Fundi Coach - anonymised month summary for the AI tier.
+ * Coach Cosmo - anonymised month summary for the AI tier.
  *
  * This is the ONLY data that ever leaves the app for the AI provider.
  * By construction it contains category ids/labels and numbers ONLY:

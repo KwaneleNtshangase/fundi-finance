@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Fundi Finance",
-  description: "Privacy Policy for Fundi Finance - how we collect, use, and protect your data.",
+  title: "Privacy Policy | Notho",
+  description: "Privacy Policy for Notho - how we collect, use, and protect your data.",
 };
 
 export default function PrivacyPage() {
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
           <div
             style={{
               display: "inline-block",
-              backgroundColor: "#007A4D",
+              backgroundColor: "#007A85",
               color: "#ffffff",
               fontSize: "12px",
               fontWeight: 700,
@@ -73,7 +73,7 @@ export default function PrivacyPage() {
             style={{
               fontSize: 12,
               fontWeight: 700,
-              color: "#FFB612",
+              color: "#EFB343",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
               marginBottom: 8,
@@ -82,7 +82,7 @@ export default function PrivacyPage() {
             Important notice
           </div>
           <p style={{ margin: "0 0 10px", lineHeight: 1.65, color: "#e0e0e0", fontSize: 14 }}>
-            Fundi Finance is a <strong>financial-literacy education</strong>{" "}
+            Notho is a <strong>financial-literacy education</strong>{" "}
             platform. It is <strong>not a licensed financial services provider (FSP)</strong>{" "}
             under the South African Financial Advisory and Intermediary Services
             Act (FAIS Act, 2002) and it does not render financial, investment,
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
               href="https://www.fsca.co.za"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#007A4D" }}
+              style={{ color: "#007A85" }}
             >
               fsca.co.za
             </a>
@@ -107,9 +107,9 @@ export default function PrivacyPage() {
 
         <Section title="1. Introduction">
           <p>
-            Fundi Finance (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) is a
+            Notho (&ldquo;we&rdquo;, &ldquo;our&rdquo;, or &ldquo;us&rdquo;) is a
             South African personal-finance learning app available at{" "}
-            <a href="https://fundiapp.co.za" style={{ color: "#007A4D" }}>
+            <a href="https://fundiapp.co.za" style={{ color: "#007A85" }}>
               fundiapp.co.za
             </a>
             . We are committed to protecting your personal information in
@@ -119,7 +119,7 @@ export default function PrivacyPage() {
           <p>
             This Privacy Policy explains what personal information we collect,
             why we collect it, how we use it, and what rights you have. By
-            using Fundi Finance you agree to the practices described here.
+            using Notho you agree to the practices described here.
           </p>
         </Section>
 
@@ -266,7 +266,7 @@ export default function PrivacyPage() {
             To exercise any of these rights, contact us at{" "}
             <a
               href="mailto:support@fundiapp.co.za"
-              style={{ color: "#007A4D" }}
+              style={{ color: "#007A85" }}
             >
               support@fundiapp.co.za
             </a>
@@ -276,7 +276,7 @@ export default function PrivacyPage() {
 
         <Section title="8. Data Deletion" id="data-deletion">
           <p>
-            You can request complete deletion of your Fundi Finance account and
+            You can request complete deletion of your Notho account and
             all associated personal data at any time.
           </p>
           <p>
@@ -287,7 +287,7 @@ export default function PrivacyPage() {
               Email{" "}
               <a
                 href="mailto:support@fundiapp.co.za"
-                style={{ color: "#007A4D" }}
+                style={{ color: "#007A85" }}
               >
                 support@fundiapp.co.za
               </a>{" "}
@@ -307,7 +307,7 @@ export default function PrivacyPage() {
             If you signed in with Facebook, you may also initiate deletion
             directly via the Facebook platform: go to{" "}
             <strong>
-              Facebook Settings &rarr; Apps and Websites &rarr; Fundi Finance
+              Facebook Settings &rarr; Apps and Websites &rarr; Notho
               &rarr; Remove
             </strong>
             . This will revoke our access token. To ensure full deletion of
@@ -338,12 +338,12 @@ export default function PrivacyPage() {
             <br />
             <a
               href="mailto:support@fundiapp.co.za"
-              style={{ color: "#007A4D" }}
+              style={{ color: "#007A85" }}
             >
               support@fundiapp.co.za
             </a>
             <br />
-            <a href="https://fundiapp.co.za" style={{ color: "#007A4D" }}>
+            <a href="https://fundiapp.co.za" style={{ color: "#007A85" }}>
               fundiapp.co.za
             </a>
           </address>
@@ -355,7 +355,7 @@ export default function PrivacyPage() {
               href="https://inforegulator.org.za"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#007A4D" }}
+              style={{ color: "#007A85" }}
             >
               inforegulator.org.za
             </a>
@@ -397,7 +397,7 @@ function Section({
         style={{
           fontSize: "18px",
           fontWeight: 700,
-          color: "#007A4D",
+          color: "#007A85",
           marginBottom: "12px",
           marginTop: 0,
         }}

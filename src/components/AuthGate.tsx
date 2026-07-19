@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "@/components/icons/FundiIcons";
+import { Mail, KeyRound, AlertTriangle, ClipboardCopy, CheckCircle } from "@/components/icons/NothoIcons";
 import { supabase } from "@/lib/supabaseClient";
 
 // Google OAuth is blocked only in LinkedIn's in-app browser.
@@ -242,8 +242,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           {/* Logo - large, fills most of space */}
           <div className="splash-logo-wrap" style={{ position: "relative", zIndex: 1, marginBottom: 28 }}>
             <img
-              src="/fundi-logo.png"
-              alt="Fundi Finance"
+              src="/notho-logo.png"
+              alt="Notho"
               style={{ width: 260, height: 260, objectFit: "contain", display: "block" }}
             />
           </div>
@@ -293,12 +293,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             paddingTop: 56, paddingBottom: 40, gap: 0,
           }}>
             <img
-              src="/fundi-logo.png"
-              alt="Fundi Finance"
+              src="/notho-logo.png"
+              alt="Notho"
               style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 32 }}
             />
             <p style={{
-              fontSize: 11, fontWeight: 700, color: "#007A4D",
+              fontSize: 11, fontWeight: 700, color: "#007A85",
               textAlign: "center", letterSpacing: 3, textTransform: "uppercase",
               margin: "0 0 10px",
             }}>
@@ -342,7 +342,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               onClick={() => setMode("signup")}
               style={{
                 width: "100%", padding: "17px", fontSize: 16, fontWeight: 700,
-                background: "#007A4D", color: "#ffffff", border: "none",
+                background: "#007A85", color: "#ffffff", border: "none",
                 borderRadius: 14, cursor: "pointer", letterSpacing: 0.4,
               }}
             >
@@ -353,7 +353,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               style={{
                 width: "100%", padding: "16px", fontSize: 15, fontWeight: 600,
                 background: "transparent", border: "2px solid #D1FAE5",
-                borderRadius: 14, cursor: "pointer", color: "#007A4D",
+                borderRadius: 14, cursor: "pointer", color: "#007A85",
                 letterSpacing: 0.2,
               }}
             >
@@ -456,8 +456,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           {/* brand accent line */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: "var(--color-primary)", borderRadius: "20px 20px 0 0" }} />
           <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20, marginTop: 8 }}>
-            <img src="/fundi-logo.png" alt="" width={100} height={100} style={{ objectFit: "contain" }} />
-            <h1 style={{ fontSize: 24, fontWeight: 800 }}>Fundi Finance</h1>
+            <img src="/notho-logo.png" alt="" width={100} height={100} style={{ objectFit: "contain" }} />
+            <h1 style={{ fontSize: 24, fontWeight: 800 }}>Notho</h1>
           </div>
 
           {/* Tab switcher */}

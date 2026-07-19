@@ -1,6 +1,6 @@
 # Data Safety & Sync Invariants
 
-How Fundi Finance guarantees user progress is never lost, changed, or leaked —
+How Notho guarantees user progress is never lost, changed, or leaked —
 across devices, sessions, and app updates. Enforced as of 2026-07-19
 (migration `20260719090000_sync_stats_and_atomic_claims`).
 
@@ -19,7 +19,7 @@ Nothing client-side ever writes an absolute snapshot of progress. Writes are:
 
 - **Deltas** — XP, daily/weekly XP, lessons-today, perfect count go through
   `apply_progress_delta` (`col = col + delta`). Failed writes are queued in
-  localStorage (`fundi-pending-xp-<uid>`) and flushed exactly once; the queue
+  localStorage (`notho-pending-xp-<uid>`) and flushed exactly once; the queue
   is claimed before the network call and re-queued on failure, and a Web Lock
   stops two tabs flushing the same queue.
 - **Unions** — `completed_lessons` only grows (server-side `ARRAY_AGG(DISTINCT)`).
@@ -35,7 +35,7 @@ Nothing client-side ever writes an absolute snapshot of progress. Writes are:
 ## Session survival
 
 Mid-lesson position (step, answers, correct count) is saved to
-`fundi-lesson-progress` on every step, restored on refresh/relaunch/deep
+`notho-lesson-progress` on every step, restored on refresh/relaunch/deep
 link, honoured for 7 days, and cleared on finish. The lesson page re-inits
 from content when the URL and in-memory state disagree.
 
@@ -47,7 +47,7 @@ another device appears without a restart.
 
 Non-user-scoped legacy keys (hearts, daily counters, challenge claims,
 onboarding flags, mid-lesson save) are wiped when a *different* account signs
-in (`fundi-last-uid` sentinel). Per-user keys (`…-<uid>`) are untouched.
+in (`notho-last-uid` sentinel). Per-user keys (`…-<uid>`) are untouched.
 
 ## Reset actually resets
 

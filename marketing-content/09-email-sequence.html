@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fundi Finance – Email Sequence</title>
+<title>Notho – Email Sequence</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
-    --green: #007A4D; --green-dark: #005A38; --green-light: #E6F4EF;
-    --gold: #FFB612; --gold-light: #FFF6DC;
+    --green: #007A85; --green-dark: #005A38; --green-light: #E6F4EF;
+    --gold: #EFB343; --gold-light: #FDF3E0;
     --red: #E03C31;
     --bg: #F0F7F4; --surface: #fff; --text: #111827; --muted: #6B7280; --border: #D1E8DF;
   }
@@ -23,7 +23,7 @@
     text-align: center;
     font-size: 32px;
     font-weight: 900;
-    background: linear-gradient(135deg, #fff 0%, #007A4D 60%, #FFB612 100%);
+    background: linear-gradient(135deg, #fff 0%, #007A85 60%, #EFB343 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -66,7 +66,7 @@
   .seq-connector {
     flex: 0.4;
     height: 2px;
-    background: linear-gradient(90deg, #1a3a2a, #007A4D44, #1a3a2a);
+    background: linear-gradient(90deg, #1a3a2a, #007A8544, #1a3a2a);
     margin-top: -28px;
     position: relative;
   }
@@ -143,7 +143,7 @@
 
   /* header */
   .e-header {
-    background: linear-gradient(135deg, #007A4D 0%, #005A38 100%);
+    background: linear-gradient(135deg, #007A85 0%, #005A38 100%);
     padding: 32px 40px;
     text-align: center;
   }
@@ -154,7 +154,7 @@
     letter-spacing: -0.5px;
     margin-bottom: 4px;
   }
-  .e-logo span { color: #FFB612; }
+  .e-logo span { color: #EFB343; }
   .e-logo-sub { font-size: 11px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
 
   /* hero band */
@@ -181,7 +181,7 @@
   }
   .e-btn {
     display: inline-block;
-    background: #007A4D;
+    background: #007A85;
     color: white !important;
     text-decoration: none;
     font-size: 15px;
@@ -191,7 +191,7 @@
     letter-spacing: 0.3px;
   }
   .e-btn-gold {
-    background: #FFB612;
+    background: #EFB343;
     color: #111827 !important;
   }
 
@@ -219,7 +219,7 @@
   }
   .e-highlight {
     background: #E6F4EF;
-    border-left: 4px solid #007A4D;
+    border-left: 4px solid #007A85;
     border-radius: 0 10px 10px 0;
     padding: 16px 20px;
     margin: 16px 0;
@@ -248,7 +248,7 @@
   .e-stat-val {
     font-size: 24px;
     font-weight: 900;
-    color: #007A4D;
+    color: #007A85;
     line-height: 1;
     margin-bottom: 4px;
   }
@@ -296,7 +296,7 @@
   .e-step-num {
     width: 28px;
     height: 28px;
-    background: #007A4D;
+    background: #007A85;
     border-radius: 50%;
     color: white;
     font-size: 12px;
@@ -327,14 +327,14 @@
     color: #9CA3AF;
     line-height: 1.8;
   }
-  .e-footer a { color: #007A4D; text-decoration: none; }
+  .e-footer a { color: #007A85; text-decoration: none; }
 
   /* streak badge */
   .streak-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #FFF6DC;
+    background: #FDF3E0;
     border: 1px solid #FFD566;
     border-radius: 20px;
     padding: 6px 16px;
@@ -385,7 +385,7 @@
 <!-- ─── SEQUENCE MAP ─── -->
 <div class="seq-map">
   <div class="seq-node">
-    <div class="seq-dot" style="background:#007A4D">1</div>
+    <div class="seq-dot" style="background:#007A85">1</div>
     <div class="seq-label">Welcome</div>
     <div class="seq-timing">Instant</div>
   </div>
@@ -397,7 +397,7 @@
   </div>
   <div class="seq-connector"></div>
   <div class="seq-node">
-    <div class="seq-dot" style="background:#FFB612">3</div>
+    <div class="seq-dot" style="background:#EFB343">3</div>
     <div class="seq-label">Day 5</div>
     <div class="seq-timing">Value</div>
   </div>
@@ -422,7 +422,7 @@
 <div class="email-section">
   <div class="email-meta">
     <div class="email-num">Email 01 · Sent Immediately After Signup</div>
-    <div class="email-subject-line">🎓 Welcome to Fundi Finance, {{first_name}}</div>
+    <div class="email-subject-line">🎓 Welcome to Notho, {{first_name}}</div>
     <div class="email-meta-row">
       <span class="meta-chip">📊 Goal: First lesson completion</span>
       <span class="meta-chip">⏱ Send: Instant trigger</span>
@@ -434,7 +434,7 @@
     <div class="email-body">
 
       <div class="e-header">
-        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo">Notho <span>Finance</span></div>
         <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
       </div>
 
@@ -471,7 +471,7 @@
       </div>
 
       <div class="e-content">
-        <div class="e-h2">⚡ How Fundi Finance works</div>
+        <div class="e-h2">⚡ How Notho works</div>
         <ul class="e-steps">
           <li class="e-step">
             <div class="e-step-num">1</div>
@@ -505,8 +505,8 @@
       <div class="e-footer">
         <p>
           You're receiving this because you signed up at <a href="https://fundiapp.co.za">fundiapp.co.za</a><br>
-          <a href="#">Unsubscribe</a> · <a href="#">Privacy Policy</a> · Fundi Finance, South Africa<br>
-          © 2025 Fundi Finance. Built with 🇿🇦 for South Africans.
+          <a href="#">Unsubscribe</a> · <a href="#">Privacy Policy</a> · Notho, South Africa<br>
+          © 2025 Notho. Built with 🇿🇦 for South Africans.
         </p>
       </div>
 
@@ -543,11 +543,11 @@
     <div class="email-body">
 
       <div class="e-header">
-        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo">Notho <span>Finance</span></div>
         <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
       </div>
 
-      <div class="e-hero" style="background:linear-gradient(135deg,#FFF6DC,white)">
+      <div class="e-hero" style="background:linear-gradient(135deg,#FDF3E0,white)">
         <div class="e-hero-emoji">🔥</div>
         <h1 class="e-hero-title">Don't let Day 1 be your last day.</h1>
         <p class="e-hero-sub">
@@ -558,9 +558,9 @@
 
       <div class="e-content">
         <div class="e-highlight">
-          <p>💡 <strong>Today's Money Fact:</strong> South Africa's national savings rate is one of the lowest in the world. Most households spend more than 95% of what they earn. Fundi Finance was built to change that — one lesson at a time.</p>
+          <p>💡 <strong>Today's Money Fact:</strong> South Africa's national savings rate is one of the lowest in the world. Most households spend more than 95% of what they earn. Notho was built to change that — one lesson at a time.</p>
         </div>
-        <p class="e-p">Your lesson takes 5 minutes. The fastest lesson in the app is <strong>"What is Money?"</strong> — it's where every Fundi Finance journey starts. Today's a great day.</p>
+        <p class="e-p">Your lesson takes 5 minutes. The fastest lesson in the app is <strong>"What is Money?"</strong> — it's where every Notho journey starts. Today's a great day.</p>
       </div>
 
       <div class="e-content" style="background:#F0F7F4">
@@ -588,7 +588,7 @@
       <div class="e-footer">
         <p>
           <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
-          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+          © 2025 Notho · Built for South Africa 🇿🇦
         </p>
       </div>
 
@@ -625,7 +625,7 @@
     <div class="email-body">
 
       <div class="e-header">
-        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo">Notho <span>Finance</span></div>
         <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
       </div>
 
@@ -640,12 +640,12 @@
 
       <div class="e-content">
         <div class="e-h2">📊 South Africa's money reality</div>
-        <p class="e-p">Here are three facts we cover in Fundi Finance that most schools never taught:</p>
+        <p class="e-p">Here are three facts we cover in Notho that most schools never taught:</p>
 
         <div class="e-highlight">
           <p>🔥 <strong>77%</strong> of South Africans can't replace a single month's income from savings. Most aren't bad with money — they were never taught.</p>
         </div>
-        <div class="e-highlight" style="border-color:#FFB612;background:#FFF6DC">
+        <div class="e-highlight" style="border-color:#EFB343;background:#FDF3E0">
           <p>💡 <strong>The Rule of 72:</strong> Divide 72 by your investment return. At 8%, your money doubles every 9 years. At 12%, every 6 years. Warren Buffett knew this at age 11.</p>
         </div>
         <div class="e-highlight" style="border-color:#E03C31;background:#FDECEA">
@@ -681,13 +681,13 @@
       </div>
 
       <div class="e-content" style="text-align:center;padding:28px 40px 32px">
-        <a href="https://fundiapp.co.za" class="e-btn">Open Fundi Finance →</a>
+        <a href="https://fundiapp.co.za" class="e-btn">Open Notho →</a>
       </div>
 
       <div class="e-footer">
         <p>
           <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
-          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+          © 2025 Notho · Built for South Africa 🇿🇦
         </p>
       </div>
 
@@ -724,11 +724,11 @@
     <div class="email-body">
 
       <div class="e-header" style="background:linear-gradient(135deg,#B87D00,#6b4800)">
-        <div class="e-logo">Fundi <span style="color:white">Finance</span></div>
+        <div class="e-logo">Notho <span style="color:white">Finance</span></div>
         <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
       </div>
 
-      <div class="e-hero" style="background:linear-gradient(135deg,#FFF6DC,#FFFBEF)">
+      <div class="e-hero" style="background:linear-gradient(135deg,#FDF3E0,#FFFBEF)">
         <div class="streak-badge">🔥 {{streak}}-day streak in danger</div>
         <h1 class="e-hero-title" style="color:#92400E">Don't let your streak slip, {{first_name}}.</h1>
         <p class="e-hero-sub" style="color:#B45309">
@@ -741,7 +741,7 @@
         <div class="e-h2">📊 Here's where you are</div>
         <div class="e-stats">
           <div class="e-stat-box">
-            <div class="e-stat-val" style="color:#FFB612">{{streak}}</div>
+            <div class="e-stat-val" style="color:#EFB343">{{streak}}</div>
             <div class="e-stat-lbl">Day Streak</div>
           </div>
           <div class="e-stat-box">
@@ -771,7 +771,7 @@
       <div class="e-footer">
         <p>
           <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
-          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+          © 2025 Notho · Built for South Africa 🇿🇦
         </p>
       </div>
 
@@ -808,7 +808,7 @@
     <div class="email-body">
 
       <div class="e-header">
-        <div class="e-logo">Fundi <span>Finance</span></div>
+        <div class="e-logo">Notho <span>Finance</span></div>
         <div class="e-logo-sub">Master Your Money · fundiapp.co.za</div>
       </div>
 
@@ -816,7 +816,7 @@
         <div class="e-hero-emoji">🎓</div>
         <h1 class="e-hero-title">2 weeks in. You're not the same person who signed up.</h1>
         <p class="e-hero-sub">
-          In 14 days, Fundi Finance users learn things that take most South Africans decades to figure out — or never do. Here's a snapshot of what's changed.
+          In 14 days, Notho users learn things that take most South Africans decades to figure out — or never do. Here's a snapshot of what's changed.
         </p>
       </div>
 
@@ -838,15 +838,15 @@
         </div>
 
         <div class="e-highlight">
-          <p>🏆 You're in the <strong>top {{percentile}}%</strong> of all Fundi Finance users this week. That's real progress.</p>
+          <p>🏆 You're in the <strong>top {{percentile}}%</strong> of all Notho users this week. That's real progress.</p>
         </div>
       </div>
 
       <div class="e-content">
         <div class="e-h2">💬 Share what you've learned</div>
-        <p class="e-p">Every person you bring to Fundi Finance is one more South African who breaks the cycle. Share your progress — it takes 10 seconds.</p>
+        <p class="e-p">Every person you bring to Notho is one more South African who breaks the cycle. Share your progress — it takes 10 seconds.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-          <a href="https://wa.me/?text=I've been learning about money on Fundi Finance 🎓 It's free and built for South Africans. Check it out 👉 fundiapp.co.za" class="e-btn" style="background:#25D366;font-size:13px;padding:12px 20px">Share on WhatsApp</a>
+          <a href="https://wa.me/?text=I've been learning about money on Notho 🎓 It's free and built for South Africans. Check it out 👉 fundiapp.co.za" class="e-btn" style="background:#25D366;font-size:13px;padding:12px 20px">Share on WhatsApp</a>
           <a href="https://twitter.com/intent/tweet?text=I just completed {{lessons}} lessons on @fundiapp! South African financial education, free and gamified 🎓🔥 fundiapp.co.za" class="e-btn" style="background:#1DA1F2;font-size:13px;padding:12px 20px">Share on X</a>
         </div>
       </div>
@@ -859,7 +859,7 @@
       <div class="e-footer">
         <p>
           <a href="https://fundiapp.co.za">fundiapp.co.za</a> · <a href="#">Unsubscribe</a> · <a href="#">Privacy</a><br>
-          © 2025 Fundi Finance · Built for South Africa 🇿🇦
+          © 2025 Notho · Built for South Africa 🇿🇦
         </p>
       </div>
 
@@ -879,7 +879,7 @@
 
 
 <div style="text-align:center;padding:20px 0 60px;color:#222;font-size:12px">
-  fundiapp.co.za · Fundi Finance Email System 2025 · Built with ♥ for South Africa<br>
+  fundiapp.co.za · Notho Email System 2025 · Built with ♥ for South Africa<br>
   Trigger logic via Supabase Edge Functions + Resend / SendGrid
 </div>
 

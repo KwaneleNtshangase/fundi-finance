@@ -47,7 +47,7 @@ export function ServiceWorkerRegistration() {
         borderRadius: 999,
         border: "1px solid rgba(0,122,77,0.35)",
         background: "var(--color-surface, #fff)",
-        color: "var(--color-primary, #007A4D)",
+        color: "var(--color-primary, #007A85)",
         fontWeight: 700,
         fontSize: 13,
         boxShadow: "0 4px 20px rgba(0,0,0,0.15)",

@@ -14,7 +14,7 @@
 import { useEffect, useState } from "react";
 import { ensurePushSubscription, pushSupported } from "@/lib/push/subscribe";
 
-const SNOOZE_KEY = "fundi-notif-prompt-snoozed-until";
+const SNOOZE_KEY = "notho-notif-prompt-snoozed-until";
 const SNOOZE_DAYS = 14;
 
 export function NotificationOptIn() {

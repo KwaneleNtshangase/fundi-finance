@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { CheckCircle2 } from "@/components/icons/FundiIcons";
+import { CheckCircle2 } from "@/components/icons/NothoIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { assignChallengesForUser, lookupChallenge, rerollChallenge } from "@/lib/challenges";
 import { sastToday, sastSundayDate } from "@/lib/dates";
@@ -112,12 +112,12 @@ export function DailyChallenges() {
           {Math.min(p.current, p.target)}/{p.target}
         </div>
         {done && (
-          <div style={{ position: "absolute", right: 10, bottom: 8, fontSize: 12, color: "#007A4D", fontWeight: 800, display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ position: "absolute", right: 10, bottom: 8, fontSize: 12, color: "#007A85", fontWeight: 800, display: "flex", alignItems: "center", gap: 4 }}>
             <CheckCircle2 size={14} /> Done
           </div>
         )}
         {xpPop?.id === row.id && (
-          <div style={{ position: "absolute", right: 12, top: -10, background: "#007A4D", color: "#fff", borderRadius: 999, fontSize: 11, fontWeight: 800, padding: "4px 8px" }}>
+          <div style={{ position: "absolute", right: 12, top: -10, background: "#007A85", color: "#fff", borderRadius: 999, fontSize: 11, fontWeight: 800, padding: "4px 8px" }}>
             +{xpPop.xp} XP
           </div>
         )}

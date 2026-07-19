@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { Brain, CheckCircle2, X } from "@/components/icons/FundiIcons";
+import { Brain, CheckCircle2, X } from "@/components/icons/NothoIcons";
 import { CONCEPTS } from "@/data/concepts";
 import { applyReview, getDueCards, saveMastery } from "@/lib/spaced-repetition";
 import type { MasteryRecord } from "@/lib/spaced-repetition";

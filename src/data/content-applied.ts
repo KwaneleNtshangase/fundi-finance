@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - APPLIED DECISION LESSONS  (content-applied.ts)
+// NOTHO - APPLIED DECISION LESSONS  (content-applied.ts)
 //
 // Purpose: address the "definition ceiling" problem.
 // Every lesson here is a real South African financial decision scenario.

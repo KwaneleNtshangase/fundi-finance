@@ -7,8 +7,8 @@ import {
   ArrowLeft,
   CheckCircle2,
   Lock,
-} from "@/components/icons/FundiIcons";
-import { FundiLearn } from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
+import { NothoLearn } from "@/components/icons/NothoIcons";
 import type { Course } from "@/data/content";
 import {
   CourseIcon,
@@ -99,7 +99,7 @@ export function CourseView({
 
                 let nodeClass = "lesson-node";
                 let icon: ReactNode = (
-                  <FundiLearn size={28} className="text-current" />
+                  <NothoLearn size={28} className="text-current" />
                 );
 
                 if (state === "completed") {
@@ -140,9 +140,9 @@ export function CourseView({
                       onClick={handleClick}
                       style={{
                         cursor: state === "playable" || state === "completed" ? "pointer" : "default",
-                        background: state === "completed" ? "#007A4D" :
+                        background: state === "completed" ? "#007A85" :
                                     state === "playable" ? colour.bg : undefined,
-                        borderColor: state === "completed" ? "#007A4D" :
+                        borderColor: state === "completed" ? "#007A85" :
                                      state === "playable" ? colour.accent : undefined,
                         color: state === "completed" ? "white" :
                                state === "playable" ? colour.accent : undefined,

@@ -231,7 +231,7 @@ const SLIDER_CSS = `
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #007A4D;
+  background: #007A85;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0,122,77,0.3);
 }
@@ -240,7 +240,7 @@ const SLIDER_CSS = `
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #007A4D;
+  background: #007A85;
   cursor: pointer;
   border: none;
 }
@@ -265,7 +265,7 @@ const SLIDER_CSS = `
 
 .slider-number-input:focus {
   outline: none;
-  border-color: #007A4D;
+  border-color: #007A85;
   box-shadow: 0 0 0 2px rgba(0,122,77,0.15);
 }
 `;

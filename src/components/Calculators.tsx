@@ -22,7 +22,7 @@ import {
   Target,
   TrendingUp,
   Wallet,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 import { analytics } from "@/lib/analytics";
 import { supabase } from "@/lib/supabaseClient";
 import { sastToday } from "@/lib/dates";
@@ -257,7 +257,7 @@ export function CalculatorView() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
-      localStorage.setItem(`fundi-calc-visited-${sastToday()}`, "1");
+      localStorage.setItem(`notho-calc-visited-${sastToday()}`, "1");
     } catch { /* best-effort */ }
     supabase.auth
       .getUser()
@@ -290,7 +290,7 @@ export function CalculatorView() {
   // Load user's previously saved projection as default inputs
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const saved = localStorage.getItem("fundi-calc-saved");
+    const saved = localStorage.getItem("notho-calc-saved");
     if (saved) {
       try {
         const parsed = JSON.parse(saved) as Partial<CalcInputs>;
@@ -351,7 +351,7 @@ export function CalculatorView() {
 
   const handlePinProjection = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("fundi-calc-saved", JSON.stringify(inputsA));
+      localStorage.setItem("notho-calc-saved", JSON.stringify(inputsA));
       setProjectionSaved(true);
     }
   };
@@ -600,7 +600,7 @@ export function CalculatorView() {
               data={{
                 type: "calculator",
                 headline: `${solveResult.value} - ${solveResult.label.toLowerCase()}`,
-                sub: solveResult.sub ?? `Saving R${formatWithSpaces(inputsA.monthly)}/month at ${inputsA.rate}% p.a. - calculated on Fundi Finance`,
+                sub: solveResult.sub ?? `Saving R${formatWithSpaces(inputsA.monthly)}/month at ${inputsA.rate}% p.a. - calculated on Notho`,
               }}
               label="Share this result"
             />
@@ -620,7 +620,7 @@ export function CalculatorView() {
               data={{
                 type: "calculator",
                 headline: `My R${formatWithSpaces(inputsA.monthly)}/month investment could be worth ${formatZAR(finalA.value)} in ${inputsA.years} years`,
-                sub: `At ${inputsA.rate}% p.a. · R${formatWithSpaces(finalA.interest)} in interest earned · Calculated on Fundi Finance`,
+                sub: `At ${inputsA.rate}% p.a. · R${formatWithSpaces(finalA.interest)} in interest earned · Calculated on Notho`,
               }}
               label="Share this calculation"
             />
@@ -697,7 +697,7 @@ export function CalculatorView() {
                 headline: calcStartYearB > 0
                   ? `Starting ${calcStartYearB} yrs earlier adds ${formatZAR(Math.abs(finalA.value - finalB.value))} to your wealth`
                   : `Investment A: ${formatZAR(finalA.value)} vs Investment B: ${formatZAR(finalB.value)}`,
-                sub: `At ${calcA.rate}% vs ${calcB.rate}% p.a. · Calculated on Fundi Finance`,
+                sub: `At ${calcA.rate}% vs ${calcB.rate}% p.a. · Calculated on Notho`,
               }}
               label="Share this comparison"
             />
@@ -722,12 +722,12 @@ export function CalculatorView() {
               {mode === "single" ? (
                 <>
                   <Line type="monotone" dataKey="Portfolio Value" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} connectNulls={false} />
-                  <Line type="monotone" dataKey="Total Contributions" stroke="#FFB612" strokeWidth={2} dot={false} strokeDasharray="5 5" connectNulls={false} />
+                  <Line type="monotone" dataKey="Total Contributions" stroke="#EFB343" strokeWidth={2} dot={false} strokeDasharray="5 5" connectNulls={false} />
                 </>
               ) : (
                 <>
                   <Line type="monotone" dataKey="Investment A" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} connectNulls={false} />
-                  <Line type="monotone" dataKey="Investment B" stroke="#FFB612" strokeWidth={2.5} dot={false} connectNulls={false} />
+                  <Line type="monotone" dataKey="Investment B" stroke="#EFB343" strokeWidth={2.5} dot={false} connectNulls={false} />
                 </>
               )}
             </LineChart>

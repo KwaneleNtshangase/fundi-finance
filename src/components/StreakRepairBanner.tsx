@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { sastToday } from "@/lib/dates";
 
 const COST = 200;
-const DISMISS_KEY = "fundi-streak-repair-dismissed";
+const DISMISS_KEY = "notho-streak-repair-dismissed";
 
 function daysAgo(sastDay: string, n: number): string {
   const d = new Date(`${sastDay}T12:00:00Z`);
@@ -112,7 +112,7 @@ export function StreakRepairBanner() {
         maxWidth: 460,
         margin: "0 auto",
         background: "var(--color-surface, #fff)",
-        border: "2px solid #FFB612",
+        border: "2px solid #EFB343",
         borderRadius: 14,
         padding: "14px 16px",
         boxShadow: "0 8px 24px rgba(0, 0, 0, 0.22)",

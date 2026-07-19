@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
 
   const payload = {
     exportedAt: new Date().toISOString(),
-    note: "This is all the personal data Fundi Finance holds about your account.",
+    note: "This is all the personal data Notho holds about your account.",
     account: { id: user.id, email: user.email ?? null, createdAt: user.created_at ?? null },
     profile: profiles?.[0] ?? null,
     progress: progress?.[0] ?? null,
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
   return new NextResponse(JSON.stringify(payload, null, 2), {
     headers: {
       "Content-Type": "application/json",
-      "Content-Disposition": `attachment; filename="fundi-finance-my-data.json"`,
+      "Content-Disposition": `attachment; filename="notho-my-data.json"`,
       "Cache-Control": "no-store",
     },
   });

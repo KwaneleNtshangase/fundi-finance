@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - RE5 EXAM PREP COURSE
+// NOTHO - RE5 EXAM PREP COURSE
 //
 // A dedicated preparation course for the FSCA Regulatory Examination Level 1:
 // Representatives (RE5), taken by financial advisors and representatives under

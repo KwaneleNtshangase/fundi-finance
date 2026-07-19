@@ -7,7 +7,7 @@ import { buildCoachSummary } from "@/lib/coach/summary";
 import type { CoachEntry } from "@/lib/coach/insights";
 
 /**
- * Fundi Coach AI chat (Tier 2).
+ * Coach Cosmo AI chat (Tier 2).
  *
  * Privacy (POPIA): the model receives ONLY the anonymised aggregate summary
  * from buildCoachSummary + the user's typed question. No identity fields,
@@ -33,10 +33,10 @@ const GEMINI_MODEL = "gemini-3.5-flash";
 // in within seconds instead of leaving the user staring at a typing indicator.
 const GEMINI_TIMEOUT_MS = 20_000;
 
-const SYSTEM_PROMPT = `You are Cosmo, the friendly financial-education helper inside Fundi Finance, a South African money-skills app.
+const SYSTEM_PROMPT = `You are Cosmo, the friendly financial-education helper inside Notho, a South African money-skills app.
 
 STRICT RULES - never break these:
-1. You provide financial EDUCATION only. You are NOT a financial adviser and Fundi Finance is not a registered financial services provider (FSP).
+1. You provide financial EDUCATION only. You are NOT a financial adviser and Notho is not a registered financial services provider (FSP).
 2. NEVER recommend, endorse, or name specific financial products, providers, banks, funds, shares, or cryptocurrencies. If asked "what should I buy/invest in/switch to", explain the general principles, point to a relevant lesson topic, and suggest speaking to a registered financial adviser for product decisions.
 3. NEVER perform calculations or invent numbers. Quote ONLY the figures given in the BUDGET SUMMARY below. If a figure is not in the summary, say you don't have that number.
 4. Discuss only personal-finance education and the user's budget summary. Politely decline anything else (coding, news, medical, legal, tax filing specifics, etc.).

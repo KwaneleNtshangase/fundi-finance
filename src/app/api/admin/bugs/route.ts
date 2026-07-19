@@ -142,18 +142,18 @@ export async function POST(req: NextRequest) {
         method: "POST",
         headers: { Authorization: `Bearer ${resendKey}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          from: "Fundi Finance <hello@fundiapp.co.za>",
+          from: "Notho <hello@fundiapp.co.za>",
           to: [email],
           subject: "Good news - we've fixed that for you",
           html: `
             <div style="font-family:Arial,sans-serif;line-height:1.7;color:#1f2937;max-width:560px">
               <p>${greeting}</p>
-              <p>A little while back something on Fundi didn't work the way it should have while you were using it. We spotted it, and we wanted you to be the first to know: <b>it's now fixed.</b></p>
+              <p>A little while back something on Notho didn't work the way it should have while you were using it. We spotted it, and we wanted you to be the first to know: <b>it's now fixed.</b></p>
               <p>${fixedLine}</p>
-              <p>You're all set - just carry on where you left off. Small things like this matter to us, and keeping Fundi smooth and reliable for you is exactly what we're here for.</p>
-              <p style="margin-top:20px">Thanks for being part of Fundi 💚</p>
-              <p style="color:#6b7280">- The Fundi Finance team</p>
-              <p style="margin-top:24px"><a href="https://fundiapp.co.za" style="background:#007A4D;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:700;display:inline-block">Open Fundi</a></p>
+              <p>You're all set - just carry on where you left off. Small things like this matter to us, and keeping Notho smooth and reliable for you is exactly what we're here for.</p>
+              <p style="margin-top:20px">Thanks for being part of Notho 💚</p>
+              <p style="color:#6b7280">- The Notho team</p>
+              <p style="margin-top:24px"><a href="https://fundiapp.co.za" style="background:#007A85;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-weight:700;display:inline-block">Open Notho</a></p>
             </div>`,
         }),
       });

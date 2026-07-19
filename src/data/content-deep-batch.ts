@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════════════════
-// FUNDI FINANCE - DEEP CONTENT BATCH
+// NOTHO - DEEP CONTENT BATCH
 // Topics: Repo Rate | Behavioral Finance | Bonds | Credit Score | Portfolio Construction
 //
 // HOW TO MERGE:

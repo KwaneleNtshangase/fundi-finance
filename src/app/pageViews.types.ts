@@ -170,20 +170,20 @@ export function generateShareText(
     const t = data.lessonTitle ?? "a lesson";
     const xpPart = data.xp ? ` (+${data.xp} XP)` : "";
     // Curiosity hook: "what would YOU score?"
-    return `I just completed "${t}"${xpPart} on Fundi Finance 🇿🇦\n\nFree South African money lessons, no jargon, 5 min a day. How would you score on this topic?\n👇 fundiapp.co.za`;
+    return `I just completed "${t}"${xpPart} on Notho 🇿🇦\n\nFree South African money lessons, no jargon, 5 min a day. How would you score on this topic?\n👇 fundiapp.co.za`;
   }
   if (type === "badge") {
     const n = data.badgeName ?? "a";
-    return `I just unlocked the "${n}" badge on Fundi Finance 🏅\n\nBuilding real SA financial knowledge. Quiz: do you know the difference between CGT and income tax?\n👇 fundiapp.co.za`;
+    return `I just unlocked the "${n}" badge on Notho 🏅\n\nBuilding real SA financial knowledge. Quiz: do you know the difference between CGT and income tax?\n👇 fundiapp.co.za`;
   }
   if (type === "streak") {
     const d = data.streakDays ?? 0;
-    return `${d} days straight learning about money 🔥\n\nFundi Finance, free SA financial lessons. Most people can't answer 3 basic money questions. Can you?\n👇 fundiapp.co.za`;
+    return `${d} days straight learning about money 🔥\n\nNotho, free SA financial lessons. Most people can't answer 3 basic money questions. Can you?\n👇 fundiapp.co.za`;
   }
   if (type === "level") {
     const l = data.level ?? 1;
     const profile = data.investorProfile ? ` My investor profile: ${data.investorProfile}.` : "";
-    return `I just hit Level ${l} on Fundi Finance 🚀${profile}\n\nDo you know YOUR investor profile? Takes 2 min, most South Africans get it wrong.\n👇 fundiapp.co.za`;
+    return `I just hit Level ${l} on Notho 🚀${profile}\n\nDo you know YOUR investor profile? Takes 2 min, most South Africans get it wrong.\n👇 fundiapp.co.za`;
   }
   return "";
 }
@@ -210,7 +210,7 @@ import {
   PenLine,
   GraduationCap,
   BarChart2,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 
 export const ONBOARDING_GOAL_OPTIONS = [
   { id: "debt-free", label: "Get debt-free", Icon: CreditCard },
@@ -270,7 +270,7 @@ export const BUDGET_LESSON_BRIDGE: Record<string, { prompt: string; detail: stri
 
 export function playSound(type: "correct" | "incorrect" | "complete"): void {
   if (typeof window === "undefined") return;
-  if (localStorage.getItem("fundi-sound-enabled") === "false") return;
+  if (localStorage.getItem("notho-sound-enabled") === "false") return;
   try {
     const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
     const ctx = new Ctx();
@@ -309,11 +309,11 @@ export async function persistUserGoalToStorageAndSupabase(
   goalDescription?: string
 ): Promise<void> {
   if (typeof window === "undefined") return;
-  localStorage.setItem("fundi-user-goal", goalId);
+  localStorage.setItem("notho-user-goal", goalId);
   if (goalDescription !== undefined) {
-    localStorage.setItem("fundi-goal-description", goalDescription);
+    localStorage.setItem("notho-goal-description", goalDescription);
   }
-  localStorage.removeItem("fundi-goal-banner-dismissed");
+  localStorage.removeItem("notho-goal-banner-dismissed");
   const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const update: Record<string, unknown> = { user_id: user.id, goal: goalId };
@@ -324,8 +324,8 @@ export async function persistUserGoalToStorageAndSupabase(
 
 // Course accent colours, cycles through SA-themed palette
 export const COURSE_COLOURS = [
-  { bg: "#E8F5EE", accent: "#007A4D", light: "#C8EAD9" }, // green
-  { bg: "#FFF8E7", accent: "#FFB612", light: "#FFE9A0" }, // gold
+  { bg: "#E8F5EE", accent: "#007A85", light: "#C8EAD9" }, // green
+  { bg: "#FFF8E7", accent: "#EFB343", light: "#FFE9A0" }, // gold
   { bg: "#FFF0EF", accent: "#E03C31", light: "#FCCFCC" }, // red
   { bg: "#EEF4FF", accent: "#3B7DD8", light: "#C5D9F7" }, // blue
   { bg: "#F3EEFF", accent: "#7C4DFF", light: "#D9C8FF" }, // purple

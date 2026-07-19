@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Share2 } from "@/components/icons/FundiIcons";
+import { Share2 } from "@/components/icons/NothoIcons";
 import { analytics } from "@/lib/analytics";
 import { markSharedToday } from "@/lib/dailyChallengeFlags";
 import { generateShareText } from "@/app/pageViews.types";
@@ -66,13 +66,13 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
       ctx.fillStyle = "#22c55e";
       ctx.font = "bold 36px -apple-system, BlinkMacSystemFont, sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("FUNDI FINANCE", W / 2, 156);
+      ctx.fillText("NOTHO", W / 2, 156);
 
       if (data.type === "lesson") {
         // Big trophy icon area
         ctx.fillStyle = "rgba(255,182,18,0.12)";
         ctx.beginPath(); ctx.arc(W / 2, H * 0.35, 140, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#FFB612";
+        ctx.fillStyle = "#EFB343";
         ctx.font = "140px serif";
         ctx.textAlign = "center";
         ctx.fillText("🏆", W / 2, H * 0.35 + 52);
@@ -99,7 +99,7 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
         ctx.fillText(`+${data.xpEarned} XP earned`, W / 2, H * 0.54 + lines.length * 70 + 60);
 
         if (data.isPerfect) {
-          ctx.fillStyle = "#FFB612";
+          ctx.fillStyle = "#EFB343";
           ctx.font = `bold 38px -apple-system, BlinkMacSystemFont, sans-serif`;
           ctx.fillText("⭐ Perfect Score!", W / 2, H * 0.54 + lines.length * 70 + 120);
         }
@@ -174,17 +174,17 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
     try {
       const dataUrl = await generateShareCard(data);
       const blob = await (await fetch(dataUrl)).blob();
-      const file = new File([blob], "fundi-result.png", { type: "image/png" });
+      const file = new File([blob], "notho-result.png", { type: "image/png" });
 
       const text = data.type === "calculator"
-        ? `${data.headline} - calculated on Fundi Finance 📊 Try it free at fundiapp.co.za`
-        : `I just completed "${data.lessonTitle}" (+${data.xpEarned} XP) on Fundi Finance 🎓 fundiapp.co.za`;
+        ? `${data.headline} - calculated on Notho 📊 Try it free at fundiapp.co.za`
+        : `I just completed "${data.lessonTitle}" (+${data.xpEarned} XP) on Notho 🎓 fundiapp.co.za`;
 
       let shared = false;
       // Try native share with file
       if (!shared && navigator.canShare?.({ files: [file] })) {
         try {
-          await navigator.share({ files: [file], title: "Fundi Finance", text });
+          await navigator.share({ files: [file], title: "Notho", text });
           analytics.shareTriggered(data.type === "lesson" ? "lesson" : "badge", "native");
           shared = true;
         } catch { /* cancelled or blocked */ }
@@ -192,7 +192,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
       // Try native share without file
       if (!shared && navigator.share) {
         try {
-          await navigator.share({ title: "Fundi Finance", text, url: "https://fundiapp.co.za" });
+          await navigator.share({ title: "Notho", text, url: "https://fundiapp.co.za" });
           shared = true;
         } catch { /* cancelled */ }
       }
@@ -200,7 +200,7 @@ export function ShareResultButton({ data, label = "Share" }: { data: ShareCardDa
       if (!shared) {
         const a = document.createElement("a");
         a.href = dataUrl;
-        a.download = "fundi-result.png";
+        a.download = "notho-result.png";
         a.click();
         shared = true;
       }

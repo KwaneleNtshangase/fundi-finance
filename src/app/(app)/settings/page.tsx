@@ -1,11 +1,11 @@
 "use client";
 
 import { SettingsView } from "@/components/SettingsView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import { useProfileHandlers } from "@/hooks/useProfileHandlers";
 
 export default function SettingsPage() {
-  const { userData, setDailyGoal, resetProgress, userSettings } = useFundi();
+  const { userData, setDailyGoal, resetProgress, userSettings } = useNotho();
   const { handleProfileSignOut, handleDownloadData, handleDeleteAccount } = useProfileHandlers();
 
   return (

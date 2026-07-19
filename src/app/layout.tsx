@@ -25,26 +25,30 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "Fundi Finance - Master Your Money",
+  title: "Notho - Master Your Money",
   description: "Interactive personal finance learning app built for South Africa.",
   manifest: "/manifest.json",
   metadataBase: new URL("https://fundiapp.co.za"),
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Fundi Finance",
+    title: "Notho",
   },
   icons: {
+    // Square mark for icon slots. The wide lockup used to sit here, which
+    // meant browsers and iOS centre-cropped it down to a sliver of the "N".
     icon: [
-      { url: "/fundi-logo.png", type: "image/png" },
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/notho-icon-192.png", type: "image/png", sizes: "192x192" },
+      { url: "/notho-icon-512.png", type: "image/png", sizes: "512x512" },
     ],
-    shortcut: "/fundi-logo.png",
-    apple: "/fundi-logo.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   openGraph: {
-    images: ["/fundi-logo.png"],
-    title: "Fundi Finance",
+    // OG wants the wide lockup, not the square mark.
+    images: ["/notho-logo.png"],
+    title: "Notho",
     description: "Learn to manage money the South African way",
   },
   other: {

@@ -148,7 +148,7 @@ serve(async (req) => {
 
       const tips = [
         "Time to grow your money knowledge! A quick lesson awaits.",
-        "Your daily Fundi lesson is ready. Keep your streak alive!",
+        "Your daily Notho lesson is ready. Keep your streak alive!",
         "5 minutes to smarter finances. Start your lesson now!",
         "Don't break your streak! Tap to continue learning.",
         "Financial freedom starts with knowledge. Let's learn today!",
@@ -159,7 +159,7 @@ serve(async (req) => {
       for (const sub of subs) {
         const result = await sendPush(
           { endpoint: sub.endpoint, p256dh: sub.p256dh, auth: sub.auth },
-          { title: "Fundi Finance", body: tip, url: "/" }
+          { title: "Notho", body: tip, url: "/" }
         );
         if (result.ok) sent++;
       }

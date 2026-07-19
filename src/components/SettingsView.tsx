@@ -18,7 +18,7 @@ import {
   Target,
   Trash2,
   Zap,
-} from "@/components/icons/FundiIcons";
+} from "@/components/icons/NothoIcons";
 import { LegalPage, FeedbackModal } from "@/components/ProfileView";
 import { isAdminEmail } from "@/lib/admin";
 
@@ -375,7 +375,7 @@ export function SettingsView({
             <AlertTriangle size={40} style={{ color: "#E03C31", marginBottom: 12, display: "block", margin: "0 auto 12px" }} />
             <div style={{ fontSize: 18, fontWeight: 800, marginBottom: 8, color: "var(--color-text-primary)" }}>Delete All My Data?</div>
             <p style={{ color: "var(--color-text-secondary)", fontSize: 14, marginBottom: 20, lineHeight: 1.5 }}>
-              This permanently deletes your account, XP, progress, and all personal data from Fundi Finance. This cannot be undone.
+              This permanently deletes your account, XP, progress, and all personal data from Notho. This cannot be undone.
             </p>
             <button type="button" disabled={deleting} onClick={async () => { setDeleting(true); try { if (onDeleteAccount) await onDeleteAccount(); } finally { setDeleting(false); } }}
               style={{ width: "100%", padding: "12px", borderRadius: 12, border: "none", background: "#E03C31", color: "#fff", fontWeight: 700, fontSize: 15, cursor: deleting ? "not-allowed" : "pointer", opacity: deleting ? 0.6 : 1, marginBottom: 10 }}>

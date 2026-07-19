@@ -3,7 +3,7 @@
 import React, { use } from "react";
 import { LessonView } from "@/components/views/LessonView";
 import { LessonSummaryView } from "@/components/views/LessonSummaryView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import { getLessonTitle, getNextLesson } from "@/app/pageViews.types";
 import { analytics } from "@/lib/analytics";
 import { CONTENT_DATA } from "@/data/content";
@@ -29,7 +29,7 @@ function readSavedMidLesson(
 ): SavedMidLesson | null {
   if (typeof window === "undefined" || !userId) return null;
   try {
-    const raw = localStorage.getItem("fundi-lesson-progress");
+    const raw = localStorage.getItem("notho-lesson-progress");
     if (!raw) return null;
     const p = JSON.parse(raw) as SavedMidLesson;
     if (p.userId !== userId || p.courseId !== courseId || p.lessonId !== lessonId) return null;
@@ -52,7 +52,7 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     isLessonCompleted,
     lessonSummary,
     setLessonSummary,
-  } = useFundi();
+  } = useNotho();
 
   const lessonStartTimeRef = React.useRef(Date.now());
   const isFinalizingRef = React.useRef(false);
@@ -155,7 +155,7 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     );
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem("fundi-lesson-progress");
+      localStorage.removeItem("notho-lesson-progress");
     }
 
     if (alreadyCompleted) {
@@ -282,7 +282,7 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
       maxHearts={5}
       goBack={() => setRoute({ name: "course", courseId })}
       courseId={courseId}
-      courseAccent="#007A4D"
+      courseAccent="#007A85"
       nextLessonTitle={nextTitle}
       lessonTitle={getLessonTitle(courseId, lessonId) || `${courseId} ${lessonId}`}
       lessonStartTimeRef={lessonStartTimeRef}

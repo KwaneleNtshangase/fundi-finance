@@ -36,7 +36,7 @@ export function LessonSummaryView({
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <div style={{ marginBottom: 8, display: "flex", justifyContent: "center" }}>
           {lessonSummary.isPerfect
-            ? <Trophy size={64} style={{ color: "#FFB612" }} />
+            ? <Trophy size={64} style={{ color: "#EFB343" }} />
             : <Sparkles size={64} style={{ color: "#7C3AED" }} />}
         </div>
         <div style={{ fontSize: 28, fontWeight: 900, color: "#1A7C4E", marginBottom: 4 }}>
@@ -54,7 +54,7 @@ export function LessonSummaryView({
       }}>
         {/* XP Earned */}
         <div style={{
-          background: "#FFF8E7", border: "2px solid #FFB612",
+          background: "#FFF8E7", border: "2px solid #EFB343",
           borderRadius: 16, padding: "18px 12px", textAlign: "center",
         }}>
           <div style={{ fontSize: 30, marginBottom: 4 }}>⭐</div>

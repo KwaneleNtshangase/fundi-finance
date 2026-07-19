@@ -153,7 +153,7 @@ CREATE OR REPLACE FUNCTION public.claim_weekly_challenge(
   p_week_key     TEXT,               -- Sunday anchor 'YYYY-MM-DD'
   p_challenge_id TEXT,
   p_xp           INTEGER,
-  p_xp_week_key  TEXT DEFAULT NULL   -- 'fundi-week-YYYY-MM-DD' ledger key
+  p_xp_week_key  TEXT DEFAULT NULL   -- 'notho-week-YYYY-MM-DD' ledger key
 )
 RETURNS JSONB
 LANGUAGE plpgsql

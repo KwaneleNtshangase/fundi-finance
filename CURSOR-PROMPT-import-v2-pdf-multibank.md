@@ -4,7 +4,7 @@
 
 ---
 
-You are extending **Fundi Finance** (Next.js + Supabase + Vercel; ZAR; SAST/UTC+2). Phases 1–3 (CSV/OFX import → categorise → editable preview → commit; PDF budget report) are merged and in production. Reuse that pipeline; do not rebuild it. Production app, live data — accuracy, privacy (POPIA), and not breaking existing features are non-negotiable.
+You are extending **Notho** (Next.js + Supabase + Vercel; ZAR; SAST/UTC+2). Phases 1–3 (CSV/OFX import → categorise → editable preview → commit; PDF budget report) are merged and in production. Reuse that pipeline; do not rebuild it. Production app, live data — accuracy, privacy (POPIA), and not breaking existing features are non-negotiable.
 
 ## Orient first (read, don't rebuild)
 - `src/lib/budget/parsers/**`, `src/lib/budget/dedupe.ts`, `reconciliation.ts`, `types.ts` — the existing parse pipeline + `NormalizedTxn`.

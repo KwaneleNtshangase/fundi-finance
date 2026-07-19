@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
     admin
       .from("profiles")
       // NB: profiles has NO display_name column - selecting it made this whole
-      // query error (42703) and silently produced the "Fundi user" fallback.
+      // query error (42703) and silently produced the "Notho user" fallback.
       .select("full_name, username")
       .eq("user_id", user.id)
       .maybeSingle(),
@@ -162,9 +162,9 @@ export async function POST(req: NextRequest) {
     firstNameOf(profile?.full_name) ||
     profile?.username?.trim() ||
     progress?.display_name?.trim() ||
-    "Fundi user";
+    "Notho user";
 
-  // Fetch the Fundi logo (public asset) and inline it as a data URI so the PDF
+  // Fetch the Notho logo (public asset) and inline it as a data URI so the PDF
   // is self-contained. Graceful: if it fails, the report renders without it.
   let logoDataUri: string | undefined;
   try {
@@ -288,7 +288,7 @@ export async function POST(req: NextRequest) {
   const reportDoc = <BudgetReportDocument model={model} logoDataUri={logoDataUri} />;
   try {
     const buffer = await renderToBuffer(reportDoc);
-    const filename = `fundi-budget-report-${periodStart}_${periodEnd}.pdf`;
+    const filename = `notho-budget-report-${periodStart}_${periodEnd}.pdf`;
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {

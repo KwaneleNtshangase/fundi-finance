@@ -1,12 +1,12 @@
 "use client";
 
 import { ProfileView } from "@/components/ProfileView";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import { useProfileHandlers } from "@/hooks/useProfileHandlers";
 import { CONTENT_DATA } from "@/data/content";
 
 export default function ProfilePage() {
-  const { userData, setRoute, dailyGoal, setDailyGoal, completedLessons, userSettings, isLessonCompleted, perfectLessons } = useFundi();
+  const { userData, setRoute, dailyGoal, setDailyGoal, completedLessons, userSettings, isLessonCompleted, perfectLessons } = useNotho();
   const { handleProfileSignOut, handleDownloadData, handleDeleteAccount } = useProfileHandlers();
 
   const getCourseBadgeIds = () => {
@@ -32,7 +32,7 @@ export default function ProfilePage() {
       perfectLessons={perfectLessons}
       calcSaved={userSettings.settings.calcSaved as any}
       onClearCalcSaved={() => {
-        localStorage.removeItem("fundi-calc-saved");
+        localStorage.removeItem("notho-calc-saved");
         void userSettings.setCalcSaved(null as any);
       }}
     />

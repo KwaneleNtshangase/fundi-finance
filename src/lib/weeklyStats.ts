@@ -38,7 +38,7 @@ export function emptyWeeklyStats(weekKey = sastSundayDate()): WeeklyStats {
 }
 
 function statsKey(userId: string): string {
-  return `fundi-weekly-stats-${userId}`;
+  return `notho-weekly-stats-${userId}`;
 }
 
 function sanitize(p: Partial<WeeklyStats> | null | undefined, weekKey: string): WeeklyStats {

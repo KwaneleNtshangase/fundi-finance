@@ -1,5 +1,5 @@
 /**
- * Fundi Finance - SM-2 Spaced Repetition Engine
+ * Notho - SM-2 Spaced Repetition Engine
  *
  * Based on the SuperMemo SM-2 algorithm (Anki-style).
  *
@@ -28,7 +28,7 @@ export type MasteryRecord = {
  *  1 = wrong, remembered correct answer when shown
  *  0 = completely forgot
  *
- * In Fundi we map: correct answer → 4, wrong answer → 1
+ * In Notho we map: correct answer → 4, wrong answer → 1
  */
 export type ReviewQuality = 0 | 1 | 2 | 3 | 4 | 5;
 import { supabase } from "@/lib/supabaseClient";

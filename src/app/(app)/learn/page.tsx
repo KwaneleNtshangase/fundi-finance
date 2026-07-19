@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { LearnView } from "@/components/views/LearnView";
 import { CONTENT_DATA, Lesson } from "@/data/content";
-import { useFundi } from "@/context/FundiContext";
+import { useNotho } from "@/context/NothoContext";
 import { analytics } from "@/lib/analytics";
 import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
 
@@ -24,13 +24,13 @@ export default function LearnPage() {
     hearts,
     setShowNoHearts,
     setCurrentLessonState
-  } = useFundi();
+  } = useNotho();
 
   const [savedProgress, setSavedProgress] = useState<any>(null);
 
   useEffect(() => {
     if (typeof window === "undefined" || !userId) return;
-    const item = localStorage.getItem("fundi-lesson-progress");
+    const item = localStorage.getItem("notho-lesson-progress");
     if (item) {
       try {
         const parsed = JSON.parse(item);
@@ -42,7 +42,7 @@ export default function LearnPage() {
         } else if (parsed.userId === userId && !fresh) {
           // Stale save — clean it up so the resume card doesn't point at
           // a week-old position.
-          localStorage.removeItem("fundi-lesson-progress");
+          localStorage.removeItem("notho-lesson-progress");
         }
       } catch (e) {
         // ignore
@@ -88,7 +88,7 @@ export default function LearnPage() {
       });
       setRoute({ name: "lesson", courseId: progress.courseId, lessonId: progress.lessonId });
       setSavedProgress(null);
-      localStorage.removeItem("fundi-lesson-progress");
+      localStorage.removeItem("notho-lesson-progress");
     },
     [hearts, userId, setCurrentLessonState, setRoute, setShowNoHearts]
   );

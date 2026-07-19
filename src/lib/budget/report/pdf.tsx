@@ -22,7 +22,7 @@ import type {
   ReportModel,
 } from "./types";
 
-// Brand palette - from the Fundi Finance pitch deck (navy / gold / teal).
+// Brand palette - from the Notho pitch deck (navy / gold / teal).
 const C = {
   navy: "#15294B",
   navyDeep: "#0E1C38",
@@ -212,7 +212,7 @@ function PageHeader({ uri, title }: { uri?: string; title: string }) {
       <View fixed style={styles.header}>
         <View style={styles.headerBrand}>
           <Logo uri={uri} size={26} />
-          <Text style={styles.headerWordmark}>Fundi Finance</Text>
+          <Text style={styles.headerWordmark}>Notho</Text>
         </View>
         <Text style={styles.headerTitle}>{title}</Text>
       </View>
@@ -227,7 +227,7 @@ function Footer() {
       style={styles.footer}
       fixed
       render={({ pageNumber, totalPages }) =>
-        `Fundi Finance · Master Your Money   |   Educational insights based on your own data - not financial advice   |   Page ${pageNumber} of ${totalPages}`
+        `Notho · Master Your Money   |   Educational insights based on your own data - not financial advice   |   Page ${pageNumber} of ${totalPages}`
       }
     />
   );
@@ -709,7 +709,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
   const totalRecurringMonthly = model.recurringCommitments.reduce((s, r) => s + r.typicalCents, 0);
 
   return (
-    <Document title="Fundi Finance - Budget Report" author="Fundi Finance">
+    <Document title="Notho - Budget Report" author="Notho">
       {/* ── Page 1 - Cover: verdict first ─────────────────────────────── */}
       <Page size="A4" style={styles.cover}>
         {logoDataUri && (
@@ -724,7 +724,7 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
           <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 28 }}>
             <Logo uri={logoDataUri} size={42} />
             <View style={{ marginLeft: 10 }}>
-              <Text style={{ fontSize: 17, fontWeight: 700, color: C.white }}>Fundi Finance</Text>
+              <Text style={{ fontSize: 17, fontWeight: 700, color: C.white }}>Notho</Text>
               <Text style={{ fontSize: 9, color: C.teal, fontWeight: 700 }}>Master Your Money</Text>
             </View>
           </View>

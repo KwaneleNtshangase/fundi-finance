@@ -1,4 +1,4 @@
-# Fundi Finance — PostHog Analytics Playbook
+# Notho — PostHog Analytics Playbook
 
 Everything you need to know about what is tracked, how funnels are built in PostHog, and what decisions each metric should drive.
 
@@ -126,7 +126,7 @@ Steps:
 3. `budget_entry_added` or `savings_goal_set`
 
 **Target:** 25% of users who complete a budget lesson open the planner within 10 minutes.
-**Why this matters:** this is the single strongest predictor of whether Fundi is actually changing financial behaviour, not just teaching it. If this is low, the lesson-to-action bridge needs work: stronger CTA on the completion screen, or better placement of the budget tool.
+**Why this matters:** this is the single strongest predictor of whether Notho is actually changing financial behaviour, not just teaching it. If this is low, the lesson-to-action bridge needs work: stronger CTA on the completion screen, or better placement of the budget tool.
 
 ### Funnel 5: 30-Day Content Impact
 

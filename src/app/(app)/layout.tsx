@@ -1,28 +1,28 @@
 "use client";
 
 import React from "react";
-import { FundiProvider, useFundi } from "@/context/FundiContext";
+import { NothoProvider, useNotho } from "@/context/NothoContext";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { DesktopSidebar } from "@/components/DesktopSidebar";
 import {
-  FundiLearn,
-  FundiCalculate,
-  FundiBudget,
-  FundiGoals,
-  FundiProgress,
-  FundiProfile,
-} from "@/components/icons/FundiIcons";
+  NothoLearn,
+  NothoCalculate,
+  NothoBudget,
+  NothoGoals,
+  NothoProgress,
+  NothoProfile,
+} from "@/components/icons/NothoIcons";
 import { usePathname } from "next/navigation";
 import { StatsPanel } from "@/components/StatsPanel";
-import { FundiTopBar } from "@/components/FundiTopBar";
+import { NothoTopBar } from "@/components/NothoTopBar";
 
 function AppNavigation() {
-  const { setRoute } = useFundi();
+  const { setRoute } = useNotho();
   const pathname = usePathname() || "/";
   const is = (p: string) => pathname.startsWith(p);
 
   const handleNav = (name: string) => {
-    // We just dispatch setRoute; the FundiContext will do router.push()
+    // We just dispatch setRoute; the NothoContext will do router.push()
     setRoute({ name: name as never });
   };
 
@@ -32,7 +32,7 @@ function AppNavigation() {
         {
           key: "learn",
           label: "Learn",
-          icon: <FundiLearn size={24} className="text-current" />,
+          icon: <NothoLearn size={24} className="text-current" />,
           isActive: is("/learn") || is("/course") || is("/lesson") || pathname === "/",
           onClick: () => handleNav("learn"),
           order: "order-1",
@@ -40,7 +40,7 @@ function AppNavigation() {
         {
           key: "calculator",
           label: "Calculate",
-          icon: <FundiCalculate size={24} className="text-current" />,
+          icon: <NothoCalculate size={24} className="text-current" />,
           isActive: is("/calculator"),
           onClick: () => handleNav("calculator"),
           order: "order-2",
@@ -48,7 +48,7 @@ function AppNavigation() {
         {
           key: "budget",
           label: "Budget",
-          icon: <FundiBudget size={24} className="text-current" />,
+          icon: <NothoBudget size={24} className="text-current" />,
           isActive: is("/budget"),
           onClick: () => handleNav("budget"),
           order: "order-3",
@@ -56,7 +56,7 @@ function AppNavigation() {
         {
           key: "quests",
           label: "Goals",
-          icon: <FundiGoals size={24} className="text-current" />,
+          icon: <NothoGoals size={24} className="text-current" />,
           isActive: is("/quests"),
           onClick: () => handleNav("quests"),
           order: "order-4",
@@ -64,7 +64,7 @@ function AppNavigation() {
         {
           key: "progress",
           label: "Leaderboard",
-          icon: <FundiProgress size={24} className="text-current" />,
+          icon: <NothoProgress size={24} className="text-current" />,
           isActive: is("/leaderboard"),
           onClick: () => handleNav("leaderboard"),
           order: "order-5",
@@ -72,7 +72,7 @@ function AppNavigation() {
         {
           key: "profile",
           label: "Profile",
-          icon: <FundiProfile size={24} className="text-current" />,
+          icon: <NothoProfile size={24} className="text-current" />,
           isActive: is("/profile"),
           onClick: () => handleNav("profile"),
           order: "order-6",
@@ -90,7 +90,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   return (
-    <FundiProvider>
+    <NothoProvider>
       <AuthGate>
         <div className="app-container">
           <DesktopSidebar />
@@ -109,18 +109,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <NotificationOptIn />
         <StreakRepairBanner />
       </AuthGate>
-    </FundiProvider>
+    </NothoProvider>
   );
 }
 
 // Compact streak/XP/hearts bar for phones and tablets - the desktop StatsPanel
 // only exists at >=1200px, so without this mobile users never see their hearts.
 function MobileTopBarWrapper() {
-  const { userData, hearts, maxHearts, heartsRegenInfo, freezeCount, buyStreakFreeze, useFreeze } = useFundi();
+  const { userData, hearts, maxHearts, heartsRegenInfo, freezeCount, buyStreakFreeze, useFreeze } = useNotho();
   if (!userData) return null;
   return (
     <div className="mobile-top-bar">
-      <FundiTopBar
+      <NothoTopBar
         streak={userData.streak}
         xp={userData.xp}
         hearts={hearts}
@@ -137,7 +137,7 @@ function MobileTopBarWrapper() {
 }
 
 function StatsPanelWrapper() {
-  const { userData, hearts, maxHearts, freezeCount, buyStreakFreeze, useFreeze } = useFundi();
+  const { userData, hearts, maxHearts, freezeCount, buyStreakFreeze, useFreeze } = useNotho();
   
   if (!userData) return null;
 

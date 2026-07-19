@@ -36,10 +36,10 @@ const DEFAULT: UserSettings = {
 
 function readLocalSettings(): UserSettings {
   if (typeof window === "undefined") return DEFAULT;
-  const soundRaw = localStorage.getItem("fundi-sound-enabled");
-  const darkRaw = localStorage.getItem("fundi-dark-mode");
-  const goalRaw = localStorage.getItem("fundi-daily-goal");
-  const calcRaw = localStorage.getItem("fundi-calc-saved");
+  const soundRaw = localStorage.getItem("notho-sound-enabled");
+  const darkRaw = localStorage.getItem("notho-dark-mode");
+  const goalRaw = localStorage.getItem("notho-daily-goal");
+  const calcRaw = localStorage.getItem("notho-calc-saved");
 
   let darkMode: boolean | null = null;
   if (darkRaw === "true") darkMode = true;
@@ -60,17 +60,17 @@ function readLocalSettings(): UserSettings {
 
 function writeLocalSettings(s: UserSettings): void {
   if (typeof window === "undefined") return;
-  localStorage.setItem("fundi-sound-enabled", String(s.soundEnabled));
+  localStorage.setItem("notho-sound-enabled", String(s.soundEnabled));
   if (s.darkMode !== null) {
-    localStorage.setItem("fundi-dark-mode", String(s.darkMode));
+    localStorage.setItem("notho-dark-mode", String(s.darkMode));
   } else {
-    localStorage.removeItem("fundi-dark-mode");
+    localStorage.removeItem("notho-dark-mode");
   }
-  localStorage.setItem("fundi-daily-goal", String(s.dailyGoal));
+  localStorage.setItem("notho-daily-goal", String(s.dailyGoal));
   if (s.calcSaved !== null) {
-    localStorage.setItem("fundi-calc-saved", JSON.stringify(s.calcSaved));
+    localStorage.setItem("notho-calc-saved", JSON.stringify(s.calcSaved));
   } else {
-    localStorage.removeItem("fundi-calc-saved");
+    localStorage.removeItem("notho-calc-saved");
   }
 }
 

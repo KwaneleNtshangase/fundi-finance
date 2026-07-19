@@ -1,4 +1,4 @@
-# Fundi Finance — Auth & RLS Authorization Review
+# Notho — Auth & RLS Authorization Review
 
 **Date:** 10 July 2026
 **Scope:** Authentication helpers (`src/lib/apiAuth.ts`, `src/lib/admin.ts`), Supabase RLS policies and `SECURITY DEFINER` functions (`supabase/migrations/*`), and the client paths that call them (`StokvelDashboard.tsx`, `useProgress.ts`).

@@ -27,7 +27,7 @@ describe("computeLessonXpAward", () => {
 describe("replayXpStorageKey", () => {
   it("scopes replay gate per user, lesson, and SAST day", () => {
     expect(replayXpStorageKey("user-1", "course:lesson", "2026-05-19")).toBe(
-      "fundi-replay-xp-user-1-course:lesson-2026-05-19"
+      "notho-replay-xp-user-1-course:lesson-2026-05-19"
     );
     expect(replayXpStorageKey("user-1", "course:lesson", "2026-05-20")).not.toBe(
       replayXpStorageKey("user-1", "course:lesson", "2026-05-19")

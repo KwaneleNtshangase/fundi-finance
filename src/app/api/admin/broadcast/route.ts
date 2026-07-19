@@ -20,7 +20,7 @@ export const maxDuration = 60;
  */
 
 const DEFAULT_SCHEDULED_AT = "2026-07-13T06:00:00.000Z"; // 08:00 SAST (UTC+2)
-const FROM = "Fundi Finance <hello@fundiapp.co.za>";
+const FROM = "Notho <hello@fundiapp.co.za>";
 const SUBJECT = "New: build your budget by importing your bank statement";
 const MAX_RECIPIENTS = 20000;
 // Stable key for the current announcement's dedupe ledger. Start a genuinely new
@@ -92,7 +92,7 @@ async function recordSent(admin: SupabaseClient, campaign: string, emails: strin
 function buildHtml(): string {
   const row = (text: string) =>
     `<tr>
-        <td style="vertical-align:top;padding:0 10px 10px 0;color:#007A4D;font-size:15px;font-weight:800;line-height:1.5">&bull;</td>
+        <td style="vertical-align:top;padding:0 10px 10px 0;color:#007A85;font-size:15px;font-weight:800;line-height:1.5">&bull;</td>
         <td style="padding:0 0 10px;font-size:14px;color:#374151;line-height:1.5">${text}</td>
       </tr>`;
   return `
@@ -100,13 +100,13 @@ function buildHtml(): string {
     <tr><td align="center" style="padding:24px 12px">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px;max-width:600px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
         <!-- Header band -->
-        <tr><td style="background:#007A4D;border-radius:16px 16px 0 0;padding:30px 28px">
+        <tr><td style="background:#007A85;border-radius:16px 16px 0 0;padding:30px 28px">
           <table role="presentation" cellpadding="0" cellspacing="0"><tr>
             <td style="vertical-align:middle;padding-right:14px">
-              <img src="https://fundiapp.co.za/Fundi_Finance_logo.png" width="44" height="44" alt="Fundi Finance" style="display:block;border:0;outline:none;text-decoration:none" />
+              <img src="https://fundiapp.co.za/Notho_logo.png" width="44" height="44" alt="Notho" style="display:block;border:0;outline:none;text-decoration:none" />
             </td>
             <td style="vertical-align:middle">
-              <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Fundi Finance</div>
+              <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Notho</div>
               <div style="font-size:12px;color:#BFE6D4;letter-spacing:0.04em;padding-top:3px">Master Your Money</div>
             </td>
           </tr></table>
@@ -114,7 +114,7 @@ function buildHtml(): string {
         <!-- Body box -->
         <tr><td style="background:#ffffff;border-radius:0 0 16px 16px;padding:30px 26px;color:#111827;line-height:1.6">
           <h1 style="margin:0 0 14px;font-size:22px;line-height:1.3;color:#111827;font-weight:800">Budgeting just got a whole lot easier</h1>
-          <p style="margin:0 0 18px;font-size:15px;color:#374151">You no longer have to type in every transaction. Head to the <strong>Budget</strong> tab and import your bank statement, and Fundi builds your budget for you.</p>
+          <p style="margin:0 0 18px;font-size:15px;color:#374151">You no longer have to type in every transaction. Head to the <strong>Budget</strong> tab and import your bank statement, and Notho builds your budget for you.</p>
           <p style="margin:0 0 10px;font-size:15px;font-weight:700;color:#111827">What you can do now</p>
           <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px">
             ${row("Import a statement (PDF or CSV) from SA banks like Capitec, FNB and Standard Bank, and see your money sorted automatically.")}
@@ -122,13 +122,13 @@ function buildHtml(): string {
             ${row("Export a clean report to keep or share.")}
           </table>
           <div style="margin:0 0 6px">
-            <a href="https://fundiapp.co.za" style="display:inline-block;padding:13px 24px;background:#007A4D;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">Try it now</a>
+            <a href="https://fundiapp.co.za" style="display:inline-block;padding:13px 24px;background:#007A85;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:700;font-size:15px">Try it now</a>
           </div>
-          <p style="margin:24px 0 0;font-size:15px;color:#374151">Small steps, real progress.<br/>Team Fundi</p>
+          <p style="margin:24px 0 0;font-size:15px;color:#374151">Small steps, real progress.<br/>Team Notho</p>
         </td></tr>
         <!-- Footer -->
         <tr><td style="padding:16px 26px 0;text-align:center;font-size:11px;color:#9AA0A6;line-height:1.6">
-          You're getting this because you have a Fundi Finance account.<br/>
+          You're getting this because you have a Notho account.<br/>
           Educational content only, not financial advice.
         </td></tr>
       </table>
@@ -140,7 +140,7 @@ function buildText(): string {
   return [
     "Budgeting just got a whole lot easier.",
     "",
-    "You no longer have to type in every transaction. Head to the Budget tab and import your bank statement, and Fundi builds your budget for you.",
+    "You no longer have to type in every transaction. Head to the Budget tab and import your bank statement, and Notho builds your budget for you.",
     "",
     "What you can do now:",
     "- Import a statement (PDF or CSV) from SA banks like Capitec, FNB and Standard Bank, and see your money sorted automatically.",
@@ -149,9 +149,9 @@ function buildText(): string {
     "",
     "Try it now: https://fundiapp.co.za/?tab=budget",
     "",
-    "Small steps, real progress. Team Fundi.",
+    "Small steps, real progress. Team Notho.",
     "",
-    "You're receiving this because you have a Fundi Finance account. Educational content only, not financial advice.",
+    "You're receiving this because you have a Notho account. Educational content only, not financial advice.",
   ].join("\n");
 }
 

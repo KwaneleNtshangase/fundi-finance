@@ -1,4 +1,4 @@
-# Fundi Finance — Security Audit
+# Notho — Security Audit
 
 **Date:** 10 July 2026
 **Scope:** Full codebase — Next.js app (`src/`), API routes, Supabase migrations & edge functions, config, dependencies.

@@ -1,4 +1,4 @@
-// Supabase Edge Function — Fundi Finance Email
+// Supabase Edge Function — Notho Email
 // Handles four types:
 //   "welcome"    — sent immediately after onboarding (called from client)
 //   "d1-batch"   — hourly cron; users 20-48h since last lesson
@@ -10,9 +10,9 @@
 //   SUPABASE_SERVICE_ROLE_KEY — injected automatically by Supabase
 //
 // Resend Templates (edit at resend.com/templates):
-//   fundi-welcome         — a599bf54-7f17-4ed6-8f27-cdb058e0ae5d
-//   fundi-d1-retention    — 14f12c73-516c-4649-bf18-048c8891b535
-//   fundi-d7/d14/d30      — sent as inline HTML (no template ID required)
+//   notho-welcome         — a599bf54-7f17-4ed6-8f27-cdb058e0ae5d
+//   notho-d1-retention    — 14f12c73-516c-4649-bf18-048c8891b535
+//   notho-d7/d14/d30      — sent as inline HTML (no template ID required)
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
@@ -21,7 +21,7 @@ const RESEND_API_KEY            = Deno.env.get("RESEND_API_KEY")!;
 const SUPABASE_URL              = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-const FROM = "Fundi Finance <hello@fundiapp.co.za>";
+const FROM = "Notho <hello@fundiapp.co.za>";
 const APP_URL = "https://fundiapp.co.za";
 
 const WELCOME_TEMPLATE_ID  = "a599bf54-7f17-4ed6-8f27-cdb058e0ae5d";
@@ -85,7 +85,7 @@ function buildMilestoneEmail(v: MilestoneVars): string {
       <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
         <!-- Header -->
         <tr><td style="background:linear-gradient(135deg,#6B46C1,#9333EA);padding:32px 32px 28px;text-align:center">
-          <div style="color:rgba(255,255,255,0.75);font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Fundi Finance</div>
+          <div style="color:rgba(255,255,255,0.75);font-size:13px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Notho</div>
           ${v.streakBadgeHtml}
           <h1 style="color:#fff;font-size:28px;font-weight:800;margin:14px 0 8px;line-height:1.2">${v.headline}</h1>
           <p style="color:rgba(255,255,255,0.85);font-size:16px;margin:0;line-height:1.5">${v.subhead}</p>
@@ -107,8 +107,8 @@ function buildMilestoneEmail(v: MilestoneVars): string {
         </td></tr>
         <!-- Footer -->
         <tr><td style="background:#F9FAFB;padding:20px 32px;text-align:center;border-top:1px solid #F3F4F6">
-          <p style="color:#9CA3AF;font-size:13px;margin:0">Fundi Finance &middot; <a href="mailto:hello@fundiapp.co.za" style="color:#9CA3AF">hello@fundiapp.co.za</a></p>
-          <p style="color:#D1D5DB;font-size:12px;margin:6px 0 0">You are receiving this because you signed up for Fundi Finance.</p>
+          <p style="color:#9CA3AF;font-size:13px;margin:0">Notho &middot; <a href="mailto:hello@fundiapp.co.za" style="color:#9CA3AF">hello@fundiapp.co.za</a></p>
+          <p style="color:#D1D5DB;font-size:12px;margin:6px 0 0">You are receiving this because you signed up for Notho.</p>
         </td></tr>
       </table>
     </td></tr>
@@ -277,7 +277,7 @@ serve(async (req) => {
 
     const result = await sendViaTemplate(
       user.email,
-      `Welcome to Fundi Finance, ${username}!`,
+      `Welcome to Notho, ${username}!`,
       WELCOME_TEMPLATE_ID,
       { username, goal_emoji: g.emoji, goal_label: g.label, goal_line: g.line },
     );

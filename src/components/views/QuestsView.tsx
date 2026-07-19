@@ -25,7 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
+import { NothoLearn, NothoCalculate, NothoBudget, NothoGoals, NothoProgress, NothoProfile, NothoLeaderboard } from "@/components/icons/NothoIcons";
 import {
   LineChart,
   Line,
@@ -117,8 +117,8 @@ import { LeaderboardView, getLeaderboardWeekKey } from "@/components/Leaderboard
 import { StatsPanel } from "@/components/StatsPanel";
 import { AuthGate } from "@/components/AuthGate";
 import { ShareButton, ShareResultButton } from "@/components/ShareCard";
-import { FundiCharacter } from "@/components/FundiCharacter";
-import { FundiTopBar } from "@/components/FundiTopBar";
+import { CosmoCharacter } from "@/components/CosmoCharacter";
+import { NothoTopBar } from "@/components/NothoTopBar";
 import {
   OnboardingTooltips,
   hasSeenOnboardingTooltips,
@@ -152,7 +152,7 @@ import {
   markConceptReviewedToday,
   resetCorrectAnswerStreakToday,
 } from "@/lib/dailyChallengeFlags";
-import { useFundiState } from "@/hooks/useFundiState";
+import { useNothoState } from "@/hooks/useNothoState";
 import { SettingsView } from "@/components/SettingsView";
 import { StokvelDashboard } from "@/components/StokvelDashboard";
 import { GoalCard } from "@/components/GoalCard";

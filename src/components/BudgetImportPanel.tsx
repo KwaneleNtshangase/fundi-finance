@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ArrowLeftRight, CheckCircle2, FileUp, Plus, Shield, Upload, X } from "@/components/icons/FundiIcons";
+import { AlertTriangle, ArrowLeftRight, CheckCircle2, FileUp, Plus, Shield, Upload, X } from "@/components/icons/NothoIcons";
 import { supabase } from "@/lib/supabaseClient";
 import { formatRand } from "@/lib/viewHelpers";
 import type { PreviewTxn } from "@/lib/budget/types";
@@ -508,7 +508,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
         .insert({
           user_id: user.id,
           name,
-          color: "#007A4D",
+          color: "#007A85",
           icon_name: "MoreHorizontal",
           type: row.categorisation.type,
         })

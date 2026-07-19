@@ -32,7 +32,7 @@ if (playSoundIdx === -1) {
   if (braceIdx !== -1) {
     const SOUND_GUARD = `
   // Respect user sound preference
-  if (typeof window !== 'undefined' && localStorage.getItem('fundi-sound-enabled') === 'false') return;
+  if (typeof window !== 'undefined' && localStorage.getItem('notho-sound-enabled') === 'false') return;
 `;
     const afterBrace = src.slice(braceIdx + 1);
     if (!afterBrace.startsWith('\n  // Respect user sound preference')) {
@@ -68,23 +68,23 @@ const settingsViewOld = src.slice(settingsIdx, i);
 const NEW_SETTINGS_VIEW = `function SettingsView({ onSignOut }: { onSignOut?: () => void }) {
   const [soundEnabled, setSoundEnabled] = React.useState<boolean>(() => {
     if (typeof window === 'undefined') return true;
-    return localStorage.getItem('fundi-sound-enabled') !== 'false';
+    return localStorage.getItem('notho-sound-enabled') !== 'false';
   });
 
   const [dailyGoal, setDailyGoal] = React.useState<number>(() => {
     if (typeof window === 'undefined') return 50;
-    return parseInt(localStorage.getItem('fundi-daily-goal') || '50', 10);
+    return parseInt(localStorage.getItem('notho-daily-goal') || '50', 10);
   });
 
   const handleSoundToggle = () => {
     const next = !soundEnabled;
     setSoundEnabled(next);
-    localStorage.setItem('fundi-sound-enabled', String(next));
+    localStorage.setItem('notho-sound-enabled', String(next));
   };
 
   const handleGoalSelect = (goal: number) => {
     setDailyGoal(goal);
-    localStorage.setItem('fundi-daily-goal', String(goal));
+    localStorage.setItem('notho-daily-goal', String(goal));
   };
 
   const GOALS = [25, 50, 100, 200];
@@ -150,7 +150,7 @@ const NEW_SETTINGS_VIEW = `function SettingsView({ onSignOut }: { onSignOut?: ()
         <h2 className="settings-section-title">Support</h2>
 
         <a
-          href="mailto:kwanele@wealthwithkwanele.co.za?subject=Fundi%20Finance%20Support"
+          href="mailto:kwanele@wealthwithkwanele.co.za?subject=Notho%20Finance%20Support"
           className="settings-row settings-row--link"
         >
           <div className="settings-row-info">
@@ -197,7 +197,7 @@ const NEW_SETTINGS_VIEW = `function SettingsView({ onSignOut }: { onSignOut?: ()
 
         <div className="settings-about-card">
           <div className="settings-about-logo">
-            <span>Fundi</span>
+            <span>Notho</span>
             <span className="settings-about-logo-accent">Finance</span>
           </div>
           <p className="settings-about-desc">
@@ -308,7 +308,7 @@ const SETTINGS_CSS = `
 }
 
 .settings-icon {
-  color: #007A4D;
+  color: #007A85;
   flex-shrink: 0;
 }
 
@@ -345,7 +345,7 @@ const SETTINGS_CSS = `
 }
 
 .settings-toggle--on {
-  background: #007A4D;
+  background: #007A85;
 }
 
 .settings-toggle-knob {
@@ -384,8 +384,8 @@ const SETTINGS_CSS = `
 }
 
 .settings-goal-btn--active {
-  background: #007A4D;
-  border-color: #007A4D;
+  background: #007A85;
+  border-color: #007A85;
   color: #fff;
 }
 
@@ -401,12 +401,12 @@ const SETTINGS_CSS = `
 .settings-about-logo {
   font-size: 1.5rem;
   font-weight: 900;
-  color: #007A4D;
+  color: #007A85;
   margin-bottom: 0.75rem;
 }
 
 .settings-about-logo-accent {
-  color: #FFB612;
+  color: #EFB343;
   margin-left: 0.25rem;
 }
 
@@ -429,7 +429,7 @@ const SETTINGS_CSS = `
 }
 
 .settings-about-credit a {
-  color: #007A4D;
+  color: #007A85;
   text-decoration: none;
   font-weight: 600;
 }

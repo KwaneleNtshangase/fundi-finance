@@ -25,7 +25,7 @@ import type { MasteryRecord } from "@/lib/spaced-repetition";
 import { useProgress } from "@/hooks/useProgress";
 import { useUserSettings } from "@/hooks/useUserSettings";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
-import { FundiLearn, FundiCalculate, FundiBudget, FundiGoals, FundiProgress, FundiProfile, FundiLeaderboard } from "@/components/icons/FundiIcons";
+import { NothoLearn, NothoCalculate, NothoBudget, NothoGoals, NothoProgress, NothoProfile, NothoLeaderboard } from "@/components/icons/NothoIcons";
 import {
   LineChart,
   Line,
@@ -117,8 +117,8 @@ import { LeaderboardView, getLeaderboardWeekKey } from "@/components/Leaderboard
 import { StatsPanel } from "@/components/StatsPanel";
 import { AuthGate } from "@/components/AuthGate";
 import { ShareButton, ShareResultButton } from "@/components/ShareCard";
-import { FundiCharacter } from "@/components/FundiCharacter";
-import { FundiTopBar } from "@/components/FundiTopBar";
+import { CosmoCharacter } from "@/components/CosmoCharacter";
+import { NothoTopBar } from "@/components/NothoTopBar";
 import {
   OnboardingTooltips,
   hasSeenOnboardingTooltips,
@@ -152,7 +152,7 @@ import {
   markConceptReviewedToday,
   resetCorrectAnswerStreakToday,
 } from "@/lib/dailyChallengeFlags";
-import { useFundiState } from "@/hooks/useFundiState";
+import { useNothoState } from "@/hooks/useNothoState";
 import { SettingsView } from "@/components/SettingsView";
 
 function getDailyFact(): string {
@@ -248,7 +248,7 @@ export function getDailyChallenges(): typeof DAILY_CHALLENGE_POOL {
 
 export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; onXpClaimed?: (amount: number) => void }) {
   const today = sastToday();
-  const storageKey = `fundi-daily-challenges-${today}`;
+  const storageKey = `notho-daily-challenges-${today}`;
   const [claimed, setClaimed] = useState<Record<string, boolean>>({});
   const [conditions, setConditions] = useState<Record<string, boolean>>({});
   const challenges = React.useMemo(() => getDailyChallenges(), []);
@@ -256,25 +256,25 @@ export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; 
   // Reload conditions every 5 seconds so UI updates as user completes actions
   const refreshConditions = React.useCallback(() => {
     if (typeof window === "undefined") return;
-    const dailyLessons = parseInt(localStorage.getItem(`fundi-daily-lessons-${today}`) ?? "0");
-    const dailyXp      = parseInt(localStorage.getItem(`fundi-daily-xp-${today}`) ?? "0");
-    const dailyExpense = parseInt(localStorage.getItem(`fundi-expense-today-${today}`) ?? "0");
+    const dailyLessons = parseInt(localStorage.getItem(`notho-daily-lessons-${today}`) ?? "0");
+    const dailyXp      = parseInt(localStorage.getItem(`notho-daily-xp-${today}`) ?? "0");
+    const dailyExpense = parseInt(localStorage.getItem(`notho-expense-today-${today}`) ?? "0");
     setConditions({
       "complete-lesson":    dailyLessons >= 1,
       "log-expense":        dailyExpense >= 1,
-      "check-budget":       localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
+      "check-budget":       localStorage.getItem(`notho-budget-visited-${today}`) === "1",
       "earn-50xp":          dailyXp >= 50,
       "earn-75xp":          dailyXp >= 75,
       "earn-100xp":         dailyXp >= 100,
-      "perfect-quiz":       parseInt(localStorage.getItem(`fundi-perfect-today-${today}`) ?? "0") >= 1,
+      "perfect-quiz":       parseInt(localStorage.getItem(`notho-perfect-today-${today}`) ?? "0") >= 1,
       "complete-2-lessons": dailyLessons >= 2,
       "complete-3-lessons": dailyLessons >= 3,
-      "use-calculator":     localStorage.getItem(`fundi-calc-visited-${today}`) === "1",
-      "visit-budget":       localStorage.getItem(`fundi-budget-visited-${today}`) === "1",
+      "use-calculator":     localStorage.getItem(`notho-calc-visited-${today}`) === "1",
+      "visit-budget":       localStorage.getItem(`notho-budget-visited-${today}`) === "1",
       "log-2-expenses":     dailyExpense >= 2,
-      "concept-review":     localStorage.getItem(`fundi-concept-reviewed-${today}`) === "1",
-      "share-milestone":    localStorage.getItem(`fundi-shared-today-${today}`) === "1",
-      "no-wrong-answers":   parseInt(localStorage.getItem(`fundi-correct-streak-today-${today}`) ?? "0") >= 5,
+      "concept-review":     localStorage.getItem(`notho-concept-reviewed-${today}`) === "1",
+      "share-milestone":    localStorage.getItem(`notho-shared-today-${today}`) === "1",
+      "no-wrong-answers":   parseInt(localStorage.getItem(`notho-correct-streak-today-${today}`) ?? "0") >= 5,
     });
   }, [today, streak]);
 
@@ -333,9 +333,9 @@ export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; 
   return (
     <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 24 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-        <Sparkles size={18} style={{ color: "#FFB612" }} />
+        <Sparkles size={18} style={{ color: "#EFB343" }} />
         <div style={{ fontWeight: 800, fontSize: 14 }}>Daily Challenges</div>
-        {allClaimed && <span style={{ fontSize: 11, fontWeight: 700, color: "#007A4D", marginLeft: "auto" }}>All done!</span>}
+        {allClaimed && <span style={{ fontSize: 11, fontWeight: 700, color: "#007A85", marginLeft: "auto" }}>All done!</span>}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {challenges.map((ch) => {
@@ -349,11 +349,11 @@ export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; 
               border: `1px solid ${done ? "rgba(0,122,77,0.2)" : achieved ? "rgba(255,182,18,0.3)" : "var(--color-border)"}`,
               opacity: done ? 1 : achieved ? 1 : 0.65,
             }}>
-              <div style={{ color: done ? "#007A4D" : achieved ? "#FFB612" : "var(--color-text-secondary)", display: "flex", flexShrink: 0 }}>
+              <div style={{ color: done ? "#007A85" : achieved ? "#EFB343" : "var(--color-text-secondary)", display: "flex", flexShrink: 0 }}>
                 {done ? <CheckCircle2 size={16} /> : ch.icon}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 13, color: done ? "#007A4D" : "var(--color-text-primary)", textDecoration: done ? "line-through" : "none" }}>
+                <div style={{ fontWeight: 600, fontSize: 13, color: done ? "#007A85" : "var(--color-text-primary)", textDecoration: done ? "line-through" : "none" }}>
                   {ch.text}
                 </div>
                 {!done && !achieved && (
@@ -362,7 +362,7 @@ export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; 
                   </div>
                 )}
               </div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: done ? "#007A4D" : achieved ? "#FFB612" : "var(--color-text-secondary)", flexShrink: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: done ? "#007A85" : achieved ? "#EFB343" : "var(--color-text-secondary)", flexShrink: 0 }}>
                 {done ? "Done" : `+${ch.xp} XP`}
               </div>
               {!done && achieved && (
@@ -395,7 +395,7 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
   const [correctCount, setCorrectCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [hasLoaded, setHasLoaded] = useState(false);
-  const REVIEW_SESSION_KEY = "fundi-review-session";
+  const REVIEW_SESSION_KEY = "notho-review-session";
 
   useEffect(() => {
     void (async () => {
@@ -700,12 +700,12 @@ export function LearnView({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setUserGoal(localStorage.getItem("fundi-user-goal"));
-    setGoalDescription(localStorage.getItem("fundi-goal-description") ?? "");
+    setUserGoal(localStorage.getItem("notho-user-goal"));
+    setGoalDescription(localStorage.getItem("notho-goal-description") ?? "");
     // Listen for cross-device goal sync updates (dispatched by syncFromSupabase)
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "fundi-user-goal" && e.newValue) setUserGoal(e.newValue);
-      if (e.key === "fundi-goal-description") setGoalDescription(e.newValue ?? "");
+      if (e.key === "notho-user-goal" && e.newValue) setUserGoal(e.newValue);
+      if (e.key === "notho-goal-description") setGoalDescription(e.newValue ?? "");
     };
     window.addEventListener("storage", onStorage);
     return () => window.removeEventListener("storage", onStorage);
@@ -1041,7 +1041,7 @@ export function LearnView({
                       display: "inline-flex", alignItems: "center", gap: 3,
                       background: "rgba(0,122,77,0.12)", borderRadius: 20,
                       padding: "2px 8px", fontSize: 10, fontWeight: 700,
-                      color: "#007A4D", marginBottom: 4,
+                      color: "#007A85", marginBottom: 4,
                     }}>
                       <Target size={9} aria-hidden /> Recommended for your goal
                     </div>
