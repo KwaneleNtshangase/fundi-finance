@@ -61,6 +61,23 @@ export function precedingPeriod(periodStart: string, periodEnd: string): PeriodR
   return { periodStart: prevStart, periodEnd: prevEnd };
 }
 
+/**
+ * The full calendar month immediately before periodStart's month.
+ *
+ * This is what "last report" means to a person ("June's report"), and it is
+ * the period shape snapshots reliably exist for - `precedingPeriod` is
+ * equal-length day math (this-month on the 18th → "Jun 13-30"), a window no
+ * snapshot is ever written under, so mission follow-through must anchor to
+ * calendar months instead.
+ */
+export function previousCalendarMonthPeriod(periodStart: string): PeriodRange {
+  const prevMonthEnd = addDays(firstDayOfMonthYear(periodStart.slice(0, 7)), -1);
+  return {
+    periodStart: firstDayOfMonthYear(prevMonthEnd.slice(0, 7)),
+    periodEnd: prevMonthEnd,
+  };
+}
+
 export function enumerateMonths(start: string, end: string): string[] {
   const months: string[] = [];
   let { y, m } = parseYmd(start);

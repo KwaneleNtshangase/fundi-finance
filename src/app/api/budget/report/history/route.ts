@@ -128,13 +128,18 @@ export async function POST(req: NextRequest) {
       }
 
       const model = buildReport(monthEntries, targets, categories, start, end, "");
-      upserts.push({
-        user_id: user.id,
-        period_start: start,
-        period_end: end,
-        metrics: snapshotMetricsOf(model, monthEntries, targets),
-        updated_at: new Date().toISOString(),
-      });
+      // Cache only COMPLETE months. The in-progress month's end date moves
+      // daily - each write would mint a new (start, end) row - and its
+      // numbers are still changing, so a snapshot of it caches nothing.
+      if (end === lastDayOfMonthYear(monthYear)) {
+        upserts.push({
+          user_id: user.id,
+          period_start: start,
+          period_end: end,
+          metrics: snapshotMetricsOf(model, monthEntries, targets),
+          updated_at: new Date().toISOString(),
+        });
+      }
       return {
         monthYear,
         label,

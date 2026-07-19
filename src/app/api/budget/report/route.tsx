@@ -9,8 +9,9 @@ import {
   sumDbEntriesCents,
 } from "@/lib/budget/report/aggregate";
 import { BudgetReportDocument } from "@/lib/budget/report/pdf";
-import { precedingPeriod } from "@/lib/budget/report/period";
-import { snapshotMetricsOf } from "@/lib/budget/report/snapshot";
+import { precedingPeriod, previousCalendarMonthPeriod } from "@/lib/budget/report/period";
+import { snapshotFingerprint, snapshotMetricsOf } from "@/lib/budget/report/snapshot";
+import { sastToday } from "@/lib/dates";
 import type {
   BudgetEntryInput,
   BudgetTargetInput,
@@ -214,21 +215,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Report validation failed" }, { status: 500 });
   }
 
-  // Phase 4: persist this period's metric snapshot and fetch the preceding
-  // period's one (for "last report's mission" follow-through). Best-effort:
-  // snapshot failures must never block the report itself.
+  // Phase 4: snapshots. Best-effort throughout - failures never block the
+  // report itself.
   let prevSnapshot: ReportSnapshotMetrics | null = null;
   try {
-    const metrics = snapshotMetricsOf(model, entries, targets);
-    const [prevSnapRes] = await Promise.all([
-      admin
-        .from("report_snapshots")
-        .select("metrics")
-        .eq("user_id", user.id)
-        .eq("period_start", prev.periodStart)
-        .eq("period_end", prev.periodEnd)
-        .maybeSingle(),
-      admin.from("report_snapshots").upsert(
+    // Persist this period's metrics - but only once the period is FINISHED.
+    // An in-progress period's end date advances daily, and (user, start, end)
+    // is the unique key, so writing it would mint a junk row per day; its
+    // numbers are also still moving, so the snapshot would say nothing.
+    if (periodEnd < sastToday()) {
+      const metrics = snapshotMetricsOf(model, entries, targets);
+      await admin.from("report_snapshots").upsert(
         {
           user_id: user.id,
           period_start: periodStart,
@@ -237,9 +234,36 @@ export async function POST(req: NextRequest) {
           updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id,period_start,period_end" }
-      ),
-    ]);
-    prevSnapshot = (prevSnapRes.data?.metrics as ReportSnapshotMetrics | undefined) ?? null;
+      );
+    }
+
+    // "Last report's mission": try the exact preceding equal-length window,
+    // then fall back to the previous CALENDAR month - the shape snapshots
+    // actually exist under (equal-length windows like "Jun 13-30" never get
+    // one, so without the fallback the mission card would never appear).
+    const prevMonth = previousCalendarMonthPeriod(periodStart);
+    const candidates = [prev, prevMonth].filter(
+      (c, i, all) => all.findIndex((x) => x.periodStart === c.periodStart && x.periodEnd === c.periodEnd) === i
+    );
+    for (const c of candidates) {
+      const { data } = await admin
+        .from("report_snapshots")
+        .select("metrics")
+        .eq("user_id", user.id)
+        .eq("period_start", c.periodStart)
+        .eq("period_end", c.periodEnd)
+        .maybeSingle();
+      const snap = (data?.metrics as ReportSnapshotMetrics | undefined) ?? null;
+      if (!snap) continue;
+      // Staleness guard: if the underlying entries/targets changed since the
+      // snapshot was written, don't compare against it. (The history endpoint
+      // rewrites stale months on the next fetch, so this self-heals.)
+      const fp = snapshotFingerprint(historyEntries, targets, c.periodStart, c.periodEnd);
+      if (snap.fpCount === fp.fpCount && snap.fpSumCents === fp.fpSumCents && snap.fpMix === fp.fpMix) {
+        prevSnapshot = snap;
+      }
+      break;
+    }
   } catch (err) {
     console.error("[budget/report] snapshot write/read failed", err);
   }

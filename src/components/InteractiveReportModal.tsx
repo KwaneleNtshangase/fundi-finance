@@ -14,6 +14,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
 } from "recharts";
 import { supabase } from "@/lib/supabaseClient";
+import { sastToday } from "@/lib/dates";
 import { formatRand } from "@/lib/viewHelpers";
 import { resolvePeriod, formatPeriodLabel, type PeriodPreset } from "@/lib/budget/report/period";
 import { flexibleRows, simulate, type WhatIfChanges } from "@/lib/budget/report/simulate";
@@ -172,11 +173,9 @@ export function InteractiveReportModal({
   }, [history]);
 
   // Streaks over COMPLETE months only - the in-progress month can't break
-  // (or fake) a streak halfway through.
-  const streaks = useMemo(() => {
-    const currentMonth = new Date().toISOString().slice(0, 7);
-    return computeStreaks(history, currentMonth);
-  }, [history]);
+  // (or fake) a streak halfway through. SAST month, same convention as the
+  // history endpoint, so the two can never disagree around month rollover.
+  const streaks = useMemo(() => computeStreaks(history, sastToday().slice(0, 7)), [history]);
 
   // Did last report's single most important action actually happen?
   const mission = useMemo(

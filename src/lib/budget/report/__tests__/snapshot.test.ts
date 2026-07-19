@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { buildReport } from "../aggregate";
+import { previousCalendarMonthPeriod } from "../period";
 import {
   computeStreaks,
   missionOutcome,
@@ -171,6 +172,18 @@ describe("missionOutcome", () => {
     const model = report(BASE);
     expect(missionOutcome(mkPrev({ topActionId: "map-debts", topActionTitle: "Map out your debts" }), model)?.status).toBe("unmeasured");
     expect(missionOutcome(mkPrev({ topActionId: "something-new", topActionTitle: "?" }), model)?.status).toBe("unmeasured");
+  });
+});
+
+describe("previousCalendarMonthPeriod", () => {
+  it("maps any period start to the full previous calendar month", () => {
+    expect(previousCalendarMonthPeriod("2026-07-01")).toEqual({ periodStart: "2026-06-01", periodEnd: "2026-06-30" });
+    expect(previousCalendarMonthPeriod("2026-07-18")).toEqual({ periodStart: "2026-06-01", periodEnd: "2026-06-30" });
+  });
+
+  it("handles year and February boundaries", () => {
+    expect(previousCalendarMonthPeriod("2026-01-15")).toEqual({ periodStart: "2025-12-01", periodEnd: "2025-12-31" });
+    expect(previousCalendarMonthPeriod("2026-03-05")).toEqual({ periodStart: "2026-02-01", periodEnd: "2026-02-28" });
   });
 });
 
