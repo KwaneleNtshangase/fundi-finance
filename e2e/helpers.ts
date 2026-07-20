@@ -37,10 +37,46 @@ export async function signIn(page: Page) {
   });
 }
 
-/** Navigate to a specific tab using the bottom nav */
-export async function goToTab(page: Page, tab: "Learn" | "Calculate" | "Budget" | "Progress" | "Profile" | "Goals") {
-  await page.locator(`text=${tab}`).first().click();
-  await page.waitForTimeout(300);
+export type NavTab =
+  | "Learn"
+  | "Calculate"
+  | "Budget"
+  | "Leaderboard"
+  | "Profile"
+  | "Goals";
+
+/**
+ * Tab labels that have been renamed in the app. Keeping the old name working
+ * means a rename doesn't silently break every spec that references it.
+ */
+const TAB_ALIASES: Record<string, NavTab> = {
+  Progress: "Leaderboard",
+  Quests: "Goals",
+};
+
+/** Navigate to a specific tab using the bottom nav / sidebar */
+export async function goToTab(page: Page, tab: NavTab | keyof typeof TAB_ALIASES) {
+  const target = TAB_ALIASES[tab] ?? (tab as NavTab);
+
+  // Prefer an exact accessible-name match so "Learn" doesn't match "Learn more",
+  // and so the assertion survives icon/label restyling.
+  const byRole = page.getByRole("button", { name: target, exact: true }).first();
+  const byLink = page.getByRole("link", { name: target, exact: true }).first();
+  const byText = page.getByText(target, { exact: true }).first();
+
+  for (const locator of [byRole, byLink, byText]) {
+    if ((await locator.count()) > 0) {
+      await locator.click({ timeout: 10_000 });
+      await page.waitForTimeout(300);
+      return;
+    }
+  }
+
+  throw new Error(
+    `goToTab: no nav control found for "${target}"` +
+      (TAB_ALIASES[tab] ? ` (aliased from "${tab}")` : "") +
+      `. Nav labels may have changed — check MobileBottomNav/DesktopSidebar.`
+  );
 }
 
 /** Open the first available (non-locked) lesson and return its title */

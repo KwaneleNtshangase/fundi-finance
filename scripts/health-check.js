@@ -124,7 +124,14 @@ async function run() {
     // Treat "splash still showing" as a soft pass — the health check's job
     // is to confirm the site is reachable and not crashing, not to time
     // how fast the auth form renders in headless CI environments.
-    const brandingOk = await page.locator("text=Fundi").count() > 0;
+    const brandingOk = await page.evaluate(() => {
+      const hit = (v) => typeof v === "string" && v.toLowerCase().includes("fundi");
+      return (
+        hit(document.title) ||
+        hit(document.body?.innerText ?? "") ||
+        Array.from(document.querySelectorAll("img")).some((el) => hit(el.getAttribute("alt")))
+      );
+    });
     if (brandingOk) {
       pass("App is running (Fundi branding confirmed; auth form may be slow to render in headless CI)");
     } else {
@@ -133,11 +140,34 @@ async function run() {
   }
 
   // ── 4. Branding present ────────────────────────────────────────────────────
-  const hasFundi = await page.locator("text=Fundi").count();
-  if (hasFundi > 0) {
-    pass("'Fundi' branding present");
+  // Check several independent signals. The wordmark is rendered as an image in
+  // the authenticated shell, so a visible-text-only assertion produces false
+  // failures. Any one of these confirms we are looking at the Fundi app.
+  const branding = await page.evaluate(() => {
+    const hit = (v) => typeof v === "string" && v.toLowerCase().includes("fundi");
+    const attr = (sel, name) =>
+      Array.from(document.querySelectorAll(sel)).some((el) => hit(el.getAttribute(name)));
+    return {
+      title: hit(document.title),
+      ogTitle: attr('meta[property="og:title"]', "content"),
+      appName: attr('meta[name="application-name"]', "content"),
+      imgAlt: attr("img", "alt"),
+      ariaLabel: attr("[aria-label]", "aria-label"),
+      visibleText: hit(document.body?.innerText ?? ""),
+    };
+  });
+
+  const brandSignals = Object.entries(branding)
+    .filter(([, ok]) => ok)
+    .map(([k]) => k);
+
+  if (brandSignals.length > 0) {
+    pass(`'Fundi' branding present (via ${brandSignals.join(", ")})`);
   } else {
-    fail("Branding check", "Could not find 'Fundi' text on page");
+    fail(
+      "Branding check",
+      "No 'Fundi' reference in title, og:title, application-name, img alt, aria-label, or visible text"
+    );
   }
 
   // ── 5. JS console errors ───────────────────────────────────────────────────

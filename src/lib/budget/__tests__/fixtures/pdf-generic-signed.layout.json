@@ -1,7 +1,0 @@
-{
-  "headerText": "Generic Bank",
-  "lines": [
-    { "y": 100, "items": [{ "x": 50, "text": "15/06/2026" }, { "x": 150, "text": "COFFEE SHOP" }, { "x": 400, "text": "-45.00" }] },
-    { "y": 120, "items": [{ "x": 50, "text": "16/06/2026" }, { "x": 150, "text": "REFUND" }, { "x": 400, "text": "45.00" }] }
-  ]
-}

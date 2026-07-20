@@ -42,7 +42,7 @@ test.describe("Progress & Gamification", () => {
   });
 
   test("4.5 — Leaderboard loads and shows real user names", async ({ page }) => {
-    await goToTab(page, "Progress");
+    await goToTab(page, "Leaderboard");
     const lbBtn = page.locator("button, a", { hasText: /Leaderboard/i }).first();
     if (await lbBtn.isVisible()) await lbBtn.click();
     await page.waitForTimeout(1500);
@@ -59,7 +59,7 @@ test.describe("Progress & Gamification", () => {
   });
 
   test("4.6 — Progress tab loads without crash", async ({ page }) => {
-    await goToTab(page, "Progress");
+    await goToTab(page, "Leaderboard");
     await page.waitForTimeout(1000);
     const error = page.locator("text=Something went wrong, text=Error loading");
     await expect(error).not.toBeVisible();

@@ -1,7 +1,0 @@
-{
-  "headerText": "Generic Bank Debit Credit",
-  "lines": [
-    { "y": 100, "items": [{ "x": 50, "text": "01/12/2025" }, { "x": 150, "text": "GROCERIES" }, { "x": 350, "text": "200.00" }, { "x": 420, "text": "" }, { "x": 500, "text": "4800.00" }] },
-    { "y": 120, "items": [{ "x": 50, "text": "02/01/2026" }, { "x": 150, "text": "SALARY" }, { "x": 350, "text": "" }, { "x": 420, "text": "25000.00" }, { "x": 500, "text": "29800.00" }] }
-  ]
-}
