@@ -12,7 +12,10 @@ export const STATIC_EXPENSE_CATEGORIES: Record<
   entertainment: { name: "Entertainment", color: "#7C4DFF", group: "wants" },
   airtime: { name: "Airtime & Data", color: "#F57C00", group: "needs" },
   healthcare: { name: "Healthcare", color: "#C2185B", group: "needs" },
-  education: { name: "Education", color: "#1976D2", group: "needs" },
+  // Was #1976D2, which sat at CIE ΔE 3.8 from housing's #3B7DD8 - below the
+  // ~2.3 just-noticeable-difference threshold, so the two were effectively the
+  // same blue in the report chart. Now ΔE 39.6 from its nearest neighbour.
+  education: { name: "Education", color: "#2E7D32", group: "needs" },
   other: { name: "Other", color: "#9E9E9E", group: "unclassified" },
 };
 

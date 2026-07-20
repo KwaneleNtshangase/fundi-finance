@@ -71,7 +71,7 @@ def icon_placed():
 
 
 def svg(mode='light', tagline=True, icon_only=False, word_only=False,
-        gradients=True, pad=0.16, pid='n'):
+        gradients=True, pad=0.38, pid='n'):
     ink = INK_LIGHT if mode == 'light' else INK_DARK
     ic = icon_placed()
 
@@ -95,7 +95,9 @@ def svg(mode='light', tagline=True, icon_only=False, word_only=False,
 
     x0, y0, x1, y1 = bbox(boxes)
     w, h = x1 - x0, y1 - y0
-    m = max(w, h) * pad
+    # Clear space is a ratio of cap height, not of the bounding box -- keying
+    # it to width would balloon the vertical margin on a wide lockup.
+    m = G['cap'] * pad
     vb = f'{x0-m:.2f} {y0-m:.2f} {w+2*m:.2f} {h+2*m:.2f}'
 
     defs = ''
@@ -152,9 +154,9 @@ def main():
     w(f'{OUT}/svg/notho-logo-full-on-dark.svg',   svg('dark'))
     w(f'{OUT}/svg/notho-logo-no-tagline.svg',     svg('light', tagline=False))
     w(f'{OUT}/svg/notho-logo-no-tagline-on-dark.svg', svg('dark', tagline=False))
-    w(f'{OUT}/svg/notho-icon-mark.svg',           svg('light', icon_only=True, pad=0.06))
-    w(f'{OUT}/svg/notho-icon-flat.svg',           svg('light', icon_only=True, gradients=False, pad=0.06))
-    w(f'{OUT}/svg/notho-wordmark-otho.svg',       svg('light', word_only=True, tagline=False, pad=0.10))
+    w(f'{OUT}/svg/notho-icon-mark.svg',           svg('light', icon_only=True, pad=0.10))
+    w(f'{OUT}/svg/notho-icon-flat.svg',           svg('light', icon_only=True, gradients=False, pad=0.10))
+    w(f'{OUT}/svg/notho-wordmark-otho.svg',       svg('light', word_only=True, tagline=False, pad=0.18))
     w(f'{OUT}/svg/notho-app-icon-light.svg',      app_icon(512))
     w(f'{OUT}/svg/notho-app-icon-dark.svg',       app_icon_dark(512))
 

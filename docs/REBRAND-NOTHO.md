@@ -154,3 +154,44 @@ environmental, not a regression. What did pass:
 `scripts/rebrand-notho.py --dry` previews, `--apply` writes. It is idempotent and
 safe to re-run. Keep it: it documents the exact mapping, and its invariant check
 is the reason the finance vocabulary survived.
+
+---
+
+## Addendum — icons regenerated, category colour fixed
+
+### Icons now come from vector, but only where it mattered
+
+Everything in `public/` is rendered from `brand/svg/` via cairosvg at 4x, then
+Lanczos-downsampled. Measured, not assumed:
+
+| Output | Scale from the old raster master | Vector benefit |
+|---|---|---|
+| favicon 16/32/48 | 0.11x | none — A/B edge energy differed 2%, i.e. noise |
+| apple-touch 180, icon-192 | 0.40x | none |
+| icon-512 maskable | 0.87x | none |
+| `notho-icon.png` 512 | **1.15x upscale** | real |
+| `notho-logo.png`, `Notho_logo.png`, `Logo.png` | **1.59x upscale** | clearly visible |
+
+The first instinct — that vector would sharpen the *favicons* — was wrong. A
+501px master downsampled to 16px is already supersampled, and rendering an SVG
+directly at 16px is actually slightly worse because it aliases. The place the
+old assets were genuinely soft was the 1200px-wide lockup, which was being
+upscaled 1.59x from an 836px source: the sidebar logo, the OG image, the email
+header and the PDF report.
+
+Everything is driven from one vector master now, so the small sizes are
+equivalent and the large ones are better, with no mixed provenance.
+
+### Housing vs Education were the same blue
+
+`education` was `#1976D2`, sitting **CIE ΔE 3.8** from `housing`'s `#3B7DD8`.
+Just-noticeable-difference is around 2.3, so in the budget report chart those
+two slices were effectively indistinguishable — and housing is usually the
+largest slice on the chart.
+
+Now `#2E7D32` (Material green 800), ΔE 39.6 from its nearest neighbour.
+Minimum separation across all 45 category pairs is now **ΔE 33.1**, up from 3.8.
+
+This predates the rebrand — it was not caused by the colour swap. Checked at the
+same time: the swap did not make any pair worse. `food` vs `savings` actually
+improved, 29.3 to 35.6.

@@ -1,10 +1,19 @@
 # NOTHO — logo spec
 
-All geometry derives from one unit: **H = the wordmark cap height.** Every number
-below is expressed as a multiple of H, so the lockup scales without redrawing.
-At the reference build H = 280, which puts the wordmark at 400pt.
+These assets are **traced from your own artwork** (`public/notho-logo.png`,
+`public/notho-icon.png`), not redrawn. The geometry is your logo in vector form.
 
-Regenerate everything with `python3 source/export.py`.
+Regenerate with `python3 source/build_final.py` (requires `trace_clean.py` and
+`trace_word.py` to have run first).
+
+---
+
+## The structural rule
+
+**The icon is the letter N.** The wordmark is therefore **OTHO**, not NOTHO.
+Setting the icon next to the word "NOTHO" makes the logo read *N-NOTHO*. If you
+need the name as plain text with no icon, type the full word — but never place
+the full word beside the mark.
 
 ---
 
@@ -12,116 +21,106 @@ Regenerate everything with `python3 source/export.py`.
 
 | Path | Use |
 |---|---|
-| `svg/notho-logo-horizontal-dark.svg` | Primary lockup, **live text** — edit the wordmark by retyping. Needs Montserrat installed. |
-| `svg/notho-logo-horizontal-dark-outlined.svg` | Same lockup, glyphs converted to paths. Renders identically anywhere. Use for web, print, handoff. |
-| `svg/notho-logo-horizontal-light.svg` | For light backgrounds. Navy wordmark, white keylines. |
-| `svg/notho-logo-transparent-on-dark.svg` | No background, white wordmark. Place over dark surfaces. |
-| `svg/notho-logo-transparent-on-light.svg` | No background, navy wordmark. Place over light surfaces. |
-| `svg/notho-logo-horizontal-no-tagline.svg` | Below ~300px wide the tagline turns to mud. Use this instead. |
-| `svg/notho-icon-mark.svg` | Mark alone, transparent. |
-| `svg/notho-icon-square.svg` | App icon, rounded square, dark gradient. |
-| `svg/notho-wordmark.svg` | Wordmark alone, outlined. |
-| `png/`, `pdf/`, `app-icon/` | Rasters, print, and iOS/web icon sizes. |
-| `source/` | The generator. Change a number, re-run, everything stays consistent. |
+| `svg/notho-logo-full.svg` | Primary lockup — icon + OTHO + tagline, navy on light. |
+| `svg/notho-logo-full-on-dark.svg` | Same, recoloured for dark backgrounds. |
+| `svg/notho-logo-no-tagline.svg` | Below ~400px wide the tagline turns to mud. Use this. |
+| `svg/notho-logo-no-tagline-on-dark.svg` | Dark-background version of the above. |
+| `svg/notho-icon-mark.svg` | Icon alone, gradient-shaded. |
+| `svg/notho-icon-flat.svg` | Icon alone, flat colour — for embroidery, single-colour print, or anywhere gradients won't reproduce. |
+| `svg/notho-wordmark-otho.svg` | OTHO alone. |
+| `svg/notho-app-icon-light.svg` / `-dark.svg` | Square app icon, iOS corner radius. |
+| `png/`, `pdf/`, `app-icon/` | Rasters, print, and icon sizes. |
+| `source/` | The tracing and assembly pipeline. |
+
+All SVGs carry one editable path per colour region, with `<title>` labels —
+they open in Figma or Illustrator as named, selectable layers.
 
 ---
 
 ## Geometry
 
-| Measure | In units of H | At H = 280 |
+Measured from the source artwork. Cap height **H = 205px** at source scale;
+every ratio below holds at any size.
+
+| Measure | Source px | In units of H |
 |---|---|---|
-| Wordmark cap height | 1.000 | 280 |
-| Wordmark font size | 1.429 (= H ÷ 0.70) | 400 |
-| Wordmark tracking | 0.085 em | 34.0 px |
-| Wordmark width (NOTHO) | — | 1711.6 |
-| Icon height | 1.380 | 386.4 |
-| Icon width | — | 427.1 |
-| Icon → wordmark gap | 0.260 | 72.8 |
-| Tagline cap height | 0.150 | 42.0 |
-| Tagline font size | 0.214 | 60.0 |
-| Tagline tracking | 0.77 em | 45.9 px |
-| Wordmark baseline → tagline baseline | 0.600 | 168.0 |
-| Clear space (all sides) | ≥ 0.42 | 117.6 |
+| Wordmark cap height (T, H) | 205 | 1.000 |
+| Round-letter height (O) | 214 | 1.044 — optical overshoot |
+| Icon height | 202 | 0.985 |
+| Icon width | 209 | 1.020 |
+| Gap: icon → O | 36 | 0.176 |
+| Wordmark width (OTHO) | 953 | 4.649 |
+| Tagline cap height | 35 | 0.171 |
+| Wordmark baseline → tagline baseline | 79 | 0.385 |
+| Clear space (all sides) | 78 | 0.380 |
 
-**Montserrat cap height is 0.70 em.** That ratio is what converts a target cap
-height into a font size, and it's why the font size is never the number you
-actually want to specify.
-
-**Icon overshoot.** The icon is 1.38 × cap height, not 1.00. Setting it equal to
-the cap height makes it look *smaller* than the letters — round and organic forms
-need to overshoot flat-topped capitals to appear the same size. Match the icon to
-the full word's optical weight, not to a bounding box.
-
-**Tagline tracking is solved, not chosen.** It's computed so the tagline spans
-exactly the width of the icon + gap + wordmark above it. Change any of those and
-re-run the generator rather than nudging the tagline by hand.
+The icon's optical centre sits **13px above** the cap-band centre — it is not
+centred on the letters mathematically. Keep that offset when rescaling.
 
 ---
 
 ## Colour
 
-### Mark
-| Element | Gradient |
+| Element | Value |
 |---|---|
-| Teal leaf | `#5BF5EE` → `#20D3CF` → `#007F8A` |
-| Teal leaf (shadow layer) | `#0E8A90` → `#053F4B` |
-| Gold figure | `#FFE585` → `#FFC847` → `#D28C0C` |
-| Head | radial `#FFE585` → `#FFC847` |
-| Blue leaf | `#4A7DFF` → `#1F49C6` → `#0A246E` |
+| Wordmark | `#083088` |
+| Tagline — LEARN | `#109898` |
+| Tagline — dots + GROW | `#E8A838` |
+| Tagline — BUILD WEALTH | `#083080` |
 
-### Surface
-| Token | Value |
+Icon, as flat colour (`notho-icon-flat.svg`):
+
+| Region | Value |
 |---|---|
-| Background gradient | `#010611` → `#071425` |
-| Keyline (dark builds) | `#040C18` |
-| Wordmark on dark | `#FFFFFF` |
-| Wordmark on light | `#081426` |
+| N — teal face | `#049DA7` |
+| N — teal underside | `#017B84` |
+| Leaf — gold + dot | `#EAAC3E` |
+| Leaf — blue | `#0A3A71` |
 
-### Tagline
-| Run | On dark | On light |
-|---|---|---|
-| LEARN | `#20D3CF` | `#0E9C99` |
-| Separators + GROW | `#F6BE3C` | `#B8860B` |
-| BUILD WEALTH | `#2C55D4` | `#1F49C6` |
+Icon gradients (`notho-icon-mark.svg`) reinstate the shading in the original:
+teal face `#22B9C0 → #017B84`, teal underside `#2C8E93 → #04616B`,
+gold `#F5C55E → #D9911F`, blue `#2C55A8 → #07234F`.
 
-The light-mode tagline colours are darkened deliberately — `#20D3CF` and
-`#F6BE3C` fail WCAG AA contrast on white at tagline size.
+**Dark-background tagline** uses lifted values — `#2ED6D2`, `#F6BE3C`, `#8FA9F0`.
+The light-mode navy fails contrast on dark, and the light-mode teal and gold
+fail WCAG AA on white at tagline size, which is worth knowing if the tagline
+ever gets used as live text.
 
 ---
 
 ## Type
 
-**Montserrat** throughout — ExtraBold (800) for the wordmark, SemiBold (600) for
-the tagline. Open source, free for commercial use, available on Google Fonts.
-The reference mockup's face is close to Gilroy; Montserrat is the standard free
-substitute and is slightly wider, so tracking is set tighter than Gilroy would need.
+The wordmark closest match is **Outfit Bold (700)** — free, on Google Fonts.
+Verified against the artwork: the O width ratio (1.051 vs 1.049 measured) and
+the stem weight (0.222 vs 0.222) both match. The T is slightly narrower in
+Outfit than in your original, so Outfit is a very close substitute rather than
+a confirmed identification.
+
+The shipping files use **traced outlines**, so they need no font installed and
+match your artwork exactly. Use Outfit only if you need to set new text in the
+brand voice.
+
+Montserrat — recommended in the original build notes — is **not** the font. Its
+O is 6% too wide and its H 10% too wide.
 
 ---
 
-## Construction
+## How these were made
 
-The mark is four ribbons, each a variable-width stroke offset from a bezier
-centreline rather than a hand-drawn outline. The blue leaf is the teal leaf
-mirrored and trimmed, so the two flanks stay related when the master curve is
-retuned. See `source/ribbon.py`.
-
-**Keylines.** On dark builds each element carries a background-coloured halo so
-the ribbons stay separated when the mark is scaled down. Transparent builds drop
-the halo entirely — a dark keyline only works against the background it was
-sampled from and would print as a visible outline anywhere else.
+1. Classify every pixel of the source icon to one of the brand base colours.
+   A direct colour trace produces ~37 overlapping shading bands in near
+   identical hues — technically vector, useless to edit.
+2. Clean the resulting masks, trace each as one flat region.
+3. Re-apply shading as real SVG gradients, so depth survives but geometry
+   stays editable.
+4. Trace the wordmark and tagline separately (flat colour, no classification
+   needed), splitting the tagline between words so both dots stay gold.
+5. Reassemble at the proportions measured off the original.
 
 ---
 
-## Corrections to the original build notes
+## Superseded
 
-Values that were wrong in the instructions this was built from:
-
-| Spec | Given | Actual | Why |
-|---|---|---|---|
-| Tagline tracking | `280` | **45.9 px** (0.77 em) | 280 px of tracking across 27 characters is ~8,000 px wide — 4× wider than the 2,000 px frame. |
-| Wordmark tracking | `4` | **34 px** (0.085 em) | 4 px at a 245 px font is essentially zero tracking; the reference is visibly tracked out. |
-| Wordmark size | `245` | **400** | 245 px yields a 171 px cap height, well under the mark. Size follows from the target cap height. |
-| Icon height | "same as wordmark" | **1.38 × cap height** | Equal heights make the icon read as too small. Organic shapes need overshoot. |
-| Icon gap | `55 px`, then "reduce 15–20%" | **72.8 px** (0.26 H) | The two instructions contradicted each other. The gap is set as a ratio of H so it holds at any size. |
-| N construction | rounded rectangles rotated 35° | variable-width ribbons | Rotated rectangles have uniform thickness and produce stiff parallelograms, not a flowing ribbon. |
-| Curve smoothing | "node tool in Inkscape until continuous" | C1-continuous width profile | No such tool exists. Continuity comes from the construction, not from dragging nodes afterward. |
+`source/ribbon.py`, `mark.py`, `lockup.py` and `export.py` are stubs. They
+belonged to an earlier from-scratch rebuild that drew the wrong mark and set
+the wordmark as "NOTHO". Nothing in the shipping set depends on them.

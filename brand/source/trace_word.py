@@ -25,7 +25,10 @@ GEO = dict(word_x=(245, 1198), word_y=(0, 240), cap=205, cap_top=13, baseline=21
 INK = dict(navy='#083088', teal='#109898', gold='#E8A838')
 
 # Tagline colour runs, as x-ranges in source pixels.
-TAG_RUNS = [('teal', 0, 300), ('gold', 300, 640), ('navy', 640, 1200)]
+# Split between words, not through them. Measured group edges:
+# LEARN 15-237 | dot 292-307 | GROW 359-554 | dot 609-623 | BUILD WEALTH 678-1189
+# Both dots are gold, so they belong to the middle run.
+TAG_RUNS = [('teal', 0, 270), ('gold', 270, 650), ('navy', 650, 1200)]
 
 
 def bake(d, dx, dy, s=1.0):
