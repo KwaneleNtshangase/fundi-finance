@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Coach Cosmo AI chat (Tier 2 client).
+ * Cosmo AI chat (Tier 2 client).
  *
  * Floating chat button (bottom-right) that opens a compact chat panel.
  * Gates on explicit opt-in consent (user_settings.coach_ai_consent), then
@@ -226,7 +226,7 @@ export function CosmoCoachChat() {
       )}
 
       {open && (
-        <div className="notho-chat-panel" role="dialog" aria-label="Ask Cosmo">
+        <div className="notho-chat-panel" role="dialog" aria-label="Ask Cosmo, your money coach">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
             <span style={{ fontSize: 15, fontWeight: 800 }}>💬 Ask Cosmo</span>
             {state.kind === "chat" && remaining !== null && (

@@ -808,9 +808,9 @@ export function BudgetReportDocument({ model, logoDataUri }: { model: ReportMode
         </View>
       </Page>
 
-      {/* ── Page 2 - Coach Cosmo: what happened & what to do ───────────── */}
+      {/* ── Page 2 - Cosmo: what happened & what to do ───────────── */}
       <Page size="A4" style={styles.page}>
-        <PageHeader uri={logoDataUri} title="Coach Cosmo" />
+        <PageHeader uri={logoDataUri} title="What Cosmo noticed" />
         <Text style={styles.sectionTitle}>What your money did</Text>
         <View style={styles.insightCard}>
           {ins.coachParagraphs.map((p, i) => (

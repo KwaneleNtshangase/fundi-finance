@@ -458,7 +458,7 @@ export function CalculatorView() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 8 }}>
           {SOLVE_OPTIONS.map((opt) => (
             <button key={opt.id} onClick={() => { setSolveMode(opt.id); setHasCalculated(false); setSolveResult(null); }}
-              style={{ padding: "10px 8px", borderRadius: 10, border: `2px solid ${solveMode === opt.id ? "var(--color-primary)" : "var(--color-border)"}`, background: solveMode === opt.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", cursor: "pointer", textAlign: "center" }}>
+              style={{ padding: "10px 8px", borderRadius: 10, border: `2px solid ${solveMode === opt.id ? "var(--color-primary)" : "var(--color-border)"}`, background: solveMode === opt.id ? "rgba(0,122,133,0.08)" : "var(--color-bg)", cursor: "pointer", textAlign: "center" }}>
               <div style={{ display: "flex", justifyContent: "center", marginBottom: 4, color: solveMode === opt.id ? "var(--color-primary)" : "var(--color-text-secondary)" }}>
                 <opt.Icon size={18} />
               </div>

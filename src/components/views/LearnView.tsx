@@ -345,8 +345,8 @@ export function DailyChallenges({ streak = 0, onXpClaimed }: { streak?: number; 
             <div key={ch.id} style={{
               display: "flex", alignItems: "center", gap: 12, padding: "10px 14px",
               borderRadius: 10,
-              background: done ? "rgba(0,122,77,0.06)" : achieved ? "rgba(255,182,18,0.04)" : "var(--color-bg)",
-              border: `1px solid ${done ? "rgba(0,122,77,0.2)" : achieved ? "rgba(255,182,18,0.3)" : "var(--color-border)"}`,
+              background: done ? "rgba(0,122,133,0.06)" : achieved ? "rgba(239,179,67,0.04)" : "var(--color-bg)",
+              border: `1px solid ${done ? "rgba(0,122,133,0.2)" : achieved ? "rgba(239,179,67,0.3)" : "var(--color-border)"}`,
               opacity: done ? 1 : achieved ? 1 : 0.65,
             }}>
               <div style={{ color: done ? "#007A85" : achieved ? "#EFB343" : "var(--color-text-secondary)", display: "flex", flexShrink: 0 }}>
@@ -913,7 +913,7 @@ export function LearnView({
       {/* Weekly challenge card - hidden while searching so results sit right under the search box */}
       {showQuestSections && !search.trim() && weeklyChallenge && (
         <div style={{
-          background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+          background: challengeComplete ? "rgba(0,122,133,0.08)" : "var(--color-surface)",
           border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
           borderRadius: 14, padding: "14px 16px", marginBottom: 24,
           display: "flex", alignItems: "center", gap: 14,
@@ -1039,7 +1039,7 @@ export function LearnView({
                   {!isLocked && recommendedCourseIds.includes(course.id) && (
                     <div style={{
                       display: "inline-flex", alignItems: "center", gap: 3,
-                      background: "rgba(0,122,77,0.12)", borderRadius: 20,
+                      background: "rgba(0,122,133,0.12)", borderRadius: 20,
                       padding: "2px 8px", fontSize: 10, fontWeight: 700,
                       color: "#007A85", marginBottom: 4,
                     }}>

@@ -211,7 +211,7 @@ export function QuestsView({
       </div>
       {weeklyChallenge && (
         <div style={{
-          background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+          background: challengeComplete ? "rgba(0,122,133,0.08)" : "var(--color-surface)",
           border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
           borderRadius: 14, padding: "14px 16px", marginBottom: 20,
           display: "flex", alignItems: "center", gap: 14,

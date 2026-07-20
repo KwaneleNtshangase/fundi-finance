@@ -70,7 +70,7 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
 
       if (data.type === "lesson") {
         // Big trophy icon area
-        ctx.fillStyle = "rgba(255,182,18,0.12)";
+        ctx.fillStyle = "rgba(239,179,67,0.12)";
         ctx.beginPath(); ctx.arc(W / 2, H * 0.35, 140, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = "#EFB343";
         ctx.font = "140px serif";

@@ -170,7 +170,7 @@ export function LeaderboardView({
         {/* Username prompt - shown until the user picks a handle */}
         {needsUsername && !loading && (
           <div style={{
-            background: "rgba(255,182,18,0.08)",
+            background: "rgba(239,179,67,0.08)",
             border: "1.5px solid var(--color-accent, #EFB343)",
             borderRadius: 14, padding: "12px 16px", marginBottom: 16,
             display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -195,7 +195,7 @@ export function LeaderboardView({
         {/* Your rank summary card */}
         {myRank && !loading && (
           <div style={{
-            background: "linear-gradient(135deg, rgba(0,122,77,0.1) 0%, rgba(255,182,18,0.06) 100%)",
+            background: "linear-gradient(135deg, rgba(0,122,133,0.1) 0%, rgba(239,179,67,0.06) 100%)",
             border: "2px solid var(--color-primary)",
             borderRadius: 16, padding: "16px 18px", marginBottom: 20,
           }}>
@@ -283,7 +283,7 @@ export function LeaderboardView({
                     background: "#EFB343", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 22, fontWeight: 900, color: "white",
                     border: top3[0].isYou ? "3px solid var(--color-primary)" : "3px solid #EFB343",
-                    boxShadow: "0 4px 16px rgba(255,182,18,0.35)",
+                    boxShadow: "0 4px 16px rgba(239,179,67,0.35)",
                   }}>{top3[0].name[0].toUpperCase()}</div>
                   <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text-primary)" }}>{top3[0].name}</div>
                   <div style={{ fontSize: 12, fontWeight: 700, color: "#EFB343" }}>{formatWithSpaces(top3[0].xp)} XP</div>
@@ -320,7 +320,7 @@ export function LeaderboardView({
                     key={leader.id}
                     className="leaderboard-row"
                     style={{
-                      ...(leader.isYou ? { background: "rgba(0,122,77,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
+                      ...(leader.isYou ? { background: "rgba(0,122,133,0.08)", borderLeft: "4px solid var(--color-primary)" } : {}),
                       display: "flex", alignItems: "center", padding: "12px 16px",
                       borderBottom: "1px solid var(--color-border)",
                     }}

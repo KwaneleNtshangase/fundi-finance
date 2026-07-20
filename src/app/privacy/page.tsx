@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             Privacy Policy
           </h1>
           <p style={{ color: "#a0a0a0", fontSize: "15px", margin: 0 }}>
-            Last updated: April 2026 &nbsp;·&nbsp; The Solution Org (Pty) Ltd
+            Last updated: July 2026 &nbsp;·&nbsp; The Solution Org (Pty) Ltd
           </p>
         </div>
 
@@ -62,8 +62,8 @@ export default function PrivacyPage() {
             top so users see it before any other legal content. */}
         <div
           style={{
-            background: "rgba(255,182,18,0.08)",
-            border: "1px solid rgba(255,182,18,0.35)",
+            background: "rgba(239,179,67,0.08)",
+            border: "1px solid rgba(239,179,67,0.35)",
             borderRadius: 12,
             padding: "18px 20px",
             marginBottom: 40,
@@ -120,6 +120,13 @@ export default function PrivacyPage() {
             This Privacy Policy explains what personal information we collect,
             why we collect it, how we use it, and what rights you have. By
             using Notho you agree to the practices described here.
+          </p>
+          <p>
+            <strong>Notho was previously called Fundi Finance.</strong> Only the
+            name has changed. The app is operated by the same company, The
+            Solution Org (Pty) Ltd, and this policy continues to apply to
+            information collected under the former name. Nothing about how we
+            handle your data changed with the rename.
           </p>
         </Section>
 
@@ -310,9 +317,10 @@ export default function PrivacyPage() {
               Facebook Settings &rarr; Apps and Websites &rarr; Notho
               &rarr; Remove
             </strong>
-            . This will revoke our access token. To ensure full deletion of
-            your data from our servers, please also send us the deletion email
-            above.
+            . While our rename is completing, this may still be listed as{" "}
+            <strong>Fundi Finance</strong>; both refer to the same app. This
+            will revoke our access token. To ensure full deletion of your data
+            from our servers, please also send us the deletion email above.
           </p>
           <p>
             After deletion you will lose all learning progress, XP, and

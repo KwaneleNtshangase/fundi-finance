@@ -45,7 +45,7 @@ export function ServiceWorkerRegistration() {
         gap: 8,
         padding: "10px 18px",
         borderRadius: 999,
-        border: "1px solid rgba(0,122,77,0.35)",
+        border: "1px solid rgba(0,122,133,0.35)",
         background: "var(--color-surface, #fff)",
         color: "var(--color-primary, #007A85)",
         fontWeight: 700,

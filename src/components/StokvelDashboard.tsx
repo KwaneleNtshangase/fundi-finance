@@ -268,7 +268,7 @@ export function StokvelDashboard() {
                 <button type="button" onClick={() => setView("create")} className="btn btn-primary" style={{ padding: "10px 16px", fontSize: 13 }}>
                   Create Stokvel
                 </button>
-                <button type="button" onClick={() => setView("join")} style={{ padding: "10px 16px", fontSize: 13, borderRadius: 10, background: "rgba(0,122,77,0.1)", color: "var(--color-primary)", fontWeight: 700, border: "none" }}>
+                <button type="button" onClick={() => setView("join")} style={{ padding: "10px 16px", fontSize: 13, borderRadius: 10, background: "rgba(0,122,133,0.1)", color: "var(--color-primary)", fontWeight: 700, border: "none" }}>
                   Join with Code
                 </button>
               </div>
@@ -277,7 +277,7 @@ export function StokvelDashboard() {
             <>
               {stokvels.map(s => (
                 <div key={s.id} onClick={() => openDetail(s)} style={{ background: "var(--color-surface)", padding: 16, borderRadius: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(0,122,77,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: 44, height: 44, borderRadius: "50%", background: "rgba(0,122,133,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <Users size={20} style={{ color: "var(--color-primary)" }} />
                   </div>
                   <div style={{ flex: 1 }}>
@@ -376,7 +376,7 @@ export function StokvelDashboard() {
           {/* Whose turn is the pot this month? */}
           {currentRecipient() && (
             <div style={{
-              background: "rgba(0,122,77,0.08)", border: "1.5px solid var(--color-primary)",
+              background: "rgba(0,122,133,0.08)", border: "1.5px solid var(--color-primary)",
               padding: "14px 18px", borderRadius: 14, display: "flex", alignItems: "center", gap: 10,
             }}>
               <Target size={18} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
@@ -398,7 +398,7 @@ export function StokvelDashboard() {
                 onClick={copyInviteCode}
                 style={{
                   fontSize: 11, fontWeight: 700, color: "var(--color-primary)",
-                  background: "rgba(0,122,77,0.1)", padding: "4px 10px",
+                  background: "rgba(0,122,133,0.1)", padding: "4px 10px",
                   borderRadius: 8, border: "none", cursor: "pointer",
                 }}
               >
@@ -411,7 +411,7 @@ export function StokvelDashboard() {
                 <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, paddingBottom: 12, borderBottom: i < members.length - 1 ? "1px solid var(--color-border)" : "none" }}>
                   <div style={{
                     width: 32, height: 32, borderRadius: "50%",
-                    background: paidUserIds.includes(m.user_id) ? "rgba(0,122,77,0.15)" : "var(--color-bg)",
+                    background: paidUserIds.includes(m.user_id) ? "rgba(0,122,133,0.15)" : "var(--color-bg)",
                     display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
                   }}>
                     {paidUserIds.includes(m.user_id)

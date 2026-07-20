@@ -7,7 +7,7 @@ import { buildCoachSummary } from "@/lib/coach/summary";
 import type { CoachEntry } from "@/lib/coach/insights";
 
 /**
- * Coach Cosmo AI chat (Tier 2).
+ * Cosmo AI chat (Tier 2).
  *
  * Privacy (POPIA): the model receives ONLY the anonymised aggregate summary
  * from buildCoachSummary + the user's typed question. No identity fields,

@@ -535,7 +535,7 @@ export function LessonView({
           ) : (
             <div style={{
               borderRadius: 14, padding: "16px",
-              background: didAction === 1 ? "rgba(0,122,77,0.08)" : "rgba(255,182,18,0.08)",
+              background: didAction === 1 ? "rgba(0,122,133,0.08)" : "rgba(239,179,67,0.08)",
               border: `1.5px solid ${didAction === 1 ? "var(--color-primary)" : "#EFB343"}`,
             }}>
               <p style={{
@@ -1062,7 +1062,7 @@ function CalculatorEmbedStep({ step, onNext }: { step: any; onNext: () => void }
           </div>
 
           <div style={{
-            background: "rgba(0,122,77,0.06)", border: "1.5px solid rgba(0,122,77,0.2)",
+            background: "rgba(0,122,133,0.06)", border: "1.5px solid rgba(0,122,133,0.2)",
             borderRadius: 12, padding: "14px 16px", borderLeft: "4px solid var(--color-primary)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>

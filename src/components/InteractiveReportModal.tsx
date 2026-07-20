@@ -369,7 +369,7 @@ export function InteractiveReportModal({
 
               {/* Coach */}
               {model.insights.coachParagraphs.length > 0 && (
-                <Section title="Coach Cosmo" icon={<Lightbulb size={16} style={{ color: "#E6B84C" }} />}>
+                <Section title="What Cosmo noticed" icon={<Lightbulb size={16} style={{ color: "#E6B84C" }} />}>
                   {model.insights.coachParagraphs.map((p, i) => (
                     <p key={i} style={{ fontSize: 13.5, lineHeight: 1.5, margin: i === 0 ? 0 : "8px 0 0" }}>{p}</p>
                   ))}

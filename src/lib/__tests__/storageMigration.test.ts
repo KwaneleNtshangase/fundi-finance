@@ -31,13 +31,14 @@ describe("storage migration: fundi-* -> notho-*", () => {
       "fundi-pending-streak-sync": '{"delta":120}',
       "fundi-daily-xp-2026-07-20": "80",
       "fundi-wc-2026-W29": '{"lessonsCompleted":3}',
+      "fundi.cosmoCollapsed": "false",
       "unrelated-key": "keep me",
     });
   });
 
   it("copies every fundi-prefixed key to the notho- namespace", () => {
     const copied = migrateStorageKeys(store);
-    expect(copied).toBe(6);
+    expect(copied).toBe(7);
     expect(store.getItem("notho-onboarded")).toBe("true");
     expect(store.getItem("notho-username")).toBe("thabo");
     expect(store.getItem("notho-hearts")).toBe("5");
@@ -52,6 +53,11 @@ describe("storage migration: fundi-* -> notho-*", () => {
     migrateStorageKeys(store);
     expect(store.getItem("notho-daily-xp-2026-07-20")).toBe("80");
     expect(store.getItem("notho-wc-2026-W29")).toBe('{"lessonsCompleted":3}');
+  });
+
+  it("migrates dot-separated keys, not just hyphenated ones", () => {
+    migrateStorageKeys(store);
+    expect(store.getItem("notho.cosmoCollapsed")).toBe("false");
   });
 
   it("leaves unrelated keys untouched", () => {
@@ -72,9 +78,9 @@ describe("storage migration: fundi-* -> notho-*", () => {
   });
 
   it("only runs once", () => {
-    expect(migrateStorageKeys(store)).toBe(6);
+    expect(migrateStorageKeys(store)).toBe(7);
     expect(migrateStorageKeys(store)).toBe(-1);
-    expect(store.getItem(MIGRATION_FLAG)).toBe("6");
+    expect(store.getItem(MIGRATION_FLAG)).toBe("7");
   });
 
   it("does not resurrect keys deleted after migration", () => {

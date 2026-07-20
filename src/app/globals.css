@@ -1121,8 +1121,8 @@ html.dark .nav-link.active {
 }
 
 @keyframes node-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 77, 0.35); }
-  50% { box-shadow: 0 0 0 8px rgba(0, 122, 77, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 133, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 122, 133, 0); }
 }
 
 /* ── Loading skeleton animation ─────────────────────────────── */
@@ -1566,7 +1566,7 @@ html.dark .option-button:hover:not(:disabled) {
     --sidebar-bg: #000000;
     --nav-link-color: #E5E7EB;
     --hover-bg: rgba(255, 255, 255, 0.08);
-    --color-primary-light: rgba(74, 222, 128, 0.16);
+    --color-primary-light: rgba(32, 211, 207, 0.16);
   }
   body, main, div, span, p, h1, h2, h3, h4, h5, h6 {
     color: inherit;

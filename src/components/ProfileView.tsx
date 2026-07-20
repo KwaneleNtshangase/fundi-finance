@@ -639,7 +639,7 @@ export function ProfileView({
           background: "linear-gradient(135deg, var(--color-primary), var(--color-secondary))",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 28, fontWeight: 900, color: "white",
-          boxShadow: "0 4px 16px rgba(0,122,77,0.25)",
+          boxShadow: "0 4px 16px rgba(0,122,133,0.25)",
         }}>{initials}</div>
         <div style={{ fontWeight: 800, fontSize: 22, marginBottom: 2 }}>{displayName.split(" ")[0]}</div>
         <div style={{ fontSize: 13, color: "var(--color-text-secondary)" }}>Financial Learner · Level {userData.level}</div>
@@ -737,7 +737,7 @@ export function ProfileView({
 
       {/* Savings Projection card */}
       {savedProjection && projectionFinalValue !== null && (
-        <div style={{ background: "linear-gradient(135deg, rgba(0,122,77,0.07) 0%, rgba(255,182,18,0.05) 100%)", border: "1px solid rgba(0,122,77,0.2)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
+        <div style={{ background: "linear-gradient(135deg, rgba(0,122,133,0.07) 0%, rgba(239,179,67,0.05) 100%)", border: "1px solid rgba(0,122,133,0.2)", borderRadius: 14, padding: 16, marginBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 14, marginBottom: 8 }}>
             <TrendingUp size={16} style={{ color: "var(--color-primary)" }} aria-hidden />
             My Savings Projection
@@ -789,7 +789,7 @@ export function ProfileView({
       </div>
 
       {saveToast && (
-        <div style={{ background: "rgba(0,122,77,0.12)", border: "1px solid var(--color-primary)", borderRadius: 12, padding: "10px 14px", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--color-primary)" }}>{saveToast}</div>
+        <div style={{ background: "rgba(0,122,133,0.12)", border: "1px solid var(--color-primary)", borderRadius: 12, padding: "10px 14px", marginBottom: 12, fontSize: 14, fontWeight: 600, color: "var(--color-primary)" }}>{saveToast}</div>
       )}
 
       <div style={{ marginBottom: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>

@@ -34,7 +34,7 @@ const SLIDES = [
           width: 72,
           height: 72,
           borderRadius: "50%",
-          background: "rgba(255,182,18,0.12)",
+          background: "rgba(239,179,67,0.12)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

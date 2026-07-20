@@ -91,8 +91,8 @@ export function DailyChallenges() {
         key={row.id}
         style={{
           position: "relative",
-          border: `1px solid ${done ? "rgba(0,122,77,0.35)" : "var(--color-border)"}`,
-          background: done ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+          border: `1px solid ${done ? "rgba(0,122,133,0.35)" : "var(--color-border)"}`,
+          background: done ? "rgba(0,122,133,0.06)" : "var(--color-surface)",
           borderRadius: 12,
           padding: "12px 12px",
           transform: done ? "scale(1.01)" : "scale(1)",

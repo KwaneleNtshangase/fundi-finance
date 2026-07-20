@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Coach Cosmo - Tier 1 (deterministic, no AI).
+ * Cosmo - Tier 1 (deterministic, no AI).
  *
  * Self-contained card: fetches the user's current + previous month budget
  * data, runs the pure rules engine (src/lib/coach/insights.ts), and shows
@@ -41,9 +41,9 @@ const BUILT_IN_LABELS: Record<string, string> = {
 
 const SEVERITY_STYLES: Record<CoachInsight["severity"], { border: string; bg: string; chip: string; chipText: string }> = {
   alert:  { border: "rgba(222,107,98,0.45)", bg: "rgba(222,107,98,0.06)", chip: "#DE6B62", chipText: "Over budget" },
-  warn:   { border: "rgba(255,182,18,0.55)", bg: "rgba(255,182,18,0.07)", chip: "#B8860B", chipText: "Heads up" },
+  warn:   { border: "rgba(239,179,67,0.55)", bg: "rgba(239,179,67,0.07)", chip: "#B8860B", chipText: "Heads up" },
   info:   { border: "var(--color-border)",   bg: "transparent",           chip: "#3B7DD8", chipText: "Tip" },
-  praise: { border: "rgba(0,122,77,0.45)",   bg: "rgba(0,122,77,0.06)",   chip: "#007A85", chipText: "Well done" },
+  praise: { border: "rgba(0,122,133,0.45)",   bg: "rgba(0,122,133,0.06)",   chip: "#007A85", chipText: "Well done" },
 };
 
 function monthKeyOf(isoDay: string): string {
@@ -184,7 +184,7 @@ export function CosmoCoachCard({
         <Lightbulb size={18} style={{ color: "var(--color-accent, #EFB343)" }} />
         <h3 style={{ fontSize: 16, fontWeight: 800, margin: 0 }}>Cosmo</h3>
         {showInsights && (
-          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--color-accent, #EFB343)", background: "rgba(255,182,18,0.14)", borderRadius: 999, padding: "1px 8px" }}>
+          <span style={{ fontSize: 11, fontWeight: 800, color: "var(--color-accent, #EFB343)", background: "rgba(239,179,67,0.14)", borderRadius: 999, padding: "1px 8px" }}>
             {insights!.length}
           </span>
         )}
@@ -201,8 +201,8 @@ export function CosmoCoachCard({
       <>
       {!showInsights && (
         <p style={{ fontSize: 13, color: "var(--color-text-secondary)", margin: 0 }}>
-          No nudges right now. Add entries or import a bank statement and Cosmo
-          will spot what&apos;s worth a look.
+          No nudges right now. Cosmo is your money coach. Add entries or import a
+          bank statement and Cosmo will spot what&apos;s worth a look.
         </p>
       )}
 

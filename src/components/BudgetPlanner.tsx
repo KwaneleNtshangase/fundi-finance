@@ -1123,7 +1123,7 @@ export function BudgetView() {
         <div style={{
           display: "flex", alignItems: "center", gap: 6,
           marginBottom: 16, padding: "6px 12px",
-          background: "rgba(0,122,77,0.07)",
+          background: "rgba(0,122,133,0.07)",
           borderRadius: 8, border: "none",
         }}>
           <Target size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
@@ -1133,7 +1133,7 @@ export function BudgetView() {
         </div>
       )}
 
-      {/* Coach Cosmo: deterministic nudges from the user's own numbers */}
+      {/* Cosmo: deterministic nudges from the user's own numbers */}
       {viewMode === "month" && <CosmoCoachCard monthYear={monthYear} />}
 
       {/* Interactive in-app report (manages its own period selector) */}
@@ -1244,7 +1244,7 @@ export function BudgetView() {
       </div>
 
       {Object.keys(budgetTargets).length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--color-border)", background: monthIsCustomised ? "rgba(255,182,18,0.10)" : "var(--color-surface)", fontSize: 12.5 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, padding: "9px 12px", borderRadius: 10, border: "1px solid var(--color-border)", background: monthIsCustomised ? "rgba(239,179,67,0.10)" : "var(--color-surface)", fontSize: 12.5 }}>
           {monthIsCustomised ? (
             <>
               <Target size={14} style={{ color: "#B8860B", flexShrink: 0 }} />
@@ -1333,7 +1333,7 @@ export function BudgetView() {
                       </div>
                     )}
 
-                    <Link href="/learn?course=saving-investing" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(0,122,77,0.06)", borderRadius: 10, textDecoration: "none" }}>
+                    <Link href="/learn?course=saving-investing" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 12px", background: "rgba(0,122,133,0.06)", borderRadius: 10, textDecoration: "none" }}>
                       <div>
                         <div style={{ fontWeight: 700, fontSize: 13, color: "var(--color-primary)" }}>{mathSavingsRate < 10 ? "Boost your savings" : "Grow your wealth"}</div>
                         <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 2 }}>{mathSavingsRate < 10 ? "Learn how to build an emergency fund." : "Level up your investing skills."}</div>
@@ -1350,8 +1350,8 @@ export function BudgetView() {
                 const delta = totalBudget - totalActual;
                 const isOver = delta < 0;
                 return (
-                  <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,77,0.08)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
-                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: isOver ? "rgba(224,60,49,0.15)" : "rgba(0,122,77,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ background: isOver ? "rgba(224,60,49,0.08)" : "rgba(0,122,133,0.08)", border: "none", borderRadius: 14, padding: 16, marginBottom: 20, display: "flex", alignItems: "center", gap: 14 }}>
+                    <div style={{ width: 44, height: 44, borderRadius: "50%", background: isOver ? "rgba(224,60,49,0.15)" : "rgba(0,122,133,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                       <Target size={22} style={{ color: isOver ? "#E03C31" : "#007A85" }} />
                     </div>
                     <div style={{ flex: 1 }}>
@@ -1368,7 +1368,7 @@ export function BudgetView() {
                 <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 14, padding: 16, marginBottom: 20 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
                     <div style={{ fontWeight: 800, fontSize: 14 }}>Expense breakdown</div>
-                    <button type="button" onClick={() => openSetBudget()} style={{ background: "rgba(0,122,77,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A85", display: "flex", alignItems: "center", gap: 4 }}>
+                    <button type="button" onClick={() => openSetBudget()} style={{ background: "rgba(0,122,133,0.1)", border: "none", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 12, fontWeight: 700, color: "#007A85", display: "flex", alignItems: "center", gap: 4 }}>
                       <Target size={13} /> Set Budget
                     </button>
                   </div>
@@ -1451,7 +1451,7 @@ export function BudgetView() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
                     <BarChart2 size={15} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
                     <div style={{ fontWeight: 800, fontSize: 14 }}>How you compare</div>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", marginLeft: "auto", background: "rgba(0,122,77,0.08)", padding: "2px 8px", borderRadius: 20 }}>Community avg</span>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "var(--color-text-secondary)", marginLeft: "auto", background: "rgba(0,122,133,0.08)", padding: "2px 8px", borderRadius: 20 }}>Community avg</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     {catTotals.filter((c) => benchmarks[c.id] !== undefined).slice(0, 5).map((c) => {
@@ -1510,7 +1510,7 @@ export function BudgetView() {
                   };
                   const rowInner = (e: BudgetEntry) => (
                     <>
-                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,77,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "50%", background: e.is_transfer ? "rgba(120,130,150,0.15)" : e.type === "income" ? "rgba(0,122,133,0.12)" : `${getCatColor(e.category)}18`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                         {e.is_transfer ? <ArrowLeftRight size={15} style={{ color: "var(--color-text-secondary)" }} /> : e.type === "income" ? <TrendingUp size={16} style={{ color: "#007A85" }} /> : <div style={{ width: 8, height: 8, borderRadius: "50%", background: getCatColor(e.category) }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -1532,7 +1532,7 @@ export function BudgetView() {
                       const sel = selectedIds.has(e.id);
                       return (
                         <div key={e.id} role="button" tabIndex={0} onClick={() => toggleSelect(e.id)}
-                          style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: sel ? "rgba(0,122,77,0.06)" : "var(--color-surface)", cursor: "pointer", textAlign: "left" }}>
+                          style={{ display: "flex", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid var(--color-border)", gap: 12, width: "100%", background: sel ? "rgba(0,122,133,0.06)" : "var(--color-surface)", cursor: "pointer", textAlign: "left" }}>
                           <div style={{ width: 20, height: 20, borderRadius: 6, flexShrink: 0, border: `2px solid ${sel ? "var(--color-primary)" : "var(--color-border)"}`, background: sel ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
                             {sel && <Check size={13} style={{ color: "white" }} />}
                           </div>
@@ -1676,7 +1676,7 @@ export function BudgetView() {
                       setBudgetScope(opt.key);
                       if (opt.key === "month") setBudgetApplyAll(false);
                     }}
-                      style={{ padding: "9px 10px", borderRadius: 10, cursor: "pointer", border: `2px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.08)" : "var(--color-bg)", textAlign: "center" }}>
+                      style={{ padding: "9px 10px", borderRadius: 10, cursor: "pointer", border: `2px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,133,0.08)" : "var(--color-bg)", textAlign: "center" }}>
                       <div style={{ fontWeight: 800, fontSize: 13.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
                       <div style={{ fontSize: 10.5, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
                     </button>
@@ -1694,7 +1694,7 @@ export function BudgetView() {
                     const active = budgetApplyAll === opt.all;
                     return (
                       <button key={String(opt.all)} type="button" onClick={() => setBudgetApplyAll(opt.all)}
-                        style={{ padding: "8px 10px", borderRadius: 10, cursor: "pointer", border: `1.5px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,77,0.06)" : "var(--color-bg)", textAlign: "center" }}>
+                        style={{ padding: "8px 10px", borderRadius: 10, cursor: "pointer", border: `1.5px solid ${active ? "var(--color-primary)" : "var(--color-border)"}`, background: active ? "rgba(0,122,133,0.06)" : "var(--color-bg)", textAlign: "center" }}>
                         <div style={{ fontWeight: 700, fontSize: 12.5, color: "var(--color-text-primary)" }}>{opt.label}</div>
                         <div style={{ fontSize: 10, color: "var(--color-text-secondary)", marginTop: 1 }}>{opt.sub}</div>
                       </button>
@@ -1760,14 +1760,14 @@ export function BudgetView() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20 }}>
               {(["expense", "income"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => { setEditType(t); setEditCategory(""); }}
-                  style={{ padding: "10px", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${editType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: editType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
+                  style={{ padding: "10px", borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${editType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: editType === t ? "rgba(0,122,133,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
                   {t === "income" ? "Income +" : "Expense -"}
                 </button>
               ))}
             </div>
             {/* Mark as transfer - excludes this entry from income/expense totals */}
             <button type="button" onClick={() => setEditIsTransfer((v) => !v)}
-              style={{ width: "100%", marginBottom: 16, padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "rgba(0,122,77,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
+              style={{ width: "100%", marginBottom: 16, padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "rgba(0,122,133,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
               <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${editIsTransfer ? "var(--color-primary)" : "var(--color-border)"}`, background: editIsTransfer ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {editIsTransfer && <Check size={12} style={{ color: "white" }} />}
               </div>
@@ -1781,12 +1781,12 @@ export function BudgetView() {
               <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
               <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
                 <button type="button" onClick={() => setEditAccountId(null)}
-                  style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                  style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === null ? "rgba(0,122,133,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
                   Cash
                 </button>
                 {bankAccounts.map((b) => (
                   <button key={b.id} type="button" onClick={() => setEditAccountId(b.id)}
-                    style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                    style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${editAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editAccountId === b.id ? "rgba(0,122,133,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
                     {b.institution_name}
                   </button>
                 ))}
@@ -1797,7 +1797,7 @@ export function BudgetView() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                 {(editType === "expense" ? allExpCats : allIncCats).map((c) => (
                   <button key={c.id} type="button" onClick={() => setEditCategory(c.id)}
-                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${editCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
+                    style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${editCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: editCategory === c.id ? "rgba(0,122,133,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
                     <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
                     <span>{c.label}</span>
                   </button>
@@ -1901,7 +1901,7 @@ export function BudgetView() {
                 })}
               </div>
               <button type="button" onClick={() => setSimilarRemember((v) => !v)}
-                style={{ width: "100%", margin: "12px 0 0", padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${similarRemember ? "var(--color-primary)" : "var(--color-border)"}`, background: similarRemember ? "rgba(0,122,77,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
+                style={{ width: "100%", margin: "12px 0 0", padding: "11px 14px", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, border: `2px solid ${similarRemember ? "var(--color-primary)" : "var(--color-border)"}`, background: similarRemember ? "rgba(0,122,133,0.08)" : "var(--color-bg)", color: "var(--color-text-primary)", textAlign: "left" }}>
                 <div style={{ width: 18, height: 18, borderRadius: 5, flexShrink: 0, border: `2px solid ${similarRemember ? "var(--color-primary)" : "var(--color-border)"}`, background: similarRemember ? "var(--color-primary)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {similarRemember && <Check size={12} style={{ color: "white" }} />}
                 </div>
@@ -1935,7 +1935,7 @@ export function BudgetView() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 20 }}>
               {(["expense", "income", "transfer"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => { setAddType(t); setAddCategory(""); }}
-                  style={{ padding: "10px 6px", borderRadius: 10, fontWeight: 700, fontSize: 13.5, cursor: "pointer", border: `2px solid ${addType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: addType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)" }}>
+                  style={{ padding: "10px 6px", borderRadius: 10, fontWeight: 700, fontSize: 13.5, cursor: "pointer", border: `2px solid ${addType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: addType === t ? "rgba(0,122,133,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)" }}>
                   {t === "income" ? "Income +" : t === "expense" ? "Expense -" : "Transfer ⇄"}
                 </button>
               ))}
@@ -1965,12 +1965,12 @@ export function BudgetView() {
                   <div style={{ fontSize: 12, fontWeight: 600, color: "var(--color-text-secondary)", marginBottom: 8 }}>Funding Source</div>
                   <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
                     <button type="button" onClick={() => setAddAccountId(null)}
-                      style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === null ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                      style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === null ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === null ? "rgba(0,122,133,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
                       Cash
                     </button>
                     {bankAccounts.map((b) => (
                       <button key={b.id} type="button" onClick={() => setAddAccountId(b.id)}
-                        style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === b.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
+                        style={{ padding: "8px 14px", borderRadius: 20, whiteSpace: "nowrap", cursor: "pointer", border: `2px solid ${addAccountId === b.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addAccountId === b.id ? "rgba(0,122,133,0.08)" : "var(--color-bg)", fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)" }}>
                         {b.institution_name}
                       </button>
                     ))}
@@ -1981,7 +1981,7 @@ export function BudgetView() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {(addType === "expense" ? allExpCats : allIncCats).map((c) => (
                       <button key={c.id} type="button" onClick={() => setAddCategory(c.id)}
-                        style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,77,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
+                        style={{ padding: "10px 12px", borderRadius: 10, cursor: "pointer", border: `2px solid ${addCategory === c.id ? "var(--color-primary)" : "var(--color-border)"}`, background: addCategory === c.id ? "rgba(0,122,133,0.08)" : "var(--color-bg)", display: "flex", alignItems: "center", gap: 8, fontWeight: 600, fontSize: 13, color: "var(--color-text-primary)", textAlign: "left" }}>
                         <c.Icon size={14} style={{ color: "var(--color-primary)", flexShrink: 0 }} aria-hidden />
                         <span>{c.label}</span>
                       </button>
@@ -2028,7 +2028,7 @@ export function BudgetView() {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 20, opacity: editingCatId ? 0.5 : 1, pointerEvents: editingCatId ? "none" : "auto" }}>
               {(["expense", "income"] as const).map((t) => (
                 <button key={t} type="button" onClick={() => setNewCatType(t)}
-                  style={{ padding: 10, borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${newCatType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: newCatType === t ? "rgba(0,122,77,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
+                  style={{ padding: 10, borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: "pointer", border: `2px solid ${newCatType === t ? "var(--color-primary)" : "var(--color-border)"}`, background: newCatType === t ? "rgba(0,122,133,0.1)" : "var(--color-bg)", color: "var(--color-text-primary)", textTransform: "capitalize" }}>
                   {t === "income" ? "Income" : "Expense"}
                 </button>
               ))}
@@ -2107,7 +2107,7 @@ export function BudgetView() {
                     const CatIcon = getIconByName(c.icon_name);
                     const active = editingCatId === c.id;
                     return (
-                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: active ? "rgba(0,122,77,0.06)" : "var(--color-bg)", border: `1px solid ${active ? "var(--color-primary)" : "var(--color-border)"}` }}>
+                      <div key={c.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, background: active ? "rgba(0,122,133,0.06)" : "var(--color-bg)", border: `1px solid ${active ? "var(--color-primary)" : "var(--color-border)"}` }}>
                         <button type="button" onClick={() => startEditCustomCat(c)}
                           style={{ display: "flex", alignItems: "center", gap: 10, flex: 1, minWidth: 0, background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: 0 }}>
                           <CatIcon size={16} style={{ color: c.color, flexShrink: 0 }} />

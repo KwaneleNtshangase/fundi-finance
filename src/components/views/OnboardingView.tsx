@@ -286,7 +286,7 @@ export function OnboardingView({
                     borderRadius: 12,
                     cursor: "pointer",
                     border: `2px solid ${selectedGoal === g.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                    background: selectedGoal === g.id ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+                    background: selectedGoal === g.id ? "rgba(0,122,133,0.08)" : "var(--color-surface)",
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
@@ -352,7 +352,7 @@ export function OnboardingView({
             display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 20,
             textAlign: "left", cursor: "pointer",
             padding: "14px 16px", borderRadius: 12,
-            background: ageConfirmed ? "rgba(0,122,77,0.06)" : "var(--color-surface)",
+            background: ageConfirmed ? "rgba(0,122,133,0.06)" : "var(--color-surface)",
             border: `1.5px solid ${ageConfirmed ? "var(--color-primary)" : "var(--color-border)"}`,
           }}>
             <input

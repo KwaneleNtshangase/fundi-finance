@@ -243,8 +243,8 @@ export function LearnView({
 
       {/* Fact of the Day */}
       <div style={{
-        background: "linear-gradient(135deg, rgba(0,122,77,0.08) 0%, rgba(255,182,18,0.06) 100%)",
-        border: "1px solid rgba(0,122,77,0.2)", borderRadius: 14,
+        background: "linear-gradient(135deg, rgba(0,122,133,0.08) 0%, rgba(239,179,67,0.06) 100%)",
+        border: "1px solid rgba(0,122,133,0.2)", borderRadius: 14,
         padding: "14px 16px", marginBottom: 20,
         borderLeft: "4px solid var(--color-primary)",
       }}>
@@ -324,7 +324,7 @@ export function LearnView({
       {/* Weekly challenge card */}
       {weeklyChallenge && (
         <div style={{
-          background: challengeComplete ? "rgba(0,122,77,0.08)" : "var(--color-surface)",
+          background: challengeComplete ? "rgba(0,122,133,0.08)" : "var(--color-surface)",
           border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
           borderRadius: 14, padding: "14px 16px", marginBottom: 24,
           display: "flex", alignItems: "center", gap: 14,

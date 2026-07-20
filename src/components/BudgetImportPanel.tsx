@@ -605,7 +605,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
                 borderRadius: 12,
                 cursor: "pointer",
                 marginBottom: 16,
-                background: dragActive ? "rgba(0,122,77,0.08)" : "transparent",
+                background: dragActive ? "rgba(0,122,133,0.08)" : "transparent",
                 transition: "border-color 0.15s ease, background 0.15s ease",
               }}
             >
@@ -727,7 +727,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
             <div style={{ flexShrink: 0, padding: "0 20px 12px" }}>
               {fileMetas.map((meta) => (
                 meta.reconciliation?.ok ? (
-                  <div key={`${meta.fileName}-ok`} style={{ background: "rgba(0,122,77,0.08)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
+                  <div key={`${meta.fileName}-ok`} style={{ background: "rgba(0,122,133,0.08)", border: "1px solid rgba(0,122,133,0.25)", borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 13 }}>
                     <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "var(--color-primary)" }}>
                       <CheckCircle2 size={16} /> {meta.fileName} - Balance reconciles ✓
                     </div>
@@ -749,7 +749,7 @@ export function BudgetImportPanel({ onImported }: { onImported: () => void }) {
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "12px 20px 0", WebkitOverflowScrolling: "touch" }}>
 
             {transferPairs.length > 0 && (
-              <div style={{ background: "rgba(0,122,77,0.06)", border: "1px solid rgba(0,122,77,0.25)", borderRadius: 10, padding: 14, marginBottom: 16 }}>
+              <div style={{ background: "rgba(0,122,133,0.06)", border: "1px solid rgba(0,122,133,0.25)", borderRadius: 10, padding: 14, marginBottom: 16 }}>
                 <div style={{ display: "flex", gap: 8, fontWeight: 700, color: "var(--color-primary)", marginBottom: 10, fontSize: 13 }}>
                   <ArrowLeftRight size={16} />
                   These look like transfers between your own accounts - exclude from spending?
