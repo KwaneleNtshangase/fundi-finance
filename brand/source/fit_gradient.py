@@ -11,7 +11,7 @@ than an approximation someone eyeballed.
 import json, math
 from PIL import Image, ImageFilter
 
-SRC = '/sessions/zen-amazing-hypatia/mnt/fundi-finance/public/notho-icon.png'
+SRC = '/sessions/zen-amazing-hypatia/mnt/notho/public/notho-icon.png'
 
 BASE = {
     'white':      (0xFF, 0xFF, 0xFF),
@@ -27,6 +27,9 @@ BASE = {
 GROUP = {'teal_hi': 'teal', 'teal_light': 'teal', 'teal_dark': 'teal',
          'teal_shade': 'teal', 'gold': 'gold', 'gold_dark': 'gold',
          'blue': 'blue', 'blue_dark': 'blue', 'white': None}
+# The shaded back face is fitted on its own so the overlay carries the right
+# colour ramp, independent of the base ribbon it sits on top of.
+SHADOW = {'teal_dark', 'teal_shade'}
 
 
 def load():
@@ -41,7 +44,7 @@ def collect(im):
     px = im.load()
     names = list(BASE)
     cols = [BASE[n] for n in names]
-    out = {'teal': [], 'gold': [], 'blue': []}
+    out = {'teal': [], 'gold': [], 'blue': [], 'teal_shadow': []}
     for y in range(H):
         for x in range(W):
             r, g, b = px[x, y]
@@ -52,13 +55,16 @@ def collect(im):
                 d = 2*(r-cr)**2 + 4*(g-cg)**2 + 3*(b-cb)**2
                 if d < best:
                     best, bi = d, i
-            grp = GROUP[names[bi]]
+            nm = names[bi]
+            grp = GROUP[nm]
             if grp:
                 out[grp].append((x / W, y / H, r, g, b))
+            if nm in SHADOW:
+                out['teal_shadow'].append((x / W, y / H, r, g, b))
     return out
 
 
-def fit(samples, nstops=5):
+def fit(samples, nstops=10):
     """
     Find the axis along which luminance varies most, then sample mean colour in
     bands along it. Returns gradient endpoints in objectBoundingBox coords plus

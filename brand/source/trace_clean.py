@@ -12,7 +12,7 @@ import os, re
 from PIL import Image, ImageFilter
 import vtracer
 
-SRC = '/sessions/zen-amazing-hypatia/mnt/fundi-finance/public/notho-icon.png'
+SRC = '/sessions/zen-amazing-hypatia/mnt/notho/public/notho-icon.png'
 TMP = '/tmp/tclean'
 SCALE = 4
 os.makedirs(TMP, exist_ok=True)
@@ -48,6 +48,12 @@ MERGE = {
 # classifier's noise -- which reads as a torn seam rather than a fade. One
 # shape plus one fitted gradient is both cleaner and closer to the original.
 ORDER = ['teal', 'gold', 'blue']
+
+# The ribbon's shaded back face, traced separately and painted OVER the base
+# teal with an edge that fades to transparent. A hard-edged second shape here
+# produces the torn seam; a soft overlay reproduces the fold's shadow without
+# any boundary that can go ragged.
+SHADOW_CLASSES = ['teal_dark', 'teal_shade']
 
 
 def load():
@@ -137,6 +143,18 @@ def main():
         ds = trace_mask(mask_for(labels, names, c, (W, H)), c)
         layers[c] = ds
         print(f'{c:11s} subpaths={len(ds):2d} nodes={sum(d.count("C") for d in ds)}')
+
+    # Shadow overlay: heavy smoothing so the outline is a clean curve rather
+    # than a trace of wherever the classifier happened to flip.
+    idxs = {names.index(m) for m in SHADOW_CLASSES if m in names}
+    sm = Image.new('L', (W, H), 255)
+    sm.putdata([0 if l in idxs else 255 for l in labels])
+    for k in (9, 13, 17):
+        sm = sm.filter(ImageFilter.ModeFilter(k))
+    ds = trace_mask(sm, 'teal_shadow')
+    layers['teal_shadow'] = ds
+    print(f'{"teal_shadow":11s} subpaths={len(ds):2d} '
+          f'nodes={sum(d.count("C") for d in ds)}')
     return layers, (W, H)
 
 

@@ -11,7 +11,7 @@ import os, re
 from PIL import Image, ImageFilter
 import vtracer
 
-SRC = '/sessions/zen-amazing-hypatia/mnt/fundi-finance/public/notho-logo.png'
+SRC = '/sessions/zen-amazing-hypatia/mnt/notho/public/notho-logo.png'
 TMP = '/tmp/tword'
 SCALE = 4
 os.makedirs(TMP, exist_ok=True)

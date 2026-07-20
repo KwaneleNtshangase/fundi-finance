@@ -76,26 +76,41 @@ Icon, as flat colour (`notho-icon-flat.svg`):
 | Leaf — gold + dot | `#EAAC3E` |
 | Leaf — blue | `#0A3A71` |
 
-**The teal N is one shape, not two.** An earlier build split it into a light
-and a dark region. That put a hard trace edge through what is actually a
-smooth gradient, and the edge then followed the classifier's noise — which
-read as a torn seam rather than a fade. One shape carrying one gradient is
-both cleaner and closer to the original.
+## How the icon's shading works — read this before editing
 
-Icon gradients (`notho-icon-mark.svg`) are **fitted to the source pixels** by
-`source/fit_gradient.py`, not eyeballed: it finds the axis along which each
-region's luminance actually varies, then samples the mean colour in bands
-along it.
+The artwork shades in **two dimensions**: light falls across the ribbon and
+along its length. An SVG linear gradient is one-dimensional. Projecting the
+artwork onto a single axis and averaging into bands mixes light stem pixels
+with dark diagonal pixels sitting at the same projection distance, so contrast
+collapses. Measured: the source teal spans a luminance range of **89**; the
+best possible 1-D gradient fit reproduces **76**. That gap is inherent to the
+model — it is why adding stops, splitting the shape, or layering a soft shading
+overlay all failed in turn.
 
-| Layer | Axis (objectBoundingBox) | Stops |
+The shipping icon therefore keeps **traced vector outlines** for geometry
+(crisp at any scale, editable as paths) and takes its **shading from the source
+raster, clipped to those outlines**. Measured against the source:
+
+| | mean pixel difference | teal luminance range |
 |---|---|---|
-| Teal | (0.245, 0.07) → (0.755, 0.93) | `#229EA4` `#19959D` `#0F929A` `#0D7982` `#0B6570` |
-| Gold | (0.309, 0.038) → (0.691, 0.962) | `#F1BE56` `#EEB84F` `#E9AF43` `#E5A83C` `#E2A335` |
-| Blue | (0.863, 0.156) → (0.137, 0.844) | `#274E9B` `#1F4388` `#183A79` `#12326A` `#0C2A5B` |
+| Source artwork | — | 89 |
+| Shipping icon (clipped shading) | **0.53 / 255** | **90** |
+| Pure-vector alternate | 6.22 / 255 | 76 |
+| Full lockup vs your logo file | **0.92 / 255** | — |
 
-Stops sit at offsets 0, 0.3, 0.5, 0.7, 1.0. Gradient coordinates are relative
-to each shape's own bounding box, not the artwork's — normalising against the
-whole image skews the axis.
+Artwork colour is bled outward past the outline before clipping, so the clip
+always cuts through solid colour instead of exposing a hairline of white where
+the vector edge and raster edge disagree by a pixel.
+
+### If you need a raster-free file
+
+`svg/notho-icon-mark-purevector.svg` (29 KB vs 701 KB) and
+`svg/notho-logo-full-purevector.svg` (99 KB vs 771 KB) are pure vector with no
+embedded image. They are visibly flatter — the shading loses roughly 15% of its
+contrast — so use them only where an embedded raster is genuinely unacceptable.
+
+For flat single-colour reproduction (embroidery, one-colour print) use
+`svg/notho-icon-flat.svg`.
 
 **Dark-background tagline** uses lifted values — `#2ED6D2`, `#F6BE3C`, `#8FA9F0`.
 The light-mode navy fails contrast on dark, and the light-mode teal and gold
