@@ -1,0 +1,102 @@
+import type { NextConfig } from "next";
+
+// Security headers — OWASP top-10 mitigation + POPIA hardening.
+// These apply to every response served by the Next.js app.
+//
+// CSP note: we intentionally allow `'unsafe-inline'` for scripts because the
+// current codebase relies on Next.js inline bootstrapping, inline event
+// handlers from some legacy widgets, and PostHog's inline init script.
+// Upgrading to strict-dynamic with nonces would require a broader refactor.
+// Style needs 'unsafe-inline' for the large amount of style={{...}} JSX.
+const securityHeaders = [
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      // Scripts: self + PostHog + CDN (fundiapp.co.za is the sole production domain)
+      "script-src 'self' 'unsafe-inline' https://us-assets.i.posthog.com https://us.i.posthog.com https://app.posthog.com https://cdn.jsdelivr.net",
+      // Styles: self + inline (JSX style={{}}) + Google Fonts
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      // Images: self + data URIs (emojis, canvas exports) + OAuth avatars
+      "img-src 'self' data: blob: https://*.supabase.co https://*.googleusercontent.com https://*.fbcdn.net https://platform-lookaside.fbsbx.com",
+      // XHR / fetch / websocket
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://us.i.posthog.com https://us-assets.i.posthog.com https://app.posthog.com https://fundiapp.co.za https://wealthwithkwanele.co.za",
+      // Service worker scope
+      "worker-src 'self' blob:",
+      // Frames: deny embedding us; allow YouTube for lessons if needed
+      "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
+      "frame-ancestors 'none'",
+      "form-action 'self' https://formspree.io https://fundiapp.co.za https://wealthwithkwanele.co.za",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
+  // Clickjacking
+  { key: "X-Frame-Options", value: "DENY" },
+  // MIME-sniffing
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Referrer privacy
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Force HTTPS for one year (production only — harmless on localhost)
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains; preload",
+  },
+  // Feature access — deny powerful APIs we do not use
+  {
+    key: "Permissions-Policy",
+    value: [
+      "accelerometer=()",
+      "camera=()",
+      "microphone=()",
+      "geolocation=()",
+      "payment=()",
+      "usb=()",
+      "interest-cohort=()",
+    ].join(", "),
+  },
+  // Legacy XSS filter (ignored by modern browsers but harmless)
+  { key: "X-XSS-Protection", value: "1; mode=block" },
+  // Opener isolation
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+];
+
+const nextConfig: NextConfig = {
+  // unpdf ships a serverless PDF.js build (no separate worker file) — keep it external so Vercel bundles it correctly for the import parse route.
+  serverExternalPackages: ["unpdf"],
+  async headers() {
+    return [
+      {
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
+  },
+  // Common auth URLs people type or that external links/password managers
+  // generate. Auth lives on the root page, so send them there instead of a 404.
+  async redirects() {
+    return [
+      { source: "/login", destination: "/", permanent: false },
+      { source: "/signin", destination: "/", permanent: false },
+      { source: "/signup", destination: "/", permanent: false },
+      { source: "/register", destination: "/", permanent: false },
+    ];
+  },
+  // PostHog + OAuth callback redirects occasionally hit old paths; allow
+  // Next to follow them without logging a warning in the build output.
+  poweredByHeader: false,
+  reactStrictMode: true,
+};
+
+export default nextConfig;

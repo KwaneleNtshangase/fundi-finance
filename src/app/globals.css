@@ -1,0 +1,1699 @@
+@import "tailwindcss";
+@source "../components/views";
+
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Screen-reader-only text for a11y labels on loading/toast states */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Skeleton loader - shimmer placeholder while data loads.
+   Disabled entirely for reduced-motion users (they just see a flat block). */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--track-bg) 0%,
+    rgba(150, 160, 170, 0.25) 50%,
+    var(--track-bg) 100%
+  );
+  background-size: 800px 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+  border-radius: 10px;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+}
+body.fundi-reduced-motion .skeleton { animation: none; }
+
+:root {
+  --nav-link-color: #374151;
+  --color-primary: #007A4D;
+  --color-primary-hover: #006040;
+  --color-primary-light: #EAF3EF;
+  --color-secondary: #FFB612;
+  --color-secondary-light: #FFF6DC;
+  --color-accent: #E03C31;
+  --color-accent-light: #FDECEA;
+  --color-danger: #E03C31;
+  --color-danger-light: #FDECEA;
+  --color-bg: #FFFFFF;
+  --color-surface: #F4F5F7;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6B7280;
+  --color-border: transparent;
+  --track-bg: #E6E8EB;
+  --hover-bg: rgba(0, 0, 0, 0.06);
+  --color-nav-bg: #ffffff;
+  --color-nav-active: #007A4D;
+  --color-hearts: #E03C31;
+  --color-streak: #FFB612;
+
+  /* Back-compat aliases used by existing CSS */
+  --primary-green: var(--color-primary);
+  --primary-green-dark: var(--color-primary-hover);
+  --primary-green-light: var(--color-primary-hover);
+  --lesson-yellow: var(--color-accent);
+  --lesson-yellow-light: var(--color-accent);
+  --bg-gray: #F4F5F7;
+  --sidebar-bg: #FFFFFF;
+  --text-dark: var(--color-text-primary);
+  --text-light: var(--color-text-secondary);
+  --border-light: var(--color-border);
+  --error-red: var(--color-danger);
+  --success-green: var(--color-secondary);
+  --info-blue: var(--color-primary);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.app-container {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  /* Hidden on mobile */
+  display: none;
+  width: 256px;
+  background: var(--color-bg);
+  border-right: none;
+  padding: 0 0 24px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 30;
+  box-shadow: none;
+}
+
+@media (min-width: 769px) {
+  .sidebar {
+    display: flex !important;
+    flex-direction: column;
+  }
+}
+
+.sidebar-brand-accent {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(90deg, #007a4d 0%, #ffb612 100%);
+  flex-shrink: 0;
+}
+
+.logo {
+  padding: 0 24px 32px;
+  border-bottom: none;
+  margin-bottom: 16px;
+}
+
+.logo h1 {
+  color: var(--color-primary);
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.logo p {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.nav-menu {
+  list-style: none;
+  padding: 0 12px;
+}
+
+.nav-item {
+  margin-bottom: 4px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  margin-right: 8px;
+  padding: 12px 16px;
+  color: #4b5563;
+  text-decoration: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  width: calc(100% - 16px);
+  text-align: left;
+}
+
+.nav-link:hover {
+  background: var(--hover-bg);
+  /* keep the item's own text colour so the label stays visible on hover */
+}
+
+html.dark .nav-link {
+  color: #e5e7eb;
+}
+
+html.dark .nav-link:hover {
+  background: var(--hover-bg);
+}
+
+.nav-link.active {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-radius: 12px;
+  border-left: none;
+  padding-left: 16px;
+  font-weight: 700;
+}
+
+html.dark .nav-link.active {
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
+  border-left-color: #22c55e;
+}
+
+.nav-icon {
+  margin-right: 12px;
+  font-size: 20px;
+}
+
+.main-content {
+  flex: 1;
+  margin-left: 0;
+  padding: 16px;
+}
+
+@media (min-width: 768px) {
+  .main-content {
+    margin-left: 256px;
+    padding: 32px;
+  }
+}
+
+/* Stats panel - hidden by default (mobile-first) */
+.stats-panel {
+  display: none;
+}
+
+/* Only show stats panel on large screens */
+@media (min-width: 1200px) {
+  .stats-panel {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 320px;
+    height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+    border-left: none;
+    padding: 32px 24px;
+    overflow-y: auto;
+  }
+}
+
+/* Push main content left only when stats panel is visible */
+.main-with-stats {
+  margin-right: 0;
+}
+@media (min-width: 1200px) {
+  .main-with-stats {
+    margin-right: 320px;
+  }
+}
+
+/* Mobile-only daily goal card inside LearnView. Hidden on large screens
+   where the right-hand StatsPanel already shows the same information. */
+.mobile-daily-goal-card {
+  display: flex;
+}
+@media (min-width: 1200px) {
+  .mobile-daily-goal-card {
+    display: none;
+  }
+}
+
+/* Compact streak/XP/hearts bar for phones and tablets. Hidden on large
+   screens where the right-hand StatsPanel shows the same information. */
+.mobile-top-bar {
+  display: block;
+}
+@media (min-width: 1200px) {
+  .mobile-top-bar {
+    display: none;
+  }
+}
+
+.stats-section {
+  margin-bottom: 32px;
+}
+
+.stats-section h3 {
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--text-dark);
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background: var(--bg-gray);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.stat-icon {
+  font-size: 28px;
+  margin-right: 12px;
+  color: var(--color-accent);
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.daily-goal-progress {
+  margin-top: 16px;
+}
+
+.progress-bar {
+  height: 16px;
+  background: var(--track-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  /* Progress toward a goal should end in the success colour, not red */
+  background: linear-gradient(90deg, var(--color-primary-hover), var(--color-primary));
+  transition: width 0.6s ease-out;
+}
+
+.progress-text {
+  font-size: 13px;
+  color: var(--text-light);
+  margin-top: 4px;
+}
+
+.courses-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.course-card {
+  background: var(--color-surface);
+  border-radius: 18px;
+  padding: 24px;
+  border: none;
+  box-shadow: none;
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+.course-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.12);
+}
+
+.course-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.course-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+}
+
+.course-description {
+  font-size: 14px;
+  color: var(--text-light);
+  line-height: 1.5;
+}
+
+.course-progress {
+  text-align: right;
+}
+
+.course-percentage {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-primary);
+}
+
+.course-percentage-label {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.course-stats {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.course-stat {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.course-stat strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.course-map {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 32px 0;
+}
+
+.course-map-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: var(--color-bg);
+}
+
+.course-map-title {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.course-map-description {
+  font-size: 16px;
+  color: var(--text-light);
+}
+
+.unit {
+  margin-bottom: 48px;
+}
+
+.unit-header {
+  background: var(--color-surface);
+  border: none;
+  color: var(--color-text-primary);
+  padding: 16px 24px;
+  border-radius: 14px;
+  margin-bottom: 24px;
+  box-shadow: none;
+}
+
+.unit-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: var(--color-primary);
+}
+
+.unit-description {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.lessons-path {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+}
+
+.lesson-node {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--color-primary);
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  cursor: pointer;
+  transition: transform 0.2s;
+  position: relative;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.lesson-node:hover {
+  transform: scale(1.1);
+}
+
+.lesson-node.completed {
+  background: var(--color-secondary-light);
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
+
+.lesson-node.locked {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.lesson-node.coming-soon {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: 24px;
+  cursor: default;
+}
+
+.lesson-label {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.lesson-player {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.lesson-progress-bar {
+  height: 10px;
+  background: var(--track-bg);
+  border-radius: 99px;
+  margin-bottom: 32px;
+  overflow: hidden;
+}
+
+.lesson-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+  border-radius: 99px;
+  transition: width 0.4s ease-out;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-6px);
+  }
+  80% {
+    transform: translateX(6px);
+  }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.option-button.correct {
+  background: #007A4D !important;
+  border-color: #007A4D !important;
+  color: white !important;
+}
+
+.option-button.incorrect {
+  background: #E03C31 !important;
+  border-color: #E03C31 !important;
+  color: white !important;
+}
+
+.feedback {
+  animation: fade-in 0.25s ease-out;
+}
+
+.lesson-step {
+  background: var(--color-surface);
+  border-radius: 12px;
+  padding: 48px;
+  border: 1px solid var(--color-border);
+  min-height: 400px;
+}
+
+.step-title {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text-dark);
+}
+
+.step-content {
+  font-size: 18px;
+  line-height: 1.8;
+  color: var(--text-dark);
+  margin-bottom: 32px;
+}
+
+.step-content p {
+  margin-bottom: 16px;
+}
+
+.step-content ul {
+  margin-left: 24px;
+  margin-bottom: 16px;
+}
+
+.step-content li {
+  margin-bottom: 8px;
+}
+
+.step-content strong {
+  color: var(--primary-green);
+  font-weight: 700;
+}
+
+.question-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.option-button {
+  padding: 14px 16px;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
+}
+
+.option-button:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.option-button.selected {
+  border-color: var(--primary-green);
+  background: rgba(88, 204, 2, 0.1);
+}
+
+.option-button.correct {
+  background: #007A4D !important;
+  border-color: #007A4D !important;
+  color: white !important;
+}
+
+.option-button.incorrect {
+  background: #E03C31 !important;
+  border-color: #E03C31 !important;
+  color: white !important;
+}
+
+.option-button:disabled {
+  cursor: not-allowed;
+}
+
+.feedback {
+  padding: 16px 24px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.feedback.correct {
+  background: var(--color-secondary-light);
+  color: #065f46;
+  border-left: 4px solid var(--color-secondary);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.feedback.incorrect {
+  background: var(--color-danger-light);
+  color: #991b1b;
+  border-left: 4px solid var(--color-danger);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.lesson-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 32px;
+  /* Extra bottom room so primary CTA is never behind the mobile bottom nav
+     or below the iOS home indicator. The nav is hidden during lessons, but
+     we still guarantee safe-area clearance. */
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+}
+
+@media (max-width: 768px) {
+  .lesson-actions {
+    /* Stack buttons on mobile so long CTA text like "Next Lesson: …" fits */
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .lesson-actions .btn {
+    width: 100%;
+  }
+}
+
+.btn {
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.btn-primary:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-2px);
+}
+
+.btn-primary:disabled {
+  background: var(--track-bg);
+  color: var(--color-text-secondary);
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--text-dark);
+  border: 2px solid var(--border-light);
+}
+
+.btn-secondary:hover {
+  background: var(--bg-gray);
+}
+
+.completion-screen {
+  text-align: center;
+  padding: 48px;
+}
+
+.completion-icon {
+  font-size: 80px;
+  margin-bottom: 24px;
+}
+
+.completion-title {
+  font-size: 36px;
+  font-weight: 800;
+  margin-bottom: 16px;
+  color: var(--primary-green);
+}
+
+.completion-xp {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--lesson-yellow);
+  margin-bottom: 32px;
+}
+
+.completion-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 32px;
+}
+
+.profile-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.profile-avatar {
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  margin: 0 auto 24px;
+}
+
+.profile-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
+}
+
+.profile-stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  border: 2px solid var(--border-light);
+  text-align: center;
+}
+
+.profile-stat-value {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--primary-green);
+  margin-bottom: 8px;
+}
+
+.profile-stat-label {
+  font-size: 14px;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.badges-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  border: 2px solid var(--border-light);
+}
+
+.badges-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+.badge {
+  text-align: center;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--bg-gray);
+}
+
+.badge.earned {
+  background: var(--color-accent-light);
+  border: 1px solid var(--color-accent);
+}
+
+.badge.locked {
+  background: #f9fafb;
+  opacity: 0.5;
+}
+
+.badge-icon {
+  font-size: 48px;
+  margin-bottom: 8px;
+}
+
+.badge-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.leaderboard-table {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  border: 2px solid var(--border-light);
+}
+
+.leaderboard-row {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.leaderboard-row:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-rank {
+  font-size: 20px;
+  font-weight: 700;
+  width: 50px;
+  color: var(--text-light);
+}
+
+.leaderboard-rank.top {
+  color: var(--lesson-yellow);
+}
+
+.leaderboard-avatar {
+  width: 48px;
+  height: 48px;
+  background: var(--primary-green);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  margin-right: 16px;
+}
+
+.leaderboard-info {
+  flex: 1;
+}
+
+.leaderboard-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.leaderboard-xp {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-green);
+}
+
+.settings-section {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  border: 2px solid var(--border-light);
+  margin-bottom: 24px;
+}
+
+.settings-section h3 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.setting-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-label {
+  font-size: 16px;
+  color: var(--text-dark);
+}
+
+.setting-input {
+  padding: 8px 16px;
+  border: 2px solid var(--border-light);
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+/* stats-panel is hidden by default (mobile-first) - no override needed here */
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none !important;
+  }
+
+  .main-content {
+    margin-left: 0;
+    padding: 16px;
+    /* Clear the floating nav island (pill height + bottom offset + safe area) */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 96px);
+  }
+
+  .app-container {
+    flex-direction: column;
+  }
+
+  .nav-menu {
+    display: flex;
+    overflow-x: auto;
+    padding: 0 12px;
+  }
+
+  .nav-item {
+    margin-bottom: 0;
+    margin-right: 4px;
+  }
+
+  .nav-link {
+    white-space: nowrap;
+  }
+
+  .logo {
+    padding: 0 24px 16px;
+  }
+
+  .lesson-step {
+    padding: 24px;
+  }
+
+  .step-title {
+    font-size: 24px;
+  }
+
+  .step-content {
+    font-size: 16px;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-4 {
+  margin-bottom: 32px;
+}
+
+
+/* ── Fundi mascot animations ─────────────────────────────────── */
+@keyframes fundi-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes fundi-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  30% { transform: translateY(-5px) rotate(-3deg); }
+  70% { transform: translateY(-2px) rotate(3deg); }
+}
+@keyframes fundi-shake {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-8deg); }
+  40% { transform: rotate(8deg); }
+  60% { transform: rotate(-5deg); }
+  80% { transform: rotate(5deg); }
+}
+
+/* ── Playable lesson node - pulse ring to show it's clickable ── */
+.lesson-node.playable {
+  position: relative;
+  border: 2.5px solid var(--color-primary, #007A4D);
+  animation: node-pulse 2s ease-in-out infinite;
+}
+
+@keyframes node-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 122, 77, 0.35); }
+  50% { box-shadow: 0 0 0 8px rgba(0, 122, 77, 0); }
+}
+
+/* ── Loading skeleton animation ─────────────────────────────── */
+@keyframes slide-right {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── XP gain toast animation ─────────────────────────────────── */
+@keyframes xp-toast {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.9); }
+  15%  { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1); }
+  70%  { opacity: 1; transform: translateX(-50%) translateY(0)   scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px) scale(0.95); }
+}
+
+/* ── Remove spinner arrows from number inputs ────────────────── */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ── Dark mode via .dark class on <html> ─────────────────────────────────── */
+html.dark {
+  --color-bg: #000000;
+  --color-surface: #141414;
+  --color-border: transparent;
+  --track-bg: #2A2A2A;
+  --hover-bg: rgba(255, 255, 255, 0.08);
+  --color-primary-light: rgba(63, 182, 139, 0.18);
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #9AA0A6;
+  --color-primary: #3FB68B;
+  --color-secondary: #FFB612;
+  --bg-gray: #000000;
+  --border-light: transparent;
+  --text-light: #9AA0A6;
+  --text-dark: #ffffff;
+  --sidebar-bg: #000000;
+  --nav-link-color: #ffffff;
+  /* Bottom nav - ensure strong contrast in dark mode */
+  --color-nav-bg: #141414;
+  --color-nav-active: #4ade80;
+}
+
+html.dark body {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Force all text in dark mode to be clearly readable */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6,
+html.dark p,
+html.dark span:not(.nav-icon),
+html.dark label,
+html.dark div {
+  color: inherit;
+}
+
+html.dark [style*="color: #111827"],
+html.dark [style*="color:#111827"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color:#1f2937"],
+html.dark [style*="color: #374151"],
+html.dark [style*="color:#374151"],
+html.dark [style*="color: #4B5563"],
+html.dark [style*="color:#4B5563"],
+html.dark [style*="color: #6B7280"],
+html.dark [style*="color:#6B7280"],
+html.dark [style*="color: black"],
+html.dark [style*="color:black"] {
+  color: #ffffff !important;
+}
+
+/* ── Bottom nav - floating pill / island ────────────────────────────────── */
+/* The <nav.bottom-nav> is just a transparent positioning wrapper; the visible
+   "island" is the inner .nav-pill so it can float with margins on all sides. */
+.bottom-nav {
+  background: transparent !important;
+  border-top: none !important;
+  box-shadow: none !important;
+}
+/* Soft scrim so scrolling content fades into the background under the floating
+   island instead of showing hard card edges beside it. */
+.bottom-nav::before {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 120px;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(to top, var(--color-bg), transparent);
+  background: linear-gradient(to top, var(--color-bg) 45%, color-mix(in srgb, var(--color-bg) 0%, transparent) 100%);
+}
+.nav-pill {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 26px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 6px;
+  gap: 2px;
+}
+.nav-pill-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 7px 2px 5px;
+  border: none;
+  background: transparent;
+  border-radius: 18px;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-pill-btn .nav-ico { font-size: 21px; line-height: 1; }
+.nav-pill-btn .nav-lbl {
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.nav-pill-btn[data-active="true"] {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+/* ── Reduced motion / data-saver ────────────────────────────────────────── */
+/* Honors (a) the OS-level prefers-reduced-motion / prefers-reduced-data
+   media queries, and (b) a manual toggle set from Settings via
+   `body.fundi-reduced-motion` / `body.fundi-low-data`. We keep functional
+   transitions (focus rings) but kill decorative animation and expensive
+   background effects. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+body.fundi-reduced-motion *,
+body.fundi-reduced-motion *::before,
+body.fundi-reduced-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-data: reduce) {
+  /* Shrink decorative imagery and blur/shadow work that costs paint */
+  img, video {
+    image-rendering: -webkit-optimize-contrast;
+  }
+  .lesson-player,
+  .course-card,
+  .card {
+    box-shadow: none !important;
+  }
+}
+body.fundi-low-data img,
+body.fundi-low-data video {
+  image-rendering: -webkit-optimize-contrast;
+}
+body.fundi-low-data .lesson-player,
+body.fundi-low-data .course-card,
+body.fundi-low-data .card {
+  box-shadow: none !important;
+}
+body.fundi-low-data *,
+body.fundi-low-data *::before,
+body.fundi-low-data *::after {
+  /* No background gradients or fancy filters when data-saver is on */
+  backdrop-filter: none !important;
+  filter: none !important;
+}
+
+/* ── Universal focus ring for keyboard users (accessibility) ───────────── */
+:where(button, a, input, select, textarea, [role="button"]):focus-visible {
+  outline: 3px solid var(--color-primary, #007A4D);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ── Universal modal scroll lock ────────────────────────────────────────── */
+/* When any modal / notification is open, page content behind it must not
+   scroll. The `.modal-open` class is toggled on <body> from page.tsx. */
+body.modal-open {
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+  /* iOS Safari needs position: fixed to actually lock the scroll */
+  touch-action: none;
+}
+body.modal-open .bottom-nav {
+  /* Ensure the nav is out of the way when a modal is open, even if a
+     stale render leaves it mounted for a frame. */
+  display: none !important;
+}
+
+/* ── Dark mode floating nav pill ────────────────────────────────────────── */
+html.dark .nav-pill {
+  background: #141414;
+  border-color: transparent;
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.7);
+}
+html.dark .nav-pill-btn {
+  color: #9AA0A6;
+}
+html.dark .nav-pill-btn[data-active="true"] {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.16);
+}
+
+/* main-no-stats: full width, no right margin for stats panel */
+.main-no-stats {
+  margin-right: 0 !important;
+}
+
+/* White backgrounds in inline styles need dark equivalents */
+html.dark [style*="background: white"],
+html.dark [style*="background:white"],
+html.dark [style*="background: #fff"],
+html.dark [style*="background:#fff"],
+html.dark [style*="background: #ffffff"],
+html.dark [style*="background:#ffffff"] {
+  background: var(--color-surface) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Ensure hardcoded dark text in inline styles is readable in dark mode */
+html.dark [style*="color: #111"],
+html.dark [style*="color: #1f2937"],
+html.dark [style*="color: #374151"],
+html.dark [style*="color: black"] {
+  color: var(--color-text-primary) !important;
+}
+
+html.dark .course-card {
+  background: #141414 !important;
+}
+
+/* ── Dark mode: course map header uses hardcoded light inline bg - override ── */
+html.dark .course-map-header {
+  background: #141414 !important;
+}
+html.dark .course-map-header .course-map-title,
+html.dark .course-map-header h2 {
+  color: var(--color-text-primary) !important;
+}
+html.dark .course-map-description,
+html.dark .course-map-header p {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── Dark mode: unit-header category name text ── */
+html.dark .unit-header {
+  background: #141414 !important;
+  border-color: var(--color-primary) !important;
+}
+html.dark .unit-title {
+  color: var(--color-primary) !important;
+}
+html.dark .unit-description {
+  color: var(--color-text-secondary) !important;
+}
+
+/* ── Dark mode: lesson node label text ── */
+html.dark .lesson-label {
+  color: var(--color-text-primary) !important;
+}
+
+/* ── Dark mode: course card inline bg colours (pastel bg → dark surface) ── */
+html.dark [class*="course-card"] [style*="background: #E8F"],
+html.dark [class*="course-card"] [style*="background: #FFF"],
+html.dark [class*="course-card"] [style*="background: #EEF"],
+html.dark [class*="course-card"] [style*="background: #F3E"],
+html.dark [class*="course-card"] [style*="background: #FCE"] {
+  background: #141414 !important;
+}
+
+/* ── Dark mode: advisor CTA card white button ── */
+html.dark .bg-white {
+  background: rgba(255,255,255,0.08) !important;
+  color: #e2e8f0 !important;
+}
+html.dark .text-green-800 {
+  color: #4ade80 !important;
+}
+
+html.dark input,
+html.dark textarea {
+  background: #141414;
+  color: #E6EDF3;
+  border-color: #2A2A2A;
+}
+
+html.dark .sidebar {
+  background: var(--color-bg);
+  color: #f3f4f6;
+  border-right: none;
+  box-shadow: none;
+}
+
+html.dark .stats-panel {
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-left: none;
+}
+
+html.dark .stats-section h3,
+html.dark .stat-value {
+  color: var(--color-text-primary);
+}
+
+html.dark .stat-label {
+  color: var(--color-text-secondary);
+}
+
+html.dark .option-button {
+  /* Slightly lifted surface + visible border so answer options read as
+     tappable cards, not plain text lines, on dark backgrounds */
+  background: #1A1C1E;
+  color: #E6EDF3;
+  border-color: #3A3F45;
+}
+
+html.dark .option-button:hover:not(:disabled) {
+  background: #1F2937;
+}
+
+/* ── Budget page desktop scaling ──────────────────────────────────────── */
+@media (min-width: 768px) {
+  .budget-page {
+    max-width: 760px;
+  }
+
+  /* Scale up summary cards */
+  .budget-page h2 {
+    font-size: 36px !important;
+  }
+
+  /* Bigger month navigator text */
+  .budget-page [aria-label="Previous month"],
+  .budget-page [aria-label="Next month"] {
+    padding: 8px !important;
+  }
+
+  /* Wider summary card labels + values */
+  .budget-page [style*="font-size: 10px"] {
+    font-size: 13px !important;
+  }
+  .budget-page [style*="font-size: 15px"] {
+    font-size: 20px !important;
+  }
+
+  /* Category breakdown + transaction list row padding */
+  .budget-page [style*="font-size: 13px"] {
+    font-size: 15px !important;
+  }
+  .budget-page [style*="font-size: 14px"] {
+    font-size: 15px !important;
+  }
+  .budget-page [style*="font-size: 11px"] {
+    font-size: 13px !important;
+  }
+}
+
+/* patch-14: logo pulse */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(0.96); }
+}
+
+/* patch-12: desktop nav - bottom-nav override removed; sidebar layout at 768px+ relies on md:hidden */
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    position: relative;
+  }
+}
+
+/* patch-14: leaderboard + white card dark mode fix */
+@media (prefers-color-scheme: dark) {
+  .leaderboard-card, [class*="leaderboard"] {
+    background: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+  }
+  /* Any inline white backgrounds in dark mode */
+  [style*="background: white"], [style*="background:white"],
+  [style*="background: #fff"], [style*="background:#fff"] {
+    background: var(--color-surface) !important;
+    color: var(--color-text-primary) !important;
+  }
+  /* Leaderboard rank numbers, names, XP */
+  [style*="color: #888"], [style*="color:#888"],
+  [style*="color: gray"], [style*="color: grey"] {
+    color: var(--color-text-secondary) !important;
+  }
+}
+
+/* patch-13: system dark mode - comprehensive text fix */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #000000;
+    --color-surface: #141414;
+    --color-border: transparent;
+    --track-bg: #2A2A2A;
+    --color-text: #ffffff;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #9AA0A6;
+    --color-text-muted: #777;
+    --color-primary: #4ade80;
+    --color-primary-dark: #22c55e;
+    --color-secondary: #FFB612;
+    --border-light: transparent;
+    --bg-gray: #000000;
+    --sidebar-bg: #000000;
+    --nav-link-color: #E5E7EB;
+    --hover-bg: rgba(255, 255, 255, 0.08);
+    --color-primary-light: rgba(74, 222, 128, 0.16);
+  }
+  body, main, div, span, p, h1, h2, h3, h4, h5, h6 {
+    color: inherit;
+  }
+  body {
+    background: var(--color-bg) !important;
+    color: var(--color-text) !important;
+  }
+  /* Force all surfaces dark (the floating nav wrapper is intentionally
+     transparent - its visible island is .nav-pill, styled separately). */
+  .card, .lesson-card, .course-card, .top-bar,
+  [style*="background: white"], [style*="background:white"],
+  [style*="background: var(--color-surface)"] {
+    background: var(--color-surface) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Fact of day and info cards */
+  .fact-card, [class*="fact"] {
+    background: var(--color-surface) !important;
+  }
+  /* Inputs */
+  input, select, textarea {
+    background: #252525 !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  input::placeholder, textarea::placeholder {
+    color: var(--color-text-secondary) !important;
+    opacity: 1;
+  }
+  /* Buttons */
+  .btn-secondary {
+    background: #252525 !important;
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Tables */
+  table, th, td {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+  }
+  /* Auth gate white box */
+  [style*="background: white"], [style*="background:white"] {
+    background: #1c1c1c !important;
+    color: var(--color-text) !important;
+  }
+}
+
+/* patch-12: streak freeze badge */
+.streak-freeze-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+}
+.streak-freeze-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.freeze-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #3b82f620;
+  color: #3b82f6;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* patch-12: multi-select goal chips */
+.goal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 2px solid var(--color-border, #e5e7eb);
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s;
+  color: inherit;
+}
+.goal-chip.selected {
+  border-color: var(--color-primary, #4ade80);
+  background: #4ade8020;
+  color: var(--color-primary, #4ade80);
+}
+
+/* ── Borderless surfaces ───────────────────────────────────────────────────
+   The user wants NO visible borders anywhere. --color-border is already
+   transparent; this also neutralises inline accent outlines (primary/gold/
+   purple) on cards and outline buttons. Their fills/text keep them legible. */
+[style*="solid var(--color-primary)"],
+[style*="solid var(--color-secondary)"],
+[style*="solid #007A4D"],
+[style*="solid #007a4d"],
+[style*="solid #7C4DFF"],
+[style*="solid #7c4dff"],
+[style*="solid #8B5CF6"],
+[style*="solid #FFB612"] {
+  border-color: transparent !important;
+}
+
+/* Inputs read as soft grey fills (Instagram-style) instead of outlined boxes */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  border-color: transparent !important;
+}
+
+/* ── No borders anywhere (covers Tailwind, inline, var and literal) ──────── */
+*, *::before, *::after { border-color: transparent !important; }
+
+/* ── Instagram-style hover highlight on every interactive element ──────────
+   An inset overlay tints whatever background the control has (works on
+   coloured, grey and transparent buttons alike) and sits below the text,
+   so labels stay fully visible on hover. */
+button, [role="button"], .course-card, a.btn {
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+button:not(:disabled):hover,
+[role="button"]:not([aria-disabled="true"]):hover,
+.course-card:hover,
+a.btn:hover {
+  box-shadow: inset 0 0 0 999px var(--hover-bg);
+}
+
+/* ── Dark mode: force the side rails to true black to match the centre ───── */
+html.dark .sidebar,
+html.dark .stats-panel {
+  background: var(--color-bg) !important;
+  box-shadow: none !important;
+}
+@media (prefers-color-scheme: dark) {
+  .sidebar,
+  .stats-panel {
+    background: var(--color-bg) !important;
+    box-shadow: none !important;
+  }
+}

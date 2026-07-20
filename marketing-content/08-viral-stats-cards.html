@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance – Viral Statistics Cards</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --green: #007A4D;
+    --green-dark: #005A38;
+    --gold: #FFB612;
+    --red: #E03C31;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #080c10;
+    color: white;
+    padding: 60px 40px;
+  }
+
+  .page-title {
+    text-align: center;
+    font-size: 36px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #007A4D 60%, #FFB612 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .page-sub {
+    text-align: center;
+    color: #444;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .page-note {
+    text-align: center;
+    color: #333;
+    font-size: 12px;
+    max-width: 600px;
+    margin: 0 auto 70px;
+    line-height: 1.6;
+  }
+
+  /* ─── CARD GRID ─── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 380px);
+    gap: 32px;
+    justify-content: center;
+    margin-bottom: 80px;
+  }
+
+  /* ─── BASE CARD (1:1 ratio = 380×380) ─── */
+  .card {
+    width: 380px;
+    height: 380px;
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 32px;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.5);
+  }
+
+  /* Noise texture overlay */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .card > * { position: relative; z-index: 2; }
+
+  /* ─── CARD VARIANTS ─── */
+  .card-green {
+    background: linear-gradient(145deg, #007A4D 0%, #003d26 70%, #001a10 100%);
+    box-shadow: 0 20px 60px rgba(0,122,77,0.25);
+  }
+  .card-dark-green {
+    background: linear-gradient(145deg, #005A38 0%, #002d1c 100%);
+    box-shadow: 0 20px 60px rgba(0,90,56,0.3);
+  }
+  .card-gold {
+    background: linear-gradient(145deg, #B87D00 0%, #6b4800 70%, #3d2a00 100%);
+    box-shadow: 0 20px 60px rgba(255,182,18,0.2);
+  }
+  .card-charcoal {
+    background: linear-gradient(145deg, #1a2332 0%, #0d1520 100%);
+    border: 1px solid #1e2d40;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  }
+  .card-red {
+    background: linear-gradient(145deg, #8B1A12 0%, #4a0d09 100%);
+    box-shadow: 0 20px 60px rgba(224,60,49,0.2);
+  }
+  .card-split {
+    background: linear-gradient(145deg, #004d31 0%, #001a10 50%, #1a0a00 100%);
+    box-shadow: 0 20px 60px rgba(0,77,49,0.3);
+  }
+  .card-midnight {
+    background: linear-gradient(145deg, #0a1628 0%, #050b14 100%);
+    border: 1px solid #0f1f35;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .card-emerald {
+    background: linear-gradient(145deg, #006640 0%, #003320 100%);
+    box-shadow: 0 20px 60px rgba(0,102,64,0.3);
+  }
+  .card-warm {
+    background: linear-gradient(145deg, #1a1000 0%, #2d1d00 50%, #1a1000 100%);
+    border: 1px solid #3d2a00;
+    box-shadow: 0 20px 60px rgba(255,182,18,0.1);
+  }
+
+  /* ─── CARD ANATOMY ─── */
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .card-tag {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 20px;
+    opacity: 0.8;
+  }
+  .tag-green  { background: rgba(0,255,120,0.1);  color: #5effa5; }
+  .tag-gold   { background: rgba(255,182,18,0.15); color: #FFB612; }
+  .tag-red    { background: rgba(255,60,49,0.15);  color: #ff8880; }
+  .tag-blue   { background: rgba(100,180,255,0.1); color: #a0d0ff; }
+  .tag-white  { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+
+  .card-logo {
+    font-size: 11px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.5px;
+  }
+
+  .card-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 16px 0 8px;
+  }
+
+  .stat-number {
+    font-size: 80px;
+    font-weight: 900;
+    line-height: 0.9;
+    letter-spacing: -4px;
+  }
+  .stat-number.gold  { color: var(--gold); }
+  .stat-number.green { color: #5effa5; }
+  .stat-number.red   { color: #ff8880; }
+  .stat-number.white { color: rgba(255,255,255,0.95); }
+  .stat-number.amber { color: #fcd34d; }
+
+  .stat-unit {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -1px;
+    margin-top: 4px;
+  }
+
+  .stat-headline {
+    font-size: 22px;
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -0.5px;
+    color: white;
+    margin-bottom: 10px;
+  }
+
+  .stat-sub {
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+    max-width: 290px;
+  }
+
+  .stat-callout {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 10px;
+    margin-top: 12px;
+    width: fit-content;
+  }
+  .callout-green  { background: rgba(0,255,120,0.1);  color: #5effa5;  border: 1px solid rgba(0,255,120,0.2); }
+  .callout-gold   { background: rgba(255,182,18,0.12); color: #FFB612;  border: 1px solid rgba(255,182,18,0.25); }
+  .callout-red    { background: rgba(255,60,49,0.12);  color: #ff8880;  border: 1px solid rgba(255,60,49,0.25); }
+
+  .card-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cta-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.5px;
+  }
+  .cta-badge {
+    font-size: 10px;
+    font-weight: 800;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.5);
+    padding: 5px 12px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* decorative accent lines */
+  .accent-line {
+    position: absolute;
+    border-radius: 2px;
+    opacity: 0.08;
+  }
+
+  /* ─── SECTION DIVIDERS ─── */
+  .section-div {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .section-div h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #333;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .section-div p {
+    font-size: 12px;
+    color: #2a2a2a;
+    margin-top: 4px;
+  }
+
+  /* ─── USAGE GUIDE ─── */
+  .usage-section {
+    max-width: 1200px;
+    margin: 0 auto 60px;
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 20px;
+    padding: 40px;
+  }
+  .usage-section h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 24px;
+  }
+  .usage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .usage-col h3 {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .usage-col ul {
+    list-style: none;
+  }
+  .usage-col ul li {
+    font-size: 12px;
+    color: #666;
+    padding: 5px 0;
+    border-bottom: 1px solid #1a1a1a;
+    line-height: 1.5;
+  }
+  .usage-col ul li::before {
+    content: '→ ';
+    color: var(--green);
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-title">Viral Statistics Cards</div>
+<div class="page-sub">Social Media Asset Pack · 12 Cards</div>
+<p class="page-note">
+  Data-driven, share-worthy cards built from Fundi Finance's real South African financial statistics.
+  Each card is sized 380×380px (1:1) — ideal for Instagram, Twitter/X, LinkedIn and WhatsApp.
+</p>
+
+<!-- ═══════════════════ SET 1: THE SHOCK STATS ═══════════════════ -->
+<div class="section-div">
+  <h2>Set 1 · The Shock Stats</h2>
+  <p>High-contrast, provocative numbers that stop the scroll</p>
+</div>
+
+<div class="card-grid">
+
+  <!-- CARD 1: 77% -->
+  <div class="card card-red">
+    <div class="accent-line" style="width:200px;height:4px;background:var(--red);top:0;right:0;opacity:0.4"></div>
+    <div class="card-top">
+      <span class="card-tag tag-red">💸 Savings Crisis</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div style="display:flex;align-items:flex-end;gap:4px">
+        <div class="stat-number red">77</div>
+        <div class="stat-unit" style="color:#ff8880;margin-bottom:8px">%</div>
+      </div>
+      <div class="stat-headline">of South Africans can't replace a single month's income from savings.</div>
+      <div class="stat-callout callout-red">Is your emergency fund ready?</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Start Learning Free</div>
+    </div>
+  </div>
+
+  <!-- CARD 2: 10 million -->
+  <div class="card card-charcoal">
+    <div class="card-top">
+      <span class="card-tag tag-red">⚠️ Credit</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number white" style="font-size:64px;letter-spacing:-3px">10M</div>
+      <div class="stat-headline">South Africans have impaired credit records.</div>
+      <div class="stat-sub">Late payments are blocking millions from affordable credit, home loans, and opportunities.</div>
+      <div class="stat-callout callout-gold" style="margin-top:14px">Learn to fix your credit score →</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Take the Credit Lesson</div>
+    </div>
+  </div>
+
+  <!-- CARD 3: 20–22% -->
+  <div class="card card-red" style="background:linear-gradient(145deg,#5c0e08 0%,#2a0603 100%)">
+    <div class="card-top">
+      <span class="card-tag tag-red">💳 Debt Trap</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div style="display:flex;align-items:flex-end;gap:4px">
+        <div class="stat-number red" style="font-size:72px">22</div>
+        <div class="stat-unit" style="color:#ff8880;margin-bottom:8px">%</div>
+      </div>
+      <div class="stat-headline">The average credit card interest rate in South Africa.</div>
+      <div class="stat-sub" style="margin-top:8px">One of the highest in emerging markets. R10 000 in credit card debt costs R2 200/year — just in interest.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Beat Your Debt</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════ SET 2: THE POWER STATS ═══════════════════ -->
+<div class="section-div">
+  <h2>Set 2 · The Power Stats</h2>
+  <p>Aspirational, empowering facts that make saving & investing feel achievable</p>
+</div>
+
+<div class="card-grid">
+
+  <!-- CARD 4: Rule of 72 -->
+  <div class="card card-green">
+    <div class="accent-line" style="width:3px;height:60%;background:var(--gold);right:32px;top:20%;opacity:0.3"></div>
+    <div class="card-top">
+      <span class="card-tag tag-gold">✨ Money Math</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number gold">72</div>
+      <div class="stat-headline">The Rule of 72</div>
+      <div class="stat-sub">Divide 72 by your annual return to find how many years to double your money. <strong style="color:rgba(255,255,255,0.8)">At 8%, you double every 9 years.</strong></div>
+      <div class="stat-callout callout-gold">Put it to work today →</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Investing Basics</div>
+    </div>
+  </div>
+
+  <!-- CARD 5: R500 extra on bond -->
+  <div class="card card-dark-green">
+    <div class="card-top">
+      <span class="card-tag tag-green">🏠 Property Hack</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number green" style="font-size:58px;letter-spacing:-2px">R380k</div>
+      <div class="stat-headline">saved by adding R500/month to your home loan.</div>
+      <div class="stat-sub" style="margin-top:8px">On a R1M, 20-year bond at 11.75%, you also cut <strong style="color:rgba(255,255,255,0.8)">5 years</strong> off your loan term. That's wealth.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Home Loan Calculator</div>
+    </div>
+  </div>
+
+  <!-- CARD 6: TFSA -->
+  <div class="card card-split">
+    <div class="card-top">
+      <span class="card-tag tag-gold">💰 Tax-Free</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number amber" style="font-size:52px;letter-spacing:-2px">R500k</div>
+      <div class="stat-headline">lifetime TFSA limit. Every rand grows completely tax-free.</div>
+      <div class="stat-sub" style="margin-top:8px">Over 30 years, this saves you <strong style="color:rgba(255,255,255,0.8)">hundreds of thousands</strong> compared to a taxable account. Most South Africans don't use it.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Learn About TFSA</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════ SET 3: THE KNOWLEDGE HOOKS ═══════════════════ -->
+<div class="section-div">
+  <h2>Set 3 · The Knowledge Hooks</h2>
+  <p>Conversation-starting facts that drive comments, shares and saves</p>
+</div>
+
+<div class="card-grid">
+
+  <!-- CARD 7: Buffett age -->
+  <div class="card card-midnight">
+    <div class="card-top">
+      <span class="card-tag tag-blue">📖 Did You Know</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number white" style="font-size:68px">97%</div>
+      <div class="stat-headline">of Warren Buffett's wealth was made after age 65.</div>
+      <div class="stat-sub" style="margin-top:8px">Not because he got lucky late. Because compound interest needs <em style="color:rgba(255,255,255,0.7)">time</em>. The lesson: start young, stay consistent.</div>
+      <div class="stat-callout" style="background:rgba(100,180,255,0.08);color:#a0d0ff;border:1px solid rgba(100,180,255,0.2);padding:8px 14px;border-radius:10px;margin-top:12px;font-size:12px;font-weight:700">
+        🕒 Time in the market beats timing the market
+      </div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Compound Interest Lesson</div>
+    </div>
+  </div>
+
+  <!-- CARD 8: Two-pot -->
+  <div class="card card-warm">
+    <div class="card-top">
+      <span class="card-tag tag-gold">🏦 2024 Law Change</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number amber" style="font-size:50px;letter-spacing:-2px">2-POT</div>
+      <div class="stat-headline">The biggest retirement law change in 30 years.</div>
+      <div class="stat-sub" style="margin-top:8px">From 1 September 2024, your retirement savings split into two pots. Most South Africans still don't know how it works — <strong style="color:rgba(255,182,18,0.8)">do you?</strong></div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Retirement Course</div>
+    </div>
+  </div>
+
+  <!-- CARD 9: Free credit report -->
+  <div class="card card-emerald">
+    <div class="card-top">
+      <span class="card-tag tag-green">✅ Free Tool</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div class="stat-number green" style="font-size:70px">R0</div>
+      <div class="stat-headline">Your credit report should cost you nothing.</div>
+      <div class="stat-sub" style="margin-top:8px">Every South African is entitled to <strong style="color:rgba(255,255,255,0.85)">one free credit report per year</strong> from each major bureau: TransUnion, Experian, and XDS.</div>
+      <div class="stat-callout callout-green" style="margin-top:14px">Get yours — it's your right 🇿🇦</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za</div>
+      <div class="cta-badge">Credit & Debt Course</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══════════════════ SET 4: THE PERSONA CARDS ═══════════════════ -->
+<div class="section-div">
+  <h2>Set 4 · The Persona Cards</h2>
+  <p>Targeted cards speaking directly to each user goal in the onboarding flow</p>
+</div>
+
+<div class="card-grid">
+
+  <!-- CARD 10: For the debt-trapped -->
+  <div class="card" style="background:linear-gradient(145deg,#2d0a08 0%,#1a0504 100%);border:1px solid #3d1010;box-shadow:0 20px 60px rgba(224,60,49,0.15)">
+    <div class="card-top">
+      <span class="card-tag tag-red">💳 Debt-Free Goal</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div style="font-size:40px;margin-bottom:12px">😤</div>
+      <div class="stat-headline">Tired of your salary disappearing before month-end?</div>
+      <div class="stat-sub" style="margin-top:10px">Debt doesn't have to be permanent. Fundi Finance teaches you the avalanche and snowball methods, credit negotiation, and how to rebuild your score — step by step.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za · Free</div>
+      <div class="cta-badge">Get Debt-Free →</div>
+    </div>
+  </div>
+
+  <!-- CARD 11: For the new investor -->
+  <div class="card card-green">
+    <div class="card-top">
+      <span class="card-tag tag-gold">📈 Investing Goal</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div style="font-size:40px;margin-bottom:12px">🌱</div>
+      <div class="stat-headline">You don't need R10 000 to start investing on the JSE.</div>
+      <div class="stat-sub" style="margin-top:10px">ETFs on the JSE start from as little as R50/month. Learn how ETFs, shares, TFSAs, and SatrixNOW work — in plain South African English.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za · Free</div>
+      <div class="cta-badge">Start Investing →</div>
+    </div>
+  </div>
+
+  <!-- CARD 12: For the retirement-anxious -->
+  <div class="card card-gold">
+    <div class="card-top">
+      <span class="card-tag tag-gold">🏁 Retirement Goal</span>
+      <span class="card-logo">FUNDI</span>
+    </div>
+    <div class="card-center">
+      <div style="font-size:40px;margin-bottom:12px">⏰</div>
+      <div class="stat-headline">It's not too late. But every month matters.</div>
+      <div class="stat-sub" style="margin-top:10px;color:rgba(255,255,255,0.5)">The two-pot system, RAs, pension funds, provident funds, and how much you actually need — Fundi Finance breaks it all down in 5-minute lessons.</div>
+    </div>
+    <div class="card-bottom">
+      <div class="cta-text">fundiapp.co.za · Free</div>
+      <div class="cta-badge">Plan Your Retirement →</div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ═══ USAGE GUIDE ═══ -->
+<div class="usage-section">
+  <h2>📋 How to Use These Cards</h2>
+  <div class="usage-grid">
+    <div class="usage-col">
+      <h3><span>📱</span> Instagram &amp; TikTok</h3>
+      <ul>
+        <li>Post shock stats (Set 1) to stop scrollers</li>
+        <li>Use as "slide 1" in a carousel — then add context in slides 2–5</li>
+        <li>Add a voiceover on TikTok: "Did you know 77% of South Africans…"</li>
+        <li>Caption: "Save this if you want to fix it 👇 [link in bio]"</li>
+        <li>Stories: Use with a swipe-up/link sticker to fundiapp.co.za</li>
+      </ul>
+    </div>
+    <div class="usage-col">
+      <h3><span>🐦</span> Twitter/X &amp; LinkedIn</h3>
+      <ul>
+        <li>Tweet the stat as text first, then reply with the image card</li>
+        <li>LinkedIn posts get 3× more engagement with a striking image</li>
+        <li>Thread hook: "10 South African money facts that schools never taught you 🧵"</li>
+        <li>Tag @fundiapp in posts to build brand mention consistency</li>
+        <li>Pin your best-performing stat card to your profile</li>
+      </ul>
+    </div>
+    <div class="usage-col">
+      <h3><span>💬</span> WhatsApp &amp; Influencers</h3>
+      <ul>
+        <li>SA's biggest channel — share directly in family/community groups</li>
+        <li>Add "Shared from Fundi Finance 🎓 fundiapp.co.za" watermark</li>
+        <li>Brief nano-influencers (5k–50k SA followers) with Set 1 + Set 4</li>
+        <li>Persona cards (Set 4) convert best in niche finance communities</li>
+        <li>Post on Status for 24-hour reach to your full contact list</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 0 60px;color:#222;font-size:12px">
+  fundiapp.co.za · Fundi Finance 2025 · Statistics sourced from SARB, NCR, StatsSA, and Fundi Finance lesson content
+</div>
+
+</body>
+</html>

@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance – Claude Design Master Prompt Kit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --green: #007A4D; --green-dark: #005A38; --green-light: #E6F4EF;
+    --gold: #FFB612; --red: #E03C31;
+  }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #080c10;
+    color: white;
+    padding: 60px 40px;
+  }
+
+  .page-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 70px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .page-title {
+    font-size: 40px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #fff 0%, #007A4D 60%, #FFB612 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -1.5px;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .page-sub {
+    font-size: 16px;
+    color: #555;
+    line-height: 1.6;
+  }
+
+  /* ─── BRAND BLOCK ─── */
+  .brand-block {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 20px;
+    padding: 36px;
+  }
+  .brand-block h2 {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--gold);
+    margin-bottom: 24px;
+    letter-spacing: 0.3px;
+  }
+  .brand-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .brand-col h3 {
+    font-size: 10px;
+    font-weight: 700;
+    color: #444;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .color-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .color-swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+  }
+  .swatch {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .swatch-label { font-size: 8px; color: #444; font-family: 'JetBrains Mono', monospace; }
+
+  .brand-fact {
+    font-size: 12px;
+    color: #444;
+    padding: 6px 0;
+    border-bottom: 1px solid #111;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.5;
+  }
+  .brand-fact::before { content: '·'; color: var(--green); font-weight: 900; }
+
+  /* ─── PROMPT SECTION ─── */
+  .prompt-section {
+    max-width: 900px;
+    margin: 0 auto 50px;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .section-title {
+    font-size: 24px;
+    font-weight: 900;
+    color: white;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: #444;
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+
+  /* ─── PROMPT CARD ─── */
+  .prompt-card {
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .prompt-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #1a2030;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .prompt-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .prompt-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .tag-social { background: rgba(0,122,77,0.15); color: #5effa5; }
+  .tag-brand  { background: rgba(255,182,18,0.12); color: #FFB612; }
+  .tag-ads    { background: rgba(224,60,49,0.12);  color: #ff8880; }
+  .tag-ui     { background: rgba(100,180,255,0.1); color: #a0d0ff; }
+  .tag-print  { background: rgba(180,100,255,0.1); color: #d0a0ff; }
+
+  .prompt-body {
+    padding: 20px;
+  }
+  .prompt-box {
+    background: #070b0f;
+    border: 1px solid #111a24;
+    border-radius: 10px;
+    padding: 18px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    color: #c9d1d9;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .prompt-box .kw  { color: #79c0ff; } /* keywords */
+  .prompt-box .str { color: #a5d6ff; } /* strings */
+  .prompt-box .val { color: #FFB612; } /* values */
+  .prompt-box .cmt { color: #3d5a70; } /* comments */
+
+  .copy-note {
+    font-size: 11px;
+    color: #2a3a4a;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .copy-note::before {
+    content: '↑';
+    color: var(--green);
+    font-weight: 900;
+  }
+
+  .why-it-works {
+    background: rgba(0,122,77,0.06);
+    border: 1px solid rgba(0,122,77,0.15);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-top: 10px;
+  }
+  .why-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .why-body {
+    font-size: 12px;
+    color: #3a5a4a;
+    line-height: 1.6;
+  }
+
+  /* ─── ASSET MAP ─── */
+  .asset-map {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .asset-cell {
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 12px;
+    padding: 18px;
+  }
+  .asset-cell-icon { font-size: 24px; margin-bottom: 8px; }
+  .asset-cell-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 6px;
+  }
+  .asset-cell-desc {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.5;
+  }
+  .asset-cell-size {
+    font-size: 10px;
+    color: #2a4a3a;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 8px;
+  }
+
+  /* ─── TIPS ─── */
+  .tips-block {
+    max-width: 900px;
+    margin: 0 auto 60px;
+    background: #0f1419;
+    border: 1px solid #1a2030;
+    border-radius: 20px;
+    padding: 36px;
+  }
+  .tips-block h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 24px;
+  }
+  .tip-row {
+    display: flex;
+    gap: 12px;
+    padding: 14px 0;
+    border-bottom: 1px solid #111;
+    align-items: flex-start;
+  }
+  .tip-row:last-child { border-bottom: none; }
+  .tip-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green);
+    color: white;
+    font-size: 11px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .tip-content h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+  }
+  .tip-content p {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.6;
+  }
+  .tip-content code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: #111;
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: #5effa5;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="eyebrow">For Claude Design · claude.ai/design</div>
+  <h1 class="page-title">Master Prompt Kit<br>for Fundi Finance</h1>
+  <p class="page-sub">
+    Copy-paste prompts engineered to maximise Claude Design output for Fundi Finance's brand.<br>
+    Each prompt includes the full design context Claude Design needs to produce world-class results.
+  </p>
+</div>
+
+<!-- ─── BRAND CONTEXT ─── -->
+<div class="brand-block">
+  <h2>🎨 Your Brand in One Block — Paste this first into Claude Design's "Design System" context</h2>
+  <div class="brand-grid">
+    <div class="brand-col">
+      <h3>Brand Colors</h3>
+      <div class="color-row">
+        <div class="color-swatch">
+          <div class="swatch" style="background:#007A4D"></div>
+          <div class="swatch-label">#007A4D</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background:#005A38"></div>
+          <div class="swatch-label">#005A38</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background:#E6F4EF"></div>
+          <div class="swatch-label">#E6F4EF</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background:#FFB612"></div>
+          <div class="swatch-label">#FFB612</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background:#E03C31"></div>
+          <div class="swatch-label">#E03C31</div>
+        </div>
+        <div class="color-swatch">
+          <div class="swatch" style="background:#F0F7F4"></div>
+          <div class="swatch-label">#F0F7F4</div>
+        </div>
+      </div>
+    </div>
+    <div class="brand-col">
+      <h3>Brand Identity</h3>
+      <div class="brand-fact">South African financial literacy app</div>
+      <div class="brand-fact">Gamified: XP, streaks, badges, leaderboard</div>
+      <div class="brand-fact">Website: fundiapp.co.za</div>
+      <div class="brand-fact">Audience: 18–56, all SA income levels</div>
+      <div class="brand-fact">Tone: Empowering, direct, no jargon</div>
+      <div class="brand-fact">Platform: Mobile-first PWA (Next.js)</div>
+    </div>
+    <div class="brand-col">
+      <h3>Key Courses / Content</h3>
+      <div class="brand-fact">Money Basics (inflation, budgeting)</div>
+      <div class="brand-fact">Credit &amp; Debt (repair, avalanche method)</div>
+      <div class="brand-fact">Investing Basics (JSE, ETFs, TFSAs)</div>
+      <div class="brand-fact">Property (bond calculator, strategy)</div>
+      <div class="brand-fact">Retirement (two-pot, RAs, provident)</div>
+      <div class="brand-fact">Business Finance, Taxes, Psychology</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ SOCIAL MEDIA PROMPTS ═══════════════ -->
+<div class="prompt-section">
+  <div class="section-label">Set 01</div>
+  <div class="section-title">Instagram & TikTok Visuals</div>
+  <div class="section-desc">These prompts produce single-image posts and story frames optimised for SA social audiences. Use the shock-stat format for maximum reach.</div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">📱 Viral Stat Card — Instagram Post (1:1)</div>
+      <span class="prompt-tag tag-social">Social</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Design a bold, dark-background Instagram post (1080×1080px) for Fundi Finance.
+
+<span class="cmt">// BRAND</span>
+Primary color: #007A4D (South African green)
+Accent: #FFB612 (gold)
+Danger: #E03C31 (red)
+Background: Near-black (#0a1a12 to #001a10 gradient)
+Font: Inter or similar — ultra-bold for numbers, regular for body
+
+<span class="cmt">// CONTENT</span>
+Headline stat: "77%"
+Sub-stat size: huge, centered, coloured RED (#E03C31)
+Body text: "of South Africans can't replace a single month's income from savings."
+CTA: "Is your emergency fund ready?" in a subtle pill badge
+Brand footer: "fundiapp.co.za" small, bottom-right
+Logo watermark: "FUNDI" text, top-right, 20% opacity
+
+<span class="cmt">// STYLE DIRECTION</span>
+Dark luxury fintech aesthetic — NOT corporate
+Slight noise/grain texture on background
+Thin horizontal accent line top or bottom in brand green
+The number 77 should feel massive and confrontational
+No stock photos — pure typography and geometric shapes
+Inspiration: Bloomberg, Apple card aesthetic, Robinhood dark mode</div>
+      <div class="copy-note">Copy and paste this entire block into Claude Design's chat input</div>
+      <div class="why-it-works">
+        <div class="why-title">Why this works</div>
+        <div class="why-body">Specifies exact hex values, typography weight, texture, and aesthetic references. Claude Design performs best when given brand + style + content + reference in one prompt. The "confrontational" direction pushes it past safe defaults.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">📲 Instagram Story Frame (9:16)</div>
+      <span class="prompt-tag tag-social">Social</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Create an Instagram Story frame (1080×1920px) for Fundi Finance — a South African financial literacy app.
+
+<span class="cmt">// LAYOUT (top to bottom)</span>
+TOP THIRD: Large bold stat or hook question
+- Text: "Did you know 10 million South Africans have impaired credit records?"
+- Style: White text on deep green gradient background (#007A4D → #003d26)
+
+MIDDLE THIRD: Explanation card
+- Floating white card with rounded corners
+- Text: "Late payments block access to home loans, credit cards, and affordable borrowing."
+- Small body text, #111827
+- Green left border accent (#007A4D)
+
+BOTTOM THIRD: CTA section
+- Gold (#FFB612) pill button: "Learn to fix your credit →"
+- Subtext: "Free on Fundi Finance · fundiapp.co.za"
+- South African flag-inspired subtle element (green/gold/black/white)
+
+<span class="cmt">// OVERALL STYLE</span>
+Modern fintech, clean, mobile-native
+Swipe-up indicator at the bottom (upward chevron animation hint)
+No busy backgrounds — let typography breathe</div>
+      <div class="copy-note">Use this for Stories and TikTok thumbnail frames</div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">🎬 TikTok/Reels Opening Frame</div>
+      <span class="prompt-tag tag-social">Social</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Design a TikTok/Reels opening frame (1080×1920px) for Fundi Finance. This is the first 0–2 seconds of a video — it must stop the scroll.
+
+<span class="cmt">// HOOK TEXT (massive, takes up 60% of screen)</span>
+Line 1: "Schools taught you" (white, regular weight)
+Line 2: "NOTHING" (gold #FFB612, 900 weight, huge)
+Line 3: "about money." (white, regular weight)
+
+<span class="cmt">// BACKGROUND</span>
+Deep dark green (#00150d) with subtle bokeh circles in brand green
+Top-left and bottom-right: soft glow vignettes in green
+
+<span class="cmt">// BOTTOM BAR</span>
+Small floating pill: "🎓 Fundi Finance · fundiapp.co.za"
+Background: semi-transparent dark with blur effect
+
+<span class="cmt">// DIRECTION</span>
+This must feel like a phone screen you'd stop scrolling for.
+High contrast. Emotional. No corporate vibes.
+Think: Gen Z fintech meets South African pride.</div>
+      <div class="copy-note">The hook format "Schools taught you NOTHING about money" is proven viral for finance content</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ APP STORE PROMPTS ═══════════════ -->
+<div class="prompt-section">
+  <div class="section-label">Set 02</div>
+  <div class="section-title">App Store & Play Store Assets</div>
+  <div class="section-desc">Feature graphics and promotional banners for Google Play and Apple App Store listings.</div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">📱 Google Play Feature Graphic (1024×500)</div>
+      <span class="prompt-tag tag-ui">App Store</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Design a Google Play Store Feature Graphic (1024×500px) for Fundi Finance.
+
+<span class="cmt">// COMPOSITION</span>
+Left 55%: Typography hero section
+Right 45%: Abstract phone/app UI suggestion (NOT a real screenshot — geometric shapes that suggest a finance app dashboard)
+
+<span class="cmt">// LEFT SIDE TEXT</span>
+Eyebrow (small caps): "FINANCIAL LITERACY"
+Main headline: "Master Your Money" (bold, 2 lines, white)
+Sub: "Built for South Africa 🇿🇦" (gold #FFB612)
+Pill badge: "Free · No ads · Gamified"
+
+<span class="cmt">// RIGHT SIDE GRAPHIC</span>
+Abstract phone frame with:
+- Green progress bars (varying widths, representing XP)
+- Gold streak counter "🔥 12"
+- A floating "Level 7 — Money Mentor" badge
+- Soft glow effects behind the phone
+
+<span class="cmt">// BACKGROUND</span>
+Dark gradient: #007A4D (left edge) → #001a10 (center) → #0a0a0a (right)
+Subtle diagonal line pattern at 5% opacity
+
+<span class="cmt">// STYLE</span>
+Premium dark fintech. Inspired by Duolingo's bold simplicity but darker.
+No stock photography. No clip art. Clean geometric design.</div>
+      <div class="copy-note">Google Play allows 1024×500 JPEG/PNG — this is the most viewed asset on your store listing</div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">🍎 Apple App Store Promotional Banner</div>
+      <span class="prompt-tag tag-ui">App Store</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Create an Apple App Store Today tab promotional tile for Fundi Finance (820×312px).
+
+<span class="cmt">// LAYOUT</span>
+Full bleed dark background — gradient from #007A4D left to #000d06 right
+Large bold headline taking up top 60%
+
+<span class="cmt">// TEXT</span>
+Top eyebrow: "APP OF THE DAY" in gold, tiny all-caps
+Main text: "Learn money in 5 minutes a day." (white, 900 weight, large)
+Sub: "South Africa's gamified finance school." (muted green)
+
+<span class="cmt">// GRAPHIC ELEMENTS</span>
+Bottom right: abstract XP/streak illustration — circles, bars, trophy icon — in line art style, white at 30% opacity
+Bottom left: "fundiapp.co.za" in mono font at 15% opacity
+
+<span class="cmt">// FEEL</span>
+Editorial. Like something Apple would feature.
+Lots of breathing room. Typography-forward.
+Think New York Times or Bloomberg editorial design, not a banner ad.</div>
+      <div class="copy-note">Apple's editorial tiles are typography-first — this prompt reflects that aesthetic</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ PRINT / OOH PROMPTS ═══════════════ -->
+<div class="prompt-section">
+  <div class="section-label">Set 03</div>
+  <div class="section-title">Print, Poster & Out-of-Home</div>
+  <div class="section-desc">Posters for campuses, taxi ranks, community centres — where SA's unbanked and underbanked population is most reachable.</div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">🖼 A2 Campus Poster</div>
+      <span class="prompt-tag tag-print">Print</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Design an A2 portrait poster (420×594mm) for Fundi Finance to be printed and displayed at South African universities.
+
+<span class="cmt">// TARGET AUDIENCE</span>
+University students, ages 18–25, first-generation financial learners
+
+<span class="cmt">// HEADLINE OPTIONS (pick one)</span>
+Option A: "Your degree teaches you to earn. Fundi Finance teaches you to keep it."
+Option B: "R100 today. R2 000 in 10 years. We'll show you how."
+
+<span class="cmt">// LAYOUT</span>
+Top 40%: Full bleed dark green background with large bold headline
+Middle 40%: White section with 3 feature icons (📚 Learn · ⚡ Earn XP · 🏆 Compete)
+Bottom 20%: Strong CTA area
+
+<span class="cmt">// CTA SECTION</span>
+Large QR code placeholder (center)
+Text: "Scan to learn free"
+URL below QR: fundiapp.co.za
+App store badges: Google Play + App Store (simplified)
+
+<span class="cmt">// PRINT CONSIDERATIONS</span>
+CMYK-safe colors — use solid #007A4D not gradients for print reliability
+Minimum 3mm bleed on all sides
+Text must be readable at 2 metres distance (minimum 24pt body text)
+Include FUNDI FINANCE logo top-left, South African pride element subtle</div>
+      <div class="copy-note">Great for campus ambassador programmes — print runs of 50–200 per university</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ BRAND CAMPAIGN PROMPTS ═══════════════ -->
+<div class="prompt-section">
+  <div class="section-label">Set 04</div>
+  <div class="section-title">Brand Campaign Visuals</div>
+  <div class="section-desc">Hero visuals for a cohesive multi-channel campaign. Use as hero images on the website, press materials, and investor decks.</div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">🌍 Hero Campaign Visual — "The 77%"</div>
+      <span class="prompt-tag tag-brand">Brand</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Create a brand campaign hero image for Fundi Finance's "The 77%" campaign (1920×1080px, landscape).
+
+<span class="cmt">// CAMPAIGN CONCEPT</span>
+"77% of South Africans can't cover one month's expenses from savings.
+Fundi Finance is here for the other side of that statistic."
+
+<span class="cmt">// VISUAL CONCEPT</span>
+Divide the image vertically — roughly 77% / 23% split
+
+LEFT 77% section:
+- Dark, desaturated, slightly out of focus
+- Faint silhouettes of people walking (abstract, not stock photo)
+- Text overlay: "77%" in massive white numerals, low opacity
+- Mood: The problem. Sombre but not hopeless.
+
+RIGHT 23% section:
+- Bright, sharp, full Fundi green (#007A4D)
+- Abstract upward graph line in gold (#FFB612)
+- Text: "We're building the 23%." in white, bold
+- Fundi Finance wordmark
+
+<span class="cmt">// TYPOGRAPHY</span>
+Use the full image as a statement — not a layout
+Minimal text. Maximum emotional impact.
+The contrast between the two halves IS the message.
+
+<span class="cmt">// STYLE</span>
+Documentary photography aesthetic, but fully illustrated/graphic
+Reminiscent of The Economist or TIME covers — confident, symbolic</div>
+      <div class="copy-note">This is a statement campaign image — use as website hero and PR/media backgrounder</div>
+      <div class="why-it-works">
+        <div class="why-title">Campaign strategy note</div>
+        <div class="why-body">The "77% vs 23%" concept creates an immediate in-group for users who download the app — they become part of the solution. This is the same psychological hook Duolingo used with "you vs the owl" and Spotify with "wrapped" data identity. Make users feel like a movement.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-card-header">
+      <div class="prompt-card-title">📊 LinkedIn / Thought Leadership Header</div>
+      <span class="prompt-tag tag-brand">Brand</span>
+    </div>
+    <div class="prompt-body">
+      <div class="prompt-box">Design a LinkedIn profile header banner (1584×396px) for the Fundi Finance brand page.
+
+<span class="cmt">// CONTENT</span>
+Left side: Fundi Finance logo + tagline "Master Your Money"
+Center: Three micro-stats in pill badges:
+  - "🇿🇦 Built for South Africa"
+  - "📚 12 Courses · 100+ Lessons"
+  - "⚡ Gamified Learning"
+Right side: fundiapp.co.za URL prominent
+
+<span class="cmt">// STYLE</span>
+Clean, professional, but not boring
+Dark green (#007A4D) background with subtle grid pattern at 5% opacity
+White typography throughout
+Gold (#FFB612) used only for stat highlights
+Very wide aspect ratio — design must work across 1584px with breathing room
+
+<span class="cmt">// TONE</span>
+Credible fintech. Would fit on a Series A pitch deck.
+Not a startup. A movement.</div>
+      <div class="copy-note">LinkedIn banner — update this quarterly with new user/lesson milestones</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════ PRO TIPS ═══════════════ -->
+<div class="tips-block">
+  <h2>⚡ Pro Tips for Getting the Most from Claude Design</h2>
+
+  <div class="tip-row">
+    <div class="tip-num">1</div>
+    <div class="tip-content">
+      <h4>Always reference your Design System first</h4>
+      <p>Claude Design has your Fundi Finance Design System saved. Open a new design and type <code>"Use the Fundi Finance design system"</code> before adding your prompt — this locks in colours and typography automatically.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">2</div>
+    <div class="tip-content">
+      <h4>Specify dimensions explicitly</h4>
+      <p>Always include the exact pixel dimensions (e.g. <code>1080×1080px</code>, <code>1920×1080px</code>). Claude Design uses this to set the correct canvas ratio. Without it, it defaults to a generic size.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">3</div>
+    <div class="tip-content">
+      <h4>Give aesthetic references, not just briefs</h4>
+      <p>Saying <code>"Inspired by Apple card dark mode"</code> or <code>"Bloomberg editorial style"</code> unlocks a completely different output than a plain description. Claude Design reads aesthetic language.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">4</div>
+    <div class="tip-content">
+      <h4>Use the "Needs review" items in your Design System</h4>
+      <p>Your Design System shows 15 items needing review. Go through each — approve the Brand Colors, fix the "Missing brand fonts" by uploading Geist from <code>/public/fonts/</code> or Google Fonts CDN. This makes every future design sharper.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">5</div>
+    <div class="tip-content">
+      <h4>Iterate with "make it more ___" commands</h4>
+      <p>After your first output: <code>"Make it more confrontational"</code> / <code>"Increase contrast"</code> / <code>"Make the number much bigger"</code> / <code>"Add more breathing room"</code> are the highest-yield iteration commands.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">6</div>
+    <div class="tip-content">
+      <h4>Export at 2× for retina displays</h4>
+      <p>When exporting from Claude Design, always choose <code>2×</code> resolution. This ensures your assets look sharp on modern phones and retina displays — critical for social media where images are compressed.</p>
+    </div>
+  </div>
+
+  <div class="tip-row">
+    <div class="tip-num">7</div>
+    <div class="tip-content">
+      <h4>The missing Calculator & Budget Planner screens</h4>
+      <p>Your Design System chat noted these two screens are missing. Add them with: <code>"Design a mobile calculator screen for Fundi Finance showing a compound interest calculator with principal, rate, years inputs and a results graph in green. Use the Fundi Finance design system."</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- ─── ASSET MAP ─── -->
+<div style="text-align:center;margin-bottom:30px">
+  <div class="section-label" style="text-align:center">Asset Map</div>
+  <div class="section-title" style="text-align:center">Full Marketing Suite</div>
+</div>
+
+<div class="asset-map">
+  <div class="asset-cell">
+    <div class="asset-cell-icon">📱</div>
+    <div class="asset-cell-name">App Store Screenshots</div>
+    <div class="asset-cell-desc">4 screens: Learn, Lesson, Progress, Leaderboard</div>
+    <div class="asset-cell-size">→ File 07 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">📊</div>
+    <div class="asset-cell-name">Viral Stats Cards</div>
+    <div class="asset-cell-desc">12 cards · 4 sets · SA financial data</div>
+    <div class="asset-cell-size">→ File 08 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">✉️</div>
+    <div class="asset-cell-name">Email Sequence</div>
+    <div class="asset-cell-desc">5 emails: Welcome → Activate → Value → Re-engage → Convert</div>
+    <div class="asset-cell-size">→ File 09 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">🎨</div>
+    <div class="asset-cell-name">Claude Design Prompts</div>
+    <div class="asset-cell-desc">This file — 12 production-ready prompts</div>
+    <div class="asset-cell-size">→ File 10 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">🎬</div>
+    <div class="asset-cell-name">TikTok Storyboards</div>
+    <div class="asset-cell-desc">6 video concept boards</div>
+    <div class="asset-cell-size">→ File 06 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">🖼</div>
+    <div class="asset-cell-name">Social Media Ads</div>
+    <div class="asset-cell-desc">Instagram, Facebook, Twitter formats</div>
+    <div class="asset-cell-size">→ File 02 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">🌐</div>
+    <div class="asset-cell-name">Landing Page</div>
+    <div class="asset-cell-desc">Full promo page with hero + features + CTA</div>
+    <div class="asset-cell-size">→ File 03 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">🖨</div>
+    <div class="asset-cell-name">Poster Designs</div>
+    <div class="asset-cell-desc">Print-ready A2 and A3 formats</div>
+    <div class="asset-cell-size">→ File 04 in marketing-content/</div>
+  </div>
+  <div class="asset-cell">
+    <div class="asset-cell-icon">✨</div>
+    <div class="asset-cell-name">Animated Logo</div>
+    <div class="asset-cell-desc">SVG/CSS animation for web & presentations</div>
+    <div class="asset-cell-size">→ File 01 in marketing-content/</div>
+  </div>
+</div>
+
+<div style="text-align:center;padding:20px 0 60px;color:#1a2a1a;font-size:12px">
+  fundiapp.co.za · Fundi Finance Claude Design Prompt Kit · 2025<br>
+  For use in Claude Design at claude.ai/design
+</div>
+
+</body>
+</html>

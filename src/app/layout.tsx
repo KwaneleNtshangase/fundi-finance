@@ -1,0 +1,73 @@
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import { PostHogProvider } from "@/components/PostHogProvider";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { ErrorReportingInit } from "@/components/ErrorReportingInit";
+import { ServiceWorkerRegistration } from "@/lib/sw/ServiceWorkerRegistration";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+// Without this, mobile browsers render at ~980px virtual width and
+// CSS media queries like max-width: 1200px never match real phones.
+// Pinch-zoom stays enabled (WCAG 1.4.4) - never set maximumScale/userScalable.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
+export const metadata: Metadata = {
+  title: "Fundi Finance - Master Your Money",
+  description: "Interactive personal finance learning app built for South Africa.",
+  manifest: "/manifest.json",
+  metadataBase: new URL("https://fundiapp.co.za"),
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Fundi Finance",
+  },
+  icons: {
+    icon: [
+      { url: "/fundi-logo.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/fundi-logo.png",
+    apple: "/fundi-logo.png",
+  },
+  openGraph: {
+    images: ["/fundi-logo.png"],
+    title: "Fundi Finance",
+    description: "Learn to manage money the South African way",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+  },
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <ErrorBoundary>
+          <PostHogProvider>{children}</PostHogProvider>
+          <ServiceWorkerRegistration />
+          <ErrorReportingInit />
+        </ErrorBoundary>
+      </body>
+    </html>
+  );
+}

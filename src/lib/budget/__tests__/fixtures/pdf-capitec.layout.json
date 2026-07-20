@@ -1,0 +1,168 @@
+{
+  "headerText": "Capitec Bank Statement Account 0000000000",
+  "openingBalance": 3172.43,
+  "closingBalance": 154.16,
+  "lines": [
+    {
+      "page": 1,
+      "y": 80,
+      "items": [
+        { "x": 40, "text": "Opening Balance" },
+        { "x": 400, "text": "3 172.43" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 100,
+      "items": [
+        { "x": 40, "text": "Closing Balance" },
+        { "x": 400, "text": "154.16" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 140,
+      "items": [{ "x": 40, "text": "Money In/Out Summary" }]
+    },
+    {
+      "page": 1,
+      "y": 160,
+      "items": [
+        { "x": 40, "text": "Scheduled Payments" },
+        { "x": 300, "text": "Card Subscriptions" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 175,
+      "items": [
+        { "x": 40, "text": "01/06/2025" },
+        { "x": 120, "text": "Netflix Subscription" },
+        { "x": 300, "text": "-199.00" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 190,
+      "items": [
+        { "x": 40, "text": "Spending Summary" }
+      ]
+    },
+    {
+      "page": 1,
+      "y": 210,
+      "items": [
+        { "x": 40, "text": "Digital Payments" },
+        { "x": 300, "text": "-R42 689.88" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 30,
+      "items": [{ "x": 40, "text": "Transaction History" }]
+    },
+    {
+      "page": 2,
+      "y": 50,
+      "items": [
+        { "x": 40, "text": "Date" },
+        { "x": 120, "text": "Description" },
+        { "x": 280, "text": "Category" },
+        { "x": 360, "text": "Money In" },
+        { "x": 420, "text": "Money Out" },
+        { "x": 470, "text": "Fee*" },
+        { "x": 520, "text": "Balance" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 70,
+      "items": [
+        { "x": 40, "text": "02/06/2025" },
+        { "x": 120, "text": "Payment Received: Snapscan 20250602" },
+        { "x": 280, "text": "Other Income" },
+        { "x": 360, "text": "9.66" },
+        { "x": 520, "text": "3 182.09" }
+      ]
+    },
+    {
+      "page": 2,
+      "y": 90,
+      "items": [
+        { "x": 40, "text": "03/06/2025" },
+        { "x": 120, "text": "Online Purchase: Uber Cape Town (Card 0000)" },
+        { "x": 280, "text": "Public Transport" },
+        { "x": 420, "text": "-60.00" },
+        { "x": 520, "text": "3 122.09" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 40,
+      "items": [
+        { "x": 40, "text": "Date" },
+        { "x": 120, "text": "Description" },
+        { "x": 280, "text": "Category" },
+        { "x": 360, "text": "Money In" },
+        { "x": 420, "text": "Money Out" },
+        { "x": 470, "text": "Fee*" },
+        { "x": 520, "text": "Balance" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 60,
+      "items": [
+        { "x": 40, "text": "10/06/2025" },
+        { "x": 120, "text": "Recurring Payment (...): Gogo Dstv" },
+        { "x": 280, "text": "Digital Subscriptions" },
+        { "x": 420, "text": "-150.00" },
+        { "x": 470, "text": "-2.00" },
+        { "x": 520, "text": "2 970.09" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 75,
+      "items": [{ "x": 120, "text": "2474439413" }]
+    },
+    {
+      "page": 3,
+      "y": 95,
+      "items": [
+        { "x": 40, "text": "16/06/2025" },
+        { "x": 120, "text": "Banking App Immediate Payment: Alex M" },
+        { "x": 280, "text": "Digital" },
+        { "x": 420, "text": "-2 814.93" },
+        { "x": 470, "text": "-1.00" },
+        { "x": 520, "text": "154.16" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 200,
+      "items": [
+        { "x": 40, "text": "Scheduled Payments" },
+        { "x": 300, "text": "Self-Scheduled Payment" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 220,
+      "items": [
+        { "x": 40, "text": "20/06/2025" },
+        { "x": 120, "text": "Gogo Dstv Recurring" },
+        { "x": 300, "text": "-150.00" }
+      ]
+    },
+    {
+      "page": 3,
+      "y": 500,
+      "items": [
+        { "x": 40, "text": "Unique Document No.:" },
+        { "x": 200, "text": "FAKE-DOC-001" },
+        { "x": 450, "text": "Page 3 of 14" }
+      ]
+    }
+  ]
+}

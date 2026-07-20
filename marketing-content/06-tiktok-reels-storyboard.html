@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fundi Finance - TikTok/Reels Video Storyboards</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #111;
+    color: white;
+    padding: 40px;
+  }
+  h1 { text-align: center; font-size: 28px; color: #FFB612; margin-bottom: 8px; }
+  .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 50px; }
+
+  .storyboard-section {
+    margin-bottom: 80px;
+  }
+  .storyboard-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: #007A4D;
+    margin-bottom: 6px;
+  }
+  .storyboard-desc {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 30px;
+  }
+
+  .frames-row {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .frame-wrapper {
+    text-align: center;
+  }
+  .frame-label {
+    font-size: 10px;
+    color: #555;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .frame-time {
+    font-size: 10px;
+    color: #FFB612;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+
+  /* Phone frame */
+  .phone-frame {
+    width: 180px;
+    height: 320px;
+    background: #1a1a1a;
+    border-radius: 24px;
+    border: 3px solid #333;
+    padding: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+  .phone-frame .notch {
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 14px;
+    background: #1a1a1a;
+    border-radius: 0 0 10px 10px;
+    z-index: 20;
+  }
+  .phone-frame .screen {
+    width: 100%;
+    height: 100%;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ===== VIDEO 1: "What R100 Can Teach You" ===== */
+  .v1-frame1 .screen {
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  .v1-frame1 .big-rand {
+    font-size: 64px;
+    font-weight: 900;
+    color: #FFB612;
+    line-height: 1;
+    animation: rand-bounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    transform: scale(0);
+  }
+  @keyframes rand-bounce {
+    to { transform: scale(1); }
+  }
+  .v1-frame1 .hook {
+    font-size: 14px;
+    font-weight: 800;
+    margin-top: 10px;
+    color: white;
+  }
+
+  .v1-frame2 .screen {
+    background: linear-gradient(180deg, #007A4D, #003d26);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+  }
+  .v1-frame2 .split-choice {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+  }
+  .split-choice .choice {
+    flex: 1;
+    border-radius: 12px;
+    padding: 12px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .split-choice .choice.bad {
+    background: rgba(224,60,49,0.2);
+    border: 1px solid rgba(224,60,49,0.3);
+    color: #ff6b6b;
+  }
+  .split-choice .choice.good {
+    background: rgba(0,122,77,0.3);
+    border: 1px solid rgba(0,122,77,0.5);
+    color: #4ade80;
+  }
+
+  .v1-frame3 .screen {
+    background: linear-gradient(180deg, #FFB612, #e6a00f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+    color: #111;
+  }
+  .v1-frame3 .result-num {
+    font-size: 40px;
+    font-weight: 900;
+    animation: count-up 1s ease-out forwards;
+  }
+
+  .v1-frame4 .screen {
+    background: linear-gradient(180deg, #007A4D, #005a38);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+  }
+  .v1-frame4 .cta-text {
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 12px;
+  }
+  .v1-frame4 .cta-text .gold { color: #FFB612; }
+  .v1-frame4 .dl-btn {
+    background: #FFB612;
+    color: #111;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 10px 20px;
+    border-radius: 30px;
+    animation: pulse-cta 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse-cta {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* Arrow between frames */
+  .frame-arrow {
+    display: flex;
+    align-items: center;
+    color: #333;
+    font-size: 24px;
+    padding-top: 140px;
+  }
+
+  /* ===== VIDEO 2: "Your Financial Glow-Up" ===== */
+  .v2-frame1 .screen {
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+  }
+  .v2-frame1 .emoji-big { font-size: 50px; margin-bottom: 10px; }
+  .v2-frame1 .hook { font-size: 16px; font-weight: 900; line-height: 1.2; }
+  .v2-frame1 .hook .red { color: #E03C31; }
+
+  .v2-frame2 .screen {
+    background: linear-gradient(180deg, #1a1a1a, #111);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 15px;
+    gap: 8px;
+  }
+  .v2-frame2 .myth-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(224,60,49,0.1);
+    padding: 8px 10px;
+    border-radius: 8px;
+    border-left: 3px solid #E03C31;
+  }
+  .v2-frame2 .myth-item .x { color: #E03C31; font-size: 14px; }
+
+  .v2-frame3 .screen {
+    background: linear-gradient(180deg, #007A4D, #003d26);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 15px;
+    gap: 8px;
+  }
+  .v2-frame3 .truth-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    background: rgba(255,255,255,0.08);
+    padding: 8px 10px;
+    border-radius: 8px;
+    border-left: 3px solid #FFB612;
+  }
+  .v2-frame3 .truth-item .check { color: #FFB612; font-size: 14px; }
+
+  .v2-frame4 .screen {
+    background: linear-gradient(180deg, #FFB612, #e6a00f);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+    color: #111;
+  }
+  .v2-frame4 .logo-big { font-size: 16px; font-weight: 900; letter-spacing: 3px; margin-bottom: 8px; }
+  .v2-frame4 .logo-big .green { color: #007A4D; }
+  .v2-frame4 .tagline { font-size: 12px; font-weight: 700; margin-bottom: 16px; }
+  .v2-frame4 .app-btn {
+    background: #007A4D;
+    color: white;
+    font-weight: 800;
+    font-size: 11px;
+    padding: 10px 24px;
+    border-radius: 30px;
+  }
+
+  /* ===== VIDEO 3: "Day 1 vs Day 30" ===== */
+  .v3-frame1 .screen {
+    background: #111;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px;
+  }
+  .v3-frame1 .vs-text {
+    font-size: 28px;
+    font-weight: 900;
+  }
+  .v3-frame1 .vs-text .dim { color: #555; }
+  .v3-frame1 .vs-text .gold { color: #FFB612; }
+  .v3-frame1 .vs-emoji { font-size: 36px; margin: 10px 0; }
+
+  .v3-frame2 .screen {
+    background: linear-gradient(180deg, #1a0000, #111);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+  }
+  .v3-frame2 .day-label {
+    font-size: 12px;
+    color: #E03C31;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .v3-frame2 .confusion-list {
+    text-align: left;
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    line-height: 2;
+  }
+  .v3-frame2 .confusion-list .q { color: #E03C31; margin-right: 4px; }
+
+  .v3-frame3 .screen {
+    background: linear-gradient(180deg, #003d26, #007A4D);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+  }
+  .v3-frame3 .day-label {
+    font-size: 12px;
+    color: #FFB612;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+  .v3-frame3 .knowledge-list {
+    text-align: left;
+    font-size: 11px;
+    color: rgba(255,255,255,0.9);
+    line-height: 2;
+  }
+  .v3-frame3 .knowledge-list .check { color: #FFB612; margin-right: 4px; }
+
+  .v3-frame4 .screen {
+    background: #007A4D;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+    text-align: center;
+  }
+  .v3-frame4 .transform-text {
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 12px;
+  }
+  .v3-frame4 .transform-text .gold { color: #FFB612; }
+  .v3-frame4 .small-cta {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+  }
+  .v3-frame4 .dl-pill {
+    margin-top: 8px;
+    background: #FFB612;
+    color: #111;
+    font-weight: 800;
+    font-size: 10px;
+    padding: 8px 18px;
+    border-radius: 20px;
+  }
+
+  /* Script box */
+  .script-box {
+    max-width: 900px;
+    margin: 20px auto 0;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+  .script-box h4 {
+    font-size: 12px;
+    color: #FFB612;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .script-box p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.8;
+  }
+  .script-box p strong { color: rgba(255,255,255,0.8); }
+</style>
+</head>
+<body>
+  <h1>TikTok / Reels Storyboards</h1>
+  <p class="subtitle">Vertical video content — ready to produce for short-form platforms</p>
+
+  <!-- ===== VIDEO 1 ===== -->
+  <div class="storyboard-section">
+    <div class="storyboard-title">Video 1: "What R100 Can Teach You"</div>
+    <div class="storyboard-desc">Hook-based financial scenario ad · 15-30 seconds · Trending sound</div>
+
+    <div class="frames-row">
+      <div class="frame-wrapper">
+        <div class="frame-label">Frame 1</div>
+        <div class="frame-time">0:00 - 0:03</div>
+        <div class="phone-frame v1-frame1">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="big-rand">R100</div>
+            <div class="hook">What would<br>YOU do with it?</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">Frame 2</div>
+        <div class="frame-time">0:03 - 0:08</div>
+        <div class="phone-frame v1-frame2">
+          <div class="notch"></div>
+          <div class="screen">
+            <div style="font-size:13px; font-weight:800; margin-bottom:8px;">Choose wisely.</div>
+            <div class="split-choice">
+              <div class="choice bad">🍔<br>Spend it all</div>
+              <div class="choice good">📈<br>Invest it</div>
+            </div>
+            <div style="font-size:10px; color:rgba(255,255,255,0.4); margin-top:12px;">What happens in 1 year?</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">Frame 3</div>
+        <div class="frame-time">0:08 - 0:12</div>
+        <div class="phone-frame v1-frame3">
+          <div class="notch"></div>
+          <div class="screen">
+            <div style="font-size:12px; font-weight:700; margin-bottom:4px;">💰 1 Year Later</div>
+            <div class="result-num">R112</div>
+            <div style="font-size:11px; font-weight:600; margin-top:4px;">12% return</div>
+            <div style="font-size:10px; margin-top:10px; opacity:0.6;">Your money made money. 🤯</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">Frame 4</div>
+        <div class="frame-time">0:12 - 0:15</div>
+        <div class="phone-frame v1-frame4">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="cta-text">Learn this<br>on <span class="gold">Fundi Finance</span></div>
+            <div class="dl-btn">DOWNLOAD FREE</div>
+            <div style="font-size:9px; color:rgba(255,255,255,0.4); margin-top:10px;">Link in bio ↓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="script-box">
+      <h4>Voiceover Script</h4>
+      <p><strong>0:00</strong> "You've got R100. What do you do?" <strong>0:03</strong> "Most people spend it. But what if you invested it?" <strong>0:08</strong> "In one year, that R100 becomes R112. In ten years? Over R300." <strong>0:12</strong> "Learn how on Fundi Finance. Free download — link in bio."</p>
+    </div>
+  </div>
+
+  <!-- ===== VIDEO 2 ===== -->
+  <div class="storyboard-section">
+    <div class="storyboard-title">Video 2: "Your Financial Glow-Up"</div>
+    <div class="storyboard-desc">Myth-busting format · 15-30 seconds · Transformation trend</div>
+
+    <div class="frames-row">
+      <div class="frame-wrapper">
+        <div class="frame-label">Hook</div>
+        <div class="frame-time">0:00 - 0:03</div>
+        <div class="phone-frame v2-frame1">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="emoji-big">🚫💸</div>
+            <div class="hook">Stop believing<br>these <span class="red">money lies</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">The Myths</div>
+        <div class="frame-time">0:03 - 0:08</div>
+        <div class="phone-frame v2-frame2">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="myth-item"><span class="x">✕</span> "I'll save when I earn more"</div>
+            <div class="myth-item"><span class="x">✕</span> "Investing is for rich people"</div>
+            <div class="myth-item"><span class="x">✕</span> "Credit cards are free money"</div>
+            <div class="myth-item"><span class="x">✕</span> "Budgets are boring"</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">The Truth</div>
+        <div class="frame-time">0:08 - 0:13</div>
+        <div class="phone-frame v2-frame3">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="truth-item"><span class="check">✓</span> Start with R50/month</div>
+            <div class="truth-item"><span class="check">✓</span> Anyone can invest</div>
+            <div class="truth-item"><span class="check">✓</span> Credit has a real cost</div>
+            <div class="truth-item"><span class="check">✓</span> Budgets = freedom</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">CTA</div>
+        <div class="frame-time">0:13 - 0:15</div>
+        <div class="phone-frame v2-frame4">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="logo-big"><span class="green">FUNDI</span> FINANCE</div>
+            <div class="tagline">Learn Money. Master Life.</div>
+            <div class="app-btn">GET IT FREE</div>
+            <div style="font-size:9px; color:rgba(0,0,0,0.4); margin-top:8px;">🇿🇦 Made in South Africa</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="script-box">
+      <h4>Voiceover Script</h4>
+      <p><strong>0:00</strong> "Stop believing these money lies." <strong>0:03</strong> "You DON'T need to be rich to invest. You DON'T need a big salary to save." <strong>0:08</strong> "Fundi Finance teaches you the truth — in 5 minutes a day." <strong>0:13</strong> "Download free. Link in bio."</p>
+    </div>
+  </div>
+
+  <!-- ===== VIDEO 3 ===== -->
+  <div class="storyboard-section">
+    <div class="storyboard-title">Video 3: "Day 1 vs Day 30"</div>
+    <div class="storyboard-desc">Before/after transformation · 15-30 seconds · Relatable humor</div>
+
+    <div class="frames-row">
+      <div class="frame-wrapper">
+        <div class="frame-label">Hook</div>
+        <div class="frame-time">0:00 - 0:03</div>
+        <div class="phone-frame v3-frame1">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="vs-text">
+              <span class="dim">Day 1</span><br>vs<br><span class="gold">Day 30</span>
+            </div>
+            <div class="vs-emoji">😰 → 😎</div>
+            <div style="font-size:11px; color:#888;">on Fundi Finance</div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">Day 1</div>
+        <div class="frame-time">0:03 - 0:07</div>
+        <div class="phone-frame v3-frame2">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="day-label">DAY 1</div>
+            <div class="confusion-list">
+              <span class="q">?</span> What's compound interest?<br>
+              <span class="q">?</span> How do taxes work?<br>
+              <span class="q">?</span> What's a credit score?<br>
+              <span class="q">?</span> Why am I always broke?<br>
+              <span class="q">?</span> What's a stokvel?
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">Day 30</div>
+        <div class="frame-time">0:07 - 0:12</div>
+        <div class="phone-frame v3-frame3">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="day-label">DAY 30</div>
+            <div class="knowledge-list">
+              <span class="check">✓</span> Budget set up<br>
+              <span class="check">✓</span> Saving R500/month<br>
+              <span class="check">✓</span> Credit score: understood<br>
+              <span class="check">✓</span> Investment plan started<br>
+              <span class="check">✓</span> 30-day streak 🔥
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="frame-arrow">→</div>
+      <div class="frame-wrapper">
+        <div class="frame-label">CTA</div>
+        <div class="frame-time">0:12 - 0:15</div>
+        <div class="phone-frame v3-frame4">
+          <div class="notch"></div>
+          <div class="screen">
+            <div class="transform-text">
+              30 days.<br>
+              <span class="gold">New financial you.</span>
+            </div>
+            <div class="small-cta">Free on App Store & Google Play</div>
+            <div class="dl-pill">DOWNLOAD FUNDI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="script-box">
+      <h4>Voiceover Script</h4>
+      <p><strong>0:00</strong> "Day 1 versus Day 30 on Fundi Finance..." <strong>0:03</strong> "Day 1: You don't know what compound interest is. Taxes confuse you. You're always broke by the 15th." <strong>0:07</strong> "Day 30: Budget on lock. Saving R500 a month. You actually understand your credit score." <strong>0:12</strong> "30 days. A whole new financial you. Download Fundi — it's free."</p>
+    </div>
+  </div>
+</body>
+</html>
