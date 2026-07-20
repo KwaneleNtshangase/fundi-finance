@@ -55,7 +55,7 @@ jobs:
         env:
           BASE_URL: ${{ secrets.BASE_URL || 'https://fundiapp.co.za' }}
           TEST_EMAIL: ${{ secrets.TEST_EMAIL || 'e2e-test@fundiapp.co.za' }}
-          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD || 'NothoE2E_Test#2026' }}
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD || 'FundiE2E_Test#2026' }}
 
       - name: Upload Playwright HTML report
         if: always()
