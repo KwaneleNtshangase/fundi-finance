@@ -100,14 +100,26 @@ to the red one. Renaming them is a separate change with its own blast radius.
 
 ## Assets
 
-The `brand/` directory contains a **different mark** from the logo supplied for
-this rebrand — three separate strokes rather than the teal ribbon forming an N.
-It was left untouched and nothing references it. Everything in `public/` is
-generated from `nothoicon.png` and `nothologo.png`.
+`brand/` is the source of truth. It was regenerated during this work as vector
+traces of the supplied artwork, and everything in `public/` is now rendered from
+`brand/svg/` — see the addendum at the end for how and why.
+
+> **Earlier state, for anyone reading old commits:** before that regeneration
+> `brand/` held a genuinely different mark — three separate strokes rather than
+> the teal ribbon forming an N — and `public/` was generated straight from
+> `nothoicon.png` / `nothologo.png`. Both are now resolved.
+
+### The one rule that is easy to break
+
+**The icon *is* the letter N, so the wordmark is `OTHO`, not `NOTHO`.** Placing
+the mark beside the full word makes the lockup read *N-NOTHO*. If you need the
+name as plain text with no mark, type the whole word — but never set the whole
+word next to the mark. Both `public/notho-logo.png` and the `brand/` lockups
+were checked against this and are correct.
 
 `nothologo.png` has a near-white wordmark (`#F0F0F0`), so it is invisible on
-white. `public/notho-logo.png` is a generated light-background variant with the
-wordmark recoloured to navy; `notho-logo-on-dark.png` is the original.
+white. `public/notho-logo.png` is the light-background variant with a navy
+wordmark; `notho-logo-on-dark.png` keeps the white one.
 
 Icon slots previously pointed at the wide lockup, so browsers and iOS were
 centre-cropping it down to a sliver of the mark. They now point at square icons.
