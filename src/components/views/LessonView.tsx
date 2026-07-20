@@ -479,7 +479,7 @@ export function LessonView({
       return (
         <div className="flex flex-col gap-4">
           <div style={{
-            background: "linear-gradient(135deg, #007A85 0%, #00A86B 100%)",
+            background: "linear-gradient(135deg, #007A85 0%, #00A0AA 100%)",
             borderRadius: 16, padding: "20px 20px 16px", color: "white",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>

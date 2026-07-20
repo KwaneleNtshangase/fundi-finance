@@ -41,8 +41,8 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
 
       // Background gradient
       const bg = ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0, "#0a1e12");
-      bg.addColorStop(0.6, "#0d2318");
+      bg.addColorStop(0, "#06201F");
+      bg.addColorStop(0.6, "#082A29");
       bg.addColorStop(1, "#061009");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);

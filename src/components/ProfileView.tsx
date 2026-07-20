@@ -997,11 +997,11 @@ export function ProfileView({
       {(() => {
         const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
         // Recharts SVG does not resolve CSS variables - use explicit hex colours
-        const primaryColor = isDark ? "#3FB68B" : "#007A85";
-        const pastColor = isDark ? "#2a4a3e" : "#c6e6d8";
+        const primaryColor = isDark ? "#20D3CF" : "#007A85";
+        const pastColor = isDark ? "#2A4749" : "#C6E4E8";
         const axisColor = isDark ? "#8B949E" : "#6B7280";
         const tooltipBg = isDark ? "#161B22" : "#ffffff";
-        const tooltipBorder = isDark ? "#30363D" : "#D1E8DF";
+        const tooltipBorder = isDark ? "#30363D" : "#D1E7EA";
         const tooltipText = isDark ? "#ffffff" : "#111827";
 
         // Build Mon–Sun week using SAST dates so keys match stored XP

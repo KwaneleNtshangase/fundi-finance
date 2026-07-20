@@ -513,7 +513,7 @@ export function CalculatorView() {
       {/* ── Solve Result (non-goal modes) ── */}
       {hasCalculated && solveResult && (
         <>
-          <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, #005c3a 100%)", borderRadius: 16, padding: "20px 24px", marginBottom: 12, color: "white", textAlign: "center" }}>
+          <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, #005F68 100%)", borderRadius: 16, padding: "20px 24px", marginBottom: 12, color: "white", textAlign: "center" }}>
             <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 1, opacity: 0.8, marginBottom: 8 }}>{solveResult.label}</div>
             <div style={{ fontSize: 32, fontWeight: 900, marginBottom: 4 }}>{solveResult.value}</div>
             {solveResult.sub && <div style={{ fontSize: 13, opacity: 0.85 }}>{solveResult.sub}</div>}

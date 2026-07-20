@@ -437,12 +437,12 @@ export function CourseIcon({ name, size = 48 }: { name: string; size?: number })
 
 // Course accent colours, cycles through SA-themed palette
 export const COURSE_COLOURS = [
-  { bg: "#E8F5EE", accent: "#007A85", light: "#C8EAD9" }, // green
+  { bg: "#E8F5EE", accent: "#007A85", light: "#CBE9EB" }, // green
   { bg: "#FFF8E7", accent: "#EFB343", light: "#FFE9A0" }, // gold
   { bg: "#FFF0EF", accent: "#E03C31", light: "#FCCFCC" }, // red
   { bg: "#EEF4FF", accent: "#3B7DD8", light: "#C5D9F7" }, // blue
   { bg: "#F3EEFF", accent: "#7C4DFF", light: "#D9C8FF" }, // purple
-  { bg: "#E8FAF0", accent: "#00BFA5", light: "#B2EFE3" }, // teal
+  { bg: "#E8FAF0", accent: "#00BFA5", light: "#B2EDEF" }, // teal
   { bg: "#FFF3E0", accent: "#F57C00", light: "#FFD9A8" }, // orange
   { bg: "#FCE4EC", accent: "#C2185B", light: "#F5B8CE" }, // pink
 ];
@@ -515,8 +515,8 @@ export function generateShareCard(data: ShareCardData): Promise<string> {
 
       // Background gradient
       const bg = ctx.createLinearGradient(0, 0, W, H);
-      bg.addColorStop(0, "#0a1e12");
-      bg.addColorStop(0.6, "#0d2318");
+      bg.addColorStop(0, "#06201F");
+      bg.addColorStop(0.6, "#082A29");
       bg.addColorStop(1, "#061009");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, W, H);

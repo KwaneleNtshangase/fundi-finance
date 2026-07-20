@@ -39,7 +39,7 @@ export function LessonSummaryView({
             ? <Trophy size={64} style={{ color: "#EFB343" }} />
             : <Sparkles size={64} style={{ color: "#7C3AED" }} />}
         </div>
-        <div style={{ fontSize: 28, fontWeight: 900, color: "#1A7C4E", marginBottom: 4 }}>
+        <div style={{ fontSize: 28, fontWeight: 900, color: "#0E7C85", marginBottom: 4 }}>
           {lessonSummary.isPerfect ? "Perfect Lesson!" : "Lesson Complete!"}
         </div>
         <div style={{ fontSize: 15, color: "#6b7280", fontWeight: 500 }}>
@@ -74,12 +74,12 @@ export function LessonSummaryView({
         </div>
         {/* Accuracy */}
         <div style={{
-          background: "#F0FDF4", border: "2px solid #1A7C4E",
+          background: "#F0FDF4", border: "2px solid #0E7C85",
           borderRadius: 16, padding: "18px 12px", textAlign: "center",
         }}>
-          <div style={{ marginBottom: 4, display: "flex", justifyContent: "center" }}><Target size={30} style={{ color: "#1A7C4E" }} /></div>
-          <div style={{ fontSize: 26, fontWeight: 900, color: "#1A7C4E" }}>{lessonSummary.accuracy}%</div>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "#1A7C4E", textTransform: "uppercase", letterSpacing: 1 }}>Accuracy</div>
+          <div style={{ marginBottom: 4, display: "flex", justifyContent: "center" }}><Target size={30} style={{ color: "#0E7C85" }} /></div>
+          <div style={{ fontSize: 26, fontWeight: 900, color: "#0E7C85" }}>{lessonSummary.accuracy}%</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#0E7C85", textTransform: "uppercase", letterSpacing: 1 }}>Accuracy</div>
         </div>
         {/* Streak */}
         <div style={{
@@ -99,21 +99,21 @@ export function LessonSummaryView({
           style={{
             width: "100%", maxWidth: 360, marginBottom: 12,
             padding: "14px 16px", borderRadius: 16,
-            background: "linear-gradient(135deg, #E8F5EE 0%, #D4EDDF 100%)",
-            border: "2px solid #1A7C4E", cursor: "pointer",
+            background: "linear-gradient(135deg, #E8F5EE 0%, #D6EDEF 100%)",
+            border: "2px solid #0E7C85", cursor: "pointer",
             textAlign: "left", display: "flex", alignItems: "center", gap: 12,
           }}
         >
           <div style={{
             width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-            background: "#1A7C4E", display: "flex", alignItems: "center", justifyContent: "center",
+            background: "#0E7C85", display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <Wallet size={24} style={{ color: "white" }} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#1A7C4E", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Unlock Now</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: "#064E3B" }}>{bridge.prompt}</div>
-            <div style={{ fontSize: 13, color: "#064E3B", opacity: 0.8, marginTop: 4 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#0E7C85", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 2 }}>Unlock Now</div>
+            <div style={{ fontSize: 16, fontWeight: 700, color: "#064B52" }}>{bridge.prompt}</div>
+            <div style={{ fontSize: 13, color: "#064B52", opacity: 0.8, marginTop: 4 }}>
               {bridge.detail}
             </div>
           </div>

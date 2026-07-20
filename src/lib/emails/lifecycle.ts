@@ -11,7 +11,7 @@
 
 const FROM = "Notho <hello@fundiapp.co.za>";
 const APP_URL = "https://fundiapp.co.za";
-const LOGO = "https://fundiapp.co.za/Notho_logo.png";
+const LOGO = "https://fundiapp.co.za/notho-icon.png";
 
 export type EmailProfile = {
   username?: string | null;
@@ -58,7 +58,7 @@ function shell(bodyRows: string): string {
             </td>
             <td style="vertical-align:middle">
               <div style="font-size:19px;font-weight:800;color:#ffffff;line-height:1.25">Notho</div>
-              <div style="font-size:12px;color:#BFE6D4;letter-spacing:0.04em;padding-top:3px">Master Your Money</div>
+              <div style="font-size:12px;color:#B5E4E8;letter-spacing:0.04em;padding-top:3px">Master Your Money</div>
             </td>
           </tr></table>
         </td></tr>
@@ -82,7 +82,7 @@ function goalChip(goal?: string | null): string {
   const g = goalInfo(goal);
   return `<div style="background:#E6F4F5;border-radius:12px;padding:14px 18px;margin:0 0 22px">
     <div style="font-size:14px;font-weight:700;color:#007A85">${g.label}</div>
-    <div style="font-size:13px;color:#0d6b48;padding-top:3px">${g.line}</div>
+    <div style="font-size:13px;color:#00636B;padding-top:3px">${g.line}</div>
   </div>`;
 }
 
@@ -161,6 +161,65 @@ export function buildMilestone(kind: MilestoneKind, p: EmailProfile, streak: num
   `);
   const text = `${m.headline}\n\nHi ${name}, ${m.body}\n\n${m.cta}: ${APP_URL}\n\nProud of you.\nTeam Notho`;
   return { subject: m.subject(name, streak), html, text };
+}
+
+/** ── Rebrand announcement (one-off broadcast) ──────────────────────────────
+ *
+ * Sent once to the whole list. Three jobs, in this order of importance:
+ *   1. Reassure. Nothing about their account, streak or progress changes.
+ *   2. Name the change plainly, so a different logo in their inbox tomorrow
+ *      does not read as a phishing attempt.
+ *   3. Explain the name, briefly.
+ *
+ * The sending address stays hello@fundiapp.co.za until the domain migrates,
+ * which is deliberate: changing the From address in the same week as the name
+ * is what actually trips spam filters and confuses people.
+ */
+export function buildRebrandAnnouncement(p?: EmailProfile | null): BuiltEmail {
+  const name = resolveName(p);
+  // Bulk sends have no profile, so resolveName falls back to "there". Greeting
+  // still reads fine, but "there, Fundi Finance is now Notho" does not.
+  const personal = name !== "there";
+  const html = shell(`
+    <h1 style="margin:0 0 14px;font-size:22px;font-weight:800">We're now called Notho</h1>
+    <p style="margin:0 0 16px;font-size:15px;color:#374151">Hi ${name}, a quick heads up. Fundi Finance is now Notho. Same app, same team, same lessons. Only the name and the look have changed.</p>
+
+    <div style="background:#E6F4F5;border-radius:12px;padding:16px 18px;margin:0 0 22px">
+      <div style="font-size:14px;font-weight:700;color:#00636B">Nothing changes for you</div>
+      <div style="font-size:14px;color:#374151;padding-top:6px;line-height:1.6">
+        Your login is the same. Your streak, XP, badges and budget are all exactly where you left them. There is nothing you need to do.
+      </div>
+    </div>
+
+    <p style="margin:0 0 16px;font-size:15px;color:#374151">Why Notho. The name comes from <em>umnotho</em>, the isiZulu word for wealth. It says what the app is actually for better than the old name did, and it grows with us as we add more than just lessons.</p>
+
+    <p style="margin:0 0 16px;font-size:15px;color:#374151">You'll see the new logo in the app and on emails from us from now on. If our name pops up somewhere and you're not sure it's really us, that's a healthy instinct. You can always go straight to the app instead of clicking a link.</p>
+
+    ${cta("Open Notho")}
+
+    <p style="margin:22px 0 0;font-size:15px;color:#374151">Thanks for being here since the Fundi days.<br/>Team Notho</p>
+  `);
+  const text = `We're now called Notho
+
+Hi ${name}, a quick heads up. Fundi Finance is now Notho. Same app, same team, same lessons. Only the name and the look have changed.
+
+Nothing changes for you. Your login is the same. Your streak, XP, badges and budget are all exactly where you left them. There is nothing you need to do.
+
+Why Notho. The name comes from umnotho, the isiZulu word for wealth. It says what the app is actually for better than the old name did, and it grows with us as we add more than just lessons.
+
+You'll see the new logo in the app and on emails from us from now on. If our name pops up somewhere and you're not sure it's really us, that's a healthy instinct. You can always go straight to the app instead of clicking a link.
+
+Open Notho: ${APP_URL}
+
+Thanks for being here since the Fundi days.
+Team Notho`;
+  return {
+    subject: personal
+      ? `${name}, Fundi Finance is now Notho`
+      : `Fundi Finance is now Notho`,
+    html,
+    text,
+  };
 }
 
 /** Send one email via Resend. Optional scheduledAt (ISO) to schedule. */
