@@ -31,19 +31,25 @@ the other way round, or you will fix it and then immediately clobber it.
 
 ## Order of operations
 
-### 1. Read Vercel's values — do not copy them from anywhere else
+### 1. The Vercel records — read off the dashboard 20 Jul 2026
 
-Vercel → project → Settings → Domains → the `notho.co.za` row →
-**View DNS configuration**.
+| Type | Name | Value |
+|---|---|---|
+| `A` | `@` | `216.198.79.1` |
+| `CNAME` | `www` | `8607c963a8d06eb8.vercel-dns-017.com.` |
 
-Vercel's CNAME target is **per-project** (it looks like
-`d1d4fc829fe7bc7c.vercel-dns-017.com`, not the old generic
-`cname.vercel-dns.com`), and the apex A record value can differ too. Copy what
-that panel shows. A stale value copied from a blog post is the most likely
-reason a domain sits on *Invalid Configuration*.
+Keep the trailing dot on the CNAME — it marks the value as fully qualified, so
+the resolver doesn't append `notho.co.za` to it. Some panels add it silently;
+cPanel does not always.
 
-Both `notho.co.za` and `www.notho.co.za` are currently **Invalid
-Configuration**, which simply means no DNS is pointing at Vercel yet.
+**Do not substitute the old published values.** Vercel's own panel says: *"We're
+expanding our IP range. We recommend the records above. The legacy records
+cname.vercel-dns.com and 76.76.21.21 will continue to work."* The CNAME target
+is per-project — `8607c963a8d06eb8...` belongs to this project only and is not
+reusable anywhere else.
+
+If these ever stop matching, re-read them at Vercel → project → Settings →
+Domains → **View DNS configuration**, rather than trusting this table.
 
 ### 2. Add the addon domain in cPanel
 
@@ -54,15 +60,25 @@ to correct.
 
 ### 3. Fix the A and CNAME back to Vercel
 
-cPanel → Zone Editor → `notho.co.za`:
+cPanel → Zone Editor → `notho.co.za` → **Manage**.
 
-- `A` on `@` → the value from step 1. **Edit the record cPanel just created, do
-  not add a second one.** Two A records on the apex will round-robin and the site
-  will work roughly half the time — which is far more confusing to debug than it
-  being down.
-- `CNAME` on `www` → Vercel's per-project target from step 1.
+- Find the existing `A` record on `@` (cPanel just wrote it, pointing at the
+  hosting server). **Edit it** to `216.198.79.1`. Do **not** add a second one —
+  two A records on the apex round-robin, so the site works roughly half the time,
+  which is far harder to diagnose than being cleanly down.
+- Add or edit `CNAME` on `www` → `8607c963a8d06eb8.vercel-dns-017.com.`
+- If cPanel also created an `A` record on `www`, delete it. A name cannot have
+  both an A and a CNAME; the CNAME will be ignored or the zone rejected.
 
 Leave `MX` pointing at Truehost.
+
+Check it from your terminal before moving on:
+
+```bash
+dig +short notho.co.za            # expect 216.198.79.1
+dig +short www.notho.co.za        # expect the vercel-dns-017 target
+dig +short MX notho.co.za         # expect Truehost's mail host
+```
 
 ### 4. Confirm Vercel goes green
 
