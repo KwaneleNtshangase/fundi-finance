@@ -1,10 +1,17 @@
 // Notho — Service Worker
 // Push notifications + offline caching. Bump SW_VERSION when caching strategy changes.
 
-const SW_VERSION = "4";
+const SW_VERSION = "5";
 const STATIC_CACHE = `notho-static-${SW_VERSION}`;
 const RUNTIME_CACHE = `notho-runtime-${SW_VERSION}`;
 const CACHE_PREFIX = "notho-";
+// The rebrand changed CACHE_PREFIX from "fundi-" to "notho-". The activate
+// handler purges by prefix, so without this every existing user keeps a dead
+// fundi-static-4 / fundi-runtime-4 pair forever. Not a correctness problem
+// (the new worker never reads them) but it is orphaned storage on every
+// installed client, and browsers evict per-origin under pressure.
+// Safe to delete this line once installs have turned over.
+const LEGACY_CACHE_PREFIXES = ["fundi-"];
 
 // Offline fallbacks only — do NOT pre-cache "/" (stale app shell after deploy).
 const PRECACHE = ["/manifest.json", "/notho-logo.png", "/notho-icon-192.png", "/favicon.ico"];
@@ -42,11 +49,12 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
       const keep = new Set([STATIC_CACHE, RUNTIME_CACHE]);
+      const owned = (n) =>
+        n.startsWith(CACHE_PREFIX) ||
+        LEGACY_CACHE_PREFIXES.some((p) => n.startsWith(p));
       const names = await caches.keys();
       await Promise.all(
-        names
-          .filter((n) => n.startsWith(CACHE_PREFIX) && !keep.has(n))
-          .map((n) => caches.delete(n))
+        names.filter((n) => owned(n) && !keep.has(n)).map((n) => caches.delete(n))
       );
       await purgeNavigationEntries(RUNTIME_CACHE);
       await self.clients.claim();

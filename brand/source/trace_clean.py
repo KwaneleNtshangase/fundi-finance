@@ -36,12 +36,18 @@ BASE = {
 # Extra classification targets exist only to keep pixels away from the wrong
 # layer; they collapse back into the four real brand colours before tracing.
 MERGE = {
-    'teal_hi': 'teal_light', 'teal_shade': 'teal_dark',
+    'teal_hi': 'teal', 'teal_light': 'teal',
+    'teal_dark': 'teal', 'teal_shade': 'teal',
     'gold_dark': 'gold', 'blue_dark': 'blue',
 }
 # Painted back-to-front. The blue leaf sits in front of the gold; both sit in
 # front of the teal N.
-ORDER = ['teal_dark', 'teal_light', 'gold', 'blue']
+#
+# The teal is ONE shape, not two. Splitting it by tone put a hard trace edge
+# straight through a smooth gradient, and that boundary then followed the
+# classifier's noise -- which reads as a torn seam rather than a fade. One
+# shape plus one fitted gradient is both cleaner and closer to the original.
+ORDER = ['teal', 'gold', 'blue']
 
 
 def load():

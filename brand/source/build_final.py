@@ -15,17 +15,22 @@ OUT = '/sessions/zen-amazing-hypatia/mnt/fundi-finance/brand'
 ICON = json.load(open('/tmp/tclean/layers.json'))
 WORD = json.load(open('/tmp/tword/word.json'))
 
-ICON_ORDER = ['teal_dark', 'teal_light', 'gold', 'blue']
-ICON_LABEL = {'teal_dark': 'N / teal underside', 'teal_light': 'N / teal face',
-              'gold': 'Leaf / gold + dot', 'blue': 'Leaf / blue'}
-GRAD = {
-    'teal_dark':  ('#2C8E93', '#04616B', 0.15, 0, 0.6, 1),
-    'teal_light': ('#22B9C0', '#017B84', 0.10, 0, 0.55, 1),
-    'gold':       ('#F5C55E', '#D9911F', 0.20, 0, 0.65, 1),
-    'blue':       ('#2C55A8', '#07234F', 0.70, 0, 0.25, 1),
-}
-FLAT = {'teal_dark': '#017B84', 'teal_light': '#049DA7',
-        'gold': '#EAAC3E', 'blue': '#0A3A71'}
+# The teal is a single shape. Splitting it by tone put a hard trace edge
+# through a smooth gradient, and that edge tracked the classifier's noise --
+# which read as a torn seam. One shape, one gradient.
+ICON_ORDER = ['teal', 'gold', 'blue']
+ICON_LABEL = {'teal': 'N / teal ribbon', 'gold': 'Leaf / gold + dot',
+              'blue': 'Leaf / blue'}
+# Axis and stops fitted to the source pixels by fit_gradient.py, not eyeballed.
+GRAD = json.load(open('/tmp/tclean/gradients.json'))
+FLAT = {'teal': '#049DA7', 'gold': '#EAAC3E', 'blue': '#0A3A71'}
+
+
+def grad_def(gid, c):
+    g = GRAD[c]
+    stops = ''.join(f'<stop offset="{o}" stop-color="{col}"/>' for o, col in g['stops'])
+    return (f'    <linearGradient id="{gid}" x1="{g["x1"]}" y1="{g["y1"]}" '
+            f'x2="{g["x2"]}" y2="{g["y2"]}">{stops}</linearGradient>')
 
 # Measured off the source artwork (source pixels, cap height = 205).
 G = dict(icon_x=1, icon_y=1, icon_w=209, icon_h=202,
@@ -102,12 +107,7 @@ def svg(mode='light', tagline=True, icon_only=False, word_only=False,
 
     defs = ''
     if gradients and not word_only:
-        gs = []
-        for c in ICON_ORDER:
-            a, b, gx1, gy1, gx2, gy2 = GRAD[c]
-            gs.append(f'    <linearGradient id="{pid}_{c}" x1="{gx1}" y1="{gy1}" '
-                      f'x2="{gx2}" y2="{gy2}"><stop offset="0" stop-color="{a}"/>'
-                      f'<stop offset="1" stop-color="{b}"/></linearGradient>')
+        gs = [grad_def(f'{pid}_{c}', c) for c in ICON_ORDER]
         defs = '  <defs>\n' + '\n'.join(gs) + '\n  </defs>\n'
 
     return (f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{vb}" '
@@ -123,10 +123,7 @@ def app_icon(size=512, rounded=True):
     s = size * 0.66 / max(w, h)
     tx, ty = (size - w * s) / 2 - x0 * s, (size - h * s) / 2 - y0 * s
     r = size * 0.2237 if rounded else 0
-    gs = ''.join(
-        f'<linearGradient id="a_{c}" x1="{G_[2]}" y1="{G_[3]}" x2="{G_[4]}" y2="{G_[5]}">'
-        f'<stop offset="0" stop-color="{G_[0]}"/><stop offset="1" stop-color="{G_[1]}"/>'
-        f'</linearGradient>' for c, G_ in GRAD.items())
+    gs = ''.join(grad_def(f'a_{c}', c) for c in ICON_ORDER)
     body = ''.join(f'<path d="{" ".join(ic[c])}" fill="url(#a_{c})"/>' for c in ICON_ORDER)
     return (f'<svg xmlns="http://www.w3.org/2000/svg" width="{size}" height="{size}" '
             f'viewBox="0 0 {size} {size}">\n  <defs>'

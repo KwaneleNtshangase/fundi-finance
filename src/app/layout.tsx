@@ -4,6 +4,7 @@ import { PostHogProvider } from "@/components/PostHogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ErrorReportingInit } from "@/components/ErrorReportingInit";
 import { ServiceWorkerRegistration } from "@/lib/sw/ServiceWorkerRegistration";
+import { STORAGE_MIGRATION_SCRIPT } from "@/lib/storageMigration";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -63,6 +64,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* Rebrand storage migration. Must run before hydration: hooks read
+            these keys on their first render, and without this every existing
+            user reads empty notho-* keys and looks brand new. */}
+        <script dangerouslySetInnerHTML={{ __html: STORAGE_MIGRATION_SCRIPT }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

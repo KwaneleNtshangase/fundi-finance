@@ -72,14 +72,30 @@ Icon, as flat colour (`notho-icon-flat.svg`):
 
 | Region | Value |
 |---|---|
-| N — teal face | `#049DA7` |
-| N — teal underside | `#017B84` |
+| N — teal ribbon | `#049DA7` |
 | Leaf — gold + dot | `#EAAC3E` |
 | Leaf — blue | `#0A3A71` |
 
-Icon gradients (`notho-icon-mark.svg`) reinstate the shading in the original:
-teal face `#22B9C0 → #017B84`, teal underside `#2C8E93 → #04616B`,
-gold `#F5C55E → #D9911F`, blue `#2C55A8 → #07234F`.
+**The teal N is one shape, not two.** An earlier build split it into a light
+and a dark region. That put a hard trace edge through what is actually a
+smooth gradient, and the edge then followed the classifier's noise — which
+read as a torn seam rather than a fade. One shape carrying one gradient is
+both cleaner and closer to the original.
+
+Icon gradients (`notho-icon-mark.svg`) are **fitted to the source pixels** by
+`source/fit_gradient.py`, not eyeballed: it finds the axis along which each
+region's luminance actually varies, then samples the mean colour in bands
+along it.
+
+| Layer | Axis (objectBoundingBox) | Stops |
+|---|---|---|
+| Teal | (0.245, 0.07) → (0.755, 0.93) | `#229EA4` `#19959D` `#0F929A` `#0D7982` `#0B6570` |
+| Gold | (0.309, 0.038) → (0.691, 0.962) | `#F1BE56` `#EEB84F` `#E9AF43` `#E5A83C` `#E2A335` |
+| Blue | (0.863, 0.156) → (0.137, 0.844) | `#274E9B` `#1F4388` `#183A79` `#12326A` `#0C2A5B` |
+
+Stops sit at offsets 0, 0.3, 0.5, 0.7, 1.0. Gradient coordinates are relative
+to each shape's own bounding box, not the artwork's — normalising against the
+whole image skews the axis.
 
 **Dark-background tagline** uses lifted values — `#2ED6D2`, `#F6BE3C`, `#8FA9F0`.
 The light-mode navy fails contrast on dark, and the light-mode teal and gold
