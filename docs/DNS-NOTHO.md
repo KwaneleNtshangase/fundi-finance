@@ -158,3 +158,55 @@ actually trips spam filters.
 Separately, in the Meta app dashboard (App settings → Basic), add
 `notho.co.za` to **App domains** — but keep `fundiapp.co.za` there too until the
 switchover is done. Removing it early breaks Facebook login on the live site.
+
+---
+
+## Later: make the Google sign-in screen say notho, not supabase.co
+
+The Google consent screen reads *"to continue to
+bcwoyhypupuezgcbwqfy.supabase.co"* because OAuth advertises the Supabase auth
+callback, which lives on the project's default domain. Fixing it needs
+Supabase's **Custom Domains** add-on — this is Supabase's own documented #1 use
+case for the feature.
+
+**This is polish, not a blocker.** Sign-in works today; the URL is just
+unbranded. Plenty of production apps ship like this. Do it when you have the
+budget and a spare 30 minutes.
+
+What it takes:
+
+1. **Add-on** — paid Supabase plan + Custom Domain add-on (~$10/mo). Dashboard →
+   Project Settings → Add-ons → Custom Domain. Only a **subdomain** works, so the
+   auth domain will be `auth.notho.co.za` (not the bare `notho.co.za`).
+
+2. **DNS in cPanel** — two records on the notho.co.za zone:
+   - `CNAME  auth  →  bcwoyhypupuezgcbwqfy.supabase.co.`  (keep the trailing dot)
+   - `TXT    _acme-challenge.auth  →  <value Supabase gives you>`
+
+3. **Verify + issue cert** (Supabase CLI):
+   ```
+   supabase domains create   --project-ref bcwoyhypupuezgcbwqfy --custom-hostname auth.notho.co.za
+   supabase domains reverify --project-ref bcwoyhypupuezgcbwqfy
+   ```
+
+4. **Google console — before activating.** In Google Cloud console (the OAuth
+   client, *not* Supabase), ADD the new callback alongside the existing one so
+   nothing breaks mid-switch:
+   - keep `https://bcwoyhypupuezgcbwqfy.supabase.co/auth/v1/callback`
+   - add  `https://auth.notho.co.za/auth/v1/callback`
+   Do the same for the Facebook app's OAuth redirect URIs.
+
+5. **Activate**:
+   ```
+   supabase domains activate --project-ref bcwoyhypupuezgcbwqfy
+   ```
+
+6. **Point the client at it** — set `NEXT_PUBLIC_SUPABASE_URL=https://auth.notho.co.za`
+   in Vercel env vars and redeploy. The old supabase.co URL keeps working, so
+   this is safe to do whenever.
+
+After activation the Google screen reads *"to continue to auth.notho.co.za"*.
+
+A cheaper half-measure exists — a **vanity subdomain** (`notho.supabase.co`),
+CLI-only, still needs a paid plan — but it still says `supabase.co`. Only the
+custom domain gets you `notho.co.za`.
