@@ -235,23 +235,26 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           {/* Subtle ambient glow */}
           <div className="splash-bg-glow" style={{
             position: "absolute", width: 480, height: 480, borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(26,124,78,0.08) 0%, rgba(26,124,78,0.03) 50%, transparent 72%)",
+            background: "radial-gradient(circle, rgba(1,160,170,0.10) 0%, rgba(1,160,170,0.04) 50%, transparent 72%)",
             pointerEvents: "none",
           }} />
 
-          {/* Logo - large, fills most of space */}
+          {/* The N mark, large. Uses the square icon (not the wide wordmark):
+              the wordmark is navy, and in dark mode the splash background flips
+              to a dark surface, leaving a navy-on-dark logo that reads as dim.
+              The icon's teal + gold carry on both light and dark. */}
           <div className="splash-logo-wrap" style={{ position: "relative", zIndex: 1, marginBottom: 28 }}>
             <img
-              src="/notho-logo.png"
+              src="/notho-icon.png"
               alt="Notho"
-              style={{ width: 260, height: 260, objectFit: "contain", display: "block" }}
+              style={{ width: 168, height: 168, objectFit: "contain", display: "block" }}
             />
           </div>
 
           {/* Thin divider */}
           <div className="splash-divider" style={{
             width: 40, height: 2, borderRadius: 1,
-            background: "linear-gradient(90deg, transparent, rgba(26,124,78,0.6), transparent)",
+            background: "linear-gradient(90deg, transparent, rgba(1,160,170,0.6), transparent)",
             marginBottom: 14, position: "relative", zIndex: 1,
           }} />
 
@@ -451,12 +454,15 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     return (
-      <div className="flex min-h-screen items-center justify-center" style={{ padding: 16, background: "linear-gradient(160deg, #0d1f17 0%, #1a3a28 100%)" }}>
+      <div className="flex min-h-screen items-center justify-center" style={{ padding: 16, background: "linear-gradient(160deg, #06232a 0%, #0a3a44 100%)" }}>
         <div style={{ background: "white", padding: 28, borderRadius: 20, border: "none", maxWidth: 420, width: "100%", boxShadow: "0 8px 40px rgba(0,0,0,0.28)", overflow: "hidden", position: "relative" }}>
           {/* brand accent line */}
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 4, background: "var(--color-primary)", borderRadius: "20px 20px 0 0" }} />
+          {/* Icon + wordmark. Was the full wordmark logo (which already reads
+              "NOTHO") next to an <h1>Notho</h1>, i.e. "NOTHO Notho". The square
+              icon carries the mark; the text carries the name. */}
           <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20, marginTop: 8 }}>
-            <img src="/notho-logo.png" alt="" width={100} height={100} style={{ objectFit: "contain" }} />
+            <img src="/notho-icon.png" alt="" width={40} height={40} style={{ objectFit: "contain" }} />
             <h1 style={{ fontSize: 24, fontWeight: 800 }}>Notho</h1>
           </div>
 
