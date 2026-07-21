@@ -11,7 +11,10 @@
 
 const FROM = "Notho <hello@fundiapp.co.za>";
 const APP_URL = "https://fundiapp.co.za";
-const LOGO = "https://fundiapp.co.za/notho-icon.png";
+// www, not the apex: notho.co.za/fundiapp.co.za 308-redirect to www, and email
+// clients don't follow redirects for images — the logo shows broken. The white
+// mark reads on the teal (#007A85) header band; the colour icon's teal blends.
+const LOGO = "https://www.notho.co.za/notho-icon-white.png";
 
 export type EmailProfile = {
   username?: string | null;
