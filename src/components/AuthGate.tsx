@@ -295,10 +295,20 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             alignItems: "center", justifyContent: "center",
             paddingTop: 56, paddingBottom: 40, gap: 0,
           }}>
+            {/* Full lockup, large. Mode-aware so it stays crisp if the landing
+                background flips to dark. Wide aspect (not a 200x200 square that
+                rendered it tiny). */}
             <img
+              className="logo-light"
               src="/notho-logo.png"
               alt="Notho"
-              style={{ width: 200, height: 200, objectFit: "contain", marginBottom: 32 }}
+              style={{ width: "min(340px, 78vw)", height: "auto", objectFit: "contain", marginBottom: 32 }}
+            />
+            <img
+              className="logo-dark"
+              src="/notho-logo-on-dark.png"
+              alt="Notho"
+              style={{ width: "min(340px, 78vw)", height: "auto", objectFit: "contain", marginBottom: 32 }}
             />
             <p style={{
               fontSize: 11, fontWeight: 700, color: "#007A85",
@@ -461,9 +471,12 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           {/* Icon + wordmark. Was the full wordmark logo (which already reads
               "NOTHO") next to an <h1>Notho</h1>, i.e. "NOTHO Notho". The square
               icon carries the mark; the text carries the name. */}
-          <div className="flex items-center justify-center gap-2" style={{ marginBottom: 20, marginTop: 8 }}>
-            <img src="/notho-icon.png" alt="" width={40} height={40} style={{ objectFit: "contain" }} />
-            <h1 style={{ fontSize: 24, fontWeight: 800 }}>Notho</h1>
+          {/* The mark IS the N, so the word beside it is OTHO — together they
+              read NOTHO, matching the logo lockup. Tight gap so it reads as one
+              word, not "N  OTHO". */}
+          <div className="flex items-center justify-center" style={{ gap: 3, marginBottom: 20, marginTop: 8 }}>
+            <img src="/notho-icon.png" alt="Notho" width={40} height={40} style={{ objectFit: "contain" }} />
+            <h1 style={{ fontSize: 26, fontWeight: 800, letterSpacing: "0.02em", margin: 0 }}>OTHO</h1>
           </div>
 
           {/* Tab switcher */}

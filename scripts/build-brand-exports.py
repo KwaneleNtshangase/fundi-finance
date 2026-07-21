@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Build the full Notho asset set from brand/svg.
+Build the full Notho asset set from the clean brand rasters
+(nothoicon.png, nothologo.png in the repo root).
 
 Why both transparent and opaque
 -------------------------------
@@ -18,18 +19,11 @@ rejects the other's format:
 
 So every mark is emitted twice, and the README says which to reach for.
 
-Flat vs gradient
-----------------
-The gradient mark bands badly below ~128px: the mid-stop puts a muddy dark
-streak through the teal stroke. Anything icon-sized uses the flat mark; the
-large lockups keep the gradient.
-
 Run: python3 scripts/build-brand-exports.py
 """
 import os
 import shutil
 
-import cairosvg
 import numpy as np
 from PIL import Image
 
@@ -42,16 +36,14 @@ NAVY = (10, 32, 78, 255)
 CLEAR = (0, 0, 0, 0)
 
 
-def render(name, width=4096):
-    """SVG -> supersampled RGBA, trimmed to its own ink."""
-    tmp = os.path.join(OUT, "_tmp.png")
-    cairosvg.svg2png(url=os.path.join(SVG, name), write_to=tmp, output_width=width)
-    im = Image.open(tmp).convert("RGBA")
+def load_raster(name):
+    """Load the user's clean brand PNG from the repo root, trimmed to its ink.
+    We source from these rasters, not the brand/svg vector traces: the traced
+    gradient bands visibly in the teal stroke at UI sizes."""
+    im = Image.open(os.path.join(ROOT, name)).convert("RGBA")
     a = np.array(im)[:, :, 3]
-    ys, xs = np.where(a > 4)
-    im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
-    os.remove(tmp)
-    return im
+    ys, xs = np.where(a > 8)
+    return im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
 
 
 def square(mark, size, bg=CLEAR, pad=0.16):
@@ -86,11 +78,15 @@ def main():
         shutil.rmtree(OUT)
     os.makedirs(OUT, exist_ok=True)
 
-    flat = render("notho-icon-flat.svg")
-    grad = render("notho-icon-mark.svg")
-    on_light = render("notho-logo-transparent-on-light.svg")
-    on_dark = render("notho-logo-transparent-on-dark.svg")
-    wordmark = render("notho-wordmark.svg")
+    flat = load_raster("nothoicon.png")
+    on_dark = load_raster("nothologo.png")   # lockup, near-white wordmark (dark bg)
+    # Navy-wordmark version for light backgrounds.
+    arr = np.array(on_dark).astype(np.int16)
+    mx, mn = arr[..., :3].max(2), arr[..., :3].min(2)
+    wm = (mx > 195) & ((mx - mn) < 26) & (arr[..., 3] > 8)
+    for i, v in enumerate((13, 54, 141)):
+        arr[..., i] = np.where(wm, v, arr[..., i])
+    on_light = Image.fromarray(arr.astype(np.uint8))
 
     made = []
 
@@ -134,13 +130,6 @@ def main():
         made.append(save(wide(on_light, w, WHITE), f"lockup/opaque-white/notho-logo-{w}w.png"))
         made.append(save(wide(on_dark, w, NAVY), f"lockup/opaque-navy/notho-logo-{w}w.png"))
 
-    # ── wordmark ─────────────────────────────────────────────────────────
-    for w in (1600, 800):
-        made.append(save(wide(wordmark, w, CLEAR), f"wordmark/transparent/notho-wordmark-{w}w.png"))
-
-    # ── gradient mark, large only ────────────────────────────────────────
-    for s in (1024, 512):
-        made.append(save(square(grad, s, CLEAR), f"icon-gradient/notho-icon-gradient-{s}.png"))
 
     # ── copy the vector sources alongside ────────────────────────────────
     os.makedirs(os.path.join(OUT, "svg"), exist_ok=True)
@@ -157,7 +146,7 @@ def main():
         im = Image.open(os.path.join(OUT, rel))
         has_alpha = im.mode == "RGBA" and im.getchannel("A").getextrema()[0] < 255
         should = "transparent" in rel or rel.endswith("pwa-any-512.png") \
-                 or "meta-app-icon" in rel or "icon-gradient" in rel
+                 or "meta-app-icon" in rel 
         if should != has_alpha:
             bad.append((rel, "expected alpha" if should else "expected opaque"))
 

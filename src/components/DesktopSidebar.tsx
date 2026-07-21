@@ -40,23 +40,20 @@ export function DesktopSidebar() {
         borderBottom: "1px solid var(--color-border)",
         marginBottom: 8,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-          <img
-            src="/notho-logo.png"
-            alt="Notho"
-            width={36}
-            height={36}
-            style={{ borderRadius: 8, flexShrink: 0, objectFit: "contain" }}
-          />
-          <div>
-            <div style={{ fontSize: 16, fontWeight: 900, color: "var(--color-text-primary)", lineHeight: 1.1 }}>
-              Notho
-            </div>
-            <div style={{ fontSize: 11, color: "var(--color-text-secondary)", letterSpacing: "0.04em" }}>
-              Master Your Money
-            </div>
-          </div>
-        </div>
+        {/* Full lockup fills the header. Mode-aware: navy wordmark on the light
+            sidebar, white wordmark on the dark one. */}
+        <img
+          className="logo-light"
+          src="/notho-logo.png"
+          alt="Notho"
+          style={{ width: "100%", maxWidth: 190, height: "auto", objectFit: "contain", display: "block" }}
+        />
+        <img
+          className="logo-dark"
+          src="/notho-logo-on-dark.png"
+          alt="Notho"
+          style={{ width: "100%", maxWidth: 190, height: "auto", objectFit: "contain" }}
+        />
       </div>
       <ul className="nav-menu">
         <li className="nav-item">
