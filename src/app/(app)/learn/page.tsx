@@ -13,14 +13,7 @@ export default function LearnPage() {
     isLessonCompleted,
     setRoute,
     progressReady,
-    weeklyChallenge,
-    weeklyProgress,
-    challengeProgress,
-    challengeComplete,
-    challengeRewardClaimed,
-    claimChallengeReward,
     userData,
-    addXP,
     hearts,
     setShowNoHearts,
     setCurrentLessonState
@@ -105,17 +98,8 @@ export default function LearnPage() {
       contentLoaded={progressReady}
       savedProgress={savedProgress}
       onResumeLesson={resumeLesson}
-      showQuestSections={true}
-      weeklyChallenge={weeklyChallenge}
-      weeklyProgress={weeklyProgress}
-      challengeProgress={challengeProgress}
-      challengeComplete={challengeComplete}
-      challengeRewardClaimed={challengeRewardClaimed}
-      claimChallengeReward={claimChallengeReward}
-      streak={userData?.streak ?? 0}
       userLevel={userData?.level ?? 1}
       userXP={userData?.xp ?? 0}
-      addXP={addXP}
     />
   );
 }

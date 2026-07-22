@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { analytics } from "@/lib/analytics";
 import { trackBehaviorEvent, BUDGET_RELATED_COURSE_IDS } from "@/lib/behaviorTracking";
+import { buildSearchIndex, fuzzySearch, getSuggestion } from "@/lib/fuzzySearch";
 import { CONTENT_DATA } from "@/data/content";
 import { DAILY_FACTS_365 } from "@/data/content-extra";
 import {
@@ -127,10 +128,6 @@ import {
 import {
   UserData,
   Route,
-  WeeklyProgressJSON,
-  EMPTY_WEEKLY_PROGRESS,
-  parseWeeklyChallengeStorage,
-  progressNumberFromWeeklyState,
   normalizeUsername,
   validateUsername,
   isUsernameAvailable,
@@ -649,42 +646,25 @@ export function LearnView({
   courses,
   isLessonCompleted,
   goToCourse,
-  weeklyChallenge,
-  weeklyProgress,
-  challengeProgress,
-  challengeComplete,
-  challengeRewardClaimed,
-  claimChallengeReward,
   contentLoaded = true,
   savedProgress,
   onResumeLesson,
-  streak = 0,
-  showQuestSections = false,
-  addXP,
   userLevel = 1,
   userXP = 0,
 }: {
   courses: Course[];
   isLessonCompleted: (courseId: string, lessonId: string) => boolean;
   goToCourse: (courseId: string) => void;
-  weeklyChallenge?: { text: string; target: number; xp: number; id: string; unit: string };
-  weeklyProgress?: WeeklyProgressJSON;
-  challengeProgress?: number;
-  challengeComplete?: boolean;
-  challengeRewardClaimed?: boolean;
-  claimChallengeReward?: () => void;
   contentLoaded?: boolean;
   savedProgress?: SavedLessonProgress | null;
   onResumeLesson?: (p: SavedLessonProgress) => void;
-  streak?: number;
-  showQuestSections?: boolean;
-  addXP?: (amount: number) => void;
   /** Current user level (Math.floor(xp/500)+1). Used to show course lock gates. */
   userLevel?: number;
   /** Current total XP. Used to show how much XP is still needed to unlock gated courses. */
   userXP?: number;
 }) {
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [userGoal, setUserGoal] = useState<string | null>(null);
   const [goalDescription, setGoalDescription] = useState<string>("");
   const [showGoalPicker, setShowGoalPicker] = useState(false);
@@ -692,6 +672,18 @@ export function LearnView({
   const [pickerGoalDescription, setPickerGoalDescription] = useState<string>("");
   const [showReview, setShowReview] = useState(false);
   const [dueCount, setDueCount] = useState(0);
+
+  // Debounce search input for performance (150ms)
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 150);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  // Build the search index once from courses + concept tags
+  const searchIndex = useMemo(
+    () => buildSearchIndex(courses, CONCEPTS),
+    [courses]
+  );
 
   // Refresh due count on mount and when returning from a review
   useEffect(() => {
@@ -714,45 +706,23 @@ export function LearnView({
   const recommendedCourseIds =
     userGoal && GOAL_COURSE_MAP[userGoal] ? GOAL_COURSE_MAP[userGoal] : [];
 
-  // Fuzzy match a single query token: substring, word-prefix, or edit distance <= 1
-  const matchToken = (t: string, q: string): boolean => {
-    if (t.includes(q)) return true;
-    // Check if any word in t starts with q (prefix match)
-    if (t.split(/\s+/).some(w => w.startsWith(q))) return true;
-    // Levenshtein distance <= 1 for short tokens (<=5 chars)
-    if (q.length <= 5) {
-      const levenshtein = (a: string, b: string): number => {
-        const dp = Array.from({ length: a.length + 1 }, (_, i) =>
-          Array.from({ length: b.length + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0))
-        );
-        for (let i = 1; i <= a.length; i++)
-          for (let j = 1; j <= b.length; j++)
-            dp[i][j] = a[i-1] === b[j-1] ? dp[i-1][j-1] : 1 + Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]);
-        return dp[a.length][b.length];
-      };
-      const words = t.split(/\s+/);
-      if (words.some(w => levenshtein(w.slice(0, q.length + 1), q) <= 1)) return true;
-    }
-    return false;
-  };
-  // Multi-word queries: prefer courses matching ALL tokens; if none do,
-  // fall back to any-token matches so "tax refund" still surfaces the Taxes course.
-  const countTokenMatches = (text: string, query: string): number => {
-    const t = text.toLowerCase();
-    const tokens = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
-    return tokens.filter((q) => matchToken(t, q)).length;
-  };
-  const filteredCourses = (() => {
-    const q = search.trim();
-    if (!q) return courses;
-    const tokenCount = q.split(/\s+/).filter(Boolean).length;
-    // Match against title + description together so tokens can hit either
-    const scored = courses
-      .map((c) => ({ c, hits: countTokenMatches(`${c.title} ${c.description ?? ""}`, q) }))
-      .filter(({ hits }) => hits > 0);
-    const fullMatches = scored.filter(({ hits }) => hits === tokenCount);
-    return (fullMatches.length > 0 ? fullMatches : scored).map(({ c }) => c);
-  })();
+  // Fuzzy search: weighted, ranked results across title, concept tags, and description
+  const searchResults = useMemo(() => {
+    if (!debouncedSearch.trim()) return null;
+    return fuzzySearch(debouncedSearch, searchIndex);
+  }, [debouncedSearch, searchIndex]);
+
+  // "Did you mean?" suggestion when results are empty
+  const suggestion = useMemo(() => {
+    if (!searchResults || searchResults.length > 0) return null;
+    return getSuggestion(debouncedSearch, searchIndex);
+  }, [searchResults, debouncedSearch, searchIndex]);
+
+  const filteredCourses = searchResults
+    ? searchResults
+        .map(r => courses.find(c => c.id === r.courseId)!)
+        .filter(Boolean)
+    : courses;
 
   return (
     <main id="mainContent">
@@ -904,72 +874,24 @@ export function LearnView({
           <p className="text-gray-700 dark:text-gray-300 font-semibold">
             No results for &quot;{search.trim()}&quot;
           </p>
-          <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
-            Try searching for a topic like &quot;budget&quot;, &quot;TFSA&quot;, or &quot;debt&quot;
-          </p>
-        </div>
-      )}
-
-      {/* Weekly challenge card - hidden while searching so results sit right under the search box */}
-      {showQuestSections && !search.trim() && weeklyChallenge && (
-        <div style={{
-          background: challengeComplete ? "rgba(0,122,133,0.08)" : "var(--color-surface)",
-          border: `1.5px solid ${challengeComplete ? "var(--color-primary)" : "var(--color-border)"}`,
-          borderRadius: 14, padding: "14px 16px", marginBottom: 24,
-          display: "flex", alignItems: "center", gap: 14,
-        }}>
-          <div style={{ flexShrink: 0, color: "var(--color-primary)", display: "flex" }}>
-            {challengeComplete ? <Trophy size={28} /> : <Zap size={28} />}
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--color-primary)", marginBottom: 2 }}>
-              Weekly Challenge
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
-                {weeklyChallenge?.text}
-            </div>
-            <div style={{ background: "var(--color-border)", borderRadius: 4, height: 5, overflow: "hidden" }}>
-              <div style={{
-                height: "100%", borderRadius: 4, background: "var(--color-primary)",
-                width: `${Math.min(((challengeProgress || 0) / weeklyChallenge.target) * 100, 100)}%`,
-                transition: "width 0.5s ease",
-              }} />
-            </div>
-            <div style={{ fontSize: 11, color: "var(--color-text-secondary)", marginTop: 4 }}>
-              {challengeProgress || 0}/{weeklyChallenge.target} · Reward: +{weeklyChallenge.xp} XP
-            </div>
-            {weeklyProgress && weeklyChallenge && (
-              <div
-                className="text-gray-500 dark:text-gray-400"
-                style={{ fontSize: 10, marginTop: 6, lineHeight: 1.4 }}
-              >
-                {weeklyChallenge.unit === "lessons" &&
-                  `${weeklyProgress.lessonsCompleted} lesson${weeklyProgress.lessonsCompleted === 1 ? "" : "s"} this week`}
-                {weeklyChallenge.unit === "perfect" &&
-                  `${weeklyProgress.perfectLessons} perfect lesson${weeklyProgress.perfectLessons === 1 ? "" : "s"}`}
-                {weeklyChallenge.unit === "daily_xp" &&
-                  `${weeklyProgress.dailyXp} XP earned today (goal ${weeklyChallenge.target})`}
-                {weeklyChallenge.unit === "streak_days" &&
-                  `${weeklyProgress.streakDaysThisWeek} day${weeklyProgress.streakDaysThisWeek === 1 ? "" : "s"} with lessons this week (goal: ${weeklyChallenge.target})`}
-              </div>
-            )}
-          </div>
-          {challengeComplete && !challengeRewardClaimed && (
-            <button className="btn btn-primary" style={{ fontSize: 12, padding: "6px 14px", flexShrink: 0 }}
-              onClick={claimChallengeReward}>
-              Claim
+          {suggestion ? (
+            <button
+              type="button"
+              onClick={() => setSearch(suggestion)}
+              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 px-4 py-2 text-sm font-semibold text-green-700 dark:text-green-400 transition-colors hover:bg-green-100 dark:hover:bg-green-900/40"
+            >
+              <HelpCircle size={14} aria-hidden />
+              Did you mean &quot;{suggestion}&quot;?
             </button>
-          )}
-          {challengeRewardClaimed && (
-            <div style={{ fontSize: 11, color: "var(--color-primary)", fontWeight: 700, flexShrink: 0, display: "flex", alignItems: "center", gap: 4 }}>
-              <CheckCircle2 size={14} /> Claimed
-            </div>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-500 text-sm mt-1">
+              Try searching for a topic like &quot;budget&quot;, &quot;TFSA&quot;, or &quot;debt&quot;
+            </p>
           )}
         </div>
       )}
 
-      {/* Daily Challenges */}
-      {showQuestSections && !search.trim() && <DailyChallenges streak={streak} onXpClaimed={addXP} />}
+
 
       {!contentLoaded && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
