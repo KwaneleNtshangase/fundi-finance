@@ -484,9 +484,17 @@ export function useNothoState() {
     }
     if (!found) return;
     // Resolve the lesson bank: bank-backed lessons pick one variant per slot
-    // (fresh per attempt); legacy lessons return their static steps.
+    // (fresh per attempt); legacy lessons return their static steps. Never let a
+    // resolution error or empty result silently swallow the tap — fall back to
+    // the lesson's static steps so the lesson always opens.
     const attemptNo = nextAttemptNo(progress.userId, lessonId);
-    const resolved = resolveLessonSteps(found, { userId: progress.userId, attemptNo });
+    let resolved = found.steps ?? [];
+    try {
+      const r = resolveLessonSteps(found, { userId: progress.userId, attemptNo });
+      if (r.length > 0) resolved = r;
+    } catch {
+      /* keep the static-steps fallback */
+    }
     if (resolved.length === 0) return;
     setCurrentLessonState({
       courseId,

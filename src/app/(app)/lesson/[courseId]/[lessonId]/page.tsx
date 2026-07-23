@@ -116,8 +116,16 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
       } else {
         // Fresh (deep link / relaunch, no save): resolve the bank for this
         // attempt, then shuffle with the same seed so answer indexes are stable.
+        // Fall back to static steps if bank resolution ever throws/empties, so
+        // the lesson still opens instead of hanging on "Loading lesson...".
         const attemptNo = nextAttemptNo(userId, lessonId);
-        const resolved = resolveLessonSteps(lesson, { userId, attemptNo });
+        let resolved = lesson.steps ?? [];
+        try {
+          const r = resolveLessonSteps(lesson, { userId, attemptNo });
+          if (r.length > 0) resolved = r;
+        } catch {
+          /* keep the static-steps fallback */
+        }
         workingSteps = shuffleLessonSteps(
           assignQids(resolved),
           lessonShuffleSeed(userId, courseId, lessonId)

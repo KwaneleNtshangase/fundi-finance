@@ -406,7 +406,35 @@ export function LessonView({
   // ── End exit modal ────────────────────────────────────────────────────────
 
   const renderStep = () => {
-    if (!step) return null;
+    // Safety net: if the step index ever runs past the last step (e.g. a
+    // "Continue" tap on the final step), render the completion actions instead
+    // of a blank box so the learner can always finish the lesson.
+    if (!step) {
+      return (
+        <div style={{ textAlign: "center", padding: "24px 8px", animation: "fade-in 0.4s ease-out" }}>
+          <Trophy size={48} style={{ color: "#EFB343", margin: "0 auto 8px" }} aria-hidden />
+          <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 14 }}>Lesson Complete!</div>
+          {finalizeLesson ? (
+            <div className="flex flex-col gap-3" style={{ width: "100%" }}>
+              {nextLessonTitle ? (
+                <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => finalizeLesson("next")}>
+                  Next Lesson: {nextLessonTitle} →
+                </button>
+              ) : null}
+              <button
+                className="btn btn-secondary"
+                style={{ width: "100%", background: "var(--color-bg)", color: "var(--color-text-primary)", border: "1.5px solid var(--color-border)" }}
+                onClick={() => finalizeLesson("course")}
+              >
+                <span className="inline-flex items-center justify-center gap-2"><CheckCircle2 size={18} aria-hidden /> Done - Back to Course</span>
+              </button>
+            </div>
+          ) : (
+            <button className="btn btn-primary" style={{ width: "100%" }} onClick={() => goBack?.()}>Back to Course</button>
+          )}
+        </div>
+      );
+    }
 
     // Out of hearts: block answering a fresh question. Info/action steps and
     // the finish flow are unaffected, and mid-lesson progress is already saved,
@@ -672,7 +700,7 @@ export function LessonView({
               return (
                 <button
                   key={option}
-                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${answered
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all ${answered
                     ? index === step.correct
                       ? "correct border-green-500 font-bold"
                       : index === selectedAnswer
@@ -810,7 +838,7 @@ export function LessonView({
               return (
                 <button
                   key={String(value)}
-                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all bg-zinc-900 border-zinc-700 hover:border-green-500 text-white ${answered
+                  className={`option-button w-full text-left p-5 mb-3 rounded-2xl border-2 transition-all ${answered
                     ? value === step.correct
                       ? "correct border-green-500 font-bold"
                       : value === selectedAnswer
