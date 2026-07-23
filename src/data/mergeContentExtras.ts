@@ -454,10 +454,16 @@ function mergeScams(c: Course): Course {
 }
 
 function mergeBibleMoney(c: Course): Course {
-  const u0 = c.units[0];
+  const [u0, u1] = c.units;
+  // Extras append to the first unit (Stewardship). The second unit
+  // (Generosity: give-first, debt-scripture) must be preserved — an earlier
+  // version dropped it, silently hiding two authored lessons.
   return {
     ...c,
-    units: [{ ...u0, lessons: [...u0.lessons, ...BIBLE_MONEY_EXTRA] }],
+    units: [
+      { ...u0, lessons: [...u0.lessons, ...BIBLE_MONEY_EXTRA] },
+      ...(u1 ? [u1] : []),
+    ],
   };
 }
 

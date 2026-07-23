@@ -310,6 +310,7 @@ export function LessonView({
   lessonTitle,
   lessonStartTimeRef,
   totalQuestions = 0,
+  canFinalize = true,
 }: {
   lessonState: {
     steps: LessonStep[];
@@ -319,6 +320,8 @@ export function LessonView({
   completeLessonFlow: () => void;
   nextStep: () => void;
   finalizeLesson?: (choice: "next" | "course") => void;
+  /** Mastery gate: only true once every question has been answered correctly. */
+  canFinalize?: boolean;
   answerQuestion: (index: number) => void;
   answerTrueFalse: (value: boolean) => void;
   /** Records a fill-blank submission (value + correctness) in lesson state. */
@@ -343,6 +346,12 @@ export function LessonView({
 
   const isOnLastStep = lessonState.stepIndex === lessonState.steps.length - 1;
   const isCompleted = lessonState.stepIndex >= lessonState.steps.length;
+
+  // Only offer to finish when it's genuinely the last step AND every question
+  // has been mastered. A wrong answer appends a re-queued copy, so the missed
+  // step is never "last" — the learner sees a "Continue" button instead and is
+  // walked back to the question until they get it right.
+  const showFinish = isOnLastStep && canFinalize;
 
   // ── Exit confirm modal ────────────────────────────────────────────────────
   function ExitConfirmModal() {
@@ -398,6 +407,50 @@ export function LessonView({
 
   const renderStep = () => {
     if (!step) return null;
+
+    // Out of hearts: block answering a fresh question. Info/action steps and
+    // the finish flow are unaffected, and mid-lesson progress is already saved,
+    // so the learner resumes here once hearts regenerate.
+    const isQuestionStep =
+      step.type === "mcq" ||
+      step.type === "scenario" ||
+      step.type === "true-false" ||
+      step.type === "fill-blank";
+    if (hearts <= 0 && isQuestionStep && !answered) {
+      return (
+        <div
+          style={{
+            textAlign: "center",
+            padding: "24px 8px",
+            animation: "fade-in 0.3s ease-out",
+          }}
+        >
+          <HeartOff size={56} style={{ color: "#E03C31", margin: "0 auto 12px" }} />
+          <h2 className="step-title" style={{ marginBottom: 8 }}>
+            You&apos;re out of hearts
+          </h2>
+          <p
+            style={{
+              color: "var(--color-text-secondary)",
+              marginBottom: 20,
+              maxWidth: 360,
+              marginInline: "auto",
+            }}
+          >
+            Hearts refill over time. Your progress on this lesson is saved — come
+            back and pick up exactly where you left off.
+          </p>
+          <button
+            className="btn btn-primary"
+            style={{ width: "100%", maxWidth: 320 }}
+            onClick={() => goBack?.()}
+          >
+            Save &amp; exit
+          </button>
+        </div>
+      );
+    }
+
     if (step.type === "info") {
       return (
         <>
@@ -407,7 +460,7 @@ export function LessonView({
             dangerouslySetInnerHTML={{ __html: typeof window !== 'undefined' ? DOMPurify.sanitize(step.content) : step.content }}
           />
           <div className="lesson-actions">
-            {isOnLastStep ? (
+            {showFinish ? (
               finalizeLesson ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
                   {nextLessonTitle ? (
@@ -450,7 +503,7 @@ export function LessonView({
             </div>
           ) : null}
           <div className="lesson-actions">
-            {isOnLastStep ? (
+            {showFinish ? (
               finalizeLesson ? (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%" }}>
                   {nextLessonTitle ? (
@@ -548,7 +601,7 @@ export function LessonView({
           )}
           {didAction && (
             <div className="lesson-actions">
-              {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+              {showFinish ? (
                 <div style={{ textAlign: "center", width: "100%" }}>
                   <Trophy size={48} style={{ color: "#EFB343", margin: "0 auto 8px" }} />
                   <CosmoCharacter expression="celebrating" size={100} style={{ margin: "0 auto 8px" }} />
@@ -643,7 +696,7 @@ export function LessonView({
                 {isCorrect ? step.feedback.correct : step.feedback.incorrect}
               </div>
               <div className="lesson-actions">
-                {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+                {showFinish ? (
                   <div
                     style={{
                       textAlign: "center",
@@ -781,7 +834,7 @@ export function LessonView({
                 {isCorrect ? step.feedback.correct : step.feedback.incorrect}
               </div>
               <div className="lesson-actions">
-                {lessonState.stepIndex === lessonState.steps.length - 1 ? (
+                {showFinish ? (
                   <div
                     style={{
                       textAlign: "center",
@@ -882,7 +935,7 @@ export function LessonView({
             answerFillBlank?.(val, correct);
           }}
           onNext={nextStep}
-          isLast={lessonState.stepIndex === lessonState.steps.length - 1}
+          isLast={showFinish}
           correctCount={correctCount}
           finalizeLesson={finalizeLesson}
           nextLessonTitle={nextLessonTitle}

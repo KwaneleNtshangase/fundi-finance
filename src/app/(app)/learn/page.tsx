@@ -6,6 +6,7 @@ import { CONTENT_DATA, Lesson } from "@/data/content";
 import { useNotho } from "@/context/NothoContext";
 import { analytics } from "@/lib/analytics";
 import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
+import { assignQids, type WorkingStep } from "@/lib/lessonMastery";
 
 export default function LearnPage() {
   const {
@@ -55,29 +56,37 @@ export default function LearnPage() {
           break;
         }
       }
-      if (!found?.steps?.length) return;
+      const savedHasSteps = Array.isArray(progress.steps) && progress.steps.length > 0;
+      if (!found || (!found.steps?.length && !savedHasSteps)) return;
       if (hearts <= 0) {
         setShowNoHearts(true);
         return;
       }
+      // Prefer the persisted working steps (they carry any re-queued copies
+      // from the mastery loop). Otherwise rebuild from content, tagging question
+      // ids so the mastery loop tracks completion.
+      const savedSteps: WorkingStep[] = savedHasSteps
+        ? (progress.steps as WorkingStep[])
+        : (shuffleLessonSteps(
+            assignQids(found!.steps ?? []),
+            lessonShuffleSeed(userId, progress.courseId, progress.lessonId)
+          ) as WorkingStep[]);
       const stepIdx = Math.min(
-        Math.max(0, progress.stepIndex),
-        found.steps.length - 1
+        Math.max(0, progress.stepIndex ?? 0),
+        savedSteps.length - 1
       );
       setCurrentLessonState({
         courseId: progress.courseId,
         lessonId: progress.lessonId,
         stepIndex: stepIdx,
-        // Same seed as startLesson → same option order, so restored answer
-        // indexes stay valid.
-        steps: shuffleLessonSteps(
-          found.steps,
-          lessonShuffleSeed(userId, progress.courseId, progress.lessonId)
-        ),
+        steps: savedSteps,
         // Restore the user's actual answers so accuracy/XP aren't understated
         // after a resume (previously reset to zero).
         answers: progress.answers ?? {},
         correctCount: progress.correctCount ?? 0,
+        mistakes: progress.mistakes ?? 0,
+        masteredQids: progress.masteredQids ?? [],
+        mistakenQids: progress.mistakenQids ?? [],
       });
       setRoute({ name: "lesson", courseId: progress.courseId, lessonId: progress.lessonId });
       setSavedProgress(null);

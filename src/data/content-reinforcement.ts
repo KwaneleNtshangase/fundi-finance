@@ -490,8 +490,8 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       statement: "Your own pension or provident fund contribution on your payslip reduces the income you are taxed on, up to SARS limits.",
       correct: true,
       feedback: {
-        correct: "Correct. Retirement contributions are tax deductible up to 27.5% of income, capped at R350 000 a year.",
-        incorrect: "They are deductible. Retirement contributions lower your taxable income up to 27.5%, capped at R350 000 a year.",
+        correct: "Correct. Retirement contributions are tax deductible up to 27.5% of income, capped at R430 000 a year.",
+        incorrect: "They are deductible. Retirement contributions lower your taxable income up to 27.5%, capped at R430 000 a year.",
       },
     },
   ],
@@ -2473,8 +2473,8 @@ export const REINFORCEMENT: Record<string, LessonStep[]> = {
       prompt: "Retirement fund contributions are tax deductible up to ___% of your income (within an annual cap).",
       correct: 27.5,
       feedback: {
-        correct: "Yes. You can deduct retirement contributions up to 27.5% of income, capped at R350 000 a year.",
-        incorrect: "The limit is 27.5% of income, capped at R350 000 a year.",
+        correct: "Yes. You can deduct retirement contributions up to 27.5% of income, capped at R430 000 a year.",
+        incorrect: "The limit is 27.5% of income, capped at R430 000 a year.",
       },
     },
     {

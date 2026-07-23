@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
+import {
+  shuffleLessonSteps,
+  lessonShuffleSeed,
+  seededPermutation,
+  hashSeed,
+} from "@/lib/lessonShuffle";
 import type { LessonStep } from "@/data/content";
 
 const mcq = (options: string[], correct: number): LessonStep =>
@@ -10,6 +15,32 @@ const mcq = (options: string[], correct: number): LessonStep =>
     correct,
     feedback: { correct: "y", incorrect: "n" },
   }) as LessonStep;
+
+describe("seededPermutation", () => {
+  it("preserves correctness: remapped index points at the original correct option", () => {
+    const options = ["Alpha", "Bravo", "Charlie", "Delta"];
+    const originalCorrect = 1;
+    const correctText = options[originalCorrect];
+
+    for (let seed = 0; seed < 100; seed++) {
+      const perm = seededPermutation(options.length, hashSeed(`perm-${seed}`));
+      const shuffled = perm.map((oldIdx) => options[oldIdx]);
+      const remappedCorrect = perm.indexOf(originalCorrect);
+      expect(shuffled[remappedCorrect]).toBe(correctText);
+    }
+  });
+
+  it("is stable for the same seed", () => {
+    const seed = hashSeed("stable-perm");
+    expect(seededPermutation(4, seed)).toEqual(seededPermutation(4, seed));
+  });
+
+  it("varies across different seeds", () => {
+    const a = seededPermutation(4, hashSeed("seed-a"));
+    const b = seededPermutation(4, hashSeed("seed-b"));
+    expect(a).not.toEqual(b);
+  });
+});
 
 describe("shuffleLessonSteps", () => {
   const steps: LessonStep[] = [

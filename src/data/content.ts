@@ -3,6 +3,7 @@ import { mergeContentExtras } from "./mergeContentExtras";
 import { LEVEL_3_COURSES } from "./content-level3";
 import { RE5_COURSES } from "./content-re5";
 import { applyReinforcement } from "./content-reinforcement";
+import { applyBanks } from "./applyBanks";
 
 export type LessonStep =
   | {
@@ -19,12 +20,15 @@ export type LessonStep =
       feedback: { correct: string; incorrect: string };
       explanation?: string;
       content?: string;
+      /** Links this question to a CONCEPTS[].id for spaced-repetition resurface. */
+      conceptId?: string;
     }
   | {
       type: "true-false";
       statement: string;
       correct: boolean;
       feedback: { correct: string; incorrect: string };
+      conceptId?: string;
     }
   | {
       type: "fill-blank";
@@ -33,6 +37,7 @@ export type LessonStep =
       correct: number;
       explanation?: string;
       feedback?: { correct: string; incorrect: string };
+      conceptId?: string;
     }
   | {
       type: "action";
@@ -62,11 +67,47 @@ export type LessonStep =
       insight: string;
     };
 
+/** An answerable step type — the only kinds that belong in a question bank. */
+export type QuestionStep = Extract<
+  LessonStep,
+  { type: "mcq" | "scenario" } | { type: "true-false" } | { type: "fill-blank" }
+>;
+
+/** One interchangeable phrasing of a slot's question. */
+export type QuestionVariant = {
+  variantId: string;
+  step: QuestionStep;
+};
+
+/**
+ * A question position within a lesson, holding a pool of interchangeable
+ * variants. At runtime one variant is chosen per slot (see lib/lessonBank.ts),
+ * so two users — or one user on a repeat — rarely see the same phrasing.
+ * Difficulty is intentionally NOT constrained across variants.
+ */
+export type QuestionSlot = {
+  slotId: string;
+  /** Links the whole slot to a concept for spaced-repetition resurface. */
+  conceptId?: string;
+  variants: QuestionVariant[];
+};
+
+/** A reference to a slot, used inside a lesson's `layout`. */
+export type SlotRef = { slot: string };
+
+/** A lesson's ordered layout: inline teaching steps + references to slots. */
+export type LessonLayoutItem = LessonStep | SlotRef;
+
 export type Lesson = {
   id: string;
   title: string;
   comingSoon?: boolean;
+  /** Legacy / static lessons: a fixed list of steps. Still fully supported. */
   steps?: LessonStep[];
+  /** Bank-backed lessons: ordered teaching steps + slot references. */
+  layout?: LessonLayoutItem[];
+  /** The question banks referenced by `layout`. */
+  slots?: QuestionSlot[];
 };
 
 export type Unit = {
@@ -431,7 +472,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Big One: PAYE",
-                  content: "<p><strong>PAYE (Pay As You Earn)</strong> is income tax deducted monthly. South Africa uses progressive tax, the more you earn, the higher the rate.</p><ul><li>First ~R95 750/year: 0%</li><li>Up to ~R237 100: 18%</li><li>Up to ~R370 500: 26%</li></ul><p><em>Thresholds change annually, this is illustrative.</em></p>",
+                  content: "<p><strong>PAYE (Pay As You Earn)</strong> is income tax deducted monthly. South Africa uses progressive tax, the more you earn, the higher the rate.</p><ul><li>First ~R99 000/year: 0%</li><li>Up to ~R237 100: 18%</li><li>Up to ~R370 500: 26%</li></ul><p><em>Thresholds change annually, this is illustrative.</em></p>",
                 },
                 {
                   type: "mcq",
@@ -708,7 +749,7 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "mcq",
                   question: "What is the most important thing to do BEFORE stopping a legitimate debit order?",
-                  options: ["Get a lawyer to send a letter", "Cancel your bank account", "Cancel the underlying contract or debt with the company", "Wait 40 days for it to expire automatically"],
+                  options: ["Get a lawyer to send a letter", "Cancel your bank account", "Cancel the underlying contract or debt with the company", "Wait 60 days for it to expire automatically"],
                   correct: 2,
                   feedback: {
                     correct: "That's right. Stopping a debit order at the bank only stops the payment mechanism. The underlying debt or contract still exists - cancel it separately.",
@@ -733,25 +774,25 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "Unauthorized Debits Can Be Reversed",
-                  content: "<p>If you see a debit order on your statement that you did not authorize, South African banking rules entitle you to a <strong>reversal</strong>.</p><p><strong>The reversal process:</strong></p><ul><li>You have <strong>40 days</strong> from the date of the debit to dispute it with your bank as unauthorized.</li><li>Contact your bank (in branch, via app, or call centre) and formally dispute the debit as unauthorized.</li><li>The bank must reverse the unauthorized debit - no questions asked for DebiCheck mandates you never approved.</li><li>For disputed legitimate debit orders, the bank investigates and may take up to 10 business days.</li></ul><p><strong>Keep records:</strong> Take screenshots of unauthorized debits immediately. Keep reference numbers for all disputes. If a company continues to debit you after a reversal, escalate to the <strong>Banking Ombudsman</strong> (0860 800 900) at no cost.</p><p><strong>Warning signs:</strong> Small recurring amounts (R19, R49, R99) you don't recognize - these are common with subscription scams. Check every line of your bank statement monthly.</p>",
+                  content: "<p>If you see a debit order on your statement that you did not authorize, South African banking rules entitle you to a <strong>reversal</strong>.</p><p><strong>The reversal process:</strong></p><ul><li>You have <strong>60 days</strong> from the date of the debit to dispute it with your bank as unauthorized.</li><li>Contact your bank (in branch, via app, or call centre) and formally dispute the debit as unauthorized.</li><li>The bank must reverse the unauthorized debit - no questions asked for DebiCheck mandates you never approved.</li><li>For disputed legitimate debit orders, the bank investigates and may take up to 10 business days.</li></ul><p><strong>Keep records:</strong> Take screenshots of unauthorized debits immediately. Keep reference numbers for all disputes. If a company continues to debit you after a reversal, escalate to the <strong>National Financial Ombud (NFO)</strong> (0860 800 900) at no cost.</p><p><strong>Warning signs:</strong> Small recurring amounts (R19, R49, R99) you don't recognize - these are common with subscription scams. Check every line of your bank statement monthly.</p>",
                 },
                 {
                   type: "mcq",
                   question: "How many days do you have to dispute an unauthorized debit order with your bank?",
-                  options: ["7 days", "14 days", "40 days", "90 days"],
+                  options: ["7 days", "14 days", "60 days", "90 days"],
                   correct: 2,
                   feedback: {
-                    correct: "Spot on. You have 40 days from the debit date to report it as unauthorized and claim a reversal from your bank.",
-                    incorrect: "The dispute window is 40 days from the transaction date. After that, reversals are at the bank's discretion.",
+                    correct: "Spot on. You have 60 days from the debit date to report it as unauthorized and claim a reversal from your bank.",
+                    incorrect: "The dispute window is 60 days from the transaction date. After that, reversals are at the bank's discretion.",
                   },
                 },
                 {
                   type: "true-false",
-                  statement: "The Banking Ombudsman charges a fee to investigate your complaint against a bank.",
+                  statement: "The National Financial Ombud (NFO) charges a fee to investigate your complaint against a bank.",
                   correct: false,
                   feedback: {
-                    correct: "The Banking Ombudsman (also called the Ombudsman for Banking Services) is a free service for consumers.",
-                    incorrect: "The Banking Ombudsman is completely free for consumers. Call 0860 800 900 or visit ombud.co.za at no cost.",
+                    correct: "The National Financial Ombud (NFO) is a free service for consumers.",
+                    incorrect: "The National Financial Ombud (NFO) is completely free for consumers. Call 0860 800 900 or visit nfosa.co.za at no cost.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -1775,16 +1816,16 @@ const RAW_COURSES: Course[] = [
                 {
                   type: "info",
                   title: "The Best Legal Tax Break You're Probably Not Using",
-                  content: "<p>Every year you don't use your TFSA allowance is R36 000 of tax-free growth you lose permanently - it doesn't roll over. Over 30 years, the difference between using your TFSA and not is often over R1 million in tax saved.</p><p>A Tax-Free Savings Account lets you invest R36 000 per year (R500 000 lifetime limit) and pay zero tax on interest, dividends, or capital gains - ever. Available at Sygnia, Satrix, EasyEquities, Capitec, and most major platforms.</p>",
+                  content: "<p>Every year you don't use your TFSA allowance is R46 000 of tax-free growth you lose permanently - it doesn't roll over. Over 30 years, the difference between using your TFSA and not is often over R1 million in tax saved.</p><p>A Tax-Free Savings Account lets you invest R46 000 per year (R500 000 lifetime limit) and pay zero tax on interest, dividends, or capital gains - ever. Available at Sygnia, Satrix, EasyEquities, Capitec, and most major platforms.</p>",
                 },
                 {
                   type: "mcq",
                   question: "What is the annual contribution limit for a South African TFSA?",
-                  options: ["R10 000", "R36 000", "R100 000", "R500 000"],
+                  options: ["R10 000", "R46 000", "R100 000", "R500 000"],
                   correct: 1,
                   feedback: {
-                    correct: "R36 000 per year is the annual TFSA limit (as of 2024). The lifetime limit is R500 000.",
-                    incorrect: "The annual TFSA limit is R36 000. The lifetime limit is R500 000.",
+                    correct: "R46 000 per year is the annual TFSA limit (2026/27 tax year). The lifetime limit is R500 000.",
+                    incorrect: "The annual TFSA limit is R46 000 (2026/27). The lifetime limit is R500 000.",
                   },
                 },
                 {
@@ -2301,8 +2342,8 @@ const RAW_COURSES: Course[] = [
                   options: ["About R16 000", "About R8 000", "Zero, you're below the tax threshold", "Exactly 18% of R90 000"],
                   correct: 2,
                   feedback: {
-                    correct: "Correct, the 2024/25 tax threshold is approximately R95 750. Below that, you pay zero income tax.",
-                    incorrect: "If your income is below the annual tax threshold (~R95 750 in 2024/25), you owe zero income tax.",
+                    correct: "Correct, the 2026/27 tax threshold is approximately R99 000. Below that, you pay zero income tax.",
+                    incorrect: "If your income is below the annual tax threshold (~R99 000 in 2026/27), you owe zero income tax.",
                   },
                 },
               ] satisfies LessonStep[],
@@ -3160,7 +3201,7 @@ const RAW_COURSES: Course[] = [
               title: "Why the Rand Weakens",
               steps: [
                 { type: "info", title: "A Volatile Emerging Market Currency", content: "<p>The rand is one of the most traded and most volatile emerging-market currencies. When global investors get nervous, they sell 'risky' assets, including rand, and buy 'safe' assets like the US dollar. This happens even when nothing has changed inside South Africa.</p>" },
-                { type: "info", title: "What Drives Rand Weakness", content: "<ul><li><strong>Load shedding:</strong> Destroys growth forecasts, scares investors</li><li><strong>Political uncertainty:</strong> Unpredictable policy = capital flight</li><li><strong>US Fed rate hikes:</strong> Money moves from SA to USD for better yields</li><li><strong>Trade deficit:</strong> SA imports more than it exports</li><li><strong>FATF greylisting:</strong> Increased friction for foreign investment</li></ul>" },
+                { type: "info", title: "What Drives Rand Weakness", content: "<ul><li><strong>Load shedding:</strong> Destroys growth forecasts, scares investors</li><li><strong>Political uncertainty:</strong> Unpredictable policy = capital flight</li><li><strong>US Fed rate hikes:</strong> Money moves from SA to USD for better yields</li><li><strong>Trade deficit:</strong> SA imports more than it exports</li><li><strong>Global risk-off sentiment:</strong> When investors flee risk worldwide, emerging-market currencies like the rand sell off (SA was FATF-greylisted 2023–Oct 2025, which added friction while it lasted; that has since been resolved)</li></ul>" },
                 { type: "mcq", question: "The US Federal Reserve raises interest rates sharply. What typically happens to the rand?", options: ["Rand strengthens, US growth is good for trade", "Rand weakens, capital flows to USD for better yields", "No effect, markets are independent", "Rand strengthens, investors seek diversification"], correct: 1, feedback: { correct: "Rising US rates pull global capital toward USD. Money exits SA, rand demand drops, and the rand weakens, this is called capital flight.", incorrect: "Rising US rates make USD assets more attractive. Capital leaves SA, reducing rand demand. The rand weakens." } },
                 { type: "info", title: "How Rand Weakness Hits Your Budget", content: "<p>Every R1 weakening against the dollar adds roughly R0.20-R0.30 per litre of petrol (crude oil is dollar-priced). Electronics, imported food, flights, and medicine all become more expensive.</p><p>A weaker rand helps SA exporters (mining, agriculture, tourism) but hurts consumers and importers.</p>" },
                 { type: "true-false", statement: "A weaker rand is always bad for all South Africans.", correct: false, feedback: { correct: "A weaker rand benefits exporters, SA's mining sector earns dollars and pays costs in rand. A weaker rand increases their rand revenue and employment in mining communities.", incorrect: "A weaker rand hurts importers and consumers but benefits exporters (mining, agriculture, tourism) who earn foreign currency." } },
@@ -3229,7 +3270,7 @@ const RAW_COURSES: Course[] = [
                 { type: "info", title: "VAT, When You Must Register", content: "<p>VAT registration is mandatory when annual taxable turnover exceeds <strong>R1 million</strong>. You add 15% VAT to invoices, claim back VAT on business expenses, and pay SARS the net amount bi-monthly. The net formula: VAT collected - VAT paid on expenses = amount owed to SARS.</p>" },
                 { type: "fill-blank", title: "VAT Calculation", prompt: "You invoice R80 000 (ex-VAT) and paid R6 000 VAT on business expenses. VAT collected = R12 000. You owe SARS R___.", correct: 6000, feedback: { correct: "R12 000 VAT collected - R6 000 VAT paid = R6 000 net to SARS. VAT is a passthrough, you collect and net it.", incorrect: "VAT owed = VAT collected - VAT paid on inputs. R12 000 - R6 000 = R6 000." } },
                 { type: "info", title: "Provisional Tax", content: "<p>Self-employed people pay tax twice yearly: end of August and end of February. Under-estimate by more than 20% and SARS charges penalties plus interest.</p><p><strong>Rule of thumb:</strong> Set aside 25-35% of every payment received. This is your future tax bill.</p>" },
-                { type: "scenario", question: "Thabo earns R80 000/month consulting (R960 000/year) and spends everything. At year end SARS bills him R280 000. What should he have done?", options: ["Nothing, SARS shouldn't tax self-employed people", "Set aside ~30% monthly (≈R24 000) and paid provisional tax twice yearly", "Registered as a company to avoid tax", "Kept earnings below R95 750 tax threshold"], correct: 1, feedback: { correct: "R960 000 × 30% ≈ R288 000, very close to the actual bill. Provisional tax requires self-employed people to pay estimated tax bi-annually. R80 000/month × 30% = R24 000 set aside monthly.", incorrect: "Self-employed people must pay provisional tax twice yearly. 30% of each payment set aside prevents the catastrophic year-end surprise." } },
+                { type: "scenario", question: "Thabo earns R80 000/month consulting (R960 000/year) and spends everything. At year end SARS bills him R280 000. What should he have done?", options: ["Nothing, SARS shouldn't tax self-employed people", "Set aside ~30% monthly (≈R24 000) and paid provisional tax twice yearly", "Registered as a company to avoid tax", "Kept earnings below R99 000 tax threshold"], correct: 1, feedback: { correct: "R960 000 × 30% ≈ R288 000, very close to the actual bill. Provisional tax requires self-employed people to pay estimated tax bi-annually. R80 000/month × 30% = R24 000 set aside monthly.", incorrect: "Self-employed people must pay provisional tax twice yearly. 30% of each payment set aside prevents the catastrophic year-end surprise." } },
               ] satisfies LessonStep[],
             },
           ],
@@ -3245,5 +3286,5 @@ const RAW_COURSES: Course[] = [
 const ALL_COURSES = [...RAW_COURSES, ...LEVEL_3_COURSES, ...RE5_COURSES];
 
 export const CONTENT_DATA: { courses: Course[] } = {
-  courses: applyReinforcement(mergeContentExtras(ALL_COURSES)),
+  courses: applyBanks(applyReinforcement(mergeContentExtras(ALL_COURSES))),
 };

@@ -207,3 +207,53 @@ export async function getDueCount(): Promise<number> {
   const due = await getDueCards();
   return due.length;
 }
+
+/**
+ * Record a single lesson answer against a concept's spaced-repetition schedule.
+ *
+ * This is the link between playing a lesson and the review system: a WRONG
+ * answer (quality 1) resets the concept to a 1-day interval, so the concept —
+ * and therefore the idea the learner just got wrong — resurfaces in their
+ * reviews almost immediately. A CORRECT answer (quality 4) advances it on the
+ * normal SM-2 curve. First exposure lazily creates the record.
+ *
+ * Fire-and-forget by design: it must never block or break a lesson. Callers
+ * should `void` it. Only questions authored with a `conceptId` reach here.
+ */
+export async function recordConceptResult(
+  conceptId: string,
+  isCorrect: boolean
+): Promise<void> {
+  try {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("concept_mastery")
+      .select(
+        "concept_id,interval_days,ease_factor,repetitions,next_review_date,last_reviewed_at"
+      )
+      .eq("user_id", user.id)
+      .eq("concept_id", conceptId)
+      .maybeSingle();
+
+    const current: MasteryRecord = data
+      ? {
+          concept_id: (data as any).concept_id,
+          interval_days: (data as any).interval_days,
+          ease_factor: (data as any).ease_factor,
+          repetitions: (data as any).repetitions,
+          next_review_date: (data as any).next_review_date,
+          last_reviewed_at: (data as any).last_reviewed_at,
+        }
+      : createMasteryRecord(conceptId);
+
+    // Notho mapping (see ReviewQuality): correct → 4, wrong → 1.
+    const quality: ReviewQuality = isCorrect ? 4 : 1;
+    await syncMasteryToSupabase(applyReview(current, quality));
+  } catch {
+    // Silent fail — a review-schedule write must never break a lesson.
+  }
+}

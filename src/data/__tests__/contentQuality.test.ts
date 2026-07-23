@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { CONTENT_DATA } from "@/data/content";
 import type { LessonStep } from "@/data/content";
+import { LESSON_BANKS } from "@/data/banks";
+import { CONCEPTS } from "@/data/concepts";
 
 /**
  * Content quality guards — keep answer patterns out of the question bank.
@@ -61,6 +63,28 @@ function lengthStats(q: OptionQ) {
   return { uniquelyLongest, marginPct };
 }
 
+const Q_TYPES = new Set(["mcq", "scenario", "true-false", "fill-blank"]);
+
+/**
+ * Questions a learner actually sees in a lesson. Bank lessons (layout + slots)
+ * show one question per slot reference; legacy lessons count their steps.
+ */
+function lessonQuestionCount(lesson: {
+  layout?: unknown[];
+  slots?: unknown[];
+  steps?: LessonStep[];
+}): number {
+  if (Array.isArray(lesson.layout) && Array.isArray(lesson.slots) && lesson.slots.length > 0) {
+    let n = 0;
+    for (const item of lesson.layout as Array<Record<string, unknown>>) {
+      if (item && typeof item === "object" && "slot" in item) n++;
+      else if (item && Q_TYPES.has(item.type as string)) n++;
+    }
+    return n;
+  }
+  return (lesson.steps ?? []).filter((s) => Q_TYPES.has(s.type)).length;
+}
+
 describe("content quality — answer patterns", () => {
   const { optionQs, tfTrue, tfTotal, lessonIds } = collect();
 
@@ -113,5 +137,71 @@ describe("content quality — answer patterns", () => {
   it("lesson ids are unique (completed_lessons keys depend on them)", () => {
     const dupes = lessonIds.filter((id, i) => lessonIds.indexOf(id) !== i);
     expect([...new Set(dupes)]).toEqual([]);
+  });
+
+  it("every lesson has more than 3 questions", () => {
+    const short: string[] = [];
+    for (const course of CONTENT_DATA.courses) {
+      for (const unit of course.units) {
+        for (const lesson of unit.lessons) {
+          const n = lessonQuestionCount(lesson);
+          if (n <= 3) short.push(`${course.id}/${lesson.id}=${n}`);
+        }
+      }
+    }
+    expect(
+      short,
+      "These lessons have 3 or fewer questions. Every lesson must have more than 3."
+    ).toEqual([]);
+  });
+});
+
+describe("lesson bank guards", () => {
+  const conceptIds = new Set(CONCEPTS.map((c) => c.id));
+
+  it("has no duplicate slotId or variantId across LESSON_BANKS", () => {
+    const slotIds = new Set<string>();
+    const variantIds = new Set<string>();
+    const dupSlots: string[] = [];
+    const dupVariants: string[] = [];
+
+    for (const bank of Object.values(LESSON_BANKS)) {
+      for (const slot of bank.slots) {
+        if (slotIds.has(slot.slotId)) dupSlots.push(slot.slotId);
+        else slotIds.add(slot.slotId);
+
+        for (const variant of slot.variants) {
+          if (variantIds.has(variant.variantId)) dupVariants.push(variant.variantId);
+          else variantIds.add(variant.variantId);
+        }
+      }
+    }
+
+    expect(dupSlots, "Duplicate slotId values found").toEqual([]);
+    expect(dupVariants, "Duplicate variantId values found").toEqual([]);
+  });
+
+  it("every slot conceptId exists in CONCEPTS", () => {
+    const missing: string[] = [];
+    for (const bank of Object.values(LESSON_BANKS)) {
+      for (const slot of bank.slots) {
+        if (!slot.conceptId) {
+          missing.push(`${slot.slotId} (missing conceptId)`);
+        } else if (!conceptIds.has(slot.conceptId)) {
+          missing.push(`${slot.slotId} → ${slot.conceptId}`);
+        }
+      }
+    }
+    expect(missing, "Unknown or missing conceptId on bank slots").toEqual([]);
+  });
+
+  it("every slot has at least 2 variants", () => {
+    const short: string[] = [];
+    for (const bank of Object.values(LESSON_BANKS)) {
+      for (const slot of bank.slots) {
+        if (slot.variants.length < 2) short.push(`${slot.slotId}=${slot.variants.length}`);
+      }
+    }
+    expect(short, "Slots need ≥2 variants for anti-repeat variety").toEqual([]);
   });
 });

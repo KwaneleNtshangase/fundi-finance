@@ -8,6 +8,23 @@ import { getLessonTitle, getNextLesson } from "@/app/pageViews.types";
 import { analytics } from "@/lib/analytics";
 import { CONTENT_DATA } from "@/data/content";
 import { shuffleLessonSteps, lessonShuffleSeed } from "@/lib/lessonShuffle";
+import {
+  assignQids,
+  requeuedCopy,
+  allQuestionsMastered,
+  firstTryAccuracy,
+  baseQids,
+  type WorkingStep,
+} from "@/lib/lessonMastery";
+import { recordConceptResult } from "@/lib/spaced-repetition";
+import {
+  resolveLessonSteps,
+  nextAttemptNo,
+  peekAttemptNo,
+  recordMissedVariant,
+  clearMissedVariant,
+} from "@/lib/lessonBank";
+import { logQuestionAttempt } from "@/lib/questionAttempts";
 
 /** Saved mid-lesson progress is honoured for this long after the last step. */
 const SAVED_PROGRESS_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -17,8 +34,12 @@ type SavedMidLesson = {
   courseId?: string;
   lessonId?: string;
   stepIndex?: number;
+  steps?: WorkingStep[];
   answers?: Record<number, unknown>;
   correctCount?: number;
+  mistakes?: number;
+  masteredQids?: number[];
+  mistakenQids?: number[];
   savedAt?: number;
 };
 
@@ -48,6 +69,7 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     setCurrentLessonState,
     setRoute,
     hearts,
+    loseHeart,
     completeLesson,
     isLessonCompleted,
     lessonSummary,
@@ -81,20 +103,43 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     const lesson = course?.units
       .flatMap((u) => u.lessons)
       .find((l) => l.id === lessonId);
-    if (lesson?.steps?.length) {
+    const hasContent = Boolean(
+      lesson && ((lesson.steps?.length ?? 0) > 0 || (lesson.slots?.length ?? 0) > 0)
+    );
+    if (lesson && hasContent) {
       const saved = readSavedMidLesson(userId, courseId, lessonId);
+      let workingSteps: WorkingStep[];
+      if (saved?.steps && saved.steps.length > 0) {
+        // Prefer the persisted working steps — they include any re-queued
+        // copies from the mastery loop, which can't be re-derived from content.
+        workingSteps = saved.steps;
+      } else {
+        // Fresh (deep link / relaunch, no save): resolve the bank for this
+        // attempt, then shuffle with the same seed so answer indexes are stable.
+        const attemptNo = nextAttemptNo(userId, lessonId);
+        const resolved = resolveLessonSteps(lesson, { userId, attemptNo });
+        workingSteps = shuffleLessonSteps(
+          assignQids(resolved),
+          lessonShuffleSeed(userId, courseId, lessonId)
+        ) as WorkingStep[];
+      }
+      if (workingSteps.length === 0) {
+        setRoute({ name: "course", courseId });
+        return;
+      }
       const stepIdx = saved
-        ? Math.min(Math.max(0, saved.stepIndex ?? 0), lesson.steps.length - 1)
+        ? Math.min(Math.max(0, saved.stepIndex ?? 0), workingSteps.length - 1)
         : 0;
       setCurrentLessonState({
         courseId,
         lessonId,
         stepIndex: stepIdx,
-        // Same seed as startLesson → identical option order, so restored
-        // answer indexes still point at the options the user actually chose.
-        steps: shuffleLessonSteps(lesson.steps, lessonShuffleSeed(userId, courseId, lessonId)),
+        steps: workingSteps,
         answers: saved?.answers ?? {},
         correctCount: saved?.correctCount ?? 0,
+        mistakes: saved?.mistakes ?? 0,
+        masteredQids: saved?.masteredQids ?? [],
+        mistakenQids: saved?.mistakenQids ?? [],
       });
       return;
     }
@@ -118,15 +163,13 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
       return;
     }
 
-    const totalQuestions = currentLessonState.steps.filter(
-      (s: any) =>
-        s.type === "mcq" ||
-        s.type === "true-false" ||
-        s.type === "scenario" ||
-        s.type === "fill-blank"
-    ).length;
-    const isPerfect =
-      totalQuestions > 0 && currentLessonState.correctCount === totalQuestions;
+    // Distinct questions in the lesson (re-queued copies share a qid, so this
+    // is not inflated by the mastery loop).
+    const totalQuestions = baseQids(currentLessonState.steps).length;
+    // With the mastery loop every question ends correct, so "perfect" can no
+    // longer mean "all correct" — it means the learner never missed on the
+    // first try.
+    const isPerfect = totalQuestions > 0 && currentLessonState.mistakes === 0;
 
     const lessonTitleDone =
       getLessonTitle(currentLessonState.courseId, currentLessonState.lessonId) ?? "";
@@ -183,10 +226,10 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     // completeLesson → recordLessonStats) — no device-local counter to drift.
 
     const elapsedSeconds = Math.round((Date.now() - lessonStartTimeRef.current) / 1000);
-    const accuracy =
-      totalQuestions > 0
-        ? Math.min(100, Math.round((currentLessonState.correctCount / totalQuestions) * 100))
-        : 0;
+    const accuracy = firstTryAccuracy(
+      currentLessonState.steps,
+      currentLessonState.mistakenQids
+    );
 
     setLessonSummary({
       xpEarned: xpAwarded,
@@ -233,6 +276,71 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
     return next?.title ?? undefined;
   })();
 
+  // Single source of truth for answering any question type. On a wrong answer
+  // it (1) re-queues a fresh copy of the question to the end of the session so
+  // the learner must return to it, and (2) pulls the linked concept's next
+  // review sooner via SM-2 so it resurfaces in future sessions.
+  const recordAnswer = (isCorrect: boolean, answerValue: unknown) => {
+    const answeredStep = currentLessonState.steps[currentLessonState.stepIndex] as
+      | (WorkingStep & { conceptId?: string })
+      | undefined;
+    setCurrentLessonState((prev) => {
+      const step = prev.steps[prev.stepIndex] as WorkingStep;
+      const qid = step?.__qid;
+      const answers = { ...prev.answers, [prev.stepIndex]: answerValue };
+      if (isCorrect) {
+        const masteredQids =
+          qid !== undefined && !prev.masteredQids.includes(qid)
+            ? [...prev.masteredQids, qid]
+            : prev.masteredQids;
+        return { ...prev, answers, correctCount: prev.correctCount + 1, masteredQids };
+      }
+      const mistakenQids =
+        qid !== undefined && !prev.mistakenQids.includes(qid)
+          ? [...prev.mistakenQids, qid]
+          : prev.mistakenQids;
+      return {
+        ...prev,
+        answers,
+        mistakes: prev.mistakes + 1,
+        mistakenQids,
+        steps: [...prev.steps, requeuedCopy(step)],
+      };
+    });
+    const slotId = answeredStep?.__slotId;
+    const variantId = answeredStep?.__variantId;
+    if (userId && slotId && variantId) {
+      logQuestionAttempt({
+        userId,
+        courseId,
+        lessonId,
+        slotId,
+        variantId,
+        conceptId: answeredStep?.conceptId,
+        attemptNo: peekAttemptNo(userId, lessonId),
+        isCorrect,
+      });
+    }
+    if (isCorrect) {
+      // Learner finally got this exact item right — stop resurfacing it.
+      clearMissedVariant(userId, slotId, variantId);
+    } else {
+      // Gamification: a wrong answer costs a heart (loseHeart shows the
+      // out-of-hearts state when it hits zero).
+      loseHeart();
+      lessonHeartLostRef.current = true;
+      // Resurface this exact variant in future plays, and shorten the concept's
+      // SM-2 interval so the idea returns in reviews too.
+      recordMissedVariant(userId, slotId, variantId);
+      if (answeredStep?.conceptId) void recordConceptResult(answeredStep.conceptId, false);
+    }
+  };
+
+  const canFinalize = allQuestionsMastered(
+    currentLessonState.steps,
+    currentLessonState.masteredQids
+  );
+
   return (
     <LessonView
       lessonState={{
@@ -248,6 +356,7 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
         }));
       }}
       finalizeLesson={finalizeCurrentLesson}
+      canFinalize={canFinalize}
       answerQuestion={(index: number) => {
         const step = currentLessonState.steps[currentLessonState.stepIndex];
         // Scenario steps render through the same option UI but were never
@@ -255,27 +364,15 @@ export default function LessonPage({ params }: { params: Promise<{ courseId: str
         // on lessons containing scenarios.
         const isCorrect =
           (step.type === "mcq" || step.type === "scenario") && index === step.correct;
-        setCurrentLessonState((prev) => ({
-          ...prev,
-          answers: { ...prev.answers, [prev.stepIndex]: index },
-          correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
-        }));
+        recordAnswer(isCorrect, index);
       }}
       answerTrueFalse={(value: boolean) => {
         const step = currentLessonState.steps[currentLessonState.stepIndex];
         const isCorrect = step.type === "true-false" && value === step.correct;
-        setCurrentLessonState((prev) => ({
-          ...prev,
-          answers: { ...prev.answers, [prev.stepIndex]: value },
-          correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
-        }));
+        recordAnswer(isCorrect, value);
       }}
       answerFillBlank={(value: string, isCorrect: boolean) => {
-        setCurrentLessonState((prev) => ({
-          ...prev,
-          answers: { ...prev.answers, [prev.stepIndex]: value },
-          correctCount: isCorrect ? prev.correctCount + 1 : prev.correctCount,
-        }));
+        recordAnswer(isCorrect, value);
       }}
       correctCount={currentLessonState.correctCount}
       hearts={hearts}

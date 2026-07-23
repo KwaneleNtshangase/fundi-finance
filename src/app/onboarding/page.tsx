@@ -9,7 +9,7 @@ import { useNotho, NothoProvider } from "@/context/NothoContext";
 import { useRouter } from "next/navigation";
 
 function OnboardingContent() {
-  const { setRoute, setCurrentLessonState } = useNotho();
+  const { setRoute, startLesson } = useNotho();
   const router = useRouter();
 
   const handleOnboardingComplete = async (payload: { goal?: string; ageRange?: string; goalDescription?: string; username: string }) => {
@@ -51,16 +51,8 @@ function OnboardingContent() {
     if (firstCourseId) {
       const goalCourse = CONTENT_DATA.courses.find((c) => c.id === firstCourseId);
       const firstLesson = goalCourse?.units?.[0]?.lessons?.[0];
-      if (firstLesson?.steps?.length) {
-        setCurrentLessonState({
-          courseId: firstCourseId,
-          lessonId: firstLesson.id,
-          stepIndex: 0,
-          steps: firstLesson.steps,
-          answers: {},
-          correctCount: 0,
-        });
-        setRoute({ name: "lesson", courseId: firstCourseId, lessonId: firstLesson.id });
+      if (firstLesson) {
+        startLesson(firstCourseId, firstLesson.id);
         return;
       }
     }

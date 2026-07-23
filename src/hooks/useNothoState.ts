@@ -21,6 +21,8 @@ import {
   type WeeklyStats,
 } from "@/lib/weeklyStats";
 import type { LessonStep } from "@/data/content";
+import { assignQids, type WorkingStep } from "@/lib/lessonMastery";
+import { resolveLessonSteps, nextAttemptNo } from "@/lib/lessonBank";
 import {
   UserData,
   Route,
@@ -347,9 +349,15 @@ export function useNothoState() {
     courseId: string | null;
     lessonId: string | null;
     stepIndex: number;
-    steps: LessonStep[];
+    steps: WorkingStep[];
     answers: Record<number, unknown>;
     correctCount: number;
+    /** Total wrong submissions this run (drives "perfect" + accuracy). */
+    mistakes: number;
+    /** Question ids answered correctly at least once — the completion gate. */
+    masteredQids: number[];
+    /** Question ids missed at least once — for first-try accuracy. */
+    mistakenQids: number[];
   }>({
     courseId: null,
     lessonId: null,
@@ -357,6 +365,9 @@ export function useNothoState() {
     steps: [],
     answers: {},
     correctCount: 0,
+    mistakes: 0,
+    masteredQids: [],
+    mistakenQids: [],
   });
 
   // ── Sync daily goal from Supabase when settings load ─────────────────────
@@ -471,16 +482,29 @@ export function useNothoState() {
         break;
       }
     }
-    if (!found || !found.steps || found.steps.length === 0) return;
+    if (!found) return;
+    // Resolve the lesson bank: bank-backed lessons pick one variant per slot
+    // (fresh per attempt); legacy lessons return their static steps.
+    const attemptNo = nextAttemptNo(progress.userId, lessonId);
+    const resolved = resolveLessonSteps(found, { userId: progress.userId, attemptNo });
+    if (resolved.length === 0) return;
     setCurrentLessonState({
       courseId,
       lessonId,
       stepIndex: 0,
+      // assignQids: tag each question with a stable id so re-queued copies
+      // (mastery loop) track completion per question, not per array index.
       // Seeded shuffle: breaks authored answer-position patterns (85% of
       // correct answers were option B) while staying stable across resume.
-      steps: shuffleLessonSteps(found.steps, lessonShuffleSeed(progress.userId, courseId, lessonId)),
+      steps: shuffleLessonSteps(
+        assignQids(resolved),
+        lessonShuffleSeed(progress.userId, courseId, lessonId)
+      ) as WorkingStep[],
       answers: {},
       correctCount: 0,
+      mistakes: 0,
+      masteredQids: [],
+      mistakenQids: [],
     });
     setRoute({ name: "lesson", courseId, lessonId });
   };
@@ -502,8 +526,15 @@ export function useNothoState() {
           lessonId: s.lessonId,
           lessonTitle: getLessonTitle(s.courseId, s.lessonId) ?? undefined,
           stepIndex: s.stepIndex,
+          // Persist the resolved working steps so re-queued copies (mastery
+          // loop) survive a refresh — the queue can't be re-derived from
+          // static content once questions have been appended.
+          steps: s.steps,
           answers: s.answers,
           correctCount: s.correctCount,
+          mistakes: s.mistakes,
+          masteredQids: s.masteredQids,
+          mistakenQids: s.mistakenQids,
           savedAt: Date.now(),
         })
       );

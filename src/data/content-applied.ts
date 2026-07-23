@@ -68,19 +68,19 @@ export const LESSON_THABO_INVESTMENT: Lesson = {
       type: "scenario",
       title: "The TFSA limit",
       question:
-        "Thabo invests R500/month = R6 000/year. His colleague Zanele invests R3 000/month = R36 000/year. Who fills their annual TFSA allowance?",
+        "Thabo invests R500/month = R6 000/year. His colleague Zanele invests R46 000/year (about R3 833/month). Who fills their annual TFSA allowance?",
       options: [
         "Only Thabo, R6 000 is within the annual limit",
-        "Only Zanele, she exactly hits the R36 000 annual TFSA limit",
+        "Only Zanele, she exactly hits the R46 000 annual TFSA limit",
         "Both of them, there is no annual limit",
         "Neither, the limit is R500 000 total per year",
       ],
       correct: 1,
       feedback: {
         correct:
-          "Exactly. The annual TFSA contribution limit is R36 000 (lifetime limit R500 000). Zanele maxes it out in one year. Thabo uses only R6 000 of his allowance, he can increase contributions later without penalty as long as he stays within the annual and lifetime limits.",
+          "Exactly. The annual TFSA contribution limit is R46 000 (2026/27; lifetime limit R500 000). Zanele maxes it out in one year. Thabo uses only R6 000 of his allowance, he can increase contributions later without penalty as long as he stays within the annual and lifetime limits.",
         incorrect:
-          "The TFSA annual limit is R36 000. Zanele's R3 000/month = R36 000/year exactly hits it. Thabo's R500/month = R6 000/year is well within the limit. Exceeding the annual limit triggers a 40% SARS penalty tax.",
+          "The TFSA annual limit is R46 000. Zanele's R46 000/year exactly hits it. Thabo's R500/month = R6 000/year is well within the limit. Exceeding the annual limit triggers a 40% SARS penalty tax.",
       },
     },
     {

@@ -16,6 +16,7 @@ import {
   INVESTOR_QUIZ_QUESTIONS,
 } from "@/data/gamificationExtras";
 import { CONCEPTS, getConceptIdsForCourse } from "@/data/concepts";
+import { hashSeed, seededPermutation } from "@/lib/lessonShuffle";
 import {
   applyReview,
   getDueCards,
@@ -442,11 +443,28 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
   const current = queue[currentIdx];
   const concept = current ? CONCEPTS.find((c) => c.id === current.concept_id) : null;
 
+  // Shuffle the four review-card options per concept (seeded, so it's stable
+  // across a resumed session) and remap the correct index — review cards don't
+  // go through the lesson option-shuffle, so without this the correct answer
+  // would always sit in its authored position.
+  const shuffled = useMemo(() => {
+    if (!concept) return null;
+    const perm = seededPermutation(
+      concept.reviewCard.options.length,
+      hashSeed(`review:${concept.id}`)
+    );
+    return {
+      options: perm.map((oldIdx) => concept.reviewCard.options[oldIdx]),
+      correct: perm.indexOf(concept.reviewCard.correct),
+    };
+  }, [concept]);
+  const correctIdx = shuffled ? shuffled.correct : -1;
+
   const handleAnswer = (idx: number) => {
     if (selected !== null) return;
     setSelected(idx);
     setShowExplanation(true);
-    const isCorrect = concept && idx === concept.reviewCard.correct;
+    const isCorrect = idx === correctIdx;
     if (isCorrect) {
       setCorrectCount((n) => n + 1);
       playSound("correct");
@@ -457,7 +475,7 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
 
   const handleNext = () => {
     if (!current || !concept) return;
-    const isCorrect = selected === concept.reviewCard.correct;
+    const isCorrect = selected === correctIdx;
     const updated = applyReview(current, isCorrect ? 4 : 1);
     saveMastery(updated);
     if (currentIdx + 1 >= queue.length) {
@@ -542,6 +560,7 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
   }
 
   const card = concept.reviewCard;
+  const displayOptions = shuffled ? shuffled.options : card.options;
   const optionLetters = ["A", "B", "C", "D"];
 
   return (
@@ -582,9 +601,9 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
         </h2>
 
         <div className="space-y-3">
-          {card.options.map((opt, i) => {
+          {displayOptions.map((opt, i) => {
             const isSelected = selected === i;
-            const isCorrect = i === card.correct;
+            const isCorrect = i === correctIdx;
             let bg = "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white";
             if (selected !== null) {
               if (isCorrect) bg = "bg-green-50 dark:bg-green-900/30 border-green-400 text-green-900 dark:text-green-200";
@@ -615,9 +634,9 @@ export function ReviewSession({ onClose }: { onClose: () => void }) {
         </div>
 
         {showExplanation && (
-          <div className={`mt-5 rounded-xl p-4 ${selected === card.correct ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"}`}>
-            <p className={`text-xs font-bold mb-1 ${selected === card.correct ? "text-green-700 dark:text-green-400" : "text-orange-700 dark:text-orange-400"}`}>
-              {selected === card.correct ? "✓ Correct!" : "Not quite"}
+          <div className={`mt-5 rounded-xl p-4 ${selected === correctIdx ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800" : "bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800"}`}>
+            <p className={`text-xs font-bold mb-1 ${selected === correctIdx ? "text-green-700 dark:text-green-400" : "text-orange-700 dark:text-orange-400"}`}>
+              {selected === correctIdx ? "✓ Correct!" : "Not quite"}
             </p>
             <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
               {card.explanation}

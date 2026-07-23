@@ -18,7 +18,7 @@ import type { LessonStep } from "@/data/content";
  */
 
 /** FNV-1a 32-bit hash — stable across sessions/devices. */
-function hashSeed(s: string): number {
+export function hashSeed(s: string): number {
   let h = 0x811c9dc5;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -28,7 +28,7 @@ function hashSeed(s: string): number {
 }
 
 /** mulberry32 PRNG — tiny, deterministic, good enough for shuffling 4 items. */
-function mulberry32(seed: number): () => number {
+export function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
   return () => {
     a |= 0;
@@ -39,7 +39,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function seededPermutation(n: number, seed: number): number[] {
+export function seededPermutation(n: number, seed: number): number[] {
   const rand = mulberry32(seed);
   const perm = Array.from({ length: n }, (_, i) => i);
   // Fisher–Yates
